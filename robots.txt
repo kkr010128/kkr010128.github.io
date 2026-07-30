@@ -1,1 +1,1 @@
-Sitemap: https://woonyong-kr.github.io/jekyll-theme-velog/sitemap.xml
+Sitemap: https://kkr010128.github.io/sitemap.xml
