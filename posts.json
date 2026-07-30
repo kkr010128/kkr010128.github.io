@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Linux",
+        "url": "/linux/",
+        "description": "Ubuntu",
+        "thumbnail": "/assets/images/posts/cover.png",
+        "tags": ["Ubuntu"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 30일",
+        "reading_time_label": "3분 읽기",
+        "search": "linux ubuntu ubuntu linux"
+      },
+    
+      
+      
+      {
         "title": "Velog Style Jekyll Theme 소개",
         "url": "/introducing-velog-style-jekyll-theme/",
         "description": "velog의 읽기 흐름을 참고해 Jekyll과 GitHub Pages에 맞게 다시 구성한 오픈소스 개발 블로그 테마를 소개합니다.",

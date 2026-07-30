@@ -1,4 +1,238 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-07-30T20:10:35+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed</title><subtitle>열시미살자</subtitle><entry><title type="html">Velog Style Jekyll Theme 소개</title><link href="https://kkr010128.github.io/introducing-velog-style-jekyll-theme/" rel="alternate" type="text/html" title="Velog Style Jekyll Theme 소개" /><published>2026-04-02T09:00:00+09:00</published><updated>2026-04-02T09:00:00+09:00</updated><id>https://kkr010128.github.io/introducing-velog-style-jekyll-theme</id><content type="html" xml:base="https://kkr010128.github.io/introducing-velog-style-jekyll-theme/"><![CDATA[<p>이 테마는 <code class="language-plaintext highlighter-rouge">읽기 편한 글 목록</code>, <code class="language-plaintext highlighter-rouge">시리즈</code>, <code class="language-plaintext highlighter-rouge">태그</code>, <code class="language-plaintext highlighter-rouge">검색</code>, <code class="language-plaintext highlighter-rouge">GitHub 프로필 동기화</code>, <code class="language-plaintext highlighter-rouge">기여 그래프</code>를 한 번에 갖춘 Jekyll 기반 개발 블로그 출발점입니다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-07-31T07:46:30+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed</title><subtitle>열시미살자</subtitle><entry><title type="html">Linux</title><link href="https://kkr010128.github.io/linux/" rel="alternate" type="text/html" title="Linux" /><published>2026-07-30T09:00:00+09:00</published><updated>2026-07-30T09:00:00+09:00</updated><id>https://kkr010128.github.io/linux</id><content type="html" xml:base="https://kkr010128.github.io/linux/"><![CDATA[<h2 id="1--linux의-시작">1 ) Linux의 시작</h2>
+<hr />
+<ul>
+  <li>UNIX →  하드웨어 종속</li>
+  <li>Linux → unix 계열의 운영체제
+    <h3 id="linux-kernel">Linux Kernel</h3>
+  </li>
+  <li>프로세스 / 메모리 / 파일 시스템 / 장치 관리</li>
+  <li>컴퓨터의 모든 자원 초기화 및 제어 기능
+    <h3 id="shell">Shell</h3>
+  </li>
+  <li>명령 해석</li>
+  <li>프로그래밍 기능</li>
+  <li>Linux 기본 쉘: 배시 쉘
+    <h3 id="application">Application</h3>
+  </li>
+  <li>각종 프로그래밍 개발 도구</li>
+  <li>문서 편집 도구</li>
+  <li>네트워크 관련 도구 등</li>
+</ul>
+
+<h3 id="virtual-machine">Virtual Machine</h3>
+<ul>
+  <li><strong>NAT</strong> (Network Address Translation)
+  → 네트워크 주소 변환
+    <ul>
+      <li>Private IP를 Public IP로 변환</li>
+      <li>192.168 • • •</li>
+      <li>
+        <ol>
+          <li>• • •</li>
+        </ol>
+      </li>
+      <li>172.16. • • •</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 미러서버 변경</span>
+<span class="nb">sudo </span>nano /etc/apt/sources.list
+
+
+<span class="c"># 패키지 업데이트</span>
+<span class="nb">sudo </span>apt update
+
+<span class="c"># ssh 설치</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>openssh-server <span class="nt">-y</span>
+
+<span class="c"># Net Tools 설치</span>
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>net-tools
+
+<span class="c"># SSH 서비스 systemctl 확인</span>
+<span class="nb">sudo </span>systemctl status ssh
+	<span class="nb">sudo </span>systemctl start ssh
+	<span class="nb">sudo </span>systemctl restart ssh
+	
+<span class="c"># 방화벽 포트 개방</span>
+<span class="nb">sudo </span>ufw allow ssh
+
+<span class="c"># IP 확인</span>
+<span class="nb">hostname</span> <span class="nt">-I</span>
+ifconfig
+
+</code></pre></div></div>
+
+<h2 id="2--명령어-구조">2 ) 명령어 구조</h2>
+<hr />
+<h3 id="command-option-arg">command [option] [arg]</h3>
+<ul>
+  <li>option은 세부 기능
+    <ul>
+      <li>-‘ ‘ 또는 –” “로 시작</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">[ ]</code>은 생략 가능</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>은 선택</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>문자열, { }, &lt; &gt;는 필수</li>
+</ul>
+
+<h3 id="명령어-자동완성">명령어 자동완성</h3>
+<ul>
+  <li>현재 입력중인 내용으로 시작하는 명령어가 1개라면 <code class="language-plaintext highlighter-rouge">\t</code> → 자동완성
+    <ul>
+      <li>2개 이상이라면 <code class="language-plaintext highlighter-rouge">\t \t</code>  → 모든 명령어 조회
+        <h3 id="history">history</h3>
+      </li>
+    </ul>
+  </li>
+  <li>위•아래 방향키로 명령어 history 사용 가능</li>
+  <li>
+    <p>명령어를 입력 후 Ctrl  + R 입력 시
+  → 해당 명령어로 시작하는 이전 명령어 조회</p>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">!!</code> → 직전 명령 재실행</li>
+  <li><code class="language-plaintext highlighter-rouge">history</code> → 명령 사용 기록
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">!{num]</code>→ 번호에 해당하는 명령 실행</li>
+      <li><code class="language-plaintext highlighter-rouge">!{str}</code> → 문자열로 시작하는 마지막 실행 명령을 실행</li>
+      <li><code class="language-plaintext highlighter-rouge">history -d {line_num}</code> → 명령어 삭제</li>
+      <li><code class="language-plaintext highlighter-rouge">history -c</code> → 명령어 목록 모두 삭제
+  → 명령어 기록된 파일은 <code class="language-plaintext highlighter-rouge">home/.bash_history</code>
+        <h3 id="command-etc">Command Etc.</h3>
+      </li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">--help</code> 
+  → 사용 방법 및 옵션</li>
+  <li>echo $PATH
+  → 명령어를 찾는 위치 - : 로 구분돼 있음</li>
+  <li><code class="language-plaintext highlighter-rouge">whereis</code>
+  → 명령어의 실행 파일 위치 및 소스 위치 등 확인</li>
+  <li><code class="language-plaintext highlighter-rouge">which</code>
+  → PATH env에 저장된 디렉토리에서 명령어의 위</li>
+  <li><code class="language-plaintext highlighter-rouge">exit</code>
+  → 터미널 종료</li>
+  <li><code class="language-plaintext highlighter-rouge">clear</code>
+  → 터미널 정리</li>
+</ul>
+
+<h3 id="alias">Alias</h3>
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">alias</code>
+  → 현재 설정된 별명 확인</p>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">alias {aka} = {cmd}</code></li>
+  <li><code class="language-plaintext highlighter-rouge">type {aka}</code> → 별명인지 확인 가능</li>
+  <li><code class="language-plaintext highlighter-rouge">unalias</code> → 별명 삭제</li>
+</ul>
+
+<h3 id="원본-명령-수행">원본 명령 수행</h3>
+<ul>
+  <li>전체 경로로 명령어 입력</li>
+  <li><code class="language-plaintext highlighter-rouge">command {cmd}</code> 명령어로 수행</li>
+  <li><code class="language-plaintext highlighter-rouge">\{cmd}</code> 수행
+    <h3 id="시간-관련-명령">시간 관련 명령</h3>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">date</code>
+  → Ubuntu 시스템에서 설정돼있는 현재 시각과 날짜를 출력</li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">timedatectl</code>
+  → 하드웨어 시계와 소프트웨어 시계, UTC, Timezone, 시간 동기화 등을 출력</p>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">timedatectl list-timezone</code>
+  → timezone 목록</li>
+  <li><code class="language-plaintext highlighter-rouge">sudo timedatectl set-timezone Asia/Seoul</code>
+  → timezone 변경
+    <h3 id="시스템-사용자-정보">시스템 사용자 정보</h3>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">logname, whoami</code>
+  → 현재 사용중인 사용자 확인</li>
+  <li><code class="language-plaintext highlighter-rouge">users, who</code>
+  → 현재 접속한 사용자 아이디를 전부 조회</li>
+  <li><code class="language-plaintext highlighter-rouge">uname [option]</code>
+  → 시스템 정보
+    <ul>
+      <li>a: 모든 정보 확인</li>
+      <li>m: 하드웨어 정보</li>
+      <li>n: 호스트 이름 확인</li>
+      <li>r: 운영체제 릴리즈 번호</li>
+      <li>s: 운영체제 이름</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">hostname</code>
+  → 현재 사용 중인 호스트 네임
+    <ul>
+      <li>arch: cpu 정보</li>
+      <li>env: 환경 변수
+        <h3 id="sudo와-su">sudo와 su</h3>
+      </li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">sudo {cmd}</code>
+  → 관리자의 권한을 빌려 명령을 실행함</li>
+  <li><code class="language-plaintext highlighter-rouge">su {user} {cmd}</code>
+  → 현재 계정의 환경 변수들을 유지하며 다른 계정으로 전환</li>
+  <li><code class="language-plaintext highlighter-rouge">su - {user} {cmd}</code>
+  → 새로운 계정의 환경 변수를 가져오며 계정 전환</li>
+  <li><code class="language-plaintext highlighter-rouge">su</code>
+  → root 계정으로 전환
+    <ul>
+      <li>root 계정의 비밀번호가 설정돼 있어야 함(passwd root)</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="3--한글-locale-설정">3 ) 한글 Locale 설정</h2>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt update</code></li>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt install language-pack-ko -y</code></li>
+  <li><code class="language-plaintext highlighter-rouge">sudo update-locale LANG=ko_KR.UTF-8</code></li>
+  <li><code class="language-plaintext highlighter-rouge">sudo dpkg-reconfigure locales</code></li>
+</ul>
+
+<h2 id="4--문서-편집기">4 ) 문서 편집기</h2>
+<ol>
+  <li>편집기 종류
+    <ul>
+      <li>행 단위 편집기: ed, ex, sed</li>
+      <li>화면 단위 편집기: vi(vim), emacs, nano(메뉴기반)</li>
+      <li>GUI 편집기: gedit</li>
+    </ul>
+  </li>
+  <li>모드형과 비모드형
+    <ul>
+      <li>모드형 편집기
+        <ul>
+          <li>입력 모드와 명령 모드가 구분돼 있음</li>
+          <li>입력 모드는 텍스트를 입력하고 수정할 수 있는 모드</li>
+          <li>명령 모드는 텍스트를 저장하거나 복붙같은 명령 수행하는 모드</li>
+          <li>vi가 대표적인 모드형 편집기</li>
+        </ul>
+      </li>
+      <li>비모드형 편집기
+        <ul>
+          <li>입력 모드와 명령 모드가 구분되어 있지 않음</li>
+          <li>편집 기능을 ALT나 CTRL 같은 조합키와 사용</li>
+          <li>nano가 대표적인 비모드형 편집기
+            <ul>
+              <li></li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>]]></content><author><name></name></author><category term="Ubuntu" /><summary type="html"><![CDATA[Ubuntu]]></summary></entry><entry><title type="html">Velog Style Jekyll Theme 소개</title><link href="https://kkr010128.github.io/introducing-velog-style-jekyll-theme/" rel="alternate" type="text/html" title="Velog Style Jekyll Theme 소개" /><published>2026-04-02T09:00:00+09:00</published><updated>2026-04-02T09:00:00+09:00</updated><id>https://kkr010128.github.io/introducing-velog-style-jekyll-theme</id><content type="html" xml:base="https://kkr010128.github.io/introducing-velog-style-jekyll-theme/"><![CDATA[<p>이 테마는 <code class="language-plaintext highlighter-rouge">읽기 편한 글 목록</code>, <code class="language-plaintext highlighter-rouge">시리즈</code>, <code class="language-plaintext highlighter-rouge">태그</code>, <code class="language-plaintext highlighter-rouge">검색</code>, <code class="language-plaintext highlighter-rouge">GitHub 프로필 동기화</code>, <code class="language-plaintext highlighter-rouge">기여 그래프</code>를 한 번에 갖춘 Jekyll 기반 개발 블로그 출발점입니다.</p>
 
 <p>단순히 보기 좋은 화면만 넣는 대신, 저장소를 복제한 뒤 어떻게 설정하고 운영하는지까지 문서형 데모로 함께 제공하는 것을 목표로 만들었습니다. 지금 보고 있는 이 블로그 자체가 그 데모입니다.</p>
 
