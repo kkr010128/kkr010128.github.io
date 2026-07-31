@@ -7,7 +7,7 @@
         "title": "Linux",
         "url": "/linux/",
         "description": "Ubuntu",
-        "thumbnail": "/assets/images/posts/cover.png",
+        "thumbnail": null,
         "tags": ["Ubuntu"],
         "series_key": "linux",
         "series_title": "Linux",
