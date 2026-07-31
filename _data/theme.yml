@@ -24,12 +24,12 @@ home:
 hero:
   show_stats: true
   github_contributions:
-    enabled: false
-    username: ""
+    enabled: true
+    username: "kkr010128"
 
 profile:
   github_sync:
-    enabled: false
+    enabled: true
 
 footer:
   tagline: Notes on Software Engineering, Backend and Cloud
