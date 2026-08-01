@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>SELECT | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="MariaDB SELECT 기본 문법, WHERE, ORDER BY, DISTINCT, LIMIT 정리">
+<link rel="canonical" href="https://kkr010128.github.io/02-select/">
+<meta property="og:title" content="SELECT | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="MariaDB SELECT 기본 문법, WHERE, ORDER BY, DISTINCT, LIMIT 정리">
+<meta property="og:url" content="https://kkr010128.github.io/02-select/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SELECT | hyeon.log">
+<meta name="twitter:description" content="MariaDB SELECT 기본 문법, WHERE, ORDER BY, DISTINCT, LIMIT 정리">
+
+  <meta property="article:published_time" content="2026-07-10T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "SELECT | hyeon.log",
+    "description": "MariaDB SELECT 기본 문법, WHERE, ORDER BY, DISTINCT, LIMIT 정리",
+    "url": "https://kkr010128.github.io/02-select/",
+    "datePublished": "2026-07-10T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">MariaDB</p>
+    
+    <h1 class="post-head__title">SELECT</h1>
+    
+      <p class="post-head__description">MariaDB SELECT 기본 문법, WHERE, ORDER BY, DISTINCT, LIMIT 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 10일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-개요-및-주석">1. 개요 및 주석</h2>
+
+<ul>
+  <li><strong>SELECT의 목적</strong>: 데이터베이스에서 원하는 데이터를 추출하여 Result Set(결과 셋)을 만드는 것임.</li>
+  <li><strong>주석 사용법</strong>:
+    <ul>
+      <li>한 줄 주석: <code class="language-plaintext highlighter-rouge">--</code> (반드시 뒤에 공백이 있어야 함).</li>
+      <li>여러 줄 주석: <code class="language-plaintext highlighter-rouge">/* 내용 */</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="2-sql-select의-연산">2. SQL SELECT의 연산</h2>
+
+<ul>
+  <li><strong>SELECTION</strong>: 테이블에서 특정 행(Row)을 선택함.</li>
+  <li><strong>PROJECTION</strong>: 테이블에서 특정 열(Column)을 선택함.</li>
+  <li><strong>JOIN</strong>: 여러 테이블에 흩어져 있는 데이터를 링크를 통해 함께 가져옴.</li>
+</ul>
+
+<hr />
+
+<h2 id="3-select-기본-문법-및-실행-순서">3. SELECT 기본 문법 및 실행 순서</h2>
+
+<h3 id="31-기본-형식">3.1 기본 형식</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="p">[</span><span class="k">DISTINCT</span><span class="p">]</span> <span class="p">{</span><span class="o">*</span><span class="p">,</span> <span class="err">컬럼명</span> <span class="p">[</span><span class="k">Alias</span><span class="p">],</span> <span class="p">...}</span>
+<span class="k">FROM</span> <span class="err">테이블명</span>
+<span class="p">[</span><span class="k">WHERE</span> <span class="err">조건</span><span class="p">]</span>
+<span class="p">[</span><span class="k">GROUP</span> <span class="k">BY</span> <span class="err">그룹조건</span><span class="p">]</span>
+<span class="p">[</span><span class="k">HAVING</span> <span class="err">그룹이후조건</span><span class="p">]</span>
+<span class="p">[</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="err">정렬기준</span> <span class="p">[</span><span class="k">ASC</span> <span class="o">|</span> <span class="k">DESC</span><span class="p">]]</span>
+<span class="p">[</span><span class="k">LIMIT</span> <span class="err">행</span><span class="n">_</span><span class="err">개수</span> <span class="p">[</span><span class="k">OFFSET</span> <span class="err">건너뛸</span><span class="n">_</span><span class="err">개수</span><span class="p">]];</span>
+</code></pre></div></div>
+
+<h3 id="32-실행-순서-매우-중요">3.2 실행 순서 (매우 중요)</h3>
+
+<ol>
+  <li><strong>FROM</strong>: 대상 테이블을 먼저 찾음.</li>
+  <li><strong>WHERE</strong>: 대상 데이터 중 조건에 맞는 행을 필터링함.</li>
+  <li><strong>GROUP BY</strong>: 데이터를 특정 기준에 따라 그룹화함.</li>
+  <li><strong>HAVING</strong>: 그룹화된 데이터에 필터링 조건을 적용함.</li>
+  <li><strong>SELECT</strong>: 출력할 컬럼을 결정함.</li>
+  <li><strong>ORDER BY</strong>: 최종 결과의 정렬 순서를 정함.</li>
+</ol>
+
+<hr />
+
+<h2 id="4-데이터-조회-실습">4. 데이터 조회 실습</h2>
+
+<h3 id="41-모든-열특정-열-선택">4.1 모든 열/특정 열 선택</h3>
+
+<ul>
+  <li><strong>전체 조회</strong>: <code class="language-plaintext highlighter-rouge">*</code>를 사용함. 오라클과 달리 MariaDB는 데이터 입력 순서대로 조회되는 경향이 있음.</li>
+  <li><strong>예제</strong>: <code class="language-plaintext highlighter-rouge">SELECT * FROM tCity;</code></li>
+  <li><strong>특정 컬럼 조회</strong>: 필요한 필드명만 나열함.</li>
+  <li><strong>예제</strong>: <code class="language-plaintext highlighter-rouge">SELECT name, salary FROM tStaff;</code></li>
+</ul>
+
+<h3 id="42-필드-별명-alias">4.2 필드 별명 (Alias)</h3>
+
+<ul>
+  <li>Result Set의 헤더 이름을 직관적으로 바꿀 때 사용함. <code class="language-plaintext highlighter-rouge">AS</code>를 쓰거나 한 칸 띄우고 작성함. 공백이 포함되면 큰따옴표(<code class="language-plaintext highlighter-rouge">""</code>)로 감싸야 함.</li>
+  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">컬럼명 AS "별명"</code></li>
+  <li><strong>예제</strong>: <code class="language-plaintext highlighter-rouge">SELECT name 도시명, area AS "면적(제곱Km)" FROM tCity;</code></li>
+</ul>
+
+<h3 id="43-산술-연산자">4.3 산술 연산자</h3>
+
+<ul>
+  <li>조회 시 데이터를 가공할 수 있음. <code class="language-plaintext highlighter-rouge">+</code>, <code class="language-plaintext highlighter-rouge">-</code>, <code class="language-plaintext highlighter-rouge">*</code>, <code class="language-plaintext highlighter-rouge">/</code>, <code class="language-plaintext highlighter-rouge">DIV</code>(몫), <code class="language-plaintext highlighter-rouge">%</code>, <code class="language-plaintext highlighter-rouge">MOD</code>(나머지) 지원함.</li>
+  <li><strong>예제</strong>: 인구수에 10000을 곱해 실제 명수 출력</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">popu</span> <span class="o">*</span> <span class="mi">10000</span> <span class="k">AS</span> <span class="nv">"인구(명)"</span> <span class="k">FROM</span> <span class="n">tCity</span><span class="p">;</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="5-조건-필터링-where-절">5. 조건 필터링 (WHERE 절)</h2>
+
+<h3 id="51-비교-및-논리-연산">5.1 비교 및 논리 연산</h3>
+
+<ul>
+  <li><strong>논리 연산자</strong>: <code class="language-plaintext highlighter-rouge">AND</code>, <code class="language-plaintext highlighter-rouge">OR</code>, <code class="language-plaintext highlighter-rouge">XOR</code>, <code class="language-plaintext highlighter-rouge">NOT</code> 사용함. <code class="language-plaintext highlighter-rouge">AND</code>가 <code class="language-plaintext highlighter-rouge">OR</code>보다 우선순위가 높음.</li>
+  <li><strong>NULL 비교</strong>: NULL은 <code class="language-plaintext highlighter-rouge">0</code>이나 빈 문자열과 다름. <code class="language-plaintext highlighter-rouge">IS NULL</code> 또는 <code class="language-plaintext highlighter-rouge">IS NOT NULL</code>을 사용해야 함.</li>
+  <li><strong>대소문자 구분</strong>: 기본적으로 구분하지 않으나, 컬럼 설정을 <code class="language-plaintext highlighter-rouge">utf8mb4_bin</code>으로 변경하면 구분 가능함.</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">tCity</span> <span class="k">MODIFY</span> <span class="n">metro</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">COLLATE</span> <span class="n">utf8mb4_bin</span><span class="p">;</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tCity</span> <span class="k">WHERE</span> <span class="n">metro</span> <span class="o">=</span> <span class="s1">'Y'</span><span class="p">;</span> <span class="c1">-- 대문자 Y만 조회됨</span>
+</code></pre></div></div>
+
+<h3 id="52-like-와일드카드">5.2 LIKE (와일드카드)</h3>
+
+<ul>
+  <li><strong><code class="language-plaintext highlighter-rouge">%</code></strong>: 0개 이상의 문자.</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">_</code></strong>: 정확히 1개의 문자.</li>
+  <li><strong>예제</strong>: ‘천’으로 끝나는 이름 조회: <code class="language-plaintext highlighter-rouge">SELECT * FROM tCity WHERE name LIKE '%천';</code></li>
+  <li><strong>특수문자 조회</strong>: <code class="language-plaintext highlighter-rouge">%</code>나 <code class="language-plaintext highlighter-rouge">_</code> 자체를 검색할 때는 <code class="language-plaintext highlighter-rouge">ESCAPE</code> 문자를 정의함.
+    <ul>
+      <li>예: <code class="language-plaintext highlighter-rouge">LIKE '%30#%' ESCAPE '#'</code> (30%가 포함된 데이터 조회)</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="53-in-연산자">5.3 IN 연산자</h3>
+
+<ul>
+  <li>여러 값 중 하나라도 일치하면 참임. <code class="language-plaintext highlighter-rouge">OR</code>를 여러 번 쓰는 것보다 효율적임.</li>
+  <li><strong>예제</strong>: <code class="language-plaintext highlighter-rouge">SELECT * FROM tCity WHERE region IN ('경상', '전라');</code></li>
+</ul>
+
+<hr />
+
+<h2 id="6-정렬-및-행-제한">6. 정렬 및 행 제한</h2>
+
+<h3 id="61-order-by-정렬">6.1 ORDER BY (정렬)</h3>
+
+<ul>
+  <li><strong>ASC</strong>: 오름차순(기본값).</li>
+  <li><strong>DESC</strong>: 내림차순.</li>
+  <li><strong>예제</strong>: 경기 지역 도시를 면적순으로 정렬</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tCity</span> <span class="k">WHERE</span> <span class="n">region</span> <span class="o">=</span> <span class="s1">'경기'</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">area</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="62-limit-행-개수-제한">6.2 LIMIT (행 개수 제한)</h3>
+
+<ul>
+  <li>페이징 처리에 필수적인 문법임.</li>
+  <li><strong>형식</strong>: <code class="language-plaintext highlighter-rouge">LIMIT [건너뛸 개수], 조회할 개수</code></li>
+  <li><strong>예제</strong>: 면적이 넓은 상위 4개 도시 조회</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tCity</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">area</span> <span class="k">DESC</span> <span class="k">LIMIT</span> <span class="mi">4</span><span class="p">;</span>
+</code></pre></div></div>
+
+<ul>
+  <li><strong>예제</strong>: 3위부터 5위까지(2개 건너뛰고 3개) 조회</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tCity</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">area</span> <span class="k">DESC</span> <span class="k">LIMIT</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">;</span>
+<span class="c1">-- 또는 OFFSET 사용</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tCity</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">area</span> <span class="k">DESC</span> <span class="k">LIMIT</span> <span class="mi">3</span> <span class="k">OFFSET</span> <span class="mi">2</span><span class="p">;</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="7-결과-저장-파일-출력">7. 결과 저장 (파일 출력)</h2>
+
+<ul>
+  <li>SELECT 결과를 외부 파일(<code class="language-plaintext highlighter-rouge">.dat</code>, <code class="language-plaintext highlighter-rouge">.csv</code> 등)로 내보낼 때 사용함.</li>
+  <li><strong>주의</strong>: 지정한 디렉토리가 미리 생성되어 있어야 함.</li>
+  <li><strong>예제</strong>: members 테이블 전체 데이터를 쉼표로 구분하여 저장</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">INTO</span> <span class="n">OUTFILE</span> <span class="s1">'/path/members.dat'</span>
+<span class="n">FIELDS</span> <span class="n">TERMINATED</span> <span class="k">BY</span> <span class="s1">','</span>
+<span class="n">ENCLOSED</span> <span class="k">BY</span> <span class="s1">'"'</span>
+<span class="k">FROM</span> <span class="n">members</span><span class="p">;</span>
+</code></pre></div></div>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/01-mariadb-overview/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">MariaDB 개요</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/03-sql-function/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">SQL 함수</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

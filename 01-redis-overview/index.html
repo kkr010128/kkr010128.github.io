@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Redis 개요 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Redis 특징, 자료구조, 아키텍처, 사용 사례 정리">
+<link rel="canonical" href="https://kkr010128.github.io/01-redis-overview/">
+<meta property="og:title" content="Redis 개요 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Redis 특징, 자료구조, 아키텍처, 사용 사례 정리">
+<meta property="og:url" content="https://kkr010128.github.io/01-redis-overview/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis 개요 | hyeon.log">
+<meta name="twitter:description" content="Redis 특징, 자료구조, 아키텍처, 사용 사례 정리">
+
+  <meta property="article:published_time" content="2026-07-16T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Redis 개요 | hyeon.log",
+    "description": "Redis 특징, 자료구조, 아키텍처, 사용 사례 정리",
+    "url": "https://kkr010128.github.io/01-redis-overview/",
+    "datePublished": "2026-07-16T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Redis</p>
+    
+    <h1 class="post-head__title">Redis 개요</h1>
+    
+      <p class="post-head__description">Redis 특징, 자료구조, 아키텍처, 사용 사례 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 16일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Redis">Redis</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-특징">1) 특징</h2>
+<hr />
+<ul>
+  <li>Key - Value Data Store</li>
+  <li>싱글 스레드로 동장</li>
+  <li>In Memory Database 방식이라 속도가 매우 빠름</li>
+  <li>MariaDB와 MongoDB는 On Disk Database</li>
+</ul>
+
+<ol>
+  <li><strong>고가용성</strong>
+    <ul>
+      <li>언제든지 사용할 수 있어야 함</li>
+      <li>자체적으로 HA(High Availability) 기능 제공</li>
+      <li>복제를 통해 여러 서버에 분산시킬 수 있음</li>
+      <li>Sentinel은 장애 상황을 자동 탐지해서 자동 <strong>fail-over</strong>를 수행
+        <ul>
+          <li>fail-over
+ → 시스템에 장애가 발생했을 때 예비 시스템으로 업무를 즉시 전환
+ → 서비스 중단 없이 운영을 유지하는 기술</li>
+        </ul>
+      </li>
+      <li>Sentinel을 이용해 데이터를 받아옴
+        <ul>
+          <li>노드에 직접 접속해 데이터를 받아오지 않음</li>
+          <li>마스터 노드에 장애가 발생해도 엔드포인트 변경 필요 없음</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>확장성</strong>
+    <ul>
+      <li>Redis를 Cluster 모드로 구성하면 손쉬운 수평 확장이 가능</li>
+      <li>데이터는 Redis Cluster 내에서 자동으로 샤딩된 후 저장되며 여러 개의 복제본을 저장</li>
+      <li>애플리케이션에서는 실제 데이터가 어떤 노드에 있는지 몰라도 사용 가능
+        <ul>
+          <li>→ 위치 투명성</li>
+        </ul>
+      </li>
+      <li>Cluster 구조에서 모든 Redis Instance는 Cluster Bus라는 Protocol로 상호 감시함
+        <ul>
+          <li>Cluster의 Master node에 문제가 발생하면 자동으로 fail-over를 이용</li>
+          <li>→ 고가용성 유지</li>
+        </ul>
+      </li>
+      <li>대다수의 클라우드 벤더들이 서비스를 제공
+        <ul>
+          <li>AWS: Amazon ElastiChe for Redis</li>
+          <li>GCP: Cloud Memory store for Redis</li>
+          <li>Azure, NHN, Naver Cloud • • •</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="2-microservice와-redis">2) MicroService와 Redis</h2>
+<hr />
+<h3 id="데이터-저장소로서의-redis">데이터 저장소로서의 Redis</h3>
+<ul>
+  <li>서비스 별 개별 저장소로 사용하기에 적합</li>
+  <li>설치가 간편</li>
+  <li>다양한 자료구조를 제공하고 사용이 간단</li>
+  <li>고가용성을 위해 로드밸런서• 프록시 등 추가적인 서비스를 설치할 필요 없음</li>
+  <li>AOF(Append Only File)과 RDB(Redis DataBase) 형식으로 디스크에 저장 가능</li>
+</ul>
+
+<h3 id="message-broker로서의-redis">Message Broker로서의 Redis</h3>
+<ul>
+  <li>MSA에서는 특별한 경우 아니면 Message Broker가 필요함</li>
+  <li>Message Broker는 서비스들 간의 비동기 데이터 전달을 수행</li>
+  <li>publish / subscribe 기능을 이용</li>
+  <li>모든 데이터는 전달된 뒤 삭제
+    <ul>
+      <li>fire-and-forget 패턴이 필요한 간단한 알림 서비스에서 유용</li>
+    </ul>
+  </li>
+  <li>stream과 list 자료구조를 이용한 구현이 가능
+    <ul>
+      <li>stream의 경우 Apache Kafka에서 영감을 얻어서 추가됨</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="3-반영구적-저장">3) 반영구적 저장</h2>
+<hr />
+
+<h3 id="rdbredis-database">RDB(Redis DataBase)</h3>
+<ul>
+  <li>현재 메모리에 있는 데이터 전체에 대한 스냅샷을 작성, 디스크에 저장하는 방식</li>
+  <li>
+    <p>간단한 사용 가능</p>
+  </li>
+  <li><em>하지만</em> 스냅샷 이후 변경된 데이터는 복구 안 됨
+    <h3 id="aofappend-only-file">AOF(Append Only File)</h3>
+  </li>
+  <li>Redis에 데이터가 변경되는 이벤트가 발생하면 이를 모두 저장하는 방식</li>
+  <li>
+    <p>데이터 복구 시 RDB 대비 유실량이 적음</p>
+  </li>
+  <li><em>하지만</em> 속도가 느림</li>
+  <li>로그의 크기가 커짐</li>
+</ul>
+
+<h2 id="4-event-loop">4) Event Loop</h2>
+<hr />
+<ul>
+  <li>Client가 실행한 명령어들을 Event Queue에 저장 후 단일 스레드로 하나씩 처리</li>
+</ul>
+
+<p><strong>멀티 스레드 방식의 문제점</strong></p>
+<ul>
+  <li>Context-Switching이 발생</li>
+  <li>Dead Lock 발생할 수 있음</li>
+</ul>
+
+<h2 id="5-장점">5) 장점</h2>
+<hr />
+<ol>
+  <li>In-Memory 구조 → 빠른 성능 (일반적으로 1ms 미만)</li>
+  <li>다양성과 사용 편의성(자료구조)</li>
+  <li>대다수의 개발 언어 지원</li>
+  <li>복제 및 지속성</li>
+</ol>
+
+<h2 id="6-사용사례">6) 사용사례</h2>
+<hr />
+<ol>
+  <li>주 데이터 저장소</li>
+  <li>Caching
+    <ul>
+      <li>Access 시간을 줄임
+  → 자주 사용하는 데이터를 저장할 용도로 다른 DB 앞에 배치</li>
+    </ul>
+  </li>
+  <li>Session 관리 
+ →  session: 서버의 메모리에 저장하는 정보
+    <ul>
+      <li>게임, 전자상거래, 소셜 미디어 플랫폼에서 주로 이용</li>
+    </ul>
+  </li>
+  <li>실시간 순위표</li>
+  <li>분산 락
+    <ul>
+      <li>다수의 컴퓨터가 공유 자원을 사용할 때 실제 사용 중인지 여부를 판단하기 위한 Lock</li>
+    </ul>
+  </li>
+  <li>Message Broker</li>
+  <li>채팅 및 메시징</li>
+</ol>
+
+<h2 id="7-architecture">7) Architecture</h2>
+<hr />
+<ul>
+  <li>Redis는 Sentinel, Master, Replica로 구성</li>
+  <li>Sentinel이 Master와 Replica를 관리</li>
+  <li>Sentinel이 주기적으로 서버들을 모니터링
+    <ul>
+      <li>Master가 서비스할 수 없는 상태일 시 Replica중 하나를 Master로 변경</li>
+    </ul>
+  </li>
+  <li>Redis Sentinel도 장애가 발생할 수 있으므로 여러대의 서버로 구성</li>
+  <li>클러스터 아키텍처
+    <ul>
+      <li>클러스터를 구성하면 클러스터에 포함된 모든 노드들이 서로 통신하며 고가용성을 유지</li>
+      <li>샤딩 기능이 기본 기능</li>
+      <li>클러스터 구조를 이용하면 Sentinel을 설정할 필요가 없음</li>
+      <li>클러스터 내부의 모든 노드들이 Mesh형으로 연결</li>
+      <li>샤딩을 할 때 해시 함수를 이용해 데이터를 분배하기 때문에 데이터가 균등하게 저장됨</li>
+      <li>노드를 추가하거나 삭제하면 자동으로 재분배(리밸런싱, 리샤딩)</li>
+      <li>Application Client는 Redis Cluster의 노드 중 하나라도 연결되면 Cluster의 전체 상태 정보를 확인할 수 있음(cluster 내부의 노드는 전체 )</li>
+    </ul>
+  </li>
+  <li>클러스터에 한 번 접속한 클라이언트는 장애가 발생한 노드나 확장을 위해 추가한 노드 정보들도 모두 업데이트 받기 때문에 실제 Production환경에서 운영 중 증설을 하더라도 애플리케이션의 설정을 바꿀 필요 없음</li>
+</ul>
+
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/02-mongodb-crud/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">MongoDB CRUD</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/11-database-programming/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">데이터베이스 프로그래밍</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

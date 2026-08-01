@@ -4,106 +4,781 @@
       
       
       {
-        "title": "Linux",
-        "url": "/linux/",
-        "description": "Ubuntu",
+        "title": "Network Technology",
+        "url": "/04-network-technology/",
+        "description": "NAT/PAT를 이용한 주소 변환과 DNS 레코드 체계 정리",
         "thumbnail": null,
-        "tags": ["Ubuntu"],
+        "tags": ["Network","AutoEver SW School"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 7월 31일",
+        "reading_time_label": "4분 읽기",
+        "search": "network technology nat/pat를 이용한 주소 변환과 dns 레코드 체계 정리 network autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "Network Protocol",
+        "url": "/03-network-protocol/",
+        "description": "MAC 주소, IP 주소, TCP/UDP, ARP, 서브넷 등 OSI 7계층 기반 네트워크 통신 핵심 프로토콜 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEver SW School"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 7월 31일",
+        "reading_time_label": "11분 읽기",
+        "search": "network protocol mac 주소, ip 주소, tcp/udp, arp, 서브넷 등 osi 7계층 기반 네트워크 통신 핵심 프로토콜 정리 network autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "Network Components",
+        "url": "/02-network-components/",
+        "description": "LAN/WAN/VPN 개념과 NIC, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEver SW School"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 7월 30일",
+        "reading_time_label": "4분 읽기",
+        "search": "network components lan/wan/vpn 개념과 nic, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리 network autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "Network",
+        "url": "/01-network/",
+        "description": "OSI 7계층 구조, TCP/IP 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEver SW School"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 7월 30일",
+        "reading_time_label": "6분 읽기",
+        "search": "network osi 7계층 구조, tcp/ip 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리 network autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "쉘 프로그래밍",
+        "url": "/18-shell-programming/",
+        "description": "Linux bash 쉘 스크립트 변수, 함수, 조건문, 반복문, 정규표현식 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
         "series_key": "linux",
         "series_title": "Linux",
-        "date_label": "2026년 7월 30일",
-        "reading_time_label": "3분 읽기",
-        "search": "linux ubuntu ubuntu linux"
+        "date_label": "2026년 7월 29일",
+        "reading_time_label": "7분 읽기",
+        "search": "쉘 프로그래밍 linux bash 쉘 스크립트 변수, 함수, 조건문, 반복문, 정규표현식 정리 linux autoever sw school linux"
       },
     
       
       
       {
-        "title": "Velog Style Jekyll Theme 소개",
-        "url": "/introducing-velog-style-jekyll-theme/",
-        "description": "velog의 읽기 흐름을 참고해 Jekyll과 GitHub Pages에 맞게 다시 구성한 오픈소스 개발 블로그 테마를 소개합니다.",
-        "thumbnail": "/assets/images/posts/theme-intro-cover.png",
-        "tags": ["Jekyll Theme","Velog Style","GitHub Pages","Open Source"],
-        "series_key": "theme-overview",
-        "series_title": null,
-        "date_label": "2026년 4월 2일",
-        "reading_time_label": "3분 읽기",
-        "search": "velog style jekyll theme 소개 velog의 읽기 흐름을 참고해 jekyll과 github pages에 맞게 다시 구성한 오픈소스 개발 블로그 테마를 소개합니다. jekyll theme velog style github pages open source"
+        "title": "프록시",
+        "url": "/17-proxy/",
+        "description": "Linux 프록시 서버 개념, Squid 설치 및 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 28일",
+        "reading_time_label": "2분 읽기",
+        "search": "프록시 linux 프록시 서버 개념, squid 설치 및 설정 정리 linux autoever sw school linux"
       },
     
       
       
       {
-        "title": "로컬에서 테마를 설치하고 미리보기하는 가장 빠른 방법",
-        "url": "/installing-the-theme-locally/",
-        "description": "Ruby 의존성 설치부터 GitHub 연동 데이터 동기화, 로컬 미리보기와 흔한 오류 대응까지 한 번에 정리합니다.",
-        "thumbnail": "/assets/images/posts/local-setup-cover.png",
-        "tags": ["Quick Start","Local Preview","Ruby","Jekyll"],
-        "series_key": "theme-setup",
-        "series_title": null,
-        "date_label": "2026년 4월 1일",
+        "title": "파일 서버",
+        "url": "/16-file-server/",
+        "description": "Linux FTP, vsftpd, SSH 파일 전송, NFS 파일 서버 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 28일",
         "reading_time_label": "3분 읽기",
-        "search": "로컬에서 테마를 설치하고 미리보기하는 가장 빠른 방법 ruby 의존성 설치부터 github 연동 데이터 동기화, 로컬 미리보기와 흔한 오류 대응까지 한 번에 정리합니다. quick start local preview ruby jekyll"
+        "search": "파일 서버 linux ftp, vsftpd, ssh 파일 전송, nfs 파일 서버 설정 정리 linux autoever sw school linux"
       },
     
       
       
       {
-        "title": "프로필, 탭, 홈 화면을 테마 설정으로 커스터마이징하기",
-        "url": "/customizing-profile-navigation-and-home/",
-        "description": "브랜드 문구와 탭 노출 여부, 헤더 버튼, 홈 검색 문구, GitHub 동기화 옵션을 어디서 조절하는지 체계적으로 정리합니다.",
-        "thumbnail": "/assets/images/posts/customization-cover.png",
-        "tags": ["Theme Config","Navigation","Profile","Customization"],
-        "series_key": "theme-setup",
-        "series_title": null,
-        "date_label": "2026년 3월 31일",
-        "reading_time_label": "3분 읽기",
-        "search": "프로필, 탭, 홈 화면을 테마 설정으로 커스터마이징하기 브랜드 문구와 탭 노출 여부, 헤더 버튼, 홈 검색 문구, github 동기화 옵션을 어디서 조절하는지 체계적으로 정리합니다. theme config navigation profile customization"
+        "title": "웹 서버",
+        "url": "/15-web-server/",
+        "description": "Linux Apache, nginx 웹 서버 설치 및 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 28일",
+        "reading_time_label": "2분 읽기",
+        "search": "웹 서버 linux apache, nginx 웹 서버 설치 및 설정 정리 linux autoever sw school linux"
       },
     
       
       
       {
-        "title": "글, 시리즈, 태그, 썸네일을 이 테마에서 다루는 방법",
-        "url": "/writing-posts-series-and-thumbnails/",
-        "description": "front matter 설계, Markdown 지원 범위, 시리즈와 태그 연결, 썸네일 표시 규칙까지 작성자 관점에서 정리합니다.",
-        "thumbnail": "/assets/images/posts/writing-guide-cover.png",
-        "tags": ["Markdown","Series","Tags","Thumbnail"],
-        "series_key": "theme-overview",
-        "series_title": null,
-        "date_label": "2026년 3월 30일",
-        "reading_time_label": "3분 읽기",
-        "search": "글, 시리즈, 태그, 썸네일을 이 테마에서 다루는 방법 front matter 설계, markdown 지원 범위, 시리즈와 태그 연결, 썸네일 표시 규칙까지 작성자 관점에서 정리합니다. markdown series tags thumbnail"
+        "title": "데이터베이스 서버",
+        "url": "/14-database-server/",
+        "description": "Linux에서 MariaDB 설치 및 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 28일",
+        "reading_time_label": "1분 읽기",
+        "search": "데이터베이스 서버 linux에서 mariadb 설치 및 설정 정리 linux autoever sw school linux"
       },
     
       
       
       {
-        "title": "GitHub Pages와 Jenkins로 테마를 배포하는 방법",
-        "url": "/deploying-with-github-pages-and-jenkins/",
-        "description": "프로젝트 페이지 기준으로 빌드 결과를 gh-pages 브랜치에 배포하는 흐름과 저장소 이름 변경 시 주의할 점까지 정리합니다.",
-        "thumbnail": "/assets/images/posts/deployment-guide-cover.png",
-        "tags": ["GitHub Pages","Jenkins","Deployment","Open Source"],
-        "series_key": "theme-operations",
-        "series_title": null,
-        "date_label": "2026년 3월 29일",
+        "title": "DNS",
+        "url": "/13-dns/",
+        "description": "DNS 개념, hosts 파일, DNS 서버 설치 및 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 28일",
         "reading_time_label": "3분 읽기",
-        "search": "github pages와 jenkins로 테마를 배포하는 방법 프로젝트 페이지 기준으로 빌드 결과를 gh-pages 브랜치에 배포하는 흐름과 저장소 이름 변경 시 주의할 점까지 정리합니다. github pages jenkins deployment open source"
+        "search": "dns dns 개념, hosts 파일, dns 서버 설치 및 설정 정리 linux autoever sw school linux"
       },
     
       
       
       {
-        "title": "GitHub 프로필 동기화와 기여 그래프를 붙이는 방법",
-        "url": "/github-profile-sync-and-contribution-graph/",
-        "description": "GitHub 아이디만 연결하면 이름, 아바타, 링크, 기여 그래프가 홈 화면에 반영되는 흐름과 fallback 규칙을 설명합니다.",
-        "thumbnail": "/assets/images/posts/github-sync-cover.png",
-        "tags": ["GitHub","GraphQL","Profile Sync","Jekyll Theme"],
-        "series_key": "theme-operations",
-        "series_title": null,
-        "date_label": "2026년 3월 28일",
+        "title": "원격 접속",
+        "url": "/12-remote-access/",
+        "description": "Linux Telnet, SSH 원격 접속 프로토콜 설치 및 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 27일",
+        "reading_time_label": "2분 읽기",
+        "search": "원격 접속 linux telnet, ssh 원격 접속 프로토콜 설치 및 설정 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "네트워크 관리",
+        "url": "/11-network-management/",
+        "description": "Linux 네트워크 기본 개념, 설정, 상태 확인, 방화벽 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 24일",
+        "reading_time_label": "9분 읽기",
+        "search": "네트워크 관리 linux 네트워크 기본 개념, 설정, 상태 확인, 방화벽 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "프로그래밍 언어 설치",
+        "url": "/10-programming-install/",
+        "description": "Linux에서 C, Java, Python, Node.js, Go 언어 설치 환경 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 24일",
         "reading_time_label": "3분 읽기",
-        "search": "github 프로필 동기화와 기여 그래프를 붙이는 방법 github 아이디만 연결하면 이름, 아바타, 링크, 기여 그래프가 홈 화면에 반영되는 흐름과 fallback 규칙을 설명합니다. github graphql profile sync jekyll theme"
+        "search": "프로그래밍 언어 설치 linux에서 c, java, python, node.js, go 언어 설치 환경 설정 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "사용자 관리",
+        "url": "/09-user-management/",
+        "description": "Linux 사용자/그룹 계정 관리, 사용자 정보, 디스크 사용량 설정 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 24일",
+        "reading_time_label": "4분 읽기",
+        "search": "사용자 관리 linux 사용자/그룹 계정 관리, 사용자 정보, 디스크 사용량 설정 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "디스크 관리",
+        "url": "/08-disk-management/",
+        "description": "Linux 디스크 추가, LVM, RAID, 디스크 사용량 확인, 파일 시스템 복구 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 23일",
+        "reading_time_label": "3분 읽기",
+        "search": "디스크 관리 linux 디스크 추가, lvm, raid, 디스크 사용량 확인, 파일 시스템 복구 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "부팅 시스템",
+        "url": "/07-booting-system/",
+        "description": "Linux 부팅 과정, systemd 서비스, Namespaces, Cgroup 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 23일",
+        "reading_time_label": "3분 읽기",
+        "search": "부팅 시스템 linux 부팅 과정, systemd 서비스, namespaces, cgroup 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "소프트웨어 관리",
+        "url": "/06-software-management/",
+        "description": "Ubuntu 패키지 관리, apt, 압축, wget, curl 사용법 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 22일",
+        "reading_time_label": "6분 읽기",
+        "search": "소프트웨어 관리 ubuntu 패키지 관리, apt, 압축, wget, curl 사용법 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "프로세스 관리",
+        "url": "/05-process-management/",
+        "description": "Linux 프로세스 개념, 관리 명령, 작업 제어, 작업 예약 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 22일",
+        "reading_time_label": "5분 읽기",
+        "search": "프로세스 관리 linux 프로세스 개념, 관리 명령, 작업 제어, 작업 예약 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "파일 시스템",
+        "url": "/04-file-system/",
+        "description": "Linux 파일 종류, 디렉토리/파일 관리 명령어, 권한 관리 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 21일",
+        "reading_time_label": "6분 읽기",
+        "search": "파일 시스템 linux 파일 종류, 디렉토리/파일 관리 명령어, 권한 관리 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "Shell",
+        "url": "/03-shell/",
+        "description": "bash shell 개념, 쉘 내장 명령, 특수 문자, 표준 입출력, 변수 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 20일",
+        "reading_time_label": "2분 읽기",
+        "search": "shell bash shell 개념, 쉘 내장 명령, 특수 문자, 표준 입출력, 변수 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "텍스트 에디터",
+        "url": "/02-text-editor/",
+        "description": "vim, nano 등 Linux 텍스트 편집기 사용법 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 20일",
+        "reading_time_label": "3분 읽기",
+        "search": "텍스트 에디터 vim, nano 등 linux 텍스트 편집기 사용법 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "Linux 시작",
+        "url": "/01-linux-start/",
+        "description": "Linux 역사, 특징, 가상화, 우분투 설치, 기본 명령어 정리",
+        "thumbnail": null,
+        "tags": ["Linux","AutoEver SW School"],
+        "series_key": "linux",
+        "series_title": "Linux",
+        "date_label": "2026년 7월 20일",
+        "reading_time_label": "3분 읽기",
+        "search": "linux 시작 linux 역사, 특징, 가상화, 우분투 설치, 기본 명령어 정리 linux autoever sw school linux"
+      },
+    
+      
+      
+      {
+        "title": "Redis 사용",
+        "url": "/02-redis-usage/",
+        "description": "Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리",
+        "thumbnail": null,
+        "tags": ["Redis","AutoEver SW School"],
+        "series_key": "redis",
+        "series_title": "Redis",
+        "date_label": "2026년 7월 17일",
+        "reading_time_label": "5분 읽기",
+        "search": "redis 사용 redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리 redis autoever sw school redis"
+      },
+    
+      
+      
+      {
+        "title": "MariaDB Python 연동",
+        "url": "/13-mariadb-python-integration/",
+        "description": "Python에서 pyMySQL을 이용한 MariaDB 연결, CRUD, Stored Procedure 사용 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 17일",
+        "reading_time_label": "3분 읽기",
+        "search": "mariadb python 연동 python에서 pymysql을 이용한 mariadb 연결, crud, stored procedure 사용 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "데이터베이스 프로그래밍",
+        "url": "/11-database-programming/",
+        "description": "Python DB API를 이용한 관계형 DB와 NoSQL 연동 개요 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 17일",
+        "reading_time_label": "3분 읽기",
+        "search": "데이터베이스 프로그래밍 python db api를 이용한 관계형 db와 nosql 연동 개요 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "Redis 개요",
+        "url": "/01-redis-overview/",
+        "description": "Redis 특징, 자료구조, 아키텍처, 사용 사례 정리",
+        "thumbnail": null,
+        "tags": ["Redis","AutoEver SW School"],
+        "series_key": "redis",
+        "series_title": "Redis",
+        "date_label": "2026년 7월 16일",
+        "reading_time_label": "3분 읽기",
+        "search": "redis 개요 redis 특징, 자료구조, 아키텍처, 사용 사례 정리 redis autoever sw school redis"
+      },
+    
+      
+      
+      {
+        "title": "MongoDB CRUD",
+        "url": "/02-mongodb-crud/",
+        "description": "MongoDB 데이터 삽입, 조회, 수정, 삭제 및 다양한 쿼리 연산자 정리",
+        "thumbnail": null,
+        "tags": ["MongoDB","AutoEver SW School"],
+        "series_key": "mongodb",
+        "series_title": "Network",
+        "date_label": "2026년 7월 16일",
+        "reading_time_label": "5분 읽기",
+        "search": "mongodb crud mongodb 데이터 삽입, 조회, 수정, 삭제 및 다양한 쿼리 연산자 정리 mongodb autoever sw school network"
+      },
+    
+      
+      
+      {
+        "title": "MongoDB 개요",
+        "url": "/01-mongodb-overview/",
+        "description": "MongoDB 특징, RDBMS와 용어 비교, 설치 및 서버 실행 정리",
+        "thumbnail": null,
+        "tags": ["MongoDB","AutoEver SW School"],
+        "series_key": "mongodb",
+        "series_title": "Network",
+        "date_label": "2026년 7월 15일",
+        "reading_time_label": "3분 읽기",
+        "search": "mongodb 개요 mongodb 특징, rdbms와 용어 비교, 설치 및 서버 실행 정리 mongodb autoever sw school network"
+      },
+    
+      
+      
+      {
+        "title": "백업과 복원",
+        "url": "/12-backup-restore/",
+        "description": "MariaDB 데이터베이스 백업 및 복원 방법 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 15일",
+        "reading_time_label": "2분 읽기",
+        "search": "백업과 복원 mariadb 데이터베이스 백업 및 복원 방법 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "성능 최적화",
+        "url": "/11-performance-optimizing/",
+        "description": "MariaDB 인덱스, 실행 계획, 성능 튜닝 기초 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 15일",
+        "reading_time_label": "2분 읽기",
+        "search": "성능 최적화 mariadb 인덱스, 실행 계획, 성능 튜닝 기초 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "프로시저와 트리거",
+        "url": "/10-procedure-trigger/",
+        "description": "MariaDB Stored Procedure, Trigger, 프로그래밍 기능 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 15일",
+        "reading_time_label": "3분 읽기",
+        "search": "프로시저와 트리거 mariadb stored procedure, trigger, 프로그래밍 기능 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "VIEW와 CTE",
+        "url": "/09-view-cte/",
+        "description": "MariaDB Inline View, View, 임시 테이블, CTE 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 15일",
+        "reading_time_label": "4분 읽기",
+        "search": "view와 cte mariadb inline view, view, 임시 테이블, cte 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "TCL (트랜잭션)",
+        "url": "/08-tcl-transaction/",
+        "description": "트랜잭션 개념, COMMIT, ROLLBACK, 격리 수준 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 15일",
+        "reading_time_label": "3분 읽기",
+        "search": "tcl (트랜잭션) 트랜잭션 개념, commit, rollback, 격리 수준 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "DML (데이터 조작)",
+        "url": "/07-dml/",
+        "description": "MariaDB INSERT, UPDATE, DELETE 데이터 조작어 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 14일",
+        "reading_time_label": "2분 읽기",
+        "search": "dml (데이터 조작) mariadb insert, update, delete 데이터 조작어 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "서브쿼리와 JOIN",
+        "url": "/06-subquery-join/",
+        "description": "MariaDB SET 연산, SubQuery, JOIN 종류 및 활용 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 14일",
+        "reading_time_label": "3분 읽기",
+        "search": "서브쿼리와 join mariadb set 연산, subquery, join 종류 및 활용 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "DDL (테이블 관리)",
+        "url": "/05-ddl-management/",
+        "description": "정규화, 테이블 생성/수정/삭제, 제약 조건, AUTO_INCREMENT 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 13일",
+        "reading_time_label": "9분 읽기",
+        "search": "ddl (테이블 관리) 정규화, 테이블 생성/수정/삭제, 제약 조건, auto_increment 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "GROUP BY와 집계",
+        "url": "/04-group-by-aggregate/",
+        "description": "MariaDB GROUP BY, HAVING, 집계 함수, 윈도우 함수 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 13일",
+        "reading_time_label": "3분 읽기",
+        "search": "group by와 집계 mariadb group by, having, 집계 함수, 윈도우 함수 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "SQL 함수",
+        "url": "/03-sql-function/",
+        "description": "MariaDB 문자, 수치, 날짜, NULL 관련 함수 및 윈도우 함수 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 13일",
+        "reading_time_label": "3분 읽기",
+        "search": "sql 함수 mariadb 문자, 수치, 날짜, null 관련 함수 및 윈도우 함수 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "SELECT",
+        "url": "/02-select/",
+        "description": "MariaDB SELECT 기본 문법, WHERE, ORDER BY, DISTINCT, LIMIT 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 10일",
+        "reading_time_label": "3분 읽기",
+        "search": "select mariadb select 기본 문법, where, order by, distinct, limit 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "MariaDB 개요",
+        "url": "/01-mariadb-overview/",
+        "description": "데이터베이스 개념, DBMS 종류, MariaDB 설치 및 기본 명령어 정리",
+        "thumbnail": null,
+        "tags": ["MariaDB","AutoEver SW School"],
+        "series_key": "mariadb",
+        "series_title": "MariaDB",
+        "date_label": "2026년 7월 10일",
+        "reading_time_label": "3분 읽기",
+        "search": "mariadb 개요 데이터베이스 개념, dbms 종류, mariadb 설치 및 기본 명령어 정리 mariadb autoever sw school mariadb"
+      },
+    
+      
+      
+      {
+        "title": "크롤링",
+        "url": "/10-crawling/",
+        "description": "Python 웹 크롤링, HTML/XML 파싱, JSON 처리, Selenium 자동화 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 9일",
+        "reading_time_label": "8분 읽기",
+        "search": "크롤링 python 웹 크롤링, html/xml 파싱, json 처리, selenium 자동화 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "파일 입출력",
+        "url": "/09-file-io/",
+        "description": "Python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 9일",
+        "reading_time_label": "3분 읽기",
+        "search": "파일 입출력 python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "모듈과 패키지",
+        "url": "/08-module-package/",
+        "description": "Python 모듈, 패키지, collections, itertools 등 내장 모듈 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 9일",
+        "reading_time_label": "4분 읽기",
+        "search": "모듈과 패키지 python 모듈, 패키지, collections, itertools 등 내장 모듈 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "예외 처리",
+        "url": "/07-exception-handling/",
+        "description": "Python의 오류 종류, try-except, 예외 처리 구문 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 9일",
+        "reading_time_label": "3분 읽기",
+        "search": "예외 처리 python의 오류 종류, try-except, 예외 처리 구문 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "자료형",
+        "url": "/06-data-type/",
+        "description": "Python의 Sequence, str, list, dict, Comprehension, Set 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 9일",
+        "reading_time_label": "4분 읽기",
+        "search": "자료형 python의 sequence, str, list, dict, comprehension, set 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "객체지향 프로그래밍",
+        "url": "/05-object-oriented-programming/",
+        "description": "Python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 8일",
+        "reading_time_label": "4분 읽기",
+        "search": "객체지향 프로그래밍 python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "제어문과 자료구조",
+        "url": "/12-control-statements-data-structure/",
+        "description": "Python 메모리 구조, 제어문, 자료구조 심화 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 7일",
+        "reading_time_label": "3분 읽기",
+        "search": "제어문과 자료구조 python 메모리 구조, 제어문, 자료구조 심화 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "함수",
+        "url": "/04-function/",
+        "description": "Python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 7일",
+        "reading_time_label": "4분 읽기",
+        "search": "함수 python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "제어문",
+        "url": "/03-control-statement/",
+        "description": "Python의 조건문(if, match-case)과 반복문(while, for) 및 break/continue 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 7일",
+        "reading_time_label": "3분 읽기",
+        "search": "제어문 python의 조건문(if, match-case)과 반복문(while, for) 및 break/continue 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "변수와 연산자",
+        "url": "/02-variable-operator/",
+        "description": "Python의 기본 문법, 변수, 연산자, 데이터 타입, 입출력 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 6일",
+        "reading_time_label": "4분 읽기",
+        "search": "변수와 연산자 python의 기본 문법, 변수, 연산자, 데이터 타입, 입출력 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "Python 소개 및 개발 환경",
+        "url": "/01-python-introduction-development-environment/",
+        "description": "Python의 특징, 인터프리터/컴파일러 개념, IDE 종류, 가상환경 설정까지 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 6일",
+        "reading_time_label": "3분 읽기",
+        "search": "python 소개 및 개발 환경 python의 특징, 인터프리터/컴파일러 개념, ide 종류, 가상환경 설정까지 정리 python autoever sw school"
+      },
+    
+      
+      
+      {
+        "title": "Python 기초",
+        "url": "/00-python-basic/",
+        "description": "Python 가상환경, 기본 문법 요약 정리",
+        "thumbnail": null,
+        "tags": ["Python","AutoEver SW School"],
+        "series_key": "python",
+        "series_title": null,
+        "date_label": "2026년 7월 6일",
+        "reading_time_label": "2분 읽기",
+        "search": "python 기초 python 가상환경, 기본 문법 요약 정리 python autoever sw school"
       }
     
   ]

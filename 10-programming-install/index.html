@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>프로그래밍 언어 설치 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Linux에서 C, Java, Python, Node.js, Go 언어 설치 환경 설정 정리">
+<link rel="canonical" href="https://kkr010128.github.io/10-programming-install/">
+<meta property="og:title" content="프로그래밍 언어 설치 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Linux에서 C, Java, Python, Node.js, Go 언어 설치 환경 설정 정리">
+<meta property="og:url" content="https://kkr010128.github.io/10-programming-install/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="프로그래밍 언어 설치 | hyeon.log">
+<meta name="twitter:description" content="Linux에서 C, Java, Python, Node.js, Go 언어 설치 환경 설정 정리">
+
+  <meta property="article:published_time" content="2026-07-24T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "프로그래밍 언어 설치 | hyeon.log",
+    "description": "Linux에서 C, Java, Python, Node.js, Go 언어 설치 환경 설정 정리",
+    "url": "https://kkr010128.github.io/10-programming-install/",
+    "datePublished": "2026-07-24T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Linux</p>
+    
+    <h1 class="post-head__title">프로그래밍 언어 설치</h1>
+    
+      <p class="post-head__description">Linux에서 C, Java, Python, Node.js, Go 언어 설치 환경 설정 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 24일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Linux">Linux</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--c-programming">1 ) C Programming</h2>
+<hr />
+<h3 id="gcc-컴파일러-제공">GCC 컴파일러 제공</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt install gcc -y</code></li>
+  <li><code class="language-plaintext highlighter-rouge">vim helloc.c</code>로 파일 생성 후 작성
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span><span class="kt">int</span> <span class="nf">main</span><span class="p">(){</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">"Hello C Programming</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h3 id="gcc">GCC</h3>
+<ul>
+  <li><strong>Compile</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">gcc -o helloClang helloc.c</code></li>
+    </ul>
+  </li>
+  <li><strong>Run</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">export PATH=$PATH:/home/{userName}/programming</code> 
+  → 빠른 실행을 위한 Path 추가 → <code class="language-plaintext highlighter-rouge">helloClang</code></li>
+      <li><code class="language-plaintext highlighter-rouge">./helloClang</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="make">Make</h3>
+<ul>
+  <li>실제 패키지는 많은 파일로 구성됨</li>
+  <li>gcc로 일일이 컴파일하지 않고 간단하게 해결할 수 있도록 함</li>
+  <li><code class="language-plaintext highlighter-rouge">makefile(Makefile)</code>에 설정된 정보 읽어 여러 소스 파일을 컴파일, 링크하여 최종 실행 파일을 만듦</li>
+  <li>많은 오픈소스 소프트웨어는 코드와 함께 makefile을 배포함</li>
+  <li><strong><code class="language-plaintext highlighter-rouge">Install Make</code></strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">sudo apt install make -y</code></li>
+      <li><code class="language-plaintext highlighter-rouge">make -V</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="practice"><strong>Practice</strong></h3>
+
+<p>→ `[one.c, two.c]</p>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span>
+<span class="k">extern</span> <span class="kt">int</span> <span class="nf">two</span><span class="p">();</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"Go to Module Two----</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+	<span class="n">two</span><span class="p">();</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"End of Module one.</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
+</span><span class="kt">int</span> <span class="nf">two</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"In Module Two --</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"This is a Module Two</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"End ofModule Two.</span><span class="se">\n</span><span class="s">"</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>→ <strong><code class="language-plaintext highlighter-rouge">[one.o]</code></strong></p>
+<pre><code class="language-Makefile">TARGET=one
+OBJECTS=one.o two.o
+%{TARGET} : ${OBJECTS}
+	gcc -o %{TARGET} ${OBJECTS}
+	
+one.o : one.c
+	gcc -c one.c
+two.o : two.c
+	gcc -c two.c
+</code></pre>
+
+<h3 id="run">Run</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make
+</code></pre></div></div>
+
+<h2 id="2--java-programming">2 ) Java Programming</h2>
+<hr />
+<h3 id="설치-확인">설치 확인</h3>
+<ul>
+  <li>개발 도구 확인(JDK) → <code class="language-plaintext highlighter-rouge">javac -version</code></li>
+  <li>실행 환경 확인(JRE) → <code class="language-plaintext highlighter-rouge">java -version</code></li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>openjdk-21-jdk <span class="c"># OpenJDK 21</span>
+javac <span class="nt">-version</span>
+</code></pre></div></div>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// HelloJava.java                          </span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">HelloJava</span><span class="o">{</span>
+        <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">){</span>
+                <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"Hello Java"</span><span class="o">);</span>
+        <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>javac HelloJava.java
+	→ HelloJava.class
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>java HelloJava
+</code></pre></div></div>
+
+<ul>
+  <li>Java는 배포 시 jar 파일을 배포</li>
+  <li>실행 시 java가 설치되어 있어야 함
+    <div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">kkr010128</span><span class="p">@</span><span class="nd">ubuntu</span><span class="p">:</span><span class="o">~</span><span class="sr">/programming/m</span><span class="nx">akePractice$</span> <span class="nx">cd</span> <span class="nx">java</span>
+<span class="nx">kkr010128</span><span class="p">@</span><span class="nd">ubuntu</span><span class="p">:</span><span class="o">~</span><span class="sr">/programming/m</span><span class="nx">akePractice</span><span class="o">/</span><span class="nx">java$</span> <span class="nx">jar</span> <span class="nx">cf</span> <span class="nx">app</span><span class="p">.</span><span class="nx">jar</span> <span class="o">*</span><span class="kd">class</span>
+<span class="nx">kkr010128</span><span class="p">@</span><span class="nd">ubuntu</span><span class="p">:</span><span class="o">~</span><span class="sr">/programming/m</span><span class="nx">akePractice</span><span class="o">/</span><span class="nx">java$</span> <span class="nx">ls</span>
+<span class="nx">HelloJava</span><span class="p">.</span><span class="kd">class</span>  <span class="nx">HelloJava</span><span class="p">.</span><span class="nx">java</span>  <span class="nx">app</span><span class="p">.</span><span class="nx">jar</span>
+</code></pre></div>    </div>
+  </li>
+  <li>Linux에 java를 설치하여 베이스 이미지를 만드는 방법과 이미 설치된 베이스 이용하는 방법 존재</li>
+</ul>
+
+<h2 id="3--python-programming">3 ) Python Programming</h2>
+<hr />
+<h3 id="installation">Installation</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">python3 --version</code></li>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt-get upgrade python3</code> → python 업그레이드</li>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt install python3-venv</code> → venv 모듈 설치</li>
+</ul>
+
+<h3 id="programming">Programming</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>python <span class="o">&amp;&amp;</span> <span class="nb">cd </span>python
+python3 <span class="nt">-m</span> venv myenv
+<span class="nb">source </span>myenv/bin/activate
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">#  학생 성적 리스트
+</span><span class="n">scores</span> <span class="o">=</span> <span class="p">[</span><span class="mi">85</span><span class="p">,</span> <span class="mi">92</span><span class="p">,</span> <span class="mi">78</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">88</span><span class="p">]</span>
+
+<span class="c1"># 80점 이상인 성적만 필터링 (List comprehension)
+</span><span class="n">high_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">scores</span> <span class="k">if</span> <span class="n">s</span> <span class="o">&gt;=</span> <span class="mi">80</span><span class="p">]</span>
+
+<span class="c1"># 평균 계산
+</span><span class="n">average</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">score</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">" 고득점 리스트: </span><span class="si">{</span><span class="n">high_scores</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">" 전체 평균: </span><span class="si">{</span><span class="n">average</span><span class="si">:</span><span class="p">.</span><span class="mi">2</span><span class="n">f</span><span class="si">}</span><span class="s">"</span><span class="p">)</span>
+</code></pre></div></div>
+<h3 id="run-python">Run Python</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">python3 main.py</code>
+    <h3 id="freeze-pip">Freeze pip</h3>
+  </li>
+  <li>배포를 위해 사용된 패키지를 txt로 내보냄
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">pip freeze &gt; requirements.txt</code></li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">requirements.txt</code>와 <code class="language-plaintext highlighter-rouge">main.py</code>를 배포
+    <h3 id="production--install-package">Production → Install Package</h3>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">pip3 install requirements.txt</code></li>
+  <li><code class="language-plaintext highlighter-rouge">python3 main.py</code></li>
+</ul>
+
+<h2 id="4--nodejs-programming">4 ) Node.js Programming</h2>
+<hr />
+<h3 id="installation-1">Installation</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-o-</span> https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+<span class="nb">source</span> ~/.bashrc
+
+nvm <span class="nb">install</span> <span class="nt">--lts</span>
+
+</code></pre></div></div>
+<h3 id="check-installation">Check Installation</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">node -v</code></li>
+  <li><code class="language-plaintext highlighter-rouge">npm -v</code></li>
+</ul>
+
+<h3 id="programming-1">Programming</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>node <span class="o">&amp;&amp;</span> <span class="nb">cd </span>node
+
+<span class="c"># 프로젝트 생성</span>
+npm init <span class="nt">-y</span>
+</code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// app.js</span>
+
+<span class="kd">const</span> <span class="nx">http</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">'</span><span class="s1">http</span><span class="dl">'</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">hostname</span> <span class="o">=</span> <span class="dl">'</span><span class="s1">127.0.0.1</span><span class="dl">'</span><span class="p">;</span>
+<span class="kd">const</span> <span class="nx">port</span> <span class="o">=</span> <span class="mi">3000</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">server</span> <span class="o">=</span> <span class="nx">http</span><span class="p">.</span><span class="nx">createServer</span><span class="p">((</span><span class="nx">req</span><span class="p">,</span> <span class="nx">res</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+	<span class="nx">res</span><span class="p">.</span><span class="nx">statusCode</span> <span class="o">=</span> <span class="mi">200</span><span class="p">;</span>
+	<span class="nx">res</span><span class="p">.</span><span class="nx">setHeader</span><span class="p">(</span><span class="dl">'</span><span class="s1">Content-Type</span><span class="dl">'</span><span class="p">,</span> <span class="dl">'</span><span class="s1">text/plain; charset=utf-8</span><span class="dl">'</span><span class="p">);</span>
+	<span class="nx">res</span><span class="p">.</span><span class="nx">end</span><span class="p">(</span><span class="dl">'</span><span class="s1">Ubuntu node.js Web Server</span><span class="se">\n</span><span class="dl">'</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="nx">server</span><span class="p">.</span><span class="nx">listen</span><span class="p">(</span><span class="nx">port</span><span class="p">,</span> <span class="nx">hostname</span><span class="p">,</span> <span class="p">()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">'</span><span class="s1">Listening Server</span><span class="dl">'</span><span class="p">);</span>
+<span class="p">});</span>
+</code></pre></div></div>
+
+<h3 id="run-1">Run</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">node app.js</code></li>
+  <li>배포 시 node는 package.json과 소스코드를 배포</li>
+  <li>node는 기존에 설치가 돼있어야 함</li>
+  <li>npm install을 통한 라이브러리 설치 후 실행</li>
+  <li>python과 node가 배포 방법이 유사</li>
+</ul>
+
+<h2 id="6--go-programming">6 ) Go Programming</h2>
+<hr />
+<h3 id="installation-2">Installation</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">sudo rm -rf /usr/local/go</code> → 기존 설치된 go 삭제
+```bash
+    <h1 id="download-go">download Go</h1>
+    <p>curl -OL https://golang.org/dl/go1.22.0.linux-arm64.tar.gz</p>
+  </li>
+</ul>
+
+<h1 id="unzip">unzip</h1>
+<p>sudo tar -C /usr/local -xzf go1.22.0.linux-arm64.tar.gz</p>
+
+<h1 id="add-to-path">Add to Path</h1>
+<p>echo ‘export PATH=$PATH:/usr/local/go/bin’ » ~/.profile
+echo ‘export PATH=$PATH:$(go env GOPATH)/bin’ » ~/.profile</p>
+
+<h1 id="save-changes">Save Changes</h1>
+<p>source ~/.profile</p>
+
+<h1 id="check-installation-1">Check Installation</h1>
+<p>go version</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+### Programming
+```bash
+go mod init hello-go
+</code></pre></div></div>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// main.go</span>
+<span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="s">"fmt"</span>
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Hi, Welcome to Go-Lang World!"</span><span class="p">)</span>
+	
+	<span class="c">// 간단한 산술 연산 예제</span>
+	<span class="n">a</span> <span class="o">:=</span> <span class="m">10</span>
+	<span class="n">b</span> <span class="o">:=</span> <span class="m">20</span>
+	<span class="n">sum</span> <span class="o">:=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Print</span><span class="p">(</span><span class="s">"%d + %d = %d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">sum</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="run-2">Run</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">go run main.go</code></li>
+</ul>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/09-user-management/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">사용자 관리</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/11-network-management/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">네트워크 관리</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Redis 사용 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리">
+<link rel="canonical" href="https://kkr010128.github.io/02-redis-usage/">
+<meta property="og:title" content="Redis 사용 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리">
+<meta property="og:url" content="https://kkr010128.github.io/02-redis-usage/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis 사용 | hyeon.log">
+<meta name="twitter:description" content="Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리">
+
+  <meta property="article:published_time" content="2026-07-17T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Redis 사용 | hyeon.log",
+    "description": "Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리",
+    "url": "https://kkr010128.github.io/02-redis-usage/",
+    "datePublished": "2026-07-17T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Redis</p>
+    
+    <h1 class="post-head__title">Redis 사용</h1>
+    
+      <p class="post-head__description">Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 17일 · 5분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Redis">Redis</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-설치">1) 설치</h2>
+<hr />
+<ul>
+  <li>public cloud와 같은 곳의 SaaS를 이용</li>
+  <li>OS에 설치</li>
+  <li>Docker나 K8s와 같은 컨테이너를 이용</li>
+</ul>
+
+<h2 id="2-설정">2) 설정</h2>
+<hr />
+<ul>
+  <li>설정파일 위치
+    <ul>
+      <li>MacOS: <code class="language-plaintext highlighter-rouge">opt/homebrew/etc/redis.conf</code></li>
+      <li>Linux: <code class="language-plaintext highlighter-rouge">/etc/redis/redis.conf</code></li>
+    </ul>
+  </li>
+  <li>bind: redis에 접근할 수 있는 IP 바인딩 설정
+    <ul>
+      <li>127.0.0.1 → Localhost</li>
+      <li>0.0.0.0 → AnyWhere</li>
+    </ul>
+  </li>
+  <li>port: 애플리케이션을 구분하기 위한 번호
+    <ul>
+      <li>기본 ‘6379’</li>
+      <li>내부 통신을 위해 16379 사용</li>
+    </ul>
+  </li>
+  <li>protected-mode: pw를 설정해야만 redis에 접근할 수 있도록함
+    <ul>
+      <li>기본 ‘yes’</li>
+    </ul>
+  </li>
+  <li>
+    <p>requirepass / masterauth: 패스워드</p>
+  </li>
+  <li>daemonize: 프로세스를 deamon으로 실행시키고자 할 때 사용함
+    <ul>
+      <li>기본 ‘no’</li>
+    </ul>
+  </li>
+  <li>dir: 작업 디렉토리
+    <ul>
+      <li>기본 ‘./’</li>
+    </ul>
+  </li>
+  <li>tcp-backlog: 초당 client 연결 개수
+    <ul>
+      <li>기본 ‘511’</li>
+    </ul>
+  </li>
+  <li>timeout: client에서 서버 접속 시 timeout 값
+    <ul>
+      <li>기본 ‘0’</li>
+    </ul>
+  </li>
+  <li>maxclient: 최대 접속 가능 client 수
+    <ul>
+      <li>기본 ‘10000’</li>
+    </ul>
+  </li>
+  <li>tcp-keepalive: 클라이언트가 반응을 보이지 않을 때 서버가 접속을 제거하는 시간
+    <ul>
+      <li>기본 ‘300’</li>
+    </ul>
+  </li>
+  <li>설정을 변경하면 Server를 리부팅 해야 함</li>
+</ul>
+
+<h2 id="3-접속">3) 접속</h2>
+<hr />
+<ul>
+  <li>redis-cli라는 접속 도구 제공</li>
+  <li>
+    <p>실행하면 로컬에 있는 redis 서버 접속</p>
+  </li>
+  <li>원격 접속 시
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">redis-cli -h &lt;IP&gt; -p &lt;port&gt; -a &lt;password&gt;</code></li>
+      <li>IP 생략 시 127.0.0.1, Port 생략 시 6379</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="4-redis-자료구조">4) Redis 자료구조</h2>
+<hr />
+<h3 id="종류">종류</h3>
+<ul>
+  <li>String</li>
+  <li>Hash</li>
+  <li>List → Linked List</li>
+  <li>Set</li>
+  <li>Sorted Set</li>
+  <li>Bitmap → 비트 연산에 사용</li>
+  <li>Hyperloglog → 집합의 item 개수를 추정할 수 있는 알고리즘이자 자료구조</li>
+  <li>Geospatial Index → 지점과 위도 및 경도를 사용할 수 있음
+    <ul>
+      <li>위도와 경도를 계산하여 두 지점 간 거리를 구할 수 있는 명령어 제공</li>
+    </ul>
+  </li>
+  <li>Stream → Event Log를 저장
+    <ul>
+      <li>메시지 서비스 제공</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="string">String</h3>
+<ul>
+  <li>가장 간단하게 데이터를 저장할 수 있음</li>
+  <li>최대 512MB</li>
+  <li>Key-Value가 직접 연결 되는 유일한 자료구조</li>
+  <li>숫자도 저장 가능
+    <ul>
+      <li>증감 연산 가능
+        <ul>
+          <li>INCR / INCRBY</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>저장 시</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">SET &lt;key&gt; &lt;value</code></li>
+    </ul>
+  </li>
+  <li><strong>조회 시</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">GET &lt;key&gt;</code></li>
+    </ul>
+  </li>
+  <li>옵션
+    <ul>
+      <li>NX → 키가 없을 때만 저장</li>
+      <li>XX → 키가 있을 때만 저장</li>
+    </ul>
+  </li>
+  <li>여러 개를 저장하고자 할 때
+    <ul>
+      <li>MGET / MSET</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">SET</span><span class="w"> </span><span class="n">hello</span><span class="w"> </span><span class="n">world</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="n">OK</span><span class="w">
+</span><span class="n">GET</span><span class="w"> </span><span class="n">hello</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="s2">"world"</span><span class="w">
+
+</span><span class="n">SET</span><span class="w"> </span><span class="n">hello</span><span class="w"> </span><span class="n">newvalue</span><span class="w"> </span><span class="n">NX</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">nil</span><span class="p">)</span><span class="w">
+</span><span class="n">GET</span><span class="w"> </span><span class="n">hello</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="s2">"world"</span><span class="w">
+
+</span><span class="n">SET</span><span class="w"> </span><span class="n">hello</span><span class="w"> </span><span class="n">newvalue</span><span class="w"> </span><span class="n">XX</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="n">OK</span><span class="w">
+</span><span class="n">GET</span><span class="w"> </span><span class="n">hello</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="s2">"newvalue"</span><span class="w">
+
+</span><span class="n">SET</span><span class="w"> </span><span class="n">cnt</span><span class="w"> </span><span class="m">0</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span><span class="n">INCRBY</span><span class="w"> </span><span class="n">cnt</span><span class="w"> </span><span class="m">50</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">51</span><span class="w">
+
+
+</span><span class="n">MSET</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">adam</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="n">weight</span><span class="w"> </span><span class="m">77</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="n">OK</span><span class="w">
+</span><span class="n">MGET</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="n">weight</span><span class="w">
+</span><span class="err">→</span><span class="w">   </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"adam"</span><span class="w">
+	</span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"50"</span><span class="w">
+	</span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="s2">"77"</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="list">List</h3>
+<ul>
+  <li>하나의 키에 여러 개의 데이터를 저장하는 자료구조</li>
+  <li>하나의 list에는 43억 개의 데이터를 저장할 수 있음</li>
+  <li>idx를 이용해서 데이터에 직접 접근하는 것이 가능</li>
+  <li>큐와 스택의 용도로 사용 가능</li>
+  <li>
+    <p>맨 앞과 맨 뒤에서 데이터를 삽입하고 꺼내는 것도 가능 → 이중 연결 리스트</p>
+  </li>
+  <li><strong>삽입</strong>
+    <ul>
+      <li>LPUSH / RPUSH
+```r
+LPUSH mylist adam
+→ (integer) 1</li>
+    </ul>
+  </li>
+</ul>
+
+<p>RPUSH mylist hunt
+→ (integer) 2</p>
+
+<p>LPUSH mylist jessica julia
+→ (integer) 4</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+- **범위 내 조회**
+	- `LRANGE key start stop`
+	- 맨 끝에서부터 조회할 때는 -1, -2 형태의 음수를 사용
+```r
+LRANGE mylist 0 2
+→   1) "julia"
+	1) "adam"
+	2) "hunt"
+LRANGE mylist 0 1
+→   1) "julia"
+	3) "hessica"
+</code></pre></div></div>
+
+<ul>
+  <li><strong>맨 끝의 데이터를 삭제하며 조회</strong>
+    <ul>
+      <li>LPOP / RPOP</li>
+      <li>횟수 설정 가능
+        <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">LPOP</span><span class="w"> </span><span class="n">mylist</span><span class="w">
+</span><span class="err">→</span><span class="w">   </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"jessica"</span><span class="w">
+  </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"adam"</span><span class="w">
+  </span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="s2">"hunt"</span><span class="w">
+</span></code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>범위를 제외하고 전부 삭제</strong>
+    <ul>
+      <li>LTRIM</li>
+      <li>적절히 활용 시 고정된 길이의 Queue를 쉽게 유지 가능
+        <ul>
+          <li>특정 개수의 로그 데이터를 유지하고자 하는 경우</li>
+          <li><code class="language-plaintext highlighter-rouge">LPUSH logdata &lt;DATA&gt;</code></li>
+          <li><code class="language-plaintext highlighter-rouge">LTRIM 0 99</code>
+  → 항상 100개의 최신 로그 유지</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>중간 데이터 삽입 가능</strong>
+    <ul>
+      <li>LINSERT</li>
+      <li><code class="language-plaintext highlighter-rouge">LINSERT &lt;LISTNAME&gt; BEFORE / AFTER &lt;DATA1&gt; &lt;DATA2&gt;</code>
+        <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">  </span><span class="n">LINSERT</span><span class="w"> </span><span class="n">mylist</span><span class="w"> </span><span class="n">BEFORE</span><span class="w"> </span><span class="n">adam</span><span class="w"> </span><span class="n">mark</span><span class="w">
+  </span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">4</span><span class="w">
+</span></code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>데이터 수정</strong>
+    <ul>
+      <li>LSET</li>
+      <li><code class="language-plaintext highlighter-rouge">LSET &lt;KEY&gt; &lt;IDX&gt; &lt;VALUE&gt;</code>
+        <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">LSET</span><span class="w"> </span><span class="n">mylist</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">dsfsdf</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="n">OK</span><span class="w">
+</span><span class="n">LRANGE</span><span class="w"> </span><span class="n">mylist</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">-1</span><span class="w">
+</span><span class="err">→</span><span class="w">   </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"jessica"</span><span class="w">
+  </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"mark"</span><span class="w">
+  </span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="s2">"\xbe\xc6\xb4\xe3"</span><span class="w">
+  </span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="s2">"hunt"</span><span class="w">
+</span></code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>특정 인덱스 데이터 조회</strong>
+    <ul>
+      <li>LINDEX</li>
+      <li><code class="language-plaintext highlighter-rouge">LINDEX &lt;IDX&gt;</code>
+        <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">LINDEX</span><span class="w"> </span><span class="n">mylit</span><span class="w"> </span><span class="m">2</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="s2">"\xbe\xc6\xb4\xe3"</span><span class="w">
+</span></code></pre></div>        </div>
+      </li>
+    </ul>
+  </li>
+  <li><strong>특정 데이터 삭제</strong>
+    <ul>
+      <li>LREM</li>
+      <li><code class="language-plaintext highlighter-rouge">LREM &lt;KEY&gt; &lt;횟수&gt; &lt;값&gt;</code></li>
+      <li>데이터 개수 → <code class="language-plaintext highlighter-rouge">LLEN &lt;key&gt;</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="set">SET</h3>
+<ul>
+  <li>중복 없이 데이터 저장</li>
+  <li>집합 관련 기능을 제공</li>
+  <li>삽입: SADD <키> <데이터 나열="">
+</데이터></키>    <div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">SADD</span><span class="w"> </span><span class="n">myset</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="n">B</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">2</span><span class="w">
+</span></code></pre></div>    </div>
+  </li>
+  <li><strong>데이터 조회</strong>
+    <ul>
+      <li>SMEMBERS</li>
+    </ul>
+  </li>
+  <li><strong>특정 값이 있는지 조회</strong>
+    <ul>
+      <li>SISMEMBER</li>
+    </ul>
+  </li>
+  <li><strong>무작위 추출</strong>
+    <ul>
+      <li>SRANDMEMBER</li>
+    </ul>
+  </li>
+  <li><strong>삭제</strong>
+    <ul>
+      <li>SREM</li>
+    </ul>
+  </li>
+  <li><strong>마지막 데이터 삭제</strong>
+    <ul>
+      <li>SPOP</li>
+    </ul>
+  </li>
+  <li>SINTER</li>
+  <li>SUNION</li>
+  <li>SDIFF</li>
+</ul>
+
+<h3 id="hash">HASH</h3>
+<ul>
+  <li>하나의 키에 여러 개의 필드와 값을 가질 수 있는 자료구조</li>
+  <li>Java의 HashMap과 유사</li>
+  <li>
+    <p>필드는 해시 내에서는 유일해야 함</p>
+  </li>
+  <li>생성 및 필드 추가 및 수정
+    <ul>
+      <li>HSET</li>
+    </ul>
+  </li>
+  <li>특정 필드의 값 가져오기
+    <ul>
+      <li>HGET</li>
+    </ul>
+  </li>
+  <li>여러 개의 필드의 값 가져오기
+    <ul>
+      <li>HMGET</li>
+    </ul>
+  </li>
+  <li>모든 필드 가져오기
+    <ul>
+      <li>HGETALL</li>
+    </ul>
+  </li>
+  <li>모든 키 가져오기
+    <ul>
+      <li>HKEYS</li>
+    </ul>
+  </li>
+  <li>모든 값 가져오기
+    <ul>
+      <li>HVALS</li>
+    </ul>
+  </li>
+  <li>특정 키 삭제
+    <ul>
+      <li>HDEL</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-R highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">HSET</span><span class="w"> </span><span class="n">myhash</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">adam</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span><span class="n">HSET</span><span class="w"> </span><span class="n">myhash</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="m">30</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span><span class="n">HSET</span><span class="w"> </span><span class="n">myhash</span><span class="w"> </span><span class="n">album</span><span class="w"> </span><span class="n">genesis</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">1</span><span class="w">
+</span><span class="n">HSET</span><span class="w"> </span><span class="n">myhash</span><span class="w"> </span><span class="n">age</span><span class="w"> </span><span class="m">29</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="p">(</span><span class="n">integer</span><span class="p">)</span><span class="w"> </span><span class="m">0</span><span class="w">
+
+</span><span class="n">HGET</span><span class="w"> </span><span class="n">myhash</span><span class="w"> </span><span class="n">age</span><span class="w">
+</span><span class="err">→</span><span class="w"> </span><span class="s2">"29"</span><span class="w">
+
+</span><span class="n">HMGET</span><span class="w"> </span><span class="n">myhash</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="n">age</span><span class="w">
+</span><span class="err">→</span><span class="w">   </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"adam"</span><span class="w">
+	</span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="s2">"29"</span><span class="w">
+
+</span><span class="n">HGETALL</span><span class="w"> </span><span class="n">myhash</span><span class="w">
+</span><span class="err">→</span><span class="w">   </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="s2">"adam"</span><span class="w">
+	</span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="s2">"29"</span><span class="w">
+	</span><span class="m">3</span><span class="p">)</span><span class="w"> </span><span class="s2">"genesis"</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="sorted-setzset">Sorted Set(ZSet)</h3>
+<ul>
+  <li>score 값에 따라 정렬되는 고유한 문자열의 집합</li>
+  <li>모든 아이템은 score와 값 쌍을 가지며 저장될 때부터 score 값으로 정렬돼 저장</li>
+  <li>
+    <p>score가 동일하면 데이터의 사전 순서대로 정렬</p>
+  </li>
+  <li>list와 sortedset 모두 순서를 갖는 자료구조
+    <ul>
+      <li>index를 이용해 item에 접근 가능</li>
+    </ul>
+  </li>
+  <li>인덱스를 이용한 접근 속도는 sortedset이 빠름
+    <ul>
+      <li>list는 Linked List이므로 접근 속도가 O(n)</li>
+      <li>SortedSet은 Hash로 idx를 저장하므로 접근 속도가 O(log n)</li>
+    </ul>
+  </li>
+  <li>저장 시 <code class="language-plaintext highlighter-rouge">ZADD 키 스코어 값 스코어 값 • • •</code></li>
+  <li><strong>Options</strong>
+    <ul>
+      <li>XX</li>
+      <li>NX</li>
+      <li>LT → 업데이트 하고자 하는 스코어가 기존 아이템의 스코어보다 <strong>작을 때만</strong> 업데이트, 없으면 추가</li>
+      <li>GT → 업데이트 하고자 하는 스코어가 기존 아이템의 스코어보다 <strong>클 때만</strong> 업데이트, 없으면 추가</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ZADD</span><span class="w"> </span><span class="n">myzset</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">user</span><span class="o">:</span><span class="n">B</span><span class="w">
+</span><span class="n">ZADD</span><span class="w"> </span><span class="n">myzset</span><span class="w"> </span><span class="m">150</span><span class="w"> </span><span class="n">user</span><span class="o">:</span><span class="n">C</span><span class="w"> </span><span class="m">150</span><span class="w"> </span><span class="n">user</span><span class="o">:</span><span class="n">A</span><span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="n">user</span><span class="o">:</span><span class="n">D</span><span class="w">
+</span></code></pre></div></div>
+
+<ul>
+  <li>Item 조회
+    <ul>
+      <li>idx로 조회 <code class="language-plaintext highlighter-rouge">ZRANGE 이름 start end WITHSCORES [REV]</code>
+```r
+ZRANGE myzset 1 3 WITHSCORES</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+- 점수로 조회
+	- `ZRANGE 이름 start end BYSCORE WITHSCORES [REV]
+	- BYSCORE 앞에 " ( " 를 추가하면 start 값은 제외
+
+### Bitmap
+- String에 비트연산을 수행할 수 있도록 확장된 형태
+
+### Hyperloglog
+- 집합의 원소 개수인 카디널리티를 추정할 수 있는 자료구조
+- 대량의 데이터에서 중복되지 않는 고유한 값을 집계할 때 유용함
+- set과 같은 데이터 구조에서는 중복을 피하기 위해 저장된 데이터를 전부 기억함
+	→ 저장되는 데이터가 많아지면 메모리를 많이 사용하게 됨
+
+- 입력되는 데이터 자체를 저장하지 않고 자체적인 방법으로 데이터를 변경해 처리함
+	- 데이터 개수에 상관 없이 일정한 메모리 유지
+	- 중복되지 않는 유일한 원소의 개수를 계산 가능
+	- 오차는 어느정도 발생
+
+- 추가
+	- PFADD
+- 데이터 개수
+	- PFCOUNT
+
+### Geospatial
+- 데이터를 위도 및 경도 쌍의 집합으로 젖아
+- 내부적으로는 SortedSet
+
+- 삽입
+	- GEOADD
+- 조회
+	- GEOPOS
+- 데이터 사이의 거리
+	- GEODIST
+```r
+GEOADD travel 14.2323 23.23232 prague
+GEOADD travel 123.2131 231.2131 seoul 1231.21313 123.3231 SanFrancisco
+
+GEOPOS travel prague
+
+GEODIST travel seoul prague
+</code></pre></div></div>
+
+<ul>
+  <li>특정 위치를 기준으로 원하는 거리 내 아이템 검색
+    <ul>
+      <li>GEOSEARCH travel 이름 거리 옵션</li>
+      <li>BYRADIUS 옵션을 이용하면 반경, BYBOX는 직사각형 거리</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="5-키-관리">5) 키 관리</h2>
+<hr />
+<ul>
+  <li>키는 존재하지 않을 때 아이템을 넣으면 자동으로 생성</li>
+  <li>모든 아이템을 삭제하면 키도 자동으로 삭제</li>
+  <li>키 삭제: DEL키</li>
+  <li>키의 존재여부: EXISTS 키</li>
+  <li>특정 패턴 이용해서 키의 존재여부 확인: KEYS pattern(정규표현식)</li>
+  <li>이름 변경: RENAME key 새로운이름</li>
+  <li>복제: COPY 기존키 새로운키</li>
+  <li>
+    <table>
+      <tbody>
+        <tr>
+          <td>모든 키 삭제: FLUSHALL [ ASYNC</td>
+          <td>SYNC ]</td>
+        </tr>
+      </tbody>
+    </table>
+  </li>
+  <li>UNLINK 키: 키의 데이터를 백그라운드에서 다른 스레드에 의해 처리</li>
+  <li>데이터의 유효기간 설정
+    <ul>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>EXPIRE key 유지시간(sec) [ NX</td>
+              <td>XX</td>
+              <td>GT</td>
+              <td>NT ]</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tbody>
+            <tr>
+              <td>EXPIREAT key {TIMESTAMP} [ NX</td>
+              <td>XX</td>
+              <td>GT</td>
+              <td>NT ]</td>
+            </tr>
+          </tbody>
+        </table>
+      </li>
+    </ul>
+  </li>
+  <li></li>
+</ul>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/13-mariadb-python-integration/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">MariaDB Python 연동</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/01-linux-start/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Linux 시작</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

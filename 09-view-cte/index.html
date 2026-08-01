@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>VIEW와 CTE | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="MariaDB Inline View, View, 임시 테이블, CTE 정리">
+<link rel="canonical" href="https://kkr010128.github.io/09-view-cte/">
+<meta property="og:title" content="VIEW와 CTE | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="MariaDB Inline View, View, 임시 테이블, CTE 정리">
+<meta property="og:url" content="https://kkr010128.github.io/09-view-cte/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="VIEW와 CTE | hyeon.log">
+<meta name="twitter:description" content="MariaDB Inline View, View, 임시 테이블, CTE 정리">
+
+  <meta property="article:published_time" content="2026-07-15T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "VIEW와 CTE | hyeon.log",
+    "description": "MariaDB Inline View, View, 임시 테이블, CTE 정리",
+    "url": "https://kkr010128.github.io/09-view-cte/",
+    "datePublished": "2026-07-15T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">MariaDB</p>
+    
+    <h1 class="post-head__title">VIEW와 CTE</h1>
+    
+      <p class="post-head__description">MariaDB Inline View, View, 임시 테이블, CTE 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 15일 · 4분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-인라인-뷰-inline-view">1. 인라인 뷰 (Inline VIEW)</h2>
+<ul>
+  <li>SELECT 구문의 결과는 테이블의 구조를 가짐</li>
+  <li>FROM에는 테이블의 이름을 기술하는데 이 절에 SELECT 구문을 작성해서 테이블처럼 사용하는 것이 가능</li>
+  <li>이 테이블은 SQL문이 수행되는 동안만 존재하는 임시적인 테이블이라서 LINE VIEW라고</li>
+  <li>
+    <p>다른 절에서 이 테이블을 이용하고자 하면이름을 만들어줘야 함</p>
+  </li>
+  <li><strong>정의</strong>: <code class="language-plaintext highlighter-rouge">FROM</code> 절에 사용하는 서브쿼리를 의미함. 서브쿼리가 반환하는 결과 셋을 하나의 임시 테이블처럼 취급함.</li>
+  <li><strong>특징</strong>: 영구적으로 저장되지 않고 쿼리 실행 시에만 일시적으로 생성됨. 반드시 별칭(Alias)을 지정해야 필드 참조가 가능함.</li>
+  <li><strong>예제</strong>: 과장/부장급 중 성취도 70점 이상인 직원 조회</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- tStaff 테이블에서 grade가 과장 또는 부장이고, score는 70인 데이터를 조회</span>
+<span class="k">SELECT</span> <span class="o">*</span>
+<span class="k">FROM</span> <span class="p">(</span><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tStaff</span> <span class="k">WHERE</span> <span class="n">grade</span> <span class="o">=</span> <span class="s1">'과장'</span> <span class="k">OR</span> <span class="n">grade</span> <span class="o">=</span> <span class="s1">'부장'</span><span class="p">)</span> <span class="n">A</span>
+<span class="k">WHERE</span> <span class="n">A</span><span class="p">.</span><span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">70</span><span class="p">;</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="2-뷰-view-개요">2. 뷰 (VIEW) 개요</h2>
+
+<ul>
+  <li><strong>정의</strong>: 하나 이상의 테이블로부터 유도된 <strong>논리적 가상 테이블</strong>임. 실제 데이터를 물리적으로 저장하지 않고 정의(SQL구문, SELECT 문장)만 메모리에 저장함.</li>
+  <li><strong>사용 이유</strong>:
+    <ul>
+      <li><strong>복잡성 단순화</strong>: 길고 복잡한 조인 쿼리를 매번 작성하지 않고 뷰를 통해 간단히 조회 가능함.</li>
+      <li><strong>보안성</strong>: 원본 테이블의 특정 컬럼만 공개하여 데이터 접근 권한을 제한할 수 있음.
+        <ul>
+          <li>테이블에서 사용하는 데이터가 사용자 별로 다른 경우 필요한 데이터만 제공할 수 있음.</li>
+        </ul>
+      </li>
+      <li><strong>독립성</strong>: 원본 테이블 구조가 바뀌어도 뷰 정의만 수정하면 응용 프로그램은 영향을 받지 않음.</li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="3-뷰-생성-및-관리">3. 뷰 생성 및 관리</h2>
+
+<h3 id="31-뷰-생성-문법">3.1 뷰 생성 문법</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="p">[</span><span class="k">OR</span> <span class="k">REPLACE</span><span class="p">]</span> <span class="k">VIEW</span> <span class="err">뷰</span><span class="n">_</span><span class="err">이름</span>
+<span class="p">[(</span><span class="err">별칭</span><span class="mi">1</span><span class="p">,</span> <span class="err">별칭</span><span class="mi">2</span><span class="p">,</span> <span class="p">...)]</span>
+<span class="k">AS</span> <span class="k">SELECT</span> <span class="err">문장</span>
+<span class="p">[</span><span class="k">WITH</span> <span class="k">CHECK</span> <span class="k">OPTION</span><span class="p">]</span>
+<span class="p">[</span><span class="k">WITH</span> <span class="k">READ</span> <span class="k">ONLY</span><span class="p">];</span>
+</code></pre></div></div>
+
+<h3 id="32-주요-옵션">3.2 주요 옵션</h3>
+
+<ul>
+  <li><strong>OR REPLACE</strong>: 동일 이름의 뷰가 있으면 삭제하지 않고 덮어씀.</li>
+  <li><strong>WITH CHECK OPTION</strong>: 뷰의 조건 범위 내에서만 <code class="language-plaintext highlighter-rouge">INSERT</code>, <code class="language-plaintext highlighter-rouge">UPDATE</code>가 가능하도록 제한함.</li>
+  <li><strong>WITH READ ONLY</strong>: 뷰를 통한 데이터 변경(DML)을 원천 차단하고 조회만 가능하게 함.</li>
+</ul>
+
+<h3 id="33-실무-예제-및-결과">3.3 실무 예제 및 결과</h3>
+
+<ul>
+  <li><strong>뷰 생성 (30번 부서 전용)</strong>:</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">VIEW</span> <span class="n">EMP_VIEW30</span> <span class="k">AS</span>
+<span class="k">SELECT</span> <span class="n">EMPNO</span><span class="p">,</span> <span class="n">ENAME</span><span class="p">,</span> <span class="n">DEPTNO</span> <span class="k">FROM</span> <span class="n">EMP_COPY</span> <span class="k">WHERE</span> <span class="n">DEPTNO</span> <span class="o">=</span> <span class="mi">30</span><span class="p">;</span>
+
+<span class="c1">-- 조회 결과</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">EMP_VIEW30</span><span class="p">;</span> <span class="c1">-- 30번 부서원들의 사번, 이름만 출력됨.</span>
+</code></pre></div></div>
+
+<ul>
+  <li><strong>복합 뷰 생성 (사원+부서 조인)</strong>:</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">VIEW</span> <span class="n">EMP_VIEW_DEPT</span> <span class="k">AS</span>
+<span class="k">SELECT</span> <span class="n">E</span><span class="p">.</span><span class="n">EMPNO</span><span class="p">,</span> <span class="n">E</span><span class="p">.</span><span class="n">ENAME</span><span class="p">,</span> <span class="n">D</span><span class="p">.</span><span class="n">DNAME</span><span class="p">,</span> <span class="n">D</span><span class="p">.</span><span class="n">LOC</span>
+<span class="k">FROM</span> <span class="n">EMP</span> <span class="n">E</span><span class="p">,</span> <span class="n">DEPT</span> <span class="n">D</span>
+<span class="k">WHERE</span> <span class="n">E</span><span class="p">.</span><span class="n">DEPTNO</span> <span class="o">=</span> <span class="n">D</span><span class="p">.</span><span class="n">DEPTNO</span><span class="p">;</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="4-뷰의-분류-및-dml-제약-사항">4. 뷰의 분류 및 DML 제약 사항</h2>
+
+<p>| 구분           | 단순 뷰 (Simple VIEW)                 | 복합 뷰 (Complex VIEW)           |
+| :———– | :——————————— | :—————————- |
+| <strong>대상 테이블 수</strong> | 1개                                 | 2개 이상 (JOIN)                  |
+| <strong>DML 작업</strong>   | 가능함 (제약 조건 준수 시)<br />DISTINCT 사용 불가 | 제한적이거나 불가능함<br />DISTINCT 사용 가능 |
+| <strong>함수/그룹화</strong>   | 포함하지 않음                            | 포함 가능함                        |</p>
+<ul>
+  <li>뷰에 DML 작업을 하게 되며 원본 테이블의 데이터가 수정됨
+    <h3 id="41-dml이-불가능한-경우">4.1 DML이 불가능한 경우</h3>
+  </li>
+  <li>뷰 정의에 포함되지 않은 컬럼이 원본 테이블에서 <code class="language-plaintext highlighter-rouge">NOT NULL</code>인 경우 (<code class="language-plaintext highlighter-rouge">INSERT</code> 불가).</li>
+  <li>산술 표현식(예: <code class="language-plaintext highlighter-rouge">SAL * 12</code>)으로 정의된 컬럼을 수정하려는 경우.</li>
+  <li><code class="language-plaintext highlighter-rouge">DISTINCT</code>, <code class="language-plaintext highlighter-rouge">GROUP BY</code>, <code class="language-plaintext highlighter-rouge">HAVING</code>, 집계 함수가 포함된 뷰인 경우.</li>
+</ul>
+
+<hr />
+
+<h2 id="5-임시-테이블-temporary-table">5. 임시 테이블 (TEMPORARY TABLE)</h2>
+
+<ul>
+  <li><strong>정의</strong>: 세션(Session) 내에서만 생존하는 테이블임. 접속을 끊으면 자동으로 삭제됨.</li>
+  <li><strong>특징</strong>: 생성한 클라이언트 본인만 볼 수 있으며, <mark style="background: #CACFD9A6;">기존 테이블과 이름이 같으면 임시 테이블이 우선권을 가짐</mark>.
+    <ul>
+      <li>임시 테이블은 메모리에 생성됨</li>
+    </ul>
+  </li>
+  <li><strong>문법</strong>:</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TEMPORARY</span> <span class="k">TABLE</span> <span class="n">IF</span> <span class="k">NOT</span> <span class="k">EXISTS</span> <span class="n">temp_table</span> <span class="p">(</span>
+    <span class="n">id</span> <span class="nb">INT</span><span class="p">,</span> <span class="n">name</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="6-cte-common-table-expression">6. CTE (Common Table Expression)</h2>
+
+<ul>
+  <li><strong>정의</strong>: 복잡한 쿼리 내에서 임시 결과 셋을 정의하여 반복 사용하는 구문임. (<code class="language-plaintext highlighter-rouge">WITH</code> 절 사용)
+    <ul>
+      <li>DB에 실제 저장되는 객체 이므로 사용 후 정리해야 한다는 면에서 번거로움</li>
+      <li>객체를 생성하고 저장 공간을 차지하기 때문에 속도도 그다지 빠르지 않음</li>
+    </ul>
+  </li>
+  <li><strong>장점</strong>: 임시 테이블보다 생성/정리 비용이 적고 가독성이 우수하며 성능상 이점이 있음.
+    <ul>
+      <li>기존 테이블의 컬럼 이름을 변경해서 가독성을 높이기도 함</li>
+      <li>여러개 생성도 가능함</li>
+      <li>대부분의 경우는 VIEW로 동일한 문제를 해결</li>
+    </ul>
+  </li>
+  <li><strong>예제</strong>: 쇼핑 정보를 CTE로 정의 후 평균 구매수량 이상인 데이터 조회</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- WITH 테이블이름(컬럼이름 나열) AS (쿼리문)</span>
+<span class="mi">1</span><span class="p">.</span> <span class="n">tSTaff</span> <span class="err">테이블에</span> <span class="n">DEPART</span><span class="err">가</span> <span class="err">영업부이고</span> <span class="n">GENDER</span><span class="err">가</span> <span class="err">남인</span> <span class="err">데이터에서</span> <span class="n">SALARY</span><span class="err">가</span> <span class="err">평균</span> <span class="err">이상인</span> <span class="err">데이터의</span> <span class="n">NAM</span><span class="p">,</span> <span class="n">SALARY</span><span class="p">,</span> <span class="n">SCORE</span><span class="err">를</span> <span class="err">조회</span>
+   
+<span class="k">WITH</span> <span class="k">TEMP</span> <span class="k">AS</span><span class="p">(</span><span class="k">SELECT</span> <span class="n">NAME</span><span class="p">,</span> <span class="n">SALARY</span><span class="p">,</span> <span class="n">SCORE</span> <span class="k">FROM</span> <span class="n">tStaff</span> <span class="k">WHERE</span> <span class="n">DEPART</span><span class="o">=</span><span class="s1">'영업부'</span> <span class="k">AND</span> <span class="n">GENDER</span> <span class="s1">'남'</span><span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="k">TEMP</span> <span class="k">WHERE</span> <span class="n">SALARY</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="k">SELECT</span> <span class="k">AVG</span><span class="p">(</span><span class="n">SALARY</span><span class="p">)</span> <span class="k">FROM</span> <span class="k">TEMP</span><span class="p">);</span>
+
+<span class="k">WITH</span> <span class="n">SHOPPING</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="n">M</span><span class="p">.</span><span class="n">MEMBER</span><span class="p">,</span> <span class="n">O</span><span class="p">.</span><span class="n">ITEM</span><span class="p">,</span> <span class="n">O</span><span class="p">.</span><span class="n">NUM</span>
+    <span class="k">FROM</span> <span class="n">tMember</span> <span class="n">M</span> <span class="k">INNER</span> <span class="k">JOIN</span> <span class="n">tOrder</span> <span class="n">O</span> <span class="k">ON</span> <span class="n">M</span><span class="p">.</span><span class="n">MEMBER</span> <span class="o">=</span> <span class="n">O</span><span class="p">.</span><span class="n">MEMBER</span>
+<span class="p">)</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">SHOPPING</span>
+<span class="k">WHERE</span> <span class="n">NUM</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="k">SELECT</span> <span class="k">AVG</span><span class="p">(</span><span class="n">NUM</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">SHOPPING</span><span class="p">);</span>
+</code></pre></div></div>
+
+<hr />
+
+<blockquote>
+  <p>[!tip] <strong>Obsidian 정리 팁</strong></p>
+
+  <ul>
+    <li>뷰는 실제 데이터를 가진 것이 아니므로 <code class="language-plaintext highlighter-rouge">DROP VIEW</code>를 수행해도 원본 데이터는 삭제되지 않음을 명시함.</li>
+    <li>실무에서는 데이터 정제 단계에서 <strong>CTE</strong>를 적극 활용하여 쿼리의 가독성을 확보하는 것이 좋음.</li>
+  </ul>
+</blockquote>
+
+<p>Maria DB에서는 읽기 전용을 만들고자 하는 경우
+사용자에게 뷰를 조회할 수 있는 권한 부여해서 읽기 전용을 만들어줌
+뷰에 대한 권한을 전부 준 후 삽입, 삭제, 수정 권한을 회수하는 방식으로 설정</p>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">GRANT</span> <span class="k">SELECT</span> <span class="k">ON</span> <span class="err">데이터베이스이름</span><span class="p">.</span><span class="err">뷰이름</span> <span class="k">TO</span> <span class="s1">'사용자계정'</span><span class="o">@</span><span class="s1">'접속위치'</span><span class="p">;</span>
+
+<span class="k">REVOKE</span> <span class="k">INSERT</span><span class="p">,</span> <span class="k">UPDATE</span><span class="p">,</span> <span class="k">DELETE</span>
+<span class="k">ON</span> <span class="err">데이터베이스이름</span><span class="p">.</span><span class="err">뷰이름</span> <span class="k">TO</span> <span class="s1">'사용자계정'</span><span class="o">@</span><span class="s1">'접속위치'</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="view와-cte의-차이">VIEW와 CTE의 차이</h3>
+<ul>
+  <li>VIEW는 한 번 만들어지면 삭제할 때까지 데이터베이스에 남아있음</li>
+  <li>CTE는 한 번 사용하고 나면 자동으로 삭제됨</li>
+  <li>VIEW는 SQL 구문을 메모리에 저장하지만 CTE는 데이터를 메모리에 저장함
+    <ul>
+      <li>따라서 CTE의 조회 속도가 더 빠름</li>
+    </ul>
+  </li>
+</ul>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/08-tcl-transaction/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">TCL (트랜잭션)</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/10-procedure-trigger/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">프로시저와 트리거</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

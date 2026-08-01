@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Shell | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="bash shell 개념, 쉘 내장 명령, 특수 문자, 표준 입출력, 변수 정리">
+<link rel="canonical" href="https://kkr010128.github.io/03-shell/">
+<meta property="og:title" content="Shell | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="bash shell 개념, 쉘 내장 명령, 특수 문자, 표준 입출력, 변수 정리">
+<meta property="og:url" content="https://kkr010128.github.io/03-shell/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Shell | hyeon.log">
+<meta name="twitter:description" content="bash shell 개념, 쉘 내장 명령, 특수 문자, 표준 입출력, 변수 정리">
+
+  <meta property="article:published_time" content="2026-07-20T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Shell | hyeon.log",
+    "description": "bash shell 개념, 쉘 내장 명령, 특수 문자, 표준 입출력, 변수 정리",
+    "url": "https://kkr010128.github.io/03-shell/",
+    "datePublished": "2026-07-20T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Linux</p>
+    
+    <h1 class="post-head__title">Shell</h1>
+    
+      <p class="post-head__description">bash shell 개념, 쉘 내장 명령, 특수 문자, 표준 입출력, 변수 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 20일 · 2분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Linux">Linux</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h3 id="개요">개요</h3>
+<ul>
+  <li>사용자가 입력한 명령을 해석하여 커널에 전달, 처리 결과를 사용자에게 전달하는 역할을 수행</li>
+</ul>
+
+<h3 id="기능">기능</h3>
+<ul>
+  <li>명령어 해석기</li>
+  <li>프로그래밍</li>
+  <li>사용자 환경 서정
+    <ul>
+      <li>초기화 파일을 제공</li>
+      <li>초기화 파일에 명령을 찾아오는 경로 또는 파일과 디렉토리 생성 시 기본 권한 설정 등을 작성</li>
+      <li>사용자가 로그인 할 대 설정 파일을 읽어 사용자 별 특성에 맞게 초기 환경 설정됨</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="종류">종류</h3>
+<hr />
+<ul>
+  <li>본쉘</li>
+  <li>C쉘</li>
+  <li>콘쉘</li>
+  <li>Bash 쉘</li>
+  <li>z쉘</li>
+</ul>
+
+<h2 id="1--bash-shell">1 ) Bash Shell</h2>
+<hr />
+<ul>
+  <li>우분투에서 기본 제공하는 쉘</li>
+</ul>
+
+<h3 id="지원-쉘-확인">지원 쉘 확인</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">cat /ect/shells</code></li>
+</ul>
+
+<h3 id="사용자-쉘-확인">사용자 쉘 확인</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">grep {user} /etc/passwd</code>
+    <h3 id="쉘-변경절대경로-사용">쉘 변경(절대경로 사용)</h3>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">chsh -s {shellName} {userName}</code></li>
+</ul>
+
+<h2 id="2--shell-내장-명령">2 ) Shell 내장 명령</h2>
+<hr />
+<ul>
+  <li>쉘은 자체 내장 명령을 가지고 있음
+    <ul>
+      <li>디렉토리 샐행 파일 없이 쉘 안에 명령이 포함됨</li>
+    </ul>
+  </li>
+</ul>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">echo [-n] [str|arg]</code>
+ → 화면에 한 줄의 문자열을 출력
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">echo [-n] [str|arg]</code></li>
+      <li>n은 줄바꿈</li>
+      <li>공백 또는 <code class="language-plaintext highlighter-rouge">-</code> <code class="language-plaintext highlighter-rouge">--</code>가 있을 경우 ` “ “ `필요</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">printf [형식] [인수]</code>
+ → C에서의 함수와 사용법 동일</li>
+  <li><code class="language-plaintext highlighter-rouge">특수 문자</code>
+ → 사용자가 편리하게 명령 입력 • 실행할 수 있도록 다양한 특수 문자 제공
+ → 명령 입력 시 특수 문자 존재 확인 후 해독하여 변경한 후 명령 실행</li>
+  <li><code class="language-plaintext highlighter-rouge">백틱</code>
+ → 명령을 수행한 후 명령의 결과를 대체</li>
+</ol>
+
+<h2 id="2--표준-입출력">2 ) 표준 입출력</h2>
+<hr />
+<h3 id="종류-1">종류</h3>
+
+<p>| 파일 디스크립터 | 대신 사용하는 이름 | 정의    |
+| ——– | ———- | —– |
+| 0        | stdin      | 표준 입력 |
+| 1        | stdout     | 표준 출력 |
+| 2        | stderr     | 표준 오류 |</p>
+<h3 id="출력-redirection">출력 Redirection</h3>
+<ul>
+  <li>출력의 방향을 바꿈</li>
+  <li>기본적으로 출력은 모니터</li>
+  <li>Format
+  → 명령 1 &gt; 경로
+  → 명령 &gt; 경로
+```c
+    <h1 id="date-명령의-결과를-파일로-저장">date 명령의 결과를 파일로 저장</h1>
+    <p>date 1&gt;print.txt
+ls
+exec.txt  print.txt  test.txt  test1.txt
+cat print.txt</p>
+    <ol>
+      <li>
+        <ol>
+          <li>
+            <ol>
+              <li>(화) 10:33:48 KST
+ → 명령의 수행 결과를 print.txt로 저장</li>
+            </ol>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ul>
+
+<h1 id="파일에-내용-추가는----대신--사용">파일에 내용 추가는 ` &gt; ` 대신 ` » `사용</h1>
+<p>date 1»print.txt
+cat print.txt</p>
+<ol>
+  <li>
+    <ol>
+      <li>
+        <ol>
+          <li>(화) 10:33:48 KST</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+  <li>
+    <ol>
+      <li>
+        <ol>
+          <li>(화) 10:34:37 KST
+```
+            <h3 id="오류-redirection">오류 Redirection</h3>
+            <ul>
+              <li>오류 메시지를 모니터가 아닌 다른 곳에 출력</li>
+              <li>Format
+→ <code class="language-plaintext highlighter-rouge">명령 2&gt;경로</code> 
+→ 1로 하면 성공했을 때 기록, 실패는 기록하지 않음
+                <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># </span>
+<span class="nb">ls </span>a 2&gt;err.txt
+<span class="nb">cat </span>err.txt 
+<span class="nb">ls</span>: cannot access <span class="s1">'a'</span>: No such file or directory
+</code></pre></div>                </div>
+              </li>
+            </ul>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+
+<ul>
+  <li>
+    <p>오류 메시지 버리기
+  → <code class="language-plaintext highlighter-rouge">2&gt;/dev/null</code></p>
+  </li>
+  <li><strong>성공과 실패 모두 기록</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">{cmd} &gt;{savePath} 2&gt;&amp;1</code>
+        <h3 id="입력-redirection">입력 Redirection</h3>
+      </li>
+    </ul>
+  </li>
+  <li>표준 입력을 변경하는 것</li>
+  <li>표준 입력은 키보드</li>
+  <li>
+    <h2 id="표준-입력을-파일로-변경하는-것">표준 입력을 파일로 변경하는 것</h2>
+  </li>
+</ul>
+
+<h2 id="3--변수">3 ) 변수</h2>
+<hr />
+<h3 id="종류-2">종류</h3>
+<ul>
+  <li>쉘 변수
+  → 현재 쉘에서 사용 가능한 변수</li>
+  <li>환경 변수
+  → 시스템 전체에 적용되는 변수
+    <h3 id="변수-확인">변수 확인</h3>
+  </li>
+  <li>echo $변수명</li>
+  <li>env: 환경 변수 전부 출력</li>
+  <li>set: 모든 변수와 함수를 출력
+    <h3 id="변수-생성-및-수정">변수 생성 및 수정</h3>
+  </li>
+  <li>변수이름 = 값</li>
+  <li>` - `없으면 생성되고 있으면 수정</li>
+</ul>
+
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/02-text-editor/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">텍스트 에디터</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/04-file-system/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">파일 시스템</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

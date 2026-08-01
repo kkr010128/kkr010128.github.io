@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>모듈과 패키지 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Python 모듈, 패키지, collections, itertools 등 내장 모듈 정리">
+<link rel="canonical" href="https://kkr010128.github.io/08-module-package/">
+<meta property="og:title" content="모듈과 패키지 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Python 모듈, 패키지, collections, itertools 등 내장 모듈 정리">
+<meta property="og:url" content="https://kkr010128.github.io/08-module-package/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="모듈과 패키지 | hyeon.log">
+<meta name="twitter:description" content="Python 모듈, 패키지, collections, itertools 등 내장 모듈 정리">
+
+  <meta property="article:published_time" content="2026-07-09T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "모듈과 패키지 | hyeon.log",
+    "description": "Python 모듈, 패키지, collections, itertools 등 내장 모듈 정리",
+    "url": "https://kkr010128.github.io/08-module-package/",
+    "datePublished": "2026-07-09T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">모듈과 패키지</h1>
+    
+      <p class="post-head__description">Python 모듈, 패키지, collections, itertools 등 내장 모듈 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 9일 · 4분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Python">Python</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <blockquote>
+  <p>Python에서 자주 사용하는 표준 라이브러리와 시스템 모듈, 멀티스레드, 네트워크 프로그래밍을 학습한다.</p>
+</blockquote>
+
+<hr />
+
+<p>#Python #Module #Datetime #OS #Thread #Socket</p>
+
+<h2 id="학습-목표">학습 목표</h2>
+
+<ul>
+  <li>날짜와 시간 처리</li>
+  <li>Fraction</li>
+  <li>파일 시스템</li>
+  <li>OS 및 System 모듈</li>
+  <li>Copy</li>
+  <li>Weak Reference</li>
+  <li>Thread</li>
+  <li>Socket Network</li>
+</ul>
+
+<hr />
+
+<h1 id="날짜와-시간date--time">날짜와 시간(Date &amp; Time)</h1>
+
+<h2 id="시간-표현">시간 표현</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>용어</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Timestamp</td>
+      <td>1970-01-01 00:00:00 UTC부터 경과한 시간</td>
+    </tr>
+    <tr>
+      <td>UTC</td>
+      <td>국제 표준시</td>
+    </tr>
+    <tr>
+      <td>GMT</td>
+      <td>그리니치 평균시</td>
+    </tr>
+    <tr>
+      <td>LST</td>
+      <td>지역 표준시</td>
+    </tr>
+    <tr>
+      <td>DST</td>
+      <td>일광 절약 시간제</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="struct_time">struct_time</h2>
+
+<p>Timestamp를 사람이 읽기 쉬운 형태로 표현하는 객체</p>
+
+<p>주요 속성</p>
+
+<ul>
+  <li>tm_year</li>
+  <li>tm_mon</li>
+  <li>tm_mday</li>
+  <li>tm_hour</li>
+  <li>tm_min</li>
+  <li>tm_sec</li>
+  <li>tm_wday</li>
+  <li>tm_yday</li>
+  <li>tm_isdst</li>
+</ul>
+
+<hr />
+
+<h1 id="time-모듈">time 모듈</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">time</span>
+</code></pre></div></div>
+
+<p>주요 함수</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>함수</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>time()</td>
+      <td>Timestamp 반환</td>
+    </tr>
+    <tr>
+      <td>gmtime()</td>
+      <td>UTC 기준 시간</td>
+    </tr>
+    <tr>
+      <td>localtime()</td>
+      <td>로컬 시간</td>
+    </tr>
+    <tr>
+      <td>sleep()</td>
+      <td>일시 정지</td>
+    </tr>
+    <tr>
+      <td>asctime()</td>
+      <td>문자열 시간</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">time</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">time</span><span class="p">())</span>
+<span class="k">print</span><span class="p">(</span><span class="n">time</span><span class="p">.</span><span class="n">localtime</span><span class="p">())</span>
+<span class="n">time</span><span class="p">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="datetime-모듈">datetime 모듈</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">datetime</span>
+</code></pre></div></div>
+
+<p>주요 클래스</p>
+
+<ul>
+  <li>datetime</li>
+  <li>date</li>
+  <li>time</li>
+  <li>timedelta</li>
+  <li>tzinfo</li>
+</ul>
+
+<hr />
+
+<h2 id="datetime-생성">datetime 생성</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">datetime</span><span class="p">.</span><span class="n">datetime</span><span class="p">.</span><span class="n">now</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>현재 날짜와 시간</p>
+
+<hr />
+
+<h2 id="문자열--날짜">문자열 ↔ 날짜</h2>
+
+<p>문자열 → datetime</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">datetime</span><span class="p">.</span><span class="n">datetime</span><span class="p">.</span><span class="n">strptime</span><span class="p">(</span>
+    <span class="s">"2024-01-01"</span><span class="p">,</span>
+    <span class="s">"%Y-%m-%d"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<p>datetime → 문자열</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dt</span><span class="p">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">"%Y-%m-%d"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="날짜-연산">날짜 연산</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+
+<span class="n">today</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>날짜 차이</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dt2</span> <span class="o">-</span> <span class="n">dt1</span>
+</code></pre></div></div>
+
+<p>↓</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">timedelta</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="날짜-포맷">날짜 포맷</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>포맷</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>%Y</td>
+      <td>4자리 연도</td>
+    </tr>
+    <tr>
+      <td>%y</td>
+      <td>2자리 연도</td>
+    </tr>
+    <tr>
+      <td>%m</td>
+      <td>월</td>
+    </tr>
+    <tr>
+      <td>%d</td>
+      <td>일</td>
+    </tr>
+    <tr>
+      <td>%H</td>
+      <td>24시간</td>
+    </tr>
+    <tr>
+      <td>%I</td>
+      <td>12시간</td>
+    </tr>
+    <tr>
+      <td>%M</td>
+      <td>분</td>
+    </tr>
+    <tr>
+      <td>%S</td>
+      <td>초</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h1 id="fraction">Fraction</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">fractions</span> <span class="kn">import</span> <span class="n">Fraction</span>
+</code></pre></div></div>
+
+<p>분수 표현</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Fraction</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">7</span><span class="p">)</span>
+
+<span class="n">Fraction</span><span class="p">(</span><span class="s">"2/5"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>지원</p>
+
+<ul>
+  <li>사칙연산</li>
+  <li>floor</li>
+  <li>ceil</li>
+  <li>round</li>
+</ul>
+
+<hr />
+
+<h1 id="파일-시스템file-system">파일 시스템(File System)</h1>
+
+<h2 id="ospath">os.path</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os.path</span>
+</code></pre></div></div>
+
+<p>주요 함수</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>함수</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>abspath()</td>
+      <td>절대 경로</td>
+    </tr>
+    <tr>
+      <td>basename()</td>
+      <td>파일명</td>
+    </tr>
+    <tr>
+      <td>dirname()</td>
+      <td>디렉터리</td>
+    </tr>
+    <tr>
+      <td>exists()</td>
+      <td>존재 여부</td>
+    </tr>
+    <tr>
+      <td>join()</td>
+      <td>경로 연결</td>
+    </tr>
+    <tr>
+      <td>split()</td>
+      <td>경로 분리</td>
+    </tr>
+    <tr>
+      <td>splitext()</td>
+      <td>확장자 분리</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="파일-정보">파일 정보</h2>
+
+<ul>
+  <li>getsize()</li>
+  <li>getctime()</li>
+  <li>getmtime()</li>
+  <li>getatime()</li>
+  <li>isfile()</li>
+  <li>isdir()</li>
+</ul>
+
+<hr />
+
+<h1 id="glob">glob</h1>
+
+<p>파일 검색</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">glob</span>
+</code></pre></div></div>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">glob</span><span class="p">.</span><span class="n">glob</span><span class="p">(</span><span class="s">"*.py"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Iterator</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">glob</span><span class="p">.</span><span class="n">iglob</span><span class="p">(</span><span class="s">"*.py"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="os-모듈">os 모듈</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+</code></pre></div></div>
+
+<p>주요 함수</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>함수</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>getcwd()</td>
+      <td>현재 디렉터리</td>
+    </tr>
+    <tr>
+      <td>chdir()</td>
+      <td>디렉터리 변경</td>
+    </tr>
+    <tr>
+      <td>listdir()</td>
+      <td>목록 조회</td>
+    </tr>
+    <tr>
+      <td>mkdir()</td>
+      <td>디렉터리 생성</td>
+    </tr>
+    <tr>
+      <td>makedirs()</td>
+      <td>재귀 생성</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="환경-정보">환경 정보</h2>
+
+<ul>
+  <li>os.name</li>
+  <li>os.environ</li>
+  <li>os.getenv()</li>
+  <li>os.getpid()</li>
+  <li>os.system()</li>
+</ul>
+
+<hr />
+
+<h1 id="sys-모듈">sys 모듈</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sys</span>
+</code></pre></div></div>
+
+<p>주요 기능</p>
+
+<ul>
+  <li>argv</li>
+  <li>modules</li>
+  <li>path</li>
+  <li>prefix</li>
+  <li>executable</li>
+  <li>exit()</li>
+  <li>getrefcount()</li>
+  <li>getdefaultencoding()</li>
+</ul>
+
+<hr />
+
+<h1 id="copy">Copy</h1>
+
+<h2 id="참조-복사">참조 복사</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">a</span>
+</code></pre></div></div>
+
+<p>같은 객체 참조</p>
+
+<hr />
+
+<h2 id="얕은-복사shallow-copy">얕은 복사(Shallow Copy)</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>또는</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span><span class="p">[:]</span>
+</code></pre></div></div>
+
+<p>특징</p>
+
+<ul>
+  <li>1단계만 복사</li>
+  <li>내부 객체는 공유</li>
+</ul>
+
+<hr />
+
+<h2 id="깊은-복사deep-copy">깊은 복사(Deep Copy)</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="n">b</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>특징</p>
+
+<ul>
+  <li>모든 객체 재귀 복사</li>
+  <li>독립적인 객체 생성</li>
+</ul>
+
+<hr />
+
+<h1 id="weak-reference">Weak Reference</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">weakref</span>
+</code></pre></div></div>
+
+<p>특징</p>
+
+<ul>
+  <li>참조 횟수 증가 없음</li>
+  <li>메모리 누수 방지</li>
+  <li>객체가 제거되면 None 반환</li>
+</ul>
+
+<p>생성</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ref</span> <span class="o">=</span> <span class="n">weakref</span><span class="p">.</span><span class="n">ref</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="thread">Thread</h1>
+
+<h2 id="개념">개념</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>용어</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Process</td>
+      <td>독립 실행 프로그램</td>
+    </tr>
+    <tr>
+      <td>Thread</td>
+      <td>Process 내부 실행 단위</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="thread-생성">Thread 생성</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">threading</span>
+</code></pre></div></div>
+
+<p>함수 기반</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">(</span>
+    <span class="n">target</span><span class="o">=</span><span class="n">func</span><span class="p">,</span>
+    <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">arg</span><span class="p">,)</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="클래스-기반">클래스 기반</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">MyThread</span><span class="p">(</span><span class="n">threading</span><span class="p">.</span><span class="n">Thread</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="p">...</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="실행">실행</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">th</span><span class="p">.</span><span class="n">start</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>종료 대기</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">th</span><span class="p">.</span><span class="n">join</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="multi-thread">Multi Thread</h1>
+
+<h2 id="문제점">문제점</h2>
+
+<ul>
+  <li>Critical Section</li>
+  <li>Race Condition</li>
+  <li>Dead Lock</li>
+  <li>Producer / Consumer</li>
+</ul>
+
+<hr />
+
+<h1 id="lock">Lock</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="p">.</span><span class="n">Lock</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>획득</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lock</span><span class="p">.</span><span class="n">acquire</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>반납</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lock</span><span class="p">.</span><span class="n">release</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="rlock">RLock</h1>
+
+<p>같은 Thread에서 여러 번 Lock 가능</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">threading</span><span class="p">.</span><span class="n">RLock</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="condition">Condition</h1>
+
+<p>생산자-소비자 문제 해결</p>
+
+<p>주요 메서드</p>
+
+<ul>
+  <li>wait()</li>
+  <li>notify()</li>
+</ul>
+
+<hr />
+
+<h1 id="semaphore">Semaphore</h1>
+
+<p>동시에 실행 가능한 Thread 개수 제한</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">threading</span><span class="p">.</span><span class="n">Semaphore</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>메서드</p>
+
+<ul>
+  <li>acquire()</li>
+  <li>release()</li>
+</ul>
+
+<hr />
+
+<h1 id="network">Network</h1>
+
+<h2 id="기본-용어">기본 용어</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>용어</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>IP</td>
+      <td>장치 주소</td>
+    </tr>
+    <tr>
+      <td>Port</td>
+      <td>프로세스 번호</td>
+    </tr>
+    <tr>
+      <td>Protocol</td>
+      <td>통신 규칙</td>
+    </tr>
+    <tr>
+      <td>TCP</td>
+      <td>연결형</td>
+    </tr>
+    <tr>
+      <td>UDP</td>
+      <td>비연결형</td>
+    </tr>
+    <tr>
+      <td>Socket</td>
+      <td>통신 객체</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h1 id="socket">socket</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">socket</span>
+</code></pre></div></div>
+
+<p>서비스 포트</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">socket</span><span class="p">.</span><span class="n">getservbyname</span><span class="p">(</span>
+    <span class="s">"http"</span><span class="p">,</span>
+    <span class="s">"tcp"</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="socket-종류">Socket 종류</h1>
+
+<h2 id="주소-체계">주소 체계</h2>
+
+<ul>
+  <li>AF_INET</li>
+  <li>AF_INET6</li>
+</ul>
+
+<hr />
+
+<h2 id="통신-방식">통신 방식</h2>
+
+<ul>
+  <li>SOCK_STREAM (TCP)</li>
+  <li>SOCK_DGRAM (UDP)</li>
+</ul>
+
+<hr />
+
+<h1 id="tcp-통신">TCP 통신</h1>
+
+<h2 id="서버">서버</h2>
+
+<ol>
+  <li>socket()</li>
+  <li>bind()</li>
+  <li>listen()</li>
+  <li>accept()</li>
+  <li>recv()</li>
+  <li>send()</li>
+  <li>close()</li>
+</ol>
+
+<hr />
+
+<h2 id="클라이언트">클라이언트</h2>
+
+<ol>
+  <li>socket()</li>
+  <li>connect()</li>
+  <li>send()</li>
+  <li>recv()</li>
+  <li>close()</li>
+</ol>
+
+<hr />
+
+<h1 id="udp-통신">UDP 통신</h1>
+
+<p>TCP와 달리 연결 과정이 없다.</p>
+
+<p>송신</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sendto</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>수신</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">recvfrom</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="socket-설정">Socket 설정</h1>
+
+<p>Blocking</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">setblocking</span><span class="p">(</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Non-Blocking</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">setblocking</span><span class="p">(</span><span class="bp">False</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Timeout</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">settimeout</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="broadcast">Broadcast</h1>
+
+<p>동일 네트워크 전체에 전송</p>
+
+<p>설정</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">setsockopt</span><span class="p">(</span>
+    <span class="n">SOL_SOCKET</span><span class="p">,</span>
+    <span class="n">SO_BROADCAST</span><span class="p">,</span>
+    <span class="mi">1</span>
+<span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="채팅-서버-구조">채팅 서버 구조</h1>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+    │
+    ▼
+Socket
+    │
+    ▼
+Thread
+    │
+    ▼
+Server
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="핵심-암기">핵심 암기</h1>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">time</code> : Timestamp 처리</li>
+  <li><code class="language-plaintext highlighter-rouge">datetime</code> : 날짜/시간 객체</li>
+  <li><code class="language-plaintext highlighter-rouge">timedelta</code> : 시간 차이</li>
+  <li><code class="language-plaintext highlighter-rouge">Fraction</code> : 분수 계산</li>
+  <li><code class="language-plaintext highlighter-rouge">os.path</code> : 파일 경로</li>
+  <li><code class="language-plaintext highlighter-rouge">glob</code> : 파일 검색</li>
+  <li><code class="language-plaintext highlighter-rouge">os</code> : 운영체제 기능</li>
+  <li><code class="language-plaintext highlighter-rouge">sys</code> : Python 실행 환경</li>
+  <li><code class="language-plaintext highlighter-rouge">copy.copy()</code> : 얕은 복사</li>
+  <li><code class="language-plaintext highlighter-rouge">copy.deepcopy()</code> : 깊은 복사</li>
+  <li><code class="language-plaintext highlighter-rouge">weakref</code> : 약한 참조</li>
+  <li><code class="language-plaintext highlighter-rouge">Thread</code> : 병렬 작업</li>
+  <li><code class="language-plaintext highlighter-rouge">Lock</code> : 임계 영역 보호</li>
+  <li><code class="language-plaintext highlighter-rouge">Condition</code> : 생산자-소비자 제어</li>
+  <li><code class="language-plaintext highlighter-rouge">Semaphore</code> : 동시 실행 개수 제한</li>
+  <li><code class="language-plaintext highlighter-rouge">socket</code> : 네트워크 통신</li>
+  <li>TCP : 연결형</li>
+  <li>UDP : 비연결형</li>
+</ul>
+
+<hr />
+
+<h1 id="한-페이지-요약">한 페이지 요약</h1>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Python Module
+│
+├── Date &amp; Time
+│   ├── time
+│   ├── datetime
+│   ├── timedelta
+│   └── Fraction
+│
+├── File System
+│   ├── os.path
+│   ├── glob
+│   ├── os
+│   └── sys
+│
+├── Memory
+│   ├── copy
+│   ├── deepcopy
+│   └── weakref
+│
+├── Thread
+│   ├── Lock
+│   ├── RLock
+│   ├── Condition
+│   └── Semaphore
+│
+└── Network
+    ├── Socket
+    ├── TCP
+    ├── UDP
+    └── Broadcast
+</code></pre></div></div>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/07-exception-handling/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">예외 처리</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/09-file-io/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">파일 입출력</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

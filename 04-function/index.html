@@ -1,0 +1,1007 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>함수 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리">
+<link rel="canonical" href="https://kkr010128.github.io/04-function/">
+<meta property="og:title" content="함수 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리">
+<meta property="og:url" content="https://kkr010128.github.io/04-function/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="함수 | hyeon.log">
+<meta name="twitter:description" content="Python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리">
+
+  <meta property="article:published_time" content="2026-07-07T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "함수 | hyeon.log",
+    "description": "Python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리",
+    "url": "https://kkr010128.github.io/04-function/",
+    "datePublished": "2026-07-07T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">함수</h1>
+    
+      <p class="post-head__description">Python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 7일 · 4분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Python">Python</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <blockquote>
+  <p>Python의 함수(Function), 함수형 프로그래밍, Decorator를 학습한다.</p>
+</blockquote>
+
+<hr />
+
+<p>#Python #Function #FunctionalProgramming</p>
+
+<h2 id="학습-목표">학습 목표</h2>
+
+<ul>
+  <li>함수 정의 및 호출</li>
+  <li>매개변수와 반환값</li>
+  <li>가변 매개변수</li>
+  <li>재귀 함수</li>
+  <li>함수 객체</li>
+  <li>함수형 프로그래밍</li>
+  <li>Decorator</li>
+</ul>
+
+<hr />
+
+<h2 id="함수function">함수(Function)</h2>
+
+<h3 id="함수란">함수란?</h3>
+
+<p>여러 문장을 하나의 이름으로 묶어 필요할 때 호출하여 사용하는 코드 블록이다.</p>
+
+<h3 id="함수를-사용하는-이유">함수를 사용하는 이유</h3>
+
+<ul>
+  <li>코드 재사용</li>
+  <li>중복 제거</li>
+  <li>유지보수 향상</li>
+  <li>가독성 향상</li>
+  <li>기능 단위 분리</li>
+</ul>
+
+<hr />
+
+<h2 id="함수의-종류">함수의 종류</h2>
+
+<h3 id="내장-함수built-in-function">내장 함수(Built-in Function)</h3>
+
+<p>Python에서 기본 제공하는 함수</p>
+
+<p>대표 함수</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">print()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">input()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">len()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">max()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">min()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">sum()</code></li>
+  <li><code class="language-plaintext highlighter-rouge">range()</code></li>
+</ul>
+
+<hr />
+
+<h3 id="사용자-정의-함수user-defined-function">사용자 정의 함수(User Defined Function)</h3>
+
+<p>개발자가 직접 만드는 함수</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">함수이름</span><span class="p">(</span><span class="n">매개변수</span><span class="p">):</span>
+    <span class="n">실행문</span>
+    <span class="k">return</span> <span class="n">결과</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="함수-정의">함수 정의</h2>
+
+<p>기본 구조</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
+</code></pre></div></div>
+
+<p>호출</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">result</span> <span class="o">=</span> <span class="n">add</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="함수-호출call">함수 호출(Call)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>형태</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">add</code></td>
+      <td>함수 객체 참조</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">add()</code></td>
+      <td>함수 실행</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="반환return">반환(Return)</h2>
+
+<h3 id="역할">역할</h3>
+
+<ul>
+  <li>함수 종료</li>
+  <li>호출한 곳으로 값 반환</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">square</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="return-생략">return 생략</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+    <span class="k">pass</span>
+</code></pre></div></div>
+
+<p>↓</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="bp">None</span>
+</code></pre></div></div>
+
+<p>반환</p>
+
+<hr />
+
+<h3 id="여러-값-반환">여러 값 반환</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">swap</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">b</span><span class="p">,</span> <span class="n">a</span>
+</code></pre></div></div>
+
+<p>실제로는 Tuple 반환</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">swap</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="매개변수parameter">매개변수(Parameter)</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plus</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="기본값default-parameter">기본값(Default Parameter)</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">plus</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+</code></pre></div></div>
+
+<p>호출</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plus</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>↓</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="mi">6</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="키워드-인수keyword-argument">키워드 인수(Keyword Argument)</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plus</span><span class="p">(</span><span class="n">b</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">a</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>순서와 관계없이 호출 가능</p>
+
+<hr />
+
+<h2 id="인수-전달-방식">인수 전달 방식</h2>
+
+<h3 id="scalar">Scalar</h3>
+
+<p>값 전달</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span> <span class="o">=</span> <span class="mi">10</span>
+</code></pre></div></div>
+
+<p>함수 내부에서 변경해도 원본 변경 없음</p>
+
+<hr />
+
+<h3 id="vector">Vector</h3>
+
+<p>참조 전달</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">li</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>리스트 내부 수정 시 원본도 변경</p>
+
+<hr />
+
+<h2 id="순수-함수pure-function">순수 함수(Pure Function)</h2>
+
+<p>특징</p>
+
+<ul>
+  <li>동일한 입력 → 동일한 출력</li>
+  <li>외부 상태 변경 없음</li>
+  <li>Side Effect 없음</li>
+</ul>
+
+<hr />
+
+<h2 id="비순수-함수impure-function">비순수 함수(Impure Function)</h2>
+
+<p>외부 상태를 변경하는 함수</p>
+
+<p>예</p>
+
+<ul>
+  <li>전역 변수 수정</li>
+  <li>파일 저장</li>
+  <li>리스트 변경</li>
+</ul>
+
+<hr />
+
+<h2 id="unpacking">Unpacking</h2>
+
+<h3 id="sequence">Sequence</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">numbers</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">]</span>
+
+<span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">numbers</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>↓</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">func</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="dictionary">Dictionary</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">person</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"name"</span><span class="p">:</span><span class="s">"Kim"</span><span class="p">,</span>
+    <span class="s">"age"</span><span class="p">:</span><span class="mi">20</span>
+<span class="p">}</span>
+
+<span class="n">func</span><span class="p">(</span><span class="o">**</span><span class="n">person</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="가변-매개변수">가변 매개변수</h2>
+
+<h3 id="args">*args</h3>
+
+<p>여러 개의 위치 인수를 Tuple로 받는다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">total</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="kwargs">**kwargs</h3>
+
+<p>여러 개의 키워드 인수를 Dictionary로 받는다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">profile</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="재귀-함수recursive-function">재귀 함수(Recursive Function)</h2>
+
+<p>자기 자신을 호출하는 함수</p>
+
+<p>반드시 종료 조건이 필요하다.</p>
+
+<hr />
+
+<h3 id="합계">합계</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">total</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">total</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">n</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="팩토리얼">팩토리얼</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">factorial</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">factorial</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="피보나치">피보나치</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">fibonacci</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">fibonacci</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">fibonacci</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="하노이의-탑">하노이의 탑</h3>
+
+<p>대표적인 재귀 알고리즘</p>
+
+<p>이동 횟수</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2ⁿ - 1
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="pass">pass</h2>
+
+<p>아직 구현하지 않은 함수</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">temp</span><span class="p">():</span>
+    <span class="k">pass</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="type-hint">Type Hint</h2>
+
+<p>매개변수와 반환형을 명시할 수 있다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="annotation">Annotation</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">clip</span><span class="p">(</span>
+    <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">max_len</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">80</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+</code></pre></div></div>
+
+<p>문서화 및 정적 분석에 활용된다.</p>
+
+<hr />
+
+<h2 id="docstring">Docstring</h2>
+
+<p>함수 설명 작성</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="s">"""
+    두 수를 더한다.
+    """</span>
+    <span class="k">return</span> <span class="n">a</span><span class="o">+</span><span class="n">b</span>
+</code></pre></div></div>
+
+<p>확인</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">help</span><span class="p">(</span><span class="n">add</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="함수-객체-속성">함수 객체 속성</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>속성</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__name__</code></td>
+      <td>함수 이름</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__doc__</code></td>
+      <td>문서</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__defaults__</code></td>
+      <td>기본 인수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__code__</code></td>
+      <td>코드 객체</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__globals__</code></td>
+      <td>전역 변수</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="함수도-객체object">함수도 객체(Object)</h2>
+
+<p>함수는 변수에 저장할 수 있다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">p</span> <span class="o">=</span> <span class="k">print</span>
+
+<span class="n">p</span><span class="p">(</span><span class="s">"Hello"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="함수형-프로그래밍">함수형 프로그래밍</h1>
+
+<h2 id="고차-함수higher-order-function">고차 함수(Higher-order Function)</h2>
+
+<p>함수를</p>
+
+<ul>
+  <li>인수로 전달</li>
+  <li>반환값으로 반환</li>
+</ul>
+
+<p>할 수 있는 함수</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="lambda">lambda</h2>
+
+<p>익명 함수</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">*</span><span class="n">x</span>
+</code></pre></div></div>
+
+<p>특징</p>
+
+<ul>
+  <li>한 줄 함수</li>
+  <li>이름 없음</li>
+  <li>간단한 연산에 사용</li>
+</ul>
+
+<hr />
+
+<h2 id="map">map()</h2>
+
+<p>모든 요소 변환</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">result</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="filter">filter()</h2>
+
+<p>조건을 만족하는 요소만 선택</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">result</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="o">%</span><span class="mi">2</span><span class="o">==</span><span class="mi">0</span><span class="p">,</span> <span class="n">data</span><span class="p">))</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="reduce">reduce()</h2>
+
+<p>모든 데이터를 하나의 값으로 누적</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="nb">reduce</span>
+</code></pre></div></div>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">reduce</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">:</span><span class="n">x</span><span class="o">+</span><span class="n">y</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="zip">zip()</h2>
+
+<p>여러 Iterable을 묶는다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">scores</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="중첩-함수nested-function">중첩 함수(Nested Function)</h2>
+
+<p>함수 안에 함수를 정의할 수 있다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">outer</span><span class="p">():</span>
+
+    <span class="k">def</span> <span class="nf">inner</span><span class="p">():</span>
+        <span class="k">pass</span>
+
+    <span class="n">inner</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="scope">Scope</h2>
+
+<h3 id="local">Local</h3>
+
+<p>함수 내부 변수</p>
+
+<hr />
+
+<h3 id="global">Global</h3>
+
+<p>함수 외부 변수</p>
+
+<hr />
+
+<h3 id="global-1">global</h3>
+
+<p>전역 변수 수정</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">global</span> <span class="n">count</span>
+</code></pre></div></div>
+
+<hr />
+
+<h3 id="nonlocal">nonlocal</h3>
+
+<p>바깥 함수 변수 수정</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">nonlocal</span> <span class="n">value</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="closure">Closure</h2>
+
+<p>외부 함수의 지역 변수를 기억하는 함수</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">calc</span><span class="p">():</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="mi">3</span>
+
+    <span class="k">def</span> <span class="nf">mul</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span>
+
+    <span class="k">return</span> <span class="n">mul</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="일급-함수first-class-function">일급 함수(First-Class Function)</h2>
+
+<p>Python 함수는</p>
+
+<ul>
+  <li>변수 저장 가능</li>
+  <li>매개변수 전달 가능</li>
+  <li>반환 가능</li>
+  <li>런타임 생성 가능</li>
+</ul>
+
+<hr />
+
+<h1 id="decorator">Decorator</h1>
+
+<h2 id="decorator란">Decorator란?</h2>
+
+<p>기존 함수를 수정하지 않고 기능을 추가하는 문법</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="n">decorator</span>
+<span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>동작</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>func
+ ↓
+decorator(func)
+ ↓
+새로운 함수
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="활용">활용</h2>
+
+<ul>
+  <li>Logging</li>
+  <li>실행 시간 측정</li>
+  <li>인증(Authentication)</li>
+  <li>권한 검사</li>
+  <li>캐싱(Cache)</li>
+</ul>
+
+<hr />
+
+<h2 id="lru_cache">lru_cache()</h2>
+
+<p>메모이제이션 제공</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
+
+<span class="o">@</span><span class="n">lru_cache</span><span class="p">()</span>
+<span class="k">def</span> <span class="nf">fibonacci</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>장점</p>
+
+<ul>
+  <li>동일한 계산 재사용</li>
+  <li>재귀 성능 향상</li>
+  <li>실행 시간 단축</li>
+</ul>
+
+<hr />
+
+<h1 id="핵심-암기">핵심 암기</h1>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">def</code> : 함수 정의</li>
+  <li><code class="language-plaintext highlighter-rouge">return</code> : 결과 반환</li>
+  <li><code class="language-plaintext highlighter-rouge">*args</code> : 가변 위치 인수(tuple)</li>
+  <li><code class="language-plaintext highlighter-rouge">**kwargs</code> : 가변 키워드 인수(dict)</li>
+  <li><code class="language-plaintext highlighter-rouge">pass</code> : 빈 구현</li>
+  <li><code class="language-plaintext highlighter-rouge">lambda</code> : 익명 함수</li>
+  <li><code class="language-plaintext highlighter-rouge">map()</code> : 데이터 변환</li>
+  <li><code class="language-plaintext highlighter-rouge">filter()</code> : 조건 선택</li>
+  <li><code class="language-plaintext highlighter-rouge">reduce()</code> : 누적 계산</li>
+  <li><code class="language-plaintext highlighter-rouge">zip()</code> : 여러 Iterable 묶기</li>
+  <li><code class="language-plaintext highlighter-rouge">global</code> : 전역 변수 사용</li>
+  <li><code class="language-plaintext highlighter-rouge">nonlocal</code> : 외부 함수 변수 사용</li>
+  <li><code class="language-plaintext highlighter-rouge">Closure</code> : 외부 지역 변수 유지</li>
+  <li><code class="language-plaintext highlighter-rouge">Decorator</code> : 함수 기능 확장</li>
+  <li><code class="language-plaintext highlighter-rouge">lru_cache()</code> : 메모이제이션</li>
+</ul>
+
+<hr />
+
+<h1 id="한-페이지-요약">한 페이지 요약</h1>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Function
+│
+├── Built-in Function
+├── User Defined Function
+│
+├── Parameter
+├── Return
+├── *args
+├── **kwargs
+│
+├── Recursive Function
+├── Type Hint
+├── Docstring
+│
+├── Higher-order Function
+├── Lambda
+├── map
+├── filter
+├── reduce
+├── zip
+│
+├── Scope
+├── Closure
+├── First-Class Function
+│
+└── Decorator
+    └── lru_cache()
+</code></pre></div></div>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/03-control-statement/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">제어문</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/12-control-statements-data-structure/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">제어문과 자료구조</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

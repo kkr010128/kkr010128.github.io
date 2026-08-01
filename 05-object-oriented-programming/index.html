@@ -1,0 +1,1024 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>객체지향 프로그래밍 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리">
+<link rel="canonical" href="https://kkr010128.github.io/05-object-oriented-programming/">
+<meta property="og:title" content="객체지향 프로그래밍 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리">
+<meta property="og:url" content="https://kkr010128.github.io/05-object-oriented-programming/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="객체지향 프로그래밍 | hyeon.log">
+<meta name="twitter:description" content="Python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리">
+
+  <meta property="article:published_time" content="2026-07-08T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "객체지향 프로그래밍 | hyeon.log",
+    "description": "Python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리",
+    "url": "https://kkr010128.github.io/05-object-oriented-programming/",
+    "datePublished": "2026-07-08T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">객체지향 프로그래밍</h1>
+    
+      <p class="post-head__description">Python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 8일 · 4분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Python">Python</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <blockquote>
+  <p>Python의 객체지향 프로그래밍(OOP), 클래스, 상속, 객체 모델 및 모듈 시스템을 학습한다.</p>
+</blockquote>
+
+<hr />
+
+<p>#Python #OOP #Class #Inheritance #Module</p>
+
+<h2 id="학습-목표">학습 목표</h2>
+
+<ul>
+  <li>객체지향 프로그래밍 이해</li>
+  <li>Class와 Instance</li>
+  <li>생성자와 소멸자</li>
+  <li>Property</li>
+  <li>연산자 오버로딩</li>
+  <li>상속</li>
+  <li>Iterator / Generator</li>
+  <li>Module과 Package</li>
+</ul>
+
+<hr />
+
+<h1 id="객체지향-프로그래밍oop">객체지향 프로그래밍(OOP)</h1>
+
+<h2 id="객체지향의-4대-특징">객체지향의 4대 특징</h2>
+
+<h3 id="캡슐화encapsulation">캡슐화(Encapsulation)</h3>
+
+<ul>
+  <li>데이터와 기능을 하나로 묶음</li>
+  <li>내부 구현 은닉</li>
+  <li>정보 은닉(Information Hiding)</li>
+</ul>
+
+<hr />
+
+<h3 id="상속inheritance">상속(Inheritance)</h3>
+
+<ul>
+  <li>기존 클래스 재사용</li>
+  <li>코드 중복 제거</li>
+  <li>기능 확장</li>
+</ul>
+
+<hr />
+
+<h3 id="다형성polymorphism">다형성(Polymorphism)</h3>
+
+<p>같은 메서드 호출이라도 객체에 따라 다른 동작 수행</p>
+
+<p>대표 방법</p>
+
+<ul>
+  <li>Method Overriding</li>
+</ul>
+
+<hr />
+
+<h3 id="동적-바인딩dynamic-binding">동적 바인딩(Dynamic Binding)</h3>
+
+<p>실행 시점(Runtime)에 호출할 메서드가 결정된다.</p>
+
+<hr />
+
+<h1 id="객체지향-용어">객체지향 용어</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>용어</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Object</td>
+      <td>객체</td>
+    </tr>
+    <tr>
+      <td>Class</td>
+      <td>객체 설계도</td>
+    </tr>
+    <tr>
+      <td>Instance</td>
+      <td>클래스로 생성한 객체</td>
+    </tr>
+    <tr>
+      <td>Attribute</td>
+      <td>속성(데이터)</td>
+    </tr>
+    <tr>
+      <td>Method</td>
+      <td>클래스 내부 함수</td>
+    </tr>
+    <tr>
+      <td>Constructor</td>
+      <td>생성자</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h1 id="class">Class</h1>
+
+<h2 id="기본-구조">기본 구조</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Student</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">"Adam"</span>
+
+    <span class="k">def</span> <span class="nf">study</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Study"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="객체-생성">객체 생성</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">student</span> <span class="o">=</span> <span class="n">Student</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="멤버-접근">멤버 접근</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">student</span><span class="p">.</span><span class="n">name</span>
+<span class="n">student</span><span class="p">.</span><span class="n">study</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="self">self</h1>
+
+<p>현재 객체 자신을 의미한다.</p>
+
+<p>모든 인스턴스 메서드의 첫 번째 매개변수</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">study</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="생성자constructor">생성자(Constructor)</h1>
+
+<p>객체 생성 시 자동 실행</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Student</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</code></pre></div></div>
+
+<p>생성</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Student</span><span class="p">(</span><span class="s">"Adam"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="소멸자destructor">소멸자(Destructor)</h1>
+
+<p>객체가 제거될 때 실행</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>주로</p>
+
+<ul>
+  <li>파일 종료</li>
+  <li>네트워크 종료</li>
+  <li>자원 해제</li>
+</ul>
+
+<hr />
+
+<h1 id="attribute">Attribute</h1>
+
+<h2 id="class-attribute">Class Attribute</h2>
+
+<p>모든 객체가 공유</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Student</span><span class="p">:</span>
+
+    <span class="n">school</span> <span class="o">=</span> <span class="s">"Python"</span>
+</code></pre></div></div>
+
+<p>접근</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Student</span><span class="p">.</span><span class="n">school</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="instance-attribute">Instance Attribute</h2>
+
+<p>객체마다 별도 저장</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="bp">self</span><span class="p">.</span><span class="n">name</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="getter--setter">Getter / Setter</h1>
+
+<p>객체 데이터를 직접 수정하지 않고 메서드를 이용</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">name</span>
+
+<span class="k">def</span> <span class="nf">setName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="bp">self</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="property">Property</h1>
+
+<p>Getter/Setter를 변수처럼 사용</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="nb">property</span>
+<span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">__name</span>
+</code></pre></div></div>
+
+<p>Setter</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="n">name</span><span class="p">.</span><span class="n">setter</span>
+<span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="bp">self</span><span class="p">.</span><span class="n">__name</span> <span class="o">=</span> <span class="n">value</span>
+</code></pre></div></div>
+
+<p>사용</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">student</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">"Adam"</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">student</span><span class="p">.</span><span class="n">name</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="private-멤버">private 멤버</h1>
+
+<p>이름 앞에 <code class="language-plaintext highlighter-rouge">__</code></p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="bp">self</span><span class="p">.</span><span class="n">__name</span>
+</code></pre></div></div>
+
+<p>외부 접근 제한</p>
+
+<hr />
+
+<h1 id="static-method">Static Method</h1>
+
+<p>객체 생성 없이 호출</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="nb">staticmethod</span>
+<span class="k">def</span> <span class="nf">func</span><span class="p">():</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>호출</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Student</span><span class="p">.</span><span class="n">func</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>특징</p>
+
+<ul>
+  <li>self 없음</li>
+  <li>객체 상태 사용 불가</li>
+</ul>
+
+<hr />
+
+<h1 id="class-method">Class Method</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="nb">classmethod</span>
+<span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+</code></pre></div></div>
+
+<p>특징</p>
+
+<ul>
+  <li>cls 사용</li>
+  <li>클래스 정보 접근 가능</li>
+</ul>
+
+<hr />
+
+<h1 id="slots"><strong>slots</strong></h1>
+
+<p>생성 가능한 Attribute 제한</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Student</span><span class="p">:</span>
+
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s">"name"</span><span class="p">,</span><span class="s">"score"</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p>장점</p>
+
+<ul>
+  <li>메모리 절약</li>
+  <li>Attribute 추가 방지</li>
+</ul>
+
+<hr />
+
+<h1 id="is-와-">is 와 ==</h1>
+
+<h2>==</h2>
+
+<p>값 비교</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span> <span class="o">==</span> <span class="n">b</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="is">is</h2>
+
+<p>객체 주소(id) 비교</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span> <span class="ow">is</span> <span class="n">b</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="특수-메서드magic-method">특수 메서드(Magic Method)</h1>
+
+<p>대표 메서드</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>메서드</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__init__</code></td>
+      <td>생성자</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__del__</code></td>
+      <td>소멸자</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__str__</code></td>
+      <td>문자열 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__repr__</code></td>
+      <td>객체 표현</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__eq__</code></td>
+      <td>==</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__hash__</code></td>
+      <td>hash</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__call__</code></td>
+      <td>객체 호출</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__getitem__</code></td>
+      <td>인덱싱</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">__setitem__</code></td>
+      <td>인덱스 저장</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h1 id="operator-overloading">Operator Overloading</h1>
+
+<p>연산자 기능 재정의</p>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+</code></pre></div></div>
+
+<p>+</p>
+
+<hr />
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+</code></pre></div></div>
+
+<p>==</p>
+
+<hr />
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</code></pre></div></div>
+
+<p>print()</p>
+
+<hr />
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+</code></pre></div></div>
+
+<p>[]</p>
+
+<hr />
+
+<h1 id="singleton-pattern">Singleton Pattern</h1>
+
+<p>객체를 하나만 생성</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+</code></pre></div></div>
+
+<p>사용</p>
+
+<hr />
+
+<h1 id="inheritance">Inheritance</h1>
+
+<h2 id="상속">상속</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Person</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<p>장점</p>
+
+<ul>
+  <li>코드 재사용</li>
+  <li>기능 확장</li>
+</ul>
+
+<hr />
+
+<h2 id="super">super()</h2>
+
+<p>부모 클래스 호출</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="method-overriding">Method Overriding</h2>
+
+<p>부모 메서드 재정의</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Student</span><span class="p">(</span><span class="n">Person</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">greeting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">greeting</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="다중-상속">다중 상속</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Child</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">):</span>
+</code></pre></div></div>
+
+<p>메서드 탐색</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Class</span><span class="p">.</span><span class="n">mro</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="abstract-class">Abstract Class</h1>
+
+<p>추상 클래스</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span>
+</code></pre></div></div>
+
+<p>추상 메서드</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">@</span><span class="n">abstractmethod</span>
+</code></pre></div></div>
+
+<p>특징</p>
+
+<ul>
+  <li>객체 생성 불가</li>
+  <li>반드시 Override</li>
+</ul>
+
+<hr />
+
+<h1 id="delegation">Delegation</h1>
+
+<p>없는 메서드 호출 시 위임</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="iterator">Iterator</h1>
+
+<p>순차 접근 객체</p>
+
+<p>필수 메서드</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">__iter__</span><span class="p">()</span>
+
+<span class="n">__next__</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>반복 종료</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">StopIteration</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="enumerate">enumerate()</h1>
+
+<p>인덱스와 데이터 반환</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="generator">Generator</h1>
+
+<p>yield를 사용하는 Iterator</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">gen</span><span class="p">():</span>
+
+    <span class="k">yield</span> <span class="mi">1</span>
+    <span class="k">yield</span> <span class="mi">2</span>
+</code></pre></div></div>
+
+<p>장점</p>
+
+<ul>
+  <li>Lazy Evaluation</li>
+  <li>메모리 절약</li>
+</ul>
+
+<hr />
+
+<h1 id="coroutine">Coroutine</h1>
+
+<p>Generator 기반</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">send</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>사용</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">yield</span>
+</code></pre></div></div>
+
+<p>값 송수신 가능</p>
+
+<hr />
+
+<h1 id="module">Module</h1>
+
+<p>하나의 Python 파일</p>
+
+<p>가져오기</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">math</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="import">import</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">math</span>
+</code></pre></div></div>
+
+<hr />
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span>
+</code></pre></div></div>
+
+<hr />
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">math</span> <span class="k">as</span> <span class="n">m</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="package">Package</h1>
+
+<p>여러 Module을 묶은 디렉터리</p>
+
+<p>구성</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>mypackage/
+
+    __init__.py
+
+    module.py
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="pip">pip</h1>
+
+<p>설치</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>package
+</code></pre></div></div>
+
+<p>업데이트</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install</span> <span class="nt">--upgrade</span> package
+</code></pre></div></div>
+
+<p>삭제</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip uninstall package
+</code></pre></div></div>
+
+<p>목록</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip list
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="matplotlib">matplotlib</h1>
+
+<p>그래프 작성</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="folium">folium</h1>
+
+<p>지도 시각화</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">folium</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="핵심-암기">핵심 암기</h1>
+
+<ul>
+  <li>Class = 객체 설계도</li>
+  <li>Instance = 객체</li>
+  <li>self = 현재 객체</li>
+  <li><code class="language-plaintext highlighter-rouge">__init__()</code> = 생성자</li>
+  <li><code class="language-plaintext highlighter-rouge">__del__()</code> = 소멸자</li>
+  <li>Class Attribute = 공유 변수</li>
+  <li>Instance Attribute = 객체별 변수</li>
+  <li><code class="language-plaintext highlighter-rouge">@staticmethod</code> = 정적 메서드</li>
+  <li><code class="language-plaintext highlighter-rouge">@classmethod</code> = 클래스 메서드</li>
+  <li><code class="language-plaintext highlighter-rouge">@property</code> = Getter / Setter</li>
+  <li><code class="language-plaintext highlighter-rouge">super()</code> = 부모 클래스 호출</li>
+  <li>Inheritance = 상속</li>
+  <li>Overriding = 재정의</li>
+  <li><code class="language-plaintext highlighter-rouge">__str__()</code> = 문자열 출력</li>
+  <li><code class="language-plaintext highlighter-rouge">__eq__()</code> = 비교</li>
+  <li><code class="language-plaintext highlighter-rouge">__getitem__()</code> = 인덱싱</li>
+  <li>Iterator = <code class="language-plaintext highlighter-rouge">__iter__</code>, <code class="language-plaintext highlighter-rouge">__next__</code></li>
+  <li>Generator = <code class="language-plaintext highlighter-rouge">yield</code></li>
+  <li>Coroutine = <code class="language-plaintext highlighter-rouge">send()</code></li>
+  <li>Module = Python 파일</li>
+  <li>Package = Module 묶음</li>
+</ul>
+
+<hr />
+
+<h1 id="한-페이지-요약">한 페이지 요약</h1>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>OOP
+│
+├── Class
+│   ├── Attribute
+│   ├── Method
+│   ├── self
+│   ├── Constructor
+│   └── Destructor
+│
+├── Getter / Setter
+├── Property
+├── Static Method
+├── Class Method
+│
+├── Operator Overloading
+├── Magic Method
+│
+├── Inheritance
+│   ├── super()
+│   ├── Overriding
+│   ├── Multiple Inheritance
+│   └── Abstract Class
+│
+├── Iterator
+├── Generator
+├── Coroutine
+│
+└── Module
+    ├── Package
+    ├── pip
+    ├── matplotlib
+    └── folium
+</code></pre></div></div>
+
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/12-control-statements-data-structure/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">제어문과 자료구조</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/06-data-type/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">자료형</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

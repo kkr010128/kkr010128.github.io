@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>예외 처리 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Python의 오류 종류, try-except, 예외 처리 구문 정리">
+<link rel="canonical" href="https://kkr010128.github.io/07-exception-handling/">
+<meta property="og:title" content="예외 처리 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Python의 오류 종류, try-except, 예외 처리 구문 정리">
+<meta property="og:url" content="https://kkr010128.github.io/07-exception-handling/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="예외 처리 | hyeon.log">
+<meta name="twitter:description" content="Python의 오류 종류, try-except, 예외 처리 구문 정리">
+
+  <meta property="article:published_time" content="2026-07-09T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "예외 처리 | hyeon.log",
+    "description": "Python의 오류 종류, try-except, 예외 처리 구문 정리",
+    "url": "https://kkr010128.github.io/07-exception-handling/",
+    "datePublished": "2026-07-09T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">예외 처리</h1>
+    
+      <p class="post-head__description">Python의 오류 종류, try-except, 예외 처리 구문 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 9일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Python">Python</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <blockquote>
+  <p>Python의 예외(Exception), 예외 처리(Exception Handling), Assertion, 사용자 정의 예외를 학습한다.</p>
+</blockquote>
+
+<hr />
+
+<p>#Python #Exception #ExceptionHandling #Debugging #Assertion</p>
+
+<h2 id="학습-목표">학습 목표</h2>
+
+<ul>
+  <li>오류와 예외 이해</li>
+  <li>try-except</li>
+  <li>else와 finally</li>
+  <li>raise</li>
+  <li>assert</li>
+  <li>사용자 정의 예외</li>
+</ul>
+
+<hr />
+
+<h1 id="오류error">오류(Error)</h1>
+
+<h2 id="오류-종류">오류 종류</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Compile Error</td>
+      <td>문법 오류로 실행 불가</td>
+    </tr>
+    <tr>
+      <td>Exception</td>
+      <td>실행 중 발생하는 오류</td>
+    </tr>
+    <tr>
+      <td>Logical Error</td>
+      <td>실행은 되지만 결과가 잘못됨</td>
+    </tr>
+    <tr>
+      <td>Assertion</td>
+      <td>조건을 만족하지 않으면 강제로 오류 발생</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="debugging">Debugging</h2>
+
+<p>오류의 원인을 찾고 수정하는 과정</p>
+
+<p>대표 방법</p>
+
+<ul>
+  <li>Logging</li>
+  <li>IDE Debugger</li>
+  <li>로그 파일 분석</li>
+  <li>테스트 코드 작성</li>
+</ul>
+
+<hr />
+
+<h1 id="예외exception">예외(Exception)</h1>
+
+<h2 id="예외란">예외란?</h2>
+
+<p>문법에는 문제가 없지만 <strong>프로그램 실행 중(Runtime)</strong> 발생하는 오류이다.</p>
+
+<p>대표 예외</p>
+
+<ul>
+  <li>0으로 나누기</li>
+  <li>존재하지 않는 파일</li>
+  <li>Index 범위 초과</li>
+  <li>잘못된 형 변환</li>
+  <li>Dictionary Key 없음</li>
+</ul>
+
+<hr />
+
+<h2 id="예외-발생-예">예외 발생 예</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">divide</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="mi">10</span> <span class="o">/</span> <span class="n">x</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">divide</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="n">divide</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>↓</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ZeroDivisionError
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="예외-처리exception-handling">예외 처리(Exception Handling)</h1>
+
+<h2 id="기본-구조">기본 구조</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="n">실행</span> <span class="n">코드</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="n">예외</span> <span class="n">처리</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="예제">예제</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">())</span>
+    <span class="k">print</span><span class="p">(</span><span class="mi">10</span> <span class="o">/</span> <span class="n">x</span><span class="p">)</span>
+
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"예외 발생"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="특정-예외-처리">특정 예외 처리</h1>
+
+<p>특정 예외만 처리할 수 있다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="p">...</span>
+<span class="k">except</span> <span class="nb">ZeroDivisionError</span><span class="p">:</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="여러-예외-처리">여러 예외 처리</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="p">...</span>
+<span class="k">except</span> <span class="nb">ZeroDivisionError</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">except</span> <span class="nb">IndexError</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">except</span> <span class="nb">ValueError</span><span class="p">:</span>
+    <span class="p">...</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="예외-객체-받기">예외 객체 받기</h1>
+
+<p>오류 메시지를 확인할 수 있다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">except</span> <span class="nb">ZeroDivisionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="예외-클래스">예외 클래스</h1>
+
+<p>대표 예외</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>예외</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Exception</td>
+      <td>최상위 예외</td>
+    </tr>
+    <tr>
+      <td>ZeroDivisionError</td>
+      <td>0으로 나누기</td>
+    </tr>
+    <tr>
+      <td>IndexError</td>
+      <td>Index 범위 초과</td>
+    </tr>
+    <tr>
+      <td>KeyError</td>
+      <td>없는 Key 접근</td>
+    </tr>
+    <tr>
+      <td>TypeError</td>
+      <td>자료형 오류</td>
+    </tr>
+    <tr>
+      <td>ValueError</td>
+      <td>잘못된 값</td>
+    </tr>
+    <tr>
+      <td>AttributeError</td>
+      <td>속성 없음</td>
+    </tr>
+    <tr>
+      <td>FileNotFoundError</td>
+      <td>파일 없음</td>
+    </tr>
+    <tr>
+      <td>ImportError</td>
+      <td>모듈 오류</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h1 id="else">else</h1>
+
+<p>예외가 발생하지 않았을 때만 실행된다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">/</span> <span class="mi">2</span>
+
+<span class="k">except</span> <span class="nb">ZeroDivisionError</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Error"</span><span class="p">)</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="finally">finally</h1>
+
+<p>예외 발생 여부와 관계없이 항상 실행된다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">except</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">finally</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Finish"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>주요 용도</p>
+
+<ul>
+  <li>파일 닫기</li>
+  <li>DB 연결 종료</li>
+  <li>Socket 종료</li>
+  <li>자원 해제</li>
+</ul>
+
+<hr />
+
+<h1 id="전체-구조">전체 구조</h1>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="n">실행</span> <span class="n">코드</span>
+
+<span class="k">except</span> <span class="nb">Exception</span><span class="p">:</span>
+    <span class="n">예외</span> <span class="n">처리</span>
+
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">정상</span> <span class="n">처리</span>
+
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">항상</span> <span class="n">실행</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="raise">raise</h1>
+
+<p>예외를 직접 발생시킨다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">raise</span> <span class="nb">Exception</span><span class="p">(</span><span class="s">"Error"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="조건-검사">조건 검사</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">x</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">())</span>
+
+<span class="k">if</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="nb">Exception</span><span class="p">(</span><span class="s">"3의 배수가 아닙니다."</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="예외-다시-발생re-raise">예외 다시 발생(Re-raise)</h1>
+
+<p>현재 예외를 상위로 전달</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">except</span> <span class="nb">Exception</span><span class="p">:</span>
+    <span class="k">raise</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="assertion">Assertion</h1>
+
+<p>프로그램의 조건을 검증한다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">assert</span> <span class="n">조건식</span>
+</code></pre></div></div>
+
+<p>또는</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">assert</span> <span class="n">조건식</span><span class="p">,</span> <span class="s">"오류 메시지"</span>
+</code></pre></div></div>
+
+<p>예</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">assert</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">"3의 배수가 아닙니다."</span>
+</code></pre></div></div>
+
+<p>조건이 거짓이면</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>AssertionError
+</code></pre></div></div>
+
+<p>발생</p>
+
+<hr />
+
+<h1 id="사용자-정의-예외custom-exception">사용자 정의 예외(Custom Exception)</h1>
+
+<p>Exception을 상속하여 생성한다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">NotThreeMultipleError</span><span class="p">(</span><span class="nb">Exception</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">(</span><span class="s">"3의 배수가 아닙니다."</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="사용자-정의-예외-발생">사용자 정의 예외 발생</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">raise</span> <span class="n">NotThreeMultipleError</span><span class="p">()</span>
+</code></pre></div></div>
+
+<hr />
+
+<h2 id="처리">처리</h2>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">try</span><span class="p">:</span>
+    <span class="p">...</span>
+
+<span class="k">except</span> <span class="n">NotThreeMultipleError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="예외-처리-흐름">예외 처리 흐름</h1>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>프로그램 실행
+        │
+        ▼
+     try 실행
+        │
+        ├──────────────┐
+        │              │
+   예외 없음        예외 발생
+        │              │
+        ▼              ▼
+      else         except
+        │              │
+        └──────┬───────┘
+               ▼
+           finally
+               ▼
+           프로그램 종료
+</code></pre></div></div>
+
+<hr />
+
+<h1 id="예외-처리-원칙">예외 처리 원칙</h1>
+
+<ul>
+  <li>예외가 발생할 가능성이 있는 코드만 <code class="language-plaintext highlighter-rouge">try</code>에 작성한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">except:</code>만 사용하는 것보다 구체적인 예외 클래스를 사용한다.</li>
+  <li>필요한 경우 <code class="language-plaintext highlighter-rouge">as</code>로 예외 객체를 받아 메시지를 확인한다.</li>
+  <li>자원 해제는 <code class="language-plaintext highlighter-rouge">finally</code>에서 수행한다.</li>
+  <li>의도적인 오류는 <code class="language-plaintext highlighter-rouge">raise</code>를 사용한다.</li>
+  <li>프로그램의 전제 조건 검사는 <code class="language-plaintext highlighter-rouge">assert</code>를 사용한다.</li>
+  <li>비즈니스 로직에는 사용자 정의 예외를 사용하는 것이 좋다.</li>
+</ul>
+
+<hr />
+
+<h1 id="핵심-암기">핵심 암기</h1>
+
+<ul>
+  <li>Compile Error : 문법 오류</li>
+  <li>Exception : 실행 중 오류</li>
+  <li>Logical Error : 논리 오류</li>
+  <li><code class="language-plaintext highlighter-rouge">try</code> : 예외 감시</li>
+  <li><code class="language-plaintext highlighter-rouge">except</code> : 예외 처리</li>
+  <li><code class="language-plaintext highlighter-rouge">else</code> : 예외가 없을 때 실행</li>
+  <li><code class="language-plaintext highlighter-rouge">finally</code> : 항상 실행</li>
+  <li><code class="language-plaintext highlighter-rouge">raise</code> : 예외 발생</li>
+  <li><code class="language-plaintext highlighter-rouge">raise</code> : 현재 예외 재전파</li>
+  <li><code class="language-plaintext highlighter-rouge">assert</code> : 조건 검증</li>
+  <li><code class="language-plaintext highlighter-rouge">Exception</code>을 상속하면 사용자 정의 예외를 만들 수 있다.</li>
+</ul>
+
+<hr />
+
+<h1 id="한-페이지-요약">한 페이지 요약</h1>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Exception Handling
+│
+├── Error
+│   ├── Compile Error
+│   ├── Exception
+│   ├── Logical Error
+│   └── Assertion
+│
+├── try
+├── except
+├── else
+├── finally
+│
+├── raise
+├── assert
+│
+└── Custom Exception
+    └── Exception Inheritance
+</code></pre></div></div>
+
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/06-data-type/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">자료형</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/08-module-package/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">모듈과 패키지</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

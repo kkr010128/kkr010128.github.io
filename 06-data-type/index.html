@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>자료형 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Python의 Sequence, str, list, dict, Comprehension, Set 정리">
+<link rel="canonical" href="https://kkr010128.github.io/06-data-type/">
+<meta property="og:title" content="자료형 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Python의 Sequence, str, list, dict, Comprehension, Set 정리">
+<meta property="og:url" content="https://kkr010128.github.io/06-data-type/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="자료형 | hyeon.log">
+<meta name="twitter:description" content="Python의 Sequence, str, list, dict, Comprehension, Set 정리">
+
+  <meta property="article:published_time" content="2026-07-09T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "자료형 | hyeon.log",
+    "description": "Python의 Sequence, str, list, dict, Comprehension, Set 정리",
+    "url": "https://kkr010128.github.io/06-data-type/",
+    "datePublished": "2026-07-09T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">자료형</h1>
+    
+      <p class="post-head__description">Python의 Sequence, str, list, dict, Comprehension, Set 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 9일 · 4분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Python">Python</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-데이터의-기본-개념-data-fundamentals">1. 데이터의 기본 개념 (Data Fundamentals)</h2>
+
+<h3 id="11-용어-정의">1.1 용어 정의</h3>
+
+<ul>
+  <li><strong>Literal</strong>: 프로그램 상에서 개발자가 직접 입력하는 값.</li>
+  <li><strong>Variable(변수)</strong>: 값을 저장할 수 있는 메모리 상 공간의 이름.</li>
+  <li><strong>DataType(자료형)</strong>: 변수에 저장할 수 있는 데이터의 종류와 저장 방법 및 크기.</li>
+</ul>
+
+<h3 id="12-데이터-분류">1.2 데이터 분류</h3>
+
+<ol>
+  <li><strong>데이터 개수에 따른 분류</strong>
+    <ul>
+      <li><strong>Scala Data</strong>: 1개의 데이터 (int, float, bool 등).</li>
+      <li><strong>Vector Data (Collection)</strong>: 0개 이상의 데이터 집합 (list, tuple, dict 등).</li>
+    </ul>
+  </li>
+  <li><strong>데이터 형태에 따른 분류</strong>
+    <ul>
+      <li><strong>정형 데이터</strong>: RDBMS 테이블이나 스프레드시트처럼 고정된 행/열 구조를 가진 데이터.</li>
+      <li><strong>비정형 데이터</strong>: 텍스트, 이미지, 동영상 등 고정된 구조가 없는 데이터.</li>
+      <li><strong>반정형 데이터</strong>: HTML, JSON처럼 데이터 내부에 메타데이터를 포함한 구조.</li>
+    </ul>
+  </li>
+</ol>
+
+<hr />
+
+<h2 id="2-scala-data-기본-자료형">2. Scala Data (기본 자료형)</h2>
+
+<h3 id="21-bool-부울형">2.1 bool (부울형)</h3>
+
+<p><code class="language-plaintext highlighter-rouge">True</code>와 <code class="language-plaintext highlighter-rouge">False</code> 중 하나를 저장하며, 조건문과 논리 연산의 기초가 됩니다.</p>
+
+<ul>
+  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">bool(값)</code></li>
+  <li><strong>특징</strong>: 0이 아닌 숫자나 데이터가 있는 컬렉션은 <code class="language-plaintext highlighter-rouge">True</code>, 0이나 빈 컬렉션(<code class="language-plaintext highlighter-rouge">[]</code>, <code class="language-plaintext highlighter-rouge">{}</code>, <code class="language-plaintext highlighter-rouge">""</code> 등)은 <code class="language-plaintext highlighter-rouge">False</code>로 간주됩니다.</li>
+  <li><strong>예제 및 결과</strong>:</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="nb">bool</span><span class="p">([]))</span>    <span class="c1"># 결과: False (빈 리스트)
+</span><span class="k">print</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>     <span class="c1"># 결과: True (0이 아닌 정수)
+</span><span class="k">print</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="mi">4</span><span class="p">))</span> <span class="c1"># 결과: True (연산 결과가 7이므로 True)
+</span></code></pre></div></div>
+
+<h3 id="22-수치-데이터-numeric-types">2.2 수치 데이터 (Numeric Types)</h3>
+
+<ul>
+  <li><strong>int (정수)</strong>: 메모리가 허용하는 한 무한대 크기 지원. <code class="language-plaintext highlighter-rouge">int(실수)</code>는 소수점을 버립니다.</li>
+  <li><strong>float (실수)</strong>: 8바이트 부동 소수점 방식. 디지털 방식의 한계로 인해 <code class="language-plaintext highlighter-rouge">0.2 == (1.0 - 0.8)</code>은 <code class="language-plaintext highlighter-rouge">False</code>가 나올 수 있는 정밀도 오차가 존재합니다.</li>
+  <li><strong>complex (복소수)</strong>: 실수부와 허수부(j 사용)로 구성. <code class="language-plaintext highlighter-rouge">conjugate()</code>로 켤레 복소수를 구합니다.</li>
+</ul>
+
+<h3 id="23-주요-수학-함수-math-module">2.3 주요 수학 함수 (Math Module)</h3>
+
+<p>수학적 계산을 위해 <code class="language-plaintext highlighter-rouge">import math</code>가 필요합니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">함수</th>
+      <th style="text-align: left">설명</th>
+      <th style="text-align: left">문법</th>
+      <th style="text-align: left">예제</th>
+      <th style="text-align: left">결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">ceil(x)</code></td>
+      <td style="text-align: left">올림</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.ceil(x)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.ceil(1.2)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">2</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">floor(x)</code></td>
+      <td style="text-align: left">내림</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.floor(x)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.floor(1.7)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">pow(x, y)</code></td>
+      <td style="text-align: left">x의 y승</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.pow(x, y)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.pow(3, 2)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">9.0</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">sqrt(x)</code></td>
+      <td style="text-align: left">제곱근</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.sqrt(x)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.sqrt(9)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">3.0</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">fabs(x)</code></td>
+      <td style="text-align: left">절대값</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.fabs(x)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">math.fabs(-5)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">5.0</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="24-decimal--random">2.4 Decimal &amp; Random</h3>
+
+<ul>
+  <li><strong>decimal.Decimal</strong>: <code class="language-plaintext highlighter-rouge">float</code>의 정밀도 문제를 해결하기 위해 사용합니다.</li>
+  <li><strong>random</strong>: 난수 생성 모듈입니다.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">random</span>
+<span class="c1"># randint(min, max): 범위 내 임의의 정수 반환
+</span><span class="k">print</span><span class="p">(</span><span class="n">random</span><span class="p">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span> <span class="c1"># 예: 7
+# shuffle(seq): 리스트 요소를 무작위로 섞음
+</span><span class="n">li</span> <span class="o">=</span>
+<span class="n">random</span><span class="p">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">li</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">li</span><span class="p">)</span> <span class="c1"># 예:
+</span></code></pre></div></div>
+
+<hr />
+
+<h2 id="3-vector-data-시퀀스-및-컬렉션">3. Vector Data (시퀀스 및 컬렉션)</h2>
+
+<h3 id="31-공통-연산-sequential-type-operations">3.1 공통 연산 (Sequential Type Operations)</h3>
+
+<ul>
+  <li><strong>Indexing</strong>: <code class="language-plaintext highlighter-rouge">msg</code> (첫 번째), <code class="language-plaintext highlighter-rouge">msg[-1]</code> (마지막).</li>
+  <li><strong>Slicing</strong>: <code class="language-plaintext highlighter-rouge">[start:end:step]</code> (start부터 end 앞까지 step 간격으로 추출).</li>
+  <li><strong>예제 및 결과</strong>:</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">msg</span> <span class="o">=</span> <span class="s">"Korea"</span>
+<span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span>   <span class="c1"># 결과: 'or'
+</span><span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># 결과: 'aeroK' (문자열 뒤집기)
+</span></code></pre></div></div>
+
+<h3 id="32-str-문자열">3.2 str (문자열)</h3>
+
+<p>문자열은 <strong>Immutable(변경 불가능)</strong> 하므로 내부 값을 직접 수정할 수 없습니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">메서드</th>
+      <th style="text-align: left">설명</th>
+      <th style="text-align: left">문법</th>
+      <th style="text-align: left">예제</th>
+      <th style="text-align: left">결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">find(sub)</code></td>
+      <td style="text-align: left">문자열 위치 검색</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">s.find('a')</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">"abc".find('b')</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">1</code> (없으면 -1)</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">replace(old, new)</code></td>
+      <td style="text-align: left">문자열 치환</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">s.replace('a', 'b')</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">"apple".replace('p', 'P')</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'abble'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">split(sep)</code></td>
+      <td style="text-align: left">구분자로 분리</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">s.split(',')</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">"a,b,c".split(',')</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">['a', 'b', 'c']</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">join(iterable)</code></td>
+      <td style="text-align: left">리스트를 합쳐 문자열 생성</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'sep'.join(list)</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">"-".join(['010', '1234'])</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'010-1234'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">strip()</code></td>
+      <td style="text-align: left">좌우 공백 제거</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">s.strip()</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">" hello ".strip()</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'hello'</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="f-string-문자열-서식-지정">f-string (문자열 서식 지정)</h4>
+
+<p>가장 권장되는 최신 포맷팅 방식입니다.</p>
+
+<ul>
+  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">f'내용 {변수:서식}'</code></li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">name</span> <span class="o">=</span> <span class="s">'Adam'</span>
+<span class="k">print</span><span class="p">(</span><span class="sa">f</span><span class="s">'Hello, </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="mi">10</span><span class="n">s</span><span class="si">}</span><span class="s">!'</span><span class="p">)</span> <span class="c1"># 결과: 'Hello, Adam      !' (10자리 확보)
+</span></code></pre></div></div>
+
+<h3 id="33-regular-expression-re-모듈">3.3 Regular Expression (re 모듈)</h3>
+
+<p>특정 패턴을 가진 문자열을 검색하거나 치환할 때 사용합니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">re.match()</code>: 문자열 <strong>시작</strong>부터 패턴 일치 확인.</li>
+  <li><code class="language-plaintext highlighter-rouge">re.search()</code>: 문자열 <strong>전체</strong>에서 패턴 일치 확인.</li>
+  <li><code class="language-plaintext highlighter-rouge">re.findall()</code>: 패턴과 일치하는 <strong>모든</strong> 리스트 반환.</li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">re</span>
+<span class="c1"># 숫자가 1개 이상(+) 연속되는 패턴 찾기
+</span><span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="p">.</span><span class="n">findall</span><span class="p">(</span><span class="s">'+'</span><span class="p">,</span> <span class="s">'123 abc 456'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="c1"># 결과: ['123', '456']
+</span></code></pre></div></div>
+
+<h3 id="34-list--tuple">3.4 list &amp; tuple</h3>
+
+<ul>
+  <li><strong>list</strong>: 가변(Mutable) 순서가 있는 집합. <code class="language-plaintext highlighter-rouge">append()</code>, <code class="language-plaintext highlighter-rouge">pop()</code>, <code class="language-plaintext highlighter-rouge">sort()</code> 등을 사용.</li>
+  <li><strong>tuple</strong>: 불변(Immutable) 순서가 있는 집합. <strong>Unpacking</strong>(<code class="language-plaintext highlighter-rouge">x, y = 1, 2</code>)이 주요 기능입니다.</li>
+  <li><strong>namedtuple</strong>: 컬럼에 이름을 부여하여 레코드처럼 사용.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="n">City</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">'City'</span><span class="p">,</span> <span class="s">'name country'</span><span class="p">)</span>
+<span class="n">seoul</span> <span class="o">=</span> <span class="n">City</span><span class="p">(</span><span class="s">'Seoul'</span><span class="p">,</span> <span class="s">'Korea'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">seoul</span><span class="p">.</span><span class="n">name</span><span class="p">)</span> <span class="c1"># 결과: 'Seoul'
+</span></code></pre></div></div>
+
+<h3 id="35-dict-사전">3.5 dict (사전)</h3>
+
+<p>키(Key)와 값(Value)의 쌍으로 저장하며, 키는 중복될 수 없습니다.</p>
+
+<ul>
+  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">d = {key: value}</code></li>
+  <li><strong>주요 메서드</strong>:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">get(key, default)</code>: 키가 없으면 에러 대신 기본값 반환.</li>
+      <li><code class="language-plaintext highlighter-rouge">update(dict2)</code>: 다른 사전을 병합하거나 수정.</li>
+    </ul>
+  </li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s">"일"</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">"이"</span><span class="p">}</span>
+<span class="k">print</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s">"알 수 없음"</span><span class="p">))</span> <span class="c1"># 결과: '알 수 없음'
+</span></code></pre></div></div>
+
+<hr />
+
+<h2 id="4-실무-보강-comprehension--collections">4. 실무 보강: Comprehension &amp; Collections</h2>
+
+<h3 id="41-comprehension-축약-표현">4.1 Comprehension (축약 표현)</h3>
+
+<p>반복 가능한 객체를 이용해 간결하게 새 컬렉션을 생성합니다.</p>
+
+<ul>
+  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">[식 for 변수 in 시퀀스 if 조건]</code></li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># 1~10 중 짝수만 제곱하여 리스트 생성
+</span><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="c1"># 결과:
+</span></code></pre></div></div>
+
+<h3 id="42-collections-모듈의-활용">4.2 collections 모듈의 활용</h3>
+
+<ul>
+  <li><strong>deque</strong>: 양 끝에서 데이터 삽입/삭제 시 <code class="language-plaintext highlighter-rouge">O(1)</code>로 매우 빠릅니다. <code class="language-plaintext highlighter-rouge">maxlen</code>을 지정해 최근 데이터만 유지 가능합니다.</li>
+  <li><strong>Counter</strong>: 요소의 개수를 세어주는 클래스.</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">([</span><span class="s">'red'</span><span class="p">,</span> <span class="s">'blue'</span><span class="p">,</span> <span class="s">'red'</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="s">'red'</span><span class="p">])</span> <span class="c1"># 결과: 2
+</span></code></pre></div></div>
+
+<ul>
+  <li><strong>defaultdict</strong>: 키가 없을 때 기본값(예: 리스트)을 자동으로 생성해줍니다.</li>
+</ul>
+
+<h3 id="43-itertools-모듈-조합-및-순열">4.3 itertools 모듈 (조합 및 순열)</h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">combinations(iterable, r)</code>: 조합(순서 상관X).</li>
+  <li><code class="language-plaintext highlighter-rouge">permutations(iterable, r)</code>: 순열(순서 상관O).</li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
+<span class="k">print</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(,</span> <span class="mi">2</span><span class="p">)))</span> <span class="c1"># 결과: [(1, 2), (1, 3), (2, 3)]
+</span></code></pre></div></div>
+
+<hr />
+
+<blockquote>
+  <p>[!tip] <strong>Obsidian 팁</strong></p>
+
+  <ul>
+    <li>이 문서는 파이썬 기초 복습용으로 최적화되어 있습니다.</li>
+    <li>실무에서 데이터 정제 시 <strong>Regular Expression</strong>과 <strong>Comprehension</strong> 파트를 집중적으로 참고하세요.</li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/05-object-oriented-programming/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">객체지향 프로그래밍</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/07-exception-handling/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">예외 처리</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>SQL 함수 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="MariaDB 문자, 수치, 날짜, NULL 관련 함수 및 윈도우 함수 정리">
+<link rel="canonical" href="https://kkr010128.github.io/03-sql-function/">
+<meta property="og:title" content="SQL 함수 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="MariaDB 문자, 수치, 날짜, NULL 관련 함수 및 윈도우 함수 정리">
+<meta property="og:url" content="https://kkr010128.github.io/03-sql-function/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SQL 함수 | hyeon.log">
+<meta name="twitter:description" content="MariaDB 문자, 수치, 날짜, NULL 관련 함수 및 윈도우 함수 정리">
+
+  <meta property="article:published_time" content="2026-07-13T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "SQL 함수 | hyeon.log",
+    "description": "MariaDB 문자, 수치, 날짜, NULL 관련 함수 및 윈도우 함수 정리",
+    "url": "https://kkr010128.github.io/03-sql-function/",
+    "datePublished": "2026-07-13T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">MariaDB</p>
+    
+    <h1 class="post-head__title">SQL 함수</h1>
+    
+      <p class="post-head__description">MariaDB 문자, 수치, 날짜, NULL 관련 함수 및 윈도우 함수 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 13일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-함수function-개요">1. 함수(Function) 개요</h2>
+
+<ul>
+  <li><strong>정의</strong>: 입력 데이터를 이용해 연산을 수행한 후 출력 값을 만들어 내는 객체임.</li>
+  <li><strong>구성</strong>: 함수에 입력하는 데이터를 <strong>매개변수(Argument, Parameter)</strong>라 하고, 출력되는 데이터를 <strong>반환 데이터(Return Data)</strong>라고 함.</li>
+  <li><strong>분류</strong>:
+    <ul>
+      <li><strong>Scala 함수</strong>: 값 하나를 계산하여 반환함.</li>
+      <li><strong>Group 함수</strong>: 여러 개의 값으로부터 통계 값을 계산함.</li>
+    </ul>
+  </li>
+  <li><strong>기능별 분류</strong>: 문자, 날짜/시간, 수치, 제어 흐름, 집계, 정보, 암호 함수 등으로 나뉨.</li>
+</ul>
+
+<hr />
+
+<h2 id="2-문자열-함수-string-functions">2. 문자열 함수 (String Functions)</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">함수명</th>
+      <th style="text-align: left">설명 및 문법</th>
+      <th style="text-align: left">예제</th>
+      <th style="text-align: left">실행 결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><strong>LENGTH</strong></td>
+      <td style="text-align: left">문자열의 바이트 수를 반환함</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT LENGTH('abc');</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">3</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>CONCAT</strong></td>
+      <td style="text-align: left">여러 문자열을 하나로 결합함</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT CONCAT('Hello', ' ', 'World');</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'Hello World'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>FORMAT</strong></td>
+      <td style="text-align: left">숫자를 소수점 자릿수까지 표시하고 1000단위 콤마 삽입</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT FORMAT(1234567, 0);</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'1,234,567'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>INSTR</strong></td>
+      <td style="text-align: left">기준 문자열에서 부분 문자열의 시작 위치를 찾음</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT INSTR('foobarbar', 'bar');</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">4</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>LEFT / RIGHT</strong></td>
+      <td style="text-align: left">문자열을 왼쪽/오른쪽에서 길이만큼 자름</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT LEFT('ABCDEFG', 3);</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'ABC'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>UPPER / LOWER</strong></td>
+      <td style="text-align: left">대문자 또는 소문자로 변환함</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT UPPER('mariadb');</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'MARIADB'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>LPAD / RPAD</strong></td>
+      <td style="text-align: left">지정한 길이만큼 특정 문자로 채움</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT LPAD('hi', 5, '?');</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'---hi'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>TRIM</strong></td>
+      <td style="text-align: left">좌우 공백 또는 특정 문자를 제거함</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT TRIM(' hello ');</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'hello'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>REPLACE</strong></td>
+      <td style="text-align: left">문자열 내 특정 내용을 다른 내용으로 치환함</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT REPLACE('Apple', 'p', 'P');</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'APPle'</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>SUBSTRING</strong></td>
+      <td style="text-align: left">시작 위치부터 길이만큼 문자열을 추출함</td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">SELECT SUBSTRING('2024-05-01', 6, 2);</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">'05'</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="21-문자열-실습-예제">2.1 문자열 실습 예제</h3>
+
+<ul>
+  <li><strong>데이터 결합</strong>: <code class="language-plaintext highlighter-rouge">SELECT CONCAT(name, birthyear) FROM usertbl;</code> -&gt; ‘이름1990’ 형태로 출력됨.</li>
+  <li><strong>날짜 부분 추출</strong>: <code class="language-plaintext highlighter-rouge">SELECT SUBSTRING(HIREDATE, 1, 4) 년도, SUBSTRING(HIREDATE, 6, 2) 달 FROM EMP;</code> -&gt; 입사 년도와 월을 분리하여 조회함.</li>
+</ul>
+
+<hr />
+
+<h2 id="3-수치-함수-numeric-functions">3. 수치 함수 (Numeric Functions)</h2>
+
+<ul>
+  <li><strong>ABS(숫자)</strong>: 절대값을 반환함.</li>
+  <li><strong>CEILING / FLOOR / ROUND</strong>: 각각 올림, 내림, 반올림을 수행함.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">SELECT ROUND(123.456, 2);</code> -&gt; <code class="language-plaintext highlighter-rouge">123.46</code> (소수점 둘째 자리까지 반올림).</li>
+    </ul>
+  </li>
+  <li>TRUNCATE: qjflsms gkatn
+    <ul>
+      <li>자릿 수와 함께 사용하는데 자릿수를 설정할 때는 음수이면 소수점 앞 자릿수를 의미하고 양수이면 소숫점 자릿수</li>
+    </ul>
+  </li>
+  <li><strong>MOD(n, m)</strong>: 나머지를 구함.
+    <ul>
+      <li>예: <code class="language-plaintext highlighter-rouge">SELECT * FROM EMP WHERE MOD(EMPNO, 2) = 1;</code> -&gt; 사원번호가 홀수인 사원만 조회함.</li>
+    </ul>
+  </li>
+  <li><strong>RAND()</strong>: 0 이상 1 미만의 임의의 실수를 반환함.</li>
+  <li><strong>POW(x, y) / SQRT(x)</strong>: 거듭제곱 및 제곱근을 구함.</li>
+  <li><strong>LEAST / GREATEST</strong>: 나열된 값 중 최소값 또는 최대값을 반환함.</li>
+</ul>
+
+<hr />
+
+<h2 id="4-날짜-및-시간-함수-date--time-functions">4. 날짜 및 시간 함수 (Date &amp; Time Functions)</h2>
+
+<ul>
+  <li><strong>현재 시각 조회</strong>:
+    <ul>
+      <li>‘YYYY-MM-DD’ 리턴.
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">CURRENT_DATE()</code></li>
+        </ul>
+      </li>
+      <li>‘HH:MM:SS’ 리턴.
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">CURRENT_TIME()</code>, <code class="language-plaintext highlighter-rouge">CURTIME()</code>, <code class="language-plaintext highlighter-rouge">LOCALTIME()</code></li>
+        </ul>
+      </li>
+      <li>현재 날짜와 시간을 모두 리턴함
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">NOW()</code></li>
+          <li><code class="language-plaintext highlighter-rouge">LOCALTIME()</code></li>
+          <li><code class="language-plaintext highlighter-rouge">LOCLTIMESTAMP()</code></li>
+          <li><code class="language-plaintext highlighter-rouge">SYSDATE()</code></li>
+          <li><code class="language-plaintext highlighter-rouge">CURRENT_TIMESTAMP()</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><strong>날짜 연산</strong>:
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">ADDDATE(날짜, INTERVAL 정수 단위)</code>: 날짜를 더함.
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">SELECT ADDDATE('2025-01-01', INTERVAL 31 DAY);</code> -&gt; <code class="language-plaintext highlighter-rouge">'2025-02-01'</code>.</li>
+        </ul>
+      </li>
+      <li><code class="language-plaintext highlighter-rouge">DATEDIFF(날짜1, 날짜2)</code>: 두 날짜 사이의 일수 차이를 구함.</li>
+      <li><code class="language-plaintext highlighter-rouge">TIMESTAMPDIFF(단위, 날짜1, 날짜2)</code>: 연, 월, 시간 등 지정 단위로 차이를 구함.
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">SELECT TIMESTAMPDIFF(MONTH, '1985-05-05', '2025-01-01');</code> -&gt; 월 단위 차이 리턴.</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2 id="5-제어-흐름-및-null-함수">5. 제어 흐름 및 NULL 함수</h2>
+
+<h3 id="51-제어-흐름-함수">5.1 제어 흐름 함수</h3>
+
+<ul>
+  <li><strong>IF(조건, 참일때, 거짓일때)</strong>: 조건에 따른 2중 분기.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">SELECT IF(100 &gt; 200, '참', '거짓');</code> -&gt; <code class="language-plaintext highlighter-rouge">'거짓'</code>.</li>
+    </ul>
+  </li>
+  <li><strong>CASE WHEN</strong>: 다중 분기 처리에 사용됨.</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="k">CASE</span> <span class="mi">10</span> <span class="k">WHEN</span> <span class="mi">1</span> <span class="k">THEN</span> <span class="s1">'일'</span> <span class="k">WHEN</span> <span class="mi">10</span> <span class="k">THEN</span> <span class="s1">'십'</span> <span class="k">ELSE</span> <span class="s1">'모름'</span> <span class="k">END</span><span class="p">;</span> <span class="c1">-- 결과: '십'</span>
+</code></pre></div></div>
+
+<h3 id="52-null-관련-함수">5.2 NULL 관련 함수</h3>
+<ul>
+  <li>NULL은 아직 알려지지 않은 값</li>
+  <li>NULL과의 연산은 무조건 NULL</li>
+  <li><strong>IFNULL(값1, 값2)</strong>: 값1이 NULL이면 값2를, 아니면 값1을 리턴함 (Oracle의 NVL과 유사).</li>
+  <li><strong>COALESCE(인자1, 2, …)</strong>: 인자들 중 첫 번째로 NULL이 아닌 값을 반환함.</li>
+  <li><strong>NVL2(인자1, 인자2, 인자3)</strong>: 인자1이 NULL이 아니면 인자2를, NULL이면 인자3을 리턴함.</li>
+</ul>
+
+<hr />
+
+<h2 id="6-시스템-정보-및-타입-변환">6. 시스템 정보 및 타입 변환</h2>
+
+<h3 id="61-시스템-정보-함수">6.1 시스템 정보 함수</h3>
+
+<ul>
+  <li><strong>USER()</strong>: 현재 접속 중인 사용자 이름을 반환함.</li>
+  <li><strong>DATABASE()</strong>: 현재 사용 중인 데이터베이스 이름을 반환함.</li>
+  <li><strong>VERSION()</strong>: MariaDB의 버전을 반환함.</li>
+  <li><strong>JSON_OBJECT</strong>: 데이터를 JSON 형식으로 변환함.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">SELECT JSON_OBJECT('name', '김철수', 'age', 30);</code> -&gt; <code class="language-plaintext highlighter-rouge">{"name": "김철수", "age": 30}</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="62-타입-변환-explicit-conversion">6.2 타입 변환 (Explicit Conversion)</h3>
+
+<ul>
+  <li><strong>CAST(데이터 AS 데이터유형)</strong>: 데이터를 지정한 유형으로 강제 변환함.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">SELECT CAST('1' AS SIGNED);</code> -&gt; 숫자 1로 변환.</li>
+    </ul>
+  </li>
+  <li><strong>CONVERT(데이터, 데이터유형)</strong>: CAST와 유사하게 작동함.</li>
+  <li><strong>주의</strong>: MySQL/MariaDB에서 CAST 시 <code class="language-plaintext highlighter-rouge">VARCHAR</code>로는 형 변환이 불가능하며 <code class="language-plaintext highlighter-rouge">CHAR</code>를 사용해야 함.</li>
+</ul>
+
+<hr />
+
+<p><strong>실무 팁</strong>:</p>
+
+<ul>
+  <li>날짜 검색 시 <code class="language-plaintext highlighter-rouge">HIREDATE LIKE '1981%'</code> 보다 <code class="language-plaintext highlighter-rouge">SUBSTRING(HIREDATE, 1, 4) = '1981'</code> 형식이 더 명확할 때가 있음.</li>
+  <li>숫자로 된 문자열을 산술 연산(<code class="language-plaintext highlighter-rouge">+</code>)에 사용하면 MariaDB가 자동으로 숫자로 변환하여 계산함(묵시적 형 변환).</li>
+</ul>
+
+<h2 id="흐름-순서">흐름 순서</h2>
+<p>SELECT → FROM → WHERE →  GROUP BY → HAVING → ORDER BY • • •</p>
+<h2 id="실습">실습</h2>
+<hr />
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">select</span> <span class="n">ENAME</span> <span class="k">as</span> <span class="s1">'이름'</span><span class="p">,</span> <span class="k">substring</span><span class="p">(</span><span class="n">hiredate</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="k">as</span> <span class="s1">'입사년도'</span> <span class="k">from</span> <span class="n">EMP</span><span class="p">;</span>
+</code></pre></div></div>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/02-select/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">SELECT</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/04-group-by-aggregate/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">GROUP BY와 집계</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

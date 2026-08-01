@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>MariaDB 개요 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="데이터베이스 개념, DBMS 종류, MariaDB 설치 및 기본 명령어 정리">
+<link rel="canonical" href="https://kkr010128.github.io/01-mariadb-overview/">
+<meta property="og:title" content="MariaDB 개요 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="데이터베이스 개념, DBMS 종류, MariaDB 설치 및 기본 명령어 정리">
+<meta property="og:url" content="https://kkr010128.github.io/01-mariadb-overview/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MariaDB 개요 | hyeon.log">
+<meta name="twitter:description" content="데이터베이스 개념, DBMS 종류, MariaDB 설치 및 기본 명령어 정리">
+
+  <meta property="article:published_time" content="2026-07-10T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "MariaDB 개요 | hyeon.log",
+    "description": "데이터베이스 개념, DBMS 종류, MariaDB 설치 및 기본 명령어 정리",
+    "url": "https://kkr010128.github.io/01-mariadb-overview/",
+    "datePublished": "2026-07-10T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">MariaDB</p>
+    
+    <h1 class="post-head__title">MariaDB 개요</h1>
+    
+      <p class="post-head__description">데이터베이스 개념, DBMS 종류, MariaDB 설치 및 기본 명령어 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 10일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-mariadb-개요">1. MariaDB 개요</h2>
+
+<ul>
+  <li>SQL에 기반을 둔 관계형 DBMS로 Open Source로 제공됨.</li>
+  <li>리눅스, 유닉스, 윈도우 등 거의 모든 운영체제에서 사용 가능함.</li>
+  <li>처리 속도가 빨라 대용량 데이터 처리에 용이하고 설치가 쉬움.</li>
+  <li><strong>작업 단위</strong>: 데이터베이스 &gt; 테이블 순임.</li>
+  <li>데이터베이스는 사용자 상관없이 생성되며 권한을 부여해서 사용함. 하나의 DB를 여러 사용자가 공유 가능함.</li>
+</ul>
+
+<h2 id="2-서버-설치-및-관리">2. 서버 설치 및 관리</h2>
+
+<h3 id="21-windows-설치">2.1 Windows 설치</h3>
+
+<ul>
+  <li><strong>다운로드</strong>: https://mariadb.org/download/.</li>
+  <li><strong>설정 사항</strong>:
+    <ul>
+      <li>root 비밀번호 설정 및 원격 접속 허용 여부 결정.</li>
+      <li>기본 인코딩을 UTF8로 설정할 것을 권장함.</li>
+      <li>서비스 이름(기본 MariaDB), 포트 번호(기본 3306), 버퍼 사이즈 등을 설정함.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="22-mac-homebrew-설치">2.2 Mac (Homebrew) 설치</h3>
+
+<ul>
+  <li><strong>brew 설치</strong>:
+    <ul>
+      <li>Intel Chip: <code class="language-plaintext highlighter-rouge">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code>.</li>
+      <li>ARM Chip: <code class="language-plaintext highlighter-rouge">/bin/bash -c "$(curl -fsSL https://gist.githubusercontent.com/nrubin29/bea5aa83e8dfa91370fe83b62dad6dfa/raw/48f48f7fef21abb308e129a80b3214c2538fc611/homebrew_m1.sh )"</code>.</li>
+    </ul>
+  </li>
+  <li><strong>설치 및 확인</strong>: <code class="language-plaintext highlighter-rouge">brew install mariadb</code> 수행 후 <code class="language-plaintext highlighter-rouge">mysql --version</code>으로 확인함.</li>
+  <li><strong>서비스 제어</strong>: <code class="language-plaintext highlighter-rouge">brew services [start | stop | restart] mariadb</code> 사용함.</li>
+  <li><strong>접속 및 설정</strong>: <code class="language-plaintext highlighter-rouge">sudo mysql -u root</code> 접속 후 <code class="language-plaintext highlighter-rouge">ALTER USER</code> 명령어로 비밀번호 설정함.</li>
+  <li><strong>설정 파일 경로</strong>: <code class="language-plaintext highlighter-rouge">/opt/homebrew/etc/my.cnf</code>.</li>
+  <li><strong>삭제</strong>: <code class="language-plaintext highlighter-rouge">brew uninstall mariadb</code> 후 <code class="language-plaintext highlighter-rouge">/usr/local/var/mysql</code>, <code class="language-plaintext highlighter-rouge">/usr/local/etc/my.cnf</code> 등 데이터 모두 삭제함.</li>
+</ul>
+
+<h3 id="23-ubuntu-linux-설치">2.3 Ubuntu Linux 설치</h3>
+
+<ul>
+  <li>패키지 업데이트: <code class="language-plaintext highlighter-rouge">sudo apt update &amp;&amp; sudo apt upgrade -y</code>.</li>
+  <li>설치: <code class="language-plaintext highlighter-rouge">sudo apt install mariadb-server mariadb-client -y</code>.</li>
+  <li>보안 설정: <code class="language-plaintext highlighter-rouge">sudo mysql_secure_installation</code>으로 root 비번 및 익명 사용자 정리함.</li>
+  <li>설정 파일: <code class="language-plaintext highlighter-rouge">/etc/mysql/mariadb.conf.d/50-server.cnf</code>.</li>
+</ul>
+
+<h3 id="24-docker-설치">2.4 Docker 설치</h3>
+
+<ul>
+  <li>이미지 다운로드: <code class="language-plaintext highlighter-rouge">docker pull mariadb</code>.</li>
+  <li>컨테이너 생성: <code class="language-plaintext highlighter-rouge">docker run --name mariadb -d -p [외부포트]:3306 -e MYSQL_ROOT_PASSWORD=[비밀번호] mariadb</code>.</li>
+</ul>
+
+<h2 id="3-외부-접속-및-권한-설정">3. 외부 접속 및 권한 설정</h2>
+
+<h3 id="31-설정-파일-수정">3.1 설정 파일 수정</h3>
+
+<ul>
+  <li>Mac/Linux 직접 설치 시: 설정 파일 내 <code class="language-plaintext highlighter-rouge">bind-address = 127.0.0.1</code>을 <code class="language-plaintext highlighter-rouge">0.0.0.0</code>으로 수정함.</li>
+  <li>Docker 설치 시: <code class="language-plaintext highlighter-rouge">docker exec -it [컨테이너명] bash</code> 접속 후 vim 설치하여 설정 파일(<code class="language-plaintext highlighter-rouge">50-server.cnf</code>) 수정함.</li>
+</ul>
+
+<h3 id="32-사용자-및-권한-관리">3.2 사용자 및 권한 관리</h3>
+
+<ul>
+  <li><strong>유저 생성</strong>: <code class="language-plaintext highlighter-rouge">CREATE USER '계정'@'%' IDENTIFIED BY '비밀번호';</code> (<code class="language-plaintext highlighter-rouge">%</code>는 모든 IP 허용).</li>
+  <li><strong>권한 부여</strong>: <code class="language-plaintext highlighter-rouge">GRANT ALL PRIVILEGES ON *.* TO '계정'@'%';</code>.</li>
+  <li><strong>적용</strong>: <code class="language-plaintext highlighter-rouge">FLUSH PRIVILEGES;</code> 반드시 수행해야 함.</li>
+</ul>
+
+<h2 id="4-데이터베이스-주요-명령어">4. 데이터베이스 주요 명령어</h2>
+
+<ul>
+  <li>존재하는 목록 보기: <code class="language-plaintext highlighter-rouge">SHOW DATABASES;</code>.</li>
+  <li>현재 DB 확인: <code class="language-plaintext highlighter-rouge">SELECT DATABASE();</code>.</li>
+  <li>생성/삭제: <code class="language-plaintext highlighter-rouge">CREATE DATABASE [이름];</code> / <code class="language-plaintext highlighter-rouge">DROP DATABASE [이름];</code>.</li>
+  <li>사용 설정: <code class="language-plaintext highlighter-rouge">USE [이름];</code>.</li>
+  <li>테이블 목록 보기: <code class="language-plaintext highlighter-rouge">SHOW TABLES;</code>.</li>
+  <li>테이블 구조 확인: <code class="language-plaintext highlighter-rouge">DESC [테이블명];</code>.</li>
+</ul>
+
+<h2 id="5-실습용-샘플-데이터-ddldml">5. 실습용 샘플 데이터 (DDL/DML)</h2>
+
+<h3 id="51-tcity-도시-정보">5.1 tCity (도시 정보)</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tCity</span> <span class="p">(</span>
+    <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">area</span> <span class="nb">INT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">popu</span> <span class="nb">INT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="n">metro</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">region</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span>
+<span class="p">);</span>
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">tCity</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'서울'</span><span class="p">,</span><span class="mi">605</span><span class="p">,</span><span class="mi">974</span><span class="p">,</span><span class="s1">'y'</span><span class="p">,</span><span class="s1">'경기'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'부산'</span><span class="p">,</span><span class="mi">765</span><span class="p">,</span><span class="mi">342</span><span class="p">,</span><span class="s1">'y'</span><span class="p">,</span><span class="s1">'경상'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'오산'</span><span class="p">,</span><span class="mi">42</span><span class="p">,</span><span class="mi">21</span><span class="p">,</span><span class="s1">'n'</span><span class="p">,</span><span class="s1">'경기'</span><span class="p">);</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tCity</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="52-tstaff-직원-정보">5.2 tStaff (직원 정보)</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tStaff</span> <span class="p">(</span>
+    <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">depart</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">gender</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="n">joindate</span> <span class="nb">DATE</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">grade</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">salary</span> <span class="nb">INT</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">score</span> <span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">NULL</span>
+<span class="p">);</span>
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">tStaff</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'김유신'</span><span class="p">,</span><span class="s1">'총무부'</span><span class="p">,</span><span class="s1">'남'</span><span class="p">,</span><span class="s1">'2000-02-03'</span><span class="p">,</span><span class="s1">'이사'</span><span class="p">,</span><span class="mi">420</span><span class="p">,</span><span class="mi">88</span><span class="p">.</span><span class="mi">8</span><span class="p">);</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tStaff</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="53-dept--emp-부서-및-사원---외래키-포함">5.3 DEPT &amp; EMP (부서 및 사원 - 외래키 포함)</h3>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">DEPT</span> <span class="p">(</span>
+    <span class="n">DEPTNO</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">DNAME</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">14</span><span class="p">),</span> <span class="n">LOC</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
+<span class="p">);</span>
+<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">EMP</span> <span class="p">(</span>
+    <span class="n">EMPNO</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">ENAME</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">JOB</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">9</span><span class="p">),</span> <span class="n">MGR</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
+    <span class="n">HIREDATE</span> <span class="nb">DATE</span><span class="p">,</span> <span class="n">SAL</span> <span class="nb">FLOAT</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">COMM</span> <span class="nb">FLOAT</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">DEPTNO</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
+    <span class="k">CONSTRAINT</span> <span class="n">FK_DEPTNO</span> <span class="k">FOREIGN</span> <span class="k">KEY</span><span class="p">(</span><span class="n">DEPTNO</span><span class="p">)</span> <span class="k">REFERENCES</span> <span class="n">DEPT</span><span class="p">(</span><span class="n">DEPTNO</span><span class="p">)</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="54-쇼핑몰-샘플-usertbl--buytbl">5.4 쇼핑몰 샘플 (usertbl &amp; buytbl)</h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">buytbl</code> 생성 시 <code class="language-plaintext highlighter-rouge">ON DELETE CASCADE</code> 설정을 통해 사용자 삭제 시 구매 기록도 자동 삭제되도록 구현함.</li>
+  <li><code class="language-plaintext highlighter-rouge">auto_increment</code> 속성으로 기본키 자동 증가 기능을 사용함.</li>
+</ul>
+
+<h3 id="55-대용량-데이터-처리">5.5 대용량 데이터 처리</h3>
+
+<ul>
+  <li>외부 SQL 파일 실행: <code class="language-plaintext highlighter-rouge">SOURCE employees.sql</code> 명령을 통해 대량의 샘플 데이터를 한 번에 입력 가능함.</li>
+</ul>
+
+<hr />
+
+<p><strong>추가 팁 (자료 보강)</strong>:</p>
+
+<ul>
+  <li>MariaDB 접속 시 <code class="language-plaintext highlighter-rouge">-p</code> 옵션 뒤에 비밀번호를 바로 붙여 쓰거나(예: <code class="language-plaintext highlighter-rouge">-p1234</code>), 엔터를 치고 입력하는 것이 보안상 안전함.</li>
+  <li>SQL문은 대소문자를 구분하지 않으나 관례상 예약어는 대문자, 식별자는 소문자로 작성하여 가독성을 높임.</li>
+  <li>외부 접속이 안 될 경우 OS 방화벽에서 3306 포트가 열려 있는지 확인이 필요함.</li>
+</ul>
+
+<p>![[1.MariaDB(드래그함).pdf]]</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/10-crawling/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">크롤링</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/02-select/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">SELECT</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

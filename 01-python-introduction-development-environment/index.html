@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Python 소개 및 개발 환경 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Python의 특징, 인터프리터/컴파일러 개념, IDE 종류, 가상환경 설정까지 정리">
+<link rel="canonical" href="https://kkr010128.github.io/01-python-introduction-development-environment/">
+<meta property="og:title" content="Python 소개 및 개발 환경 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Python의 특징, 인터프리터/컴파일러 개념, IDE 종류, 가상환경 설정까지 정리">
+<meta property="og:url" content="https://kkr010128.github.io/01-python-introduction-development-environment/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python 소개 및 개발 환경 | hyeon.log">
+<meta name="twitter:description" content="Python의 특징, 인터프리터/컴파일러 개념, IDE 종류, 가상환경 설정까지 정리">
+
+  <meta property="article:published_time" content="2026-07-06T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Python 소개 및 개발 환경 | hyeon.log",
+    "description": "Python의 특징, 인터프리터/컴파일러 개념, IDE 종류, 가상환경 설정까지 정리",
+    "url": "https://kkr010128.github.io/01-python-introduction-development-environment/",
+    "datePublished": "2026-07-06T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">Python 소개 및 개발 환경</h1>
+    
+      <p class="post-head__description">Python의 특징, 인터프리터/컴파일러 개념, IDE 종류, 가상환경 설정까지 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 6일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Python">Python</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-데이터-처리-개요">1) 데이터 처리 개요</h2>
+<hr />
+<ul>
+  <li><strong>데이터 과학(Data Science)</strong>
+  → 데이터를 수집, 정제, 저장, 분석하여 의미 있는 정보를 추출하는 학문</li>
+  <li><strong>빅데이터(Big Data)</strong>
+  → 기존 시스템으로 처리하기 어려운 매우 크거나 빠르게 생성되는 데이터</li>
+  <li><strong>데이터 분석(Data Analysis)</strong>
+  → 알고리즘과 수학적 기법으로 패턴 발견, 문제 해결, 인사이트 도출</li>
+</ul>
+
+<h3 id="데이터-활용-과정">데이터 활용 과정</h3>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>데이터 수집 → 정제(Cleansing) → 저장 → 분석 → 정보(Insight) 도출
+</code></pre></div></div>
+
+<h3 id="컴퓨터를-이용한-데이터-분석의-장점">컴퓨터를 이용한 데이터 분석의 장점</h3>
+<ul>
+  <li>대용량 데이터 처리 가능</li>
+  <li>반복 작업 자동화</li>
+  <li>사람의 편향 감소</li>
+  <li>분석 속도 향상</li>
+</ul>
+
+<h2 id="2-프로그래밍-기초">2) 프로그래밍 기초</h2>
+<hr />
+<h3 id="프로그래밍-언어">프로그래밍 언어</h3>
+<ul>
+  <li>사람의 생각을 컴퓨터가 이해할 수 있도록 표현하는 언어</li>
+</ul>
+
+<h3 id="컴파일러-vs-인터프리터">컴파일러 vs 인터프리터</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>컴파일러</th>
+      <th>인터프리터</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>방식</td>
+      <td>소스코드 전체를 기계어로 변환 후 실행</td>
+      <td>한 줄씩 해석하며 즉시 실행</td>
+    </tr>
+    <tr>
+      <td>실행 속도</td>
+      <td>빠름</td>
+      <td>상대적으로 느림</td>
+    </tr>
+    <tr>
+      <td>개발 속도</td>
+      <td>컴파일 과정 필요</td>
+      <td>빠름, 디버깅 쉬움</td>
+    </tr>
+    <tr>
+      <td>대표 언어</td>
+      <td>C, C++</td>
+      <td>Python</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="3-python-개요">3) Python 개요</h2>
+<hr />
+<h3 id="python이란">Python이란?</h3>
+<ul>
+  <li>1991년 <strong>Guido van Rossum</strong>이 개발</li>
+  <li><strong>인터프리터 언어</strong> → 한 줄씩 해석 실행</li>
+  <li><strong>객체지향 언어</strong> → 모든 것이 객체</li>
+  <li><strong>동적 타이핑 언어</strong> → 자료형을 자동 결정</li>
+  <li><strong>들여쓰기</strong>로 블록 표현</li>
+  <li>플랫폼 독립적 (Windows, Linux, macOS, Unix)</li>
+  <li>풍부한 라이브러리 생태계</li>
+</ul>
+
+<h3 id="python의-장점">Python의 장점</h3>
+<ul>
+  <li>배우기 쉽고 문법이 간결하며 가독성이 높음</li>
+  <li>데이터 분석, AI/ML 분야의 표준 언어</li>
+  <li>웹 개발, 자동화, 크롤링, 서버 개발 등 다양한 분야에 활용</li>
+</ul>
+
+<h3 id="python-구현체">Python 구현체</h3>
+<p>| 구현체 | 특징 |
+| —– | —- |
+| <strong>CPython</strong> | 가장 일반적인 구현체 |
+| PyPy | 실행 속도 향상 |
+| Jython | JVM 기반 |
+| IronPython | .NET 기반 |
+| Stackless Python | C Stack 사용 최소화 |</p>
+
+<h2 id="4-개발-환경">4) 개발 환경</h2>
+<hr />
+<h3 id="ide통합-개발-환경">IDE(통합 개발 환경)</h3>
+<ul>
+  <li>코드 작성, 실행, 디버깅, 프로젝트 관리를 하나의 프로그램에서 제공</li>
+  <li>대표 기능: 자동완성, 문법 검사, 디버깅</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>도구</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>PyCharm</strong></td>
+      <td>Python 전용 IDE, IntelliJ 기반, 강력한 코드 분석</td>
+    </tr>
+    <tr>
+      <td><strong>VS Code</strong></td>
+      <td>범용 IDE, 가볍고 확장성 뛰어남, Python Extension 필요</td>
+    </tr>
+    <tr>
+      <td><strong>Jupyter Notebook</strong></td>
+      <td>브라우저 기반, 코드+문서 함께 작성, 데이터 분석에 적합</td>
+    </tr>
+    <tr>
+      <td><strong>Spyder</strong></td>
+      <td>과학 계산용, 변수 확인 가능</td>
+    </tr>
+    <tr>
+      <td><strong>Google Colab</strong></td>
+      <td>설치 불필요, 클라우드 실행, GPU 지원</td>
+    </tr>
+    <tr>
+      <td>IDLE</td>
+      <td>Python 기본 IDE</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="python-설치">Python 설치</h3>
+<ul>
+  <li>공식 사이트: https://www.python.org/downloads/</li>
+  <li><strong>Windows</strong>: 설치 시 <code class="language-plaintext highlighter-rouge">Add Python to PATH</code> 반드시 체크</li>
+  <li><strong>Linux</strong>: <code class="language-plaintext highlighter-rouge">sudo apt-get install python3-tk</code> (Ubuntu)</li>
+</ul>
+
+<h3 id="확인">확인</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python <span class="nt">--version</span>
+python3 <span class="nt">--version</span>
+</code></pre></div></div>
+
+<h3 id="anaconda">Anaconda</h3>
+<ul>
+  <li>Python + Jupyter Notebook + Spyder + 과학 계산 라이브러리를 한 번에 포함한 배포판</li>
+</ul>
+
+<h2 id="5-가상환경virtual-environment">5) 가상환경(Virtual Environment)</h2>
+<hr />
+<h3 id="필요한-이유">필요한 이유</h3>
+<ul>
+  <li>프로젝트마다 Python 버전과 라이브러리 버전이 다를 수 있음</li>
+  <li>가상환경은 프로젝트별 <strong>독립 환경</strong>을 제공</li>
+</ul>
+
+<h3 id="생성-및-관리">생성 및 관리</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 생성</span>
+python <span class="nt">-m</span> venv myenv
+
+<span class="c"># 활성화 (Mac/Linux)</span>
+<span class="nb">source </span>myenv/bin/activate
+
+<span class="c"># 활성화 (Windows)</span>
+myenv<span class="se">\S</span>cripts<span class="se">\a</span>ctivate
+
+<span class="c"># 비활성화</span>
+deactivate
+</code></pre></div></div>
+
+<h3 id="pycharm에서-설정">PyCharm에서 설정</h3>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>File → Settings → Python Interpreter → 프로젝트별 Interpreter 선택
+</code></pre></div></div>
+
+<h2 id="6-python-기본-문법-요약">6) Python 기본 문법 요약</h2>
+<hr />
+<h3 id="핵심-규칙">핵심 규칙</h3>
+<ul>
+  <li>라인 단위로 번역 실행 → 라인 종료 기호(<code class="language-plaintext highlighter-rouge">;</code>) 불필요</li>
+  <li>하나의 라인에 여러 명령어는 <code class="language-plaintext highlighter-rouge">;</code>로 구분</li>
+  <li><strong>들여쓰기(4칸 권장)</strong> 로 블록 생성</li>
+  <li>하위 레벨 생성 시 상위 레벨 끝에 <code class="language-plaintext highlighter-rouge">:</code> 추가</li>
+</ul>
+
+<h3 id="구성-요소">구성 요소</h3>
+<p>| 요소 | 설명 |
+| —- | —- |
+| <strong>Literal</strong> | 개발자가 직접 입력한 데이터 |
+| <strong>Variable</strong> | 데이터를 메모리에 저장한 이름 |
+| <strong>Function</strong> | 실행 코드를 모아 이름을 붙인 것 |
+| <strong>Class &amp; Instance</strong> | 데이터+함수의 모임 (템플릿/객체) |
+| <strong>Module</strong> | 하나의 파일, 독립 실행 가능한 코드 모임 |
+| <strong>Package</strong> | 관련 Module의 집합, 배포 단위 |
+| <strong>Comment</strong> | 코드 설명, 번역되지 않음 |</p>
+
+<h3 id="주석">주석</h3>
+<ul>
+  <li>한 줄: <code class="language-plaintext highlighter-rouge"># 내용</code></li>
+  <li>여러 줄: <code class="language-plaintext highlighter-rouge">""" 내용 """</code> 또는 <code class="language-plaintext highlighter-rouge">''' 내용 '''</code> (문자열 리터럴 활용)</li>
+  <li><code class="language-plaintext highlighter-rouge">#!</code>: 주석이 아닌 shebang(실행 프로그램 지정)</li>
+</ul>
+
+<h3 id="도움말">도움말</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">print(dir(데이터))</code> → 사용 가능한 속성과 함수 목록 출력</li>
+  <li><code class="language-plaintext highlighter-rouge">help(이름)</code> → 함수의 도움말 출력</li>
+</ul>
+
+<h3 id="예약어reserved-words">예약어(Reserved Words)</h3>
+<ul>
+  <li>Python이 기능을 정해둔 명령어로, 변수명 등 다른 용도로 사용 불가</li>
+  <li>확인: <code class="language-plaintext highlighter-rouge">import keyword</code> → <code class="language-plaintext highlighter-rouge">print(keyword.kwlist)</code></li>
+  <li><em>하지만</em> Python이 제공하는 클래스들은 예약어가 아님</li>
+</ul>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/00-python-basic/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Python 기초</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/02-variable-operator/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">변수와 연산자</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>소프트웨어 관리 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Ubuntu 패키지 관리, apt, 압축, wget, curl 사용법 정리">
+<link rel="canonical" href="https://kkr010128.github.io/06-software-management/">
+<meta property="og:title" content="소프트웨어 관리 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Ubuntu 패키지 관리, apt, 압축, wget, curl 사용법 정리">
+<meta property="og:url" content="https://kkr010128.github.io/06-software-management/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="소프트웨어 관리 | hyeon.log">
+<meta name="twitter:description" content="Ubuntu 패키지 관리, apt, 압축, wget, curl 사용법 정리">
+
+  <meta property="article:published_time" content="2026-07-22T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "소프트웨어 관리 | hyeon.log",
+    "description": "Ubuntu 패키지 관리, apt, 압축, wget, curl 사용법 정리",
+    "url": "https://kkr010128.github.io/06-software-management/",
+    "datePublished": "2026-07-22T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Linux</p>
+    
+    <h1 class="post-head__title">소프트웨어 관리</h1>
+    
+      <p class="post-head__description">Ubuntu 패키지 관리, apt, 압축, wget, curl 사용법 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 22일 · 6분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Linux">Linux</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--ubuntu-package">1 ) Ubuntu Package</h2>
+<hr />
+<h3 id="개요">개요</h3>
+<ul>
+  <li>리눅스의 소프트웨어는 소스코드 형식 또는 바로 설치해 사용 가능한 패키지 형태로 배포</li>
+  <li>소스 코드 형식으로 배포하는 경우
+    <ul>
+      <li>하나의 아카이브 파일로 묶어 압축해 배포</li>
+    </ul>
+  </li>
+  <li>바이너리 패키지로 배포하는 경우
+    <ul>
+      <li>리눅스에서 주로 사용하는 패키지 형식인 RPM과 deb가 존재
+        <ul>
+          <li>ubuntu → deb (RPM 패키지 설치가 가능하긴 하나 별도의 작업 필요)
+            <ul>
+              <li>16.04 이상부터 새로운 패키지(snap)형식이 추가됨
+  → 기존 패키지의 의존성 문제를 해결함 (deb과 호환됨)</li>
+            </ul>
+          </li>
+          <li>redhat → RPM
+            <h3 id="특징">특징</h3>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>바이너리 파일로 구성되어 있어 별도의 컴파일 필요 없음</li>
+  <li>package 내 파일이 관련 디렉토리에 바로 설치됨</li>
+  <li>삭제 시 관련 파일 일괄 삭제 가능</li>
+  <li>기존 설치한 패키지 삭제 없이 업그레이드 가능</li>
+  <li>설치 상태 검증 가능</li>
+  <li>의존성이 존재하는 패키지도 자동 설치
+    <h3 id="카테고리">카테고리</h3>
+  </li>
+  <li>main 
+  →  공식적으로 지원되고 자유롭게 배포 가능</li>
+  <li>restricted
+  →  지원은 하나, 자유 라이선스 소프트웨어는 아님</li>
+  <li>universe
+  →  자유 소프트웨어일 여부가 불분명하며 기술적 지원을 보장하지 않음</li>
+  <li>multibus
+  → 개인이 직접 라이센스 확인 필요
+    <h3 id="패키지-저장소">패키지 저장소</h3>
+  </li>
+  <li>우분투는 패키지와 패키지에 대한 정보를 저장하고 있는 서버인 패키지 저장소 개념 도입</li>
+  <li>패키지 저장소는 패키지의 기능 추가나 보안 패치 등 지속적 업그레이드를 집중적으로 관리</li>
+  <li>사용자는 저장소에 접속해 최신 패키지를 내려받아 설치</li>
+  <li>패키지 저장소를 이용하기 위해선 패키지 저장소를 설정해야 함
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 해당 파일에 패키지 저장소 설정</span>
+<span class="nb">sudo ls</span> <span class="nt">-l</span> /etc/apt/sources.list.d/ubuntu.sources
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<h2 id="2--package-management">2 ) Package Management</h2>
+<hr />
+<h3 id="apt-cache">apt-cache</h3>
+<ul>
+  <li>apt cache에 질의해 여러가지 정보 검색
+    <h3 id="apt-get--apt">apt-get | apt</h3>
+  </li>
+  <li>명령 형식
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">apt [option] 서브명령</code>
+        <ul>
+          <li>패키지 내려받기만 수행 → <code class="language-plaintext highlighter-rouge">-d</code></li>
+          <li>의존성이 깨진 패키지 수정 시도 → <code class="language-plaintext highlighter-rouge">-f</code></li>
+          <li>도움말 → <code class="language-plaintext highlighter-rouge">-h</code></li>
+          <li>설치나 업그레이드 시 설치 여부 확인 부분을 생략 → <code class="language-plaintext highlighter-rouge">-y</code>
+            <ul>
+              <li>IaC(Infrastructure as Code) 시 에는 반드시 사용</li>
+              <li>절대적으로 사람의 개입이 없어야 함</li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+      <li>서브 명령
+        <ul>
+          <li>패키지 저장소에서 새로운 패키지 정보 가져옴 → <code class="language-plaintext highlighter-rouge">update</code></li>
+          <li>현재 설치된 패키지 업그레이드 → <code class="language-plaintext highlighter-rouge">upgrade</code></li>
+          <li>
+            <p>패키지 설치 → <code class="language-plaintext highlighter-rouge">install {packageName}</code></p>
+          </li>
+          <li>패키지 삭제 → <code class="language-plaintext highlighter-rouge">remove {packageName}</code></li>
+          <li>패키지 삭제(설정파일까지) → <code class="language-plaintext highlighter-rouge">purge {packageName}</code></li>
+          <li>패키지 다운로드 → <code class="language-plaintext highlighter-rouge">download {packageName}</code></li>
+          <li>불완전하게 내려받았거나 오래된 패키지 삭제 → <code class="language-plaintext highlighter-rouge">autoclean</code></li>
+          <li>캐시된 모든 패키지를 삭제해 디스크 공간 확보 → <code class="language-plaintext highlighter-rouge">clean</code></li>
+          <li>자동으로 설치되었지만 더 이상 필요 없는 패키지 삭제 → <code class="language-plaintext highlighter-rouge">autoremove</code></li>
+          <li>의존성 깨진 패키지 확인 → <code class="language-plaintext highlighter-rouge">check</code>
+            <h3 id="update">update</h3>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>저장소 정보로 패키지 정보를 다시 읽어와 동기화</li>
+  <li>저장소를 추가하면 수행</li>
+  <li>docker에서 이미지를 만들 때 linux를 기본 이미지로 선택한 경우
+  → 반드시 수행하여 패키지 정보를 업데이트 하도록 해야 함
+    <h3 id="upgrade">upgrade</h3>
+  </li>
+  <li>기존에 설치된 패키지들을 업그레이드
+    <h3 id="install">install</h3>
+  </li>
+  <li>패키지를 설치</li>
+  <li>xterm 패키지 설치
+    <h2 id="삭제">삭제</h2>
+  </li>
+  <li>remove → 설정 파일 제외 삭제</li>
+  <li>purge → 설정 파일 함께 삭제</li>
+  <li>autoremove → 자동 정리 및 삭제</li>
+  <li>clean → 공간 정리
+    <h3 id="다운로드">다운로드</h3>
+  </li>
+  <li>download → 패키지를 파일로 다운로드만 실행</li>
+  <li>source → 특정 패키지의 소스코드만 다운로드할 때 사용
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">sudo apt --download-only source {packageName}</code></li>
+      <li><code class="language-plaintext highlighter-rouge">sudo apt source {packageName}</code> → 다운로드 후 압축 해제</li>
+      <li><code class="language-plaintext highlighter-rouge">sudo apt --complie source {packageName}</code> → 다운로드 후 압축 해제 및 컴파일</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="외부-저장소-이용">외부 저장소 이용</h3>
+<p>→ docker 설치</p>
+<ul>
+  <li>https://docs.docker.com/engine/install/ubuntu
+    <ol>
+      <li>패키지 정보 업데이트 → <code class="language-plaintext highlighter-rouge">sudo apt-get update</code></li>
+      <li>인증서 관련 패키지 설치</li>
+      <li>Docker의 공식 GPG키 추가:</li>
+      <li>Docker의 공식 apt 저장소 추가</li>
+      <li>시스템 패키지 업데이트
+  → sudo apt-get update u</li>
+      <li>Docker 설치
+  → sudo apt-get install docker-ce docker-ce-cli containerd.io u</li>
+      <li>도커 실행상태 확인: sudo systemctl status docker u</li>
+      <li>도커 실행: sudo docker run hello-world</li>
+    </ol>
+  </li>
+</ul>
+
+<h3 id="dpkg-명령으로-패키지-관리">dpkg 명령으로 패키지 관리</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">apt</code> 명령은 fedora의 <code class="language-plaintext highlighter-rouge">yum</code> 또는 <code class="language-plaintext highlighter-rouge">dnf</code> 명령과 비슷함</li>
+  <li>fedora의 <code class="language-plaintext highlighter-rouge">rpm과</code> 유사 명령이 <code class="language-plaintext highlighter-rouge">dkpg</code></li>
+  <li><code class="language-plaintext highlighter-rouge">apt도</code> 내부적으로는 dpkg 사용</li>
+  <li>
+    <p>패키지 설치는 일반적으로 apt를 이용하나, 시스템의 특정 파일이 어느 패키지에 속했는지를 확인하는 등 세부적인 기능을 사용할 때 이용</p>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">dpkg [opt] {fileName | packageName}</code>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">[opt]</code>
+        <ul>
+          <li>패키지 목록 출력 → <code class="language-plaintext highlighter-rouge">l</code></li>
+          <li>상세 정보 출력 → <code class="language-plaintext highlighter-rouge">s</code></li>
+          <li>파일의 목록 출력 → <code class="language-plaintext highlighter-rouge">L</code></li>
+          <li>설치 → <code class="language-plaintext highlighter-rouge">i</code></li>
+          <li>삭제 → <code class="language-plaintext highlighter-rouge">r</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>blank
+</code></pre></div></div>
+
+<p>===추가됨===</p>
+<h4 id="dpkg-명령-사용-예시">dpkg 명령 사용 예시</h4>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 패키지 목록 출력</span>
+dpkg <span class="nt">-l</span>
+
+<span class="c"># 특정 패키지 상세 정보 출력</span>
+dpkg <span class="nt">-s</span> 패키지이름
+
+<span class="c"># 특정 패키지가 설치한 파일 목록 출력</span>
+dpkg <span class="nt">-L</span> 패키지이름
+
+<span class="c"># 패키지 설치</span>
+<span class="nb">sudo </span>dpkg <span class="nt">-i</span> 패키지파일.deb
+
+<span class="c"># 패키지 삭제</span>
+<span class="nb">sudo </span>dpkg <span class="nt">-r</span> 패키지이름
+</code></pre></div></div>
+<p>===여기까지===</p>
+
+<h3 id="aptitude">aptitude</h3>
+<ul>
+  <li>옵션이나 서브 명령 없이 사용하면 curses를 이용한 visual mode로 동작</li>
+  <li><code class="language-plaintext highlighter-rouge">sudo apt install aptitude -y</code></li>
+  <li><code class="language-plaintext highlighter-rouge">sudo aptitude</code>
+    <h3 id="snap">snap</h3>
+  </li>
+  <li>우분투가 새로 도입한 패키지 형식</li>
+  <li>샌드박스 형태의 패키지</li>
+  <li>패키지를 만들 때 필요한 모든 라이브러리를 패키지 안에 포함하는 방식</li>
+  <li>외부 파일이 내부 시스템에 악영향을 주는 것을 방지하는</li>
+  <li>단점은 패키지의 용량이 커짐
+    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>OPTION BLANK
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>===추가됨===</p>
+<h4 id="snap-명령어">snap 명령어</h4>
+
+<ul>
+  <li>형식: <code class="language-plaintext highlighter-rouge">snap [옵션] 명령</code></li>
+</ul>
+
+<p>| 명령 | 설명 |
+|——|——|
+| <code class="language-plaintext highlighter-rouge">disable</code> | 스냅 비활성화 |
+| <code class="language-plaintext highlighter-rouge">download</code> | 스냅 다운로드 |
+| <code class="language-plaintext highlighter-rouge">enable</code> | 스냅 활성화 |
+| <code class="language-plaintext highlighter-rouge">find 스냅이름</code> | 스냅 검색 |
+| <code class="language-plaintext highlighter-rouge">info 스냅이름</code> | 스냅 정보 확인 |
+| <code class="language-plaintext highlighter-rouge">install 스냅이름</code> | 스냅 설치 |
+| <code class="language-plaintext highlighter-rouge">list</code> | 설치된 스냅 목록 |
+| <code class="language-plaintext highlighter-rouge">remove 스냅이름</code> | 스냅 제거 |
+===여기까지===</p>
+
+<h2 id="3--압축">3 ) 압축</h2>
+<hr />
+<h3 id="tartape-archive">tar(tape archive)</h3>
+<ul>
+  <li>여러 개의 파일이나 디렉토리를 하나의 파일로 묶는 것</li>
+  <li><code class="language-plaintext highlighter-rouge">tar {fnc} [opt] [archiveFile] [fileName]</code>
+    <ul>
+      <li><strong>Function</strong>
+        <ul>
+          <li>새로운 압축파일 생성 → <code class="language-plaintext highlighter-rouge">c</code></li>
+          <li>압축 파일의 내용 출력 → <code class="language-plaintext highlighter-rouge">t</code></li>
+          <li>압축 해제 → <code class="language-plaintext highlighter-rouge">x</code></li>
+          <li>새로운 파일 추가 → <code class="language-plaintext highlighter-rouge">r</code></li>
+          <li>수정된 파일 업데이트 → <code class="language-plaintext highlighter-rouge">u</code></li>
+          <li></li>
+        </ul>
+      </li>
+      <li><strong>Option</strong>
+        <ul>
+          <li>아카이브 파일 또는 테이프 장치 지정 → <code class="language-plaintext highlighter-rouge">f</code></li>
+          <li>처리하고 있는 파일의 정보 출력 → <code class="language-plaintext highlighter-rouge">v</code></li>
+          <li>심볼릭 링크의 원본 파일 포함 → <code class="language-plaintext highlighter-rouge">h</code></li>
+          <li>파일 복구 시 원래의 접근 권한 유지 → <code class="language-plaintext highlighter-rouge">p</code></li>
+          <li>bzip2로 압축 또는 해제 → <code class="language-plaintext highlighter-rouge">j</code></li>
+          <li>gzip으로 압축 또는 해제 → <code class="language-plaintext highlighter-rouge">z</code></li>
+        </ul>
+      </li>
+      <li>자주 쓰는 옵션
+        <ul>
+          <li>아카이브 생성 → <code class="language-plaintext highlighter-rouge">cvf</code></li>
+          <li>아카이브 압축 해제 → <code class="language-plaintext highlighter-rouge">cvf</code></li>
+          <li>아카이브 내용 확인 → <code class="language-plaintext highlighter-rouge">tvf</code></li>
+          <li>아카이브 업데이트 → <code class="language-plaintext highlighter-rouge">uvf</code></li>
+          <li>아카이브에 파일 추가 → <code class="language-plaintext highlighter-rouge">rvf</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>실습
+```bash
+    <h1 id="디렉토리-생성">디렉토리 생성</h1>
+    <p>mkdir ex_archive</p>
+  </li>
+</ul>
+
+<h1 id="디렉토리-이동">디렉토리 이동</h1>
+<p>cd ex_archive</p>
+
+<h1 id="디렉토리-생성-1">디렉토리 생성</h1>
+<p>mkdir sample1 sample2 sample3</p>
+
+<h1 id="sample1-디렉토리를-압축">sample1 디렉토리를 압축</h1>
+<p>tar cvf sample1.tar smaple1</p>
+
+<h1 id="압축한-내용-확인">압축한 내용 확인</h1>
+<p>tar tvf sample1.tar</p>
+
+<h1 id="sample1-디렉토리-삭제">sample1 디렉토리 삭제</h1>
+<p>rmdir sample1</p>
+
+<h1 id="압축-해제">압축 해제</h1>
+<p>tar xvf sample1.tar</p>
+
+<h1 id="파일-생성">파일 생성</h1>
+<p>touch sample1/data</p>
+
+<h1 id="압축된-파일-업데이트">압축된 파일 업데이트</h1>
+<p>tar uvf sample1.tar sample1</p>
+
+<h1 id="파일-생성-1">파일 생성</h1>
+<p>touch service</p>
+
+<h1 id="이미-압축된-파일에-추가">이미 압축된 파일에 추가</h1>
+<p>tar rvf sample1.tar service</p>
+
+<h1 id="아카이브-생성과-함께-압축">아카이브 생성과 함께 압축</h1>
+<p>tar czvf sample1.tar.gz sample1
+tar czvf sample1.tar.bz2 sample1
+```</p>
+<ul>
+  <li>아카이브 생성과 함께 압축
+    <ul>
+      <li>gzip으로 압축하고자 하는 경우 z 옵션 이용</li>
+      <li>일반적으로 압축된 사실을 알려주기 위해 마지막에 확장자 gz를 추가함</li>
+      <li><code class="language-plaintext highlighter-rouge">tar czvf sample1.tar.gz sample1</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="gzip--gunzip">gzip / gunzip</h3>
+<ul>
+  <li>압축률이 좋은 유틸</li>
+  <li><code class="language-plaintext highlighter-rouge">gzip [opt] [fileName]</code></li>
+  <li><strong>Option</strong>
+    <ul>
+      <li>압축 해제 → <code class="language-plaintext highlighter-rouge">d</code></li>
+      <li>압축 파일의 정보 출력→ <code class="language-plaintext highlighter-rouge">l</code></li>
+      <li>하위 디렉토리 탐색해 압축 → <code class="language-plaintext highlighter-rouge">r</code></li>
+      <li>압축 파일 검사 → <code class="language-plaintext highlighter-rouge">t</code></li>
+      <li>압축 정보 출력 → <code class="language-plaintext highlighter-rouge">v</code></li>
+      <li>최대한 압축 → <code class="language-plaintext highlighter-rouge">9</code></li>
+    </ul>
+  </li>
+  <li>압축된 파일 내용 조회
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">zcat sample1.tar.gz | more</code></li>
+    </ul>
+  </li>
+  <li>압축 해제
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">gunzip sample1.tar.gz</code></li>
+      <li>해제 시 압축된 파일이 사라지면서 해제 됨</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="bzip2--bunzip2">bzip2 / bunzip2</h3>
+<ul>
+  <li>gzip에 비해 압축률이 놓으나 속도가 느림</li>
+  <li>압축 시 원본 파일 사라짐</li>
+  <li></li>
+  <li>xz, zip도 지원</li>
+</ul>
+
+<h2 id="4--wget">4 ) wget</h2>
+<ul>
+  <li>웹 상의 파일을 다운 받을 때 사용</li>
+  <li><code class="language-plaintext highlighter-rouge">wget [opt] [url]</code>
+    <ul>
+      <li><strong>Option</strong>
+        <ul>
+          <li>일반 다운로드 → <code class="language-plaintext highlighter-rouge">wget {url}</code></li>
+          <li>다른 이름으로 저장 → <code class="language-plaintext highlighter-rouge">wget -O {fileName} {url}</code></li>
+          <li>이어서 받기 → <code class="language-plaintext highlighter-rouge">wget -c {url}</code></li>
+          <li>백그라운드에서 다운로드 → <code class="language-plaintext highlighter-rouge">wget -b {url}</code></li>
+          <li>속도 제한 다운로드 → <code class="language-plaintext highlighter-rouge">wget --limit-rate={speed} {url}</code>
+            <h3 id="웹-사이트-미러링">웹 사이트 미러링</h3>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">wget -m {url}</code></li>
+  <li>하위 디렉토리를 따라가며 다운로드 → <code class="language-plaintext highlighter-rouge">-r</code></li>
+  <li>상위 디렉토리로 이동하지 않도록 제한 → <code class="language-plaintext highlighter-rouge">-np</code></li>
+  <li>로컬에서 오프라인으로 보기 편하도록 링크를 반환 → <code class="language-plaintext highlighter-rouge">-k</code></li>
+</ul>
+
+<h2 id="5--curl">5 ) curl</h2>
+<ul>
+  <li>서버와의 데이터 통신 및 API 테스트에 최적화되어 있어 개발자들이 선호
+    <h3 id="웹-페이지-소스-보기">웹 페이지 소스 보기</h3>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">curl {url}</code>
+    <h3 id="파일로-저장">파일로 저장</h3>
+  </li>
+  <li>동일한 이름으로 저장
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">curl -O {filePath}</code></li>
+    </ul>
+  </li>
+  <li>이름 변경
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">curl -o {fileName} {filePath}</code>
+        <h3 id="헤더-확인">헤더 확인</h3>
+      </li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">curl l {url}</code>
+    <h3 id="redirect-자동-추적">Redirect 자동 추적</h3>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">curl -L {url}</code>
+    <h3 id="api-테스트-시-사용하는-옵션">API 테스트 시 사용하는 옵션</h3>
+  </li>
+  <li>HTTP 메서드 설정 → <code class="language-plaintext highlighter-rouge">-X</code></li>
+  <li>전송할 데이터 생성 → <code class="language-plaintext highlighter-rouge">-d</code></li>
+  <li>헤더 정보 설정 → <code class="language-plaintext highlighter-rouge">-H</code>
+    <h3 id="자주-사용하는-옵션--fssl">자주 사용하는 옵션 → fsSL</h3>
+  </li>
+  <li>오류가 발생하는 경우 실패 처리 → <code class="language-plaintext highlighter-rouge">f</code></li>
+  <li>에러 메시지 표시 하지 않음 → <code class="language-plaintext highlighter-rouge">s</code></li>
+  <li>진짜 에러인 경우만 출력 → <code class="language-plaintext highlighter-rouge">S</code></li>
+  <li>리다이렉트 되는 경우 자동으로 새로운 주소에서 데이터 받아옴 → <code class="language-plaintext highlighter-rouge">L</code>
+    <ul>
+      <li>다운로드 받아서 설치할 때 주로 이용</li>
+      <li><code class="language-plaintext highlighter-rouge">curl -fsSL https://install.direct/go.sh | sudo bash</code></li>
+    </ul>
+  </li>
+</ul>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/05-process-management/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">프로세스 관리</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/07-booting-system/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">부팅 시스템</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

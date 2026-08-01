@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>디스크 관리 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Linux 디스크 추가, LVM, RAID, 디스크 사용량 확인, 파일 시스템 복구 정리">
+<link rel="canonical" href="https://kkr010128.github.io/08-disk-management/">
+<meta property="og:title" content="디스크 관리 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Linux 디스크 추가, LVM, RAID, 디스크 사용량 확인, 파일 시스템 복구 정리">
+<meta property="og:url" content="https://kkr010128.github.io/08-disk-management/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="디스크 관리 | hyeon.log">
+<meta name="twitter:description" content="Linux 디스크 추가, LVM, RAID, 디스크 사용량 확인, 파일 시스템 복구 정리">
+
+  <meta property="article:published_time" content="2026-07-23T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "디스크 관리 | hyeon.log",
+    "description": "Linux 디스크 추가, LVM, RAID, 디스크 사용량 확인, 파일 시스템 복구 정리",
+    "url": "https://kkr010128.github.io/08-disk-management/",
+    "datePublished": "2026-07-23T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Linux</p>
+    
+    <h1 class="post-head__title">디스크 관리</h1>
+    
+      <p class="post-head__description">Linux 디스크 추가, LVM, RAID, 디스크 사용량 확인, 파일 시스템 복구 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 23일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Linux">Linux</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-디스크-기반-파일-시스템">1) 디스크 기반 파일 시스템</h2>
+<hr />
+<h3 id="개요">개요</h3>
+<ul>
+  <li>파일과 디렉토리를 관리하려면 <strong>파일 시스템</strong>이 필요</li>
+  <li>초창기에는 Minix File System을 사용했으나 최근에는 <strong>ext</strong>라는 리눅스 고유 파일 시스템 사용</li>
+  <li>현재 <strong>ext4</strong>까지 제공되고 있으며 대용량 파일 시스템을 위한 <strong>XFS</strong>도 도입됨</li>
+</ul>
+
+<h3 id="종류">종류</h3>
+
+<h4 id="ext4">ext4</h4>
+<ul>
+  <li>최대 <strong>1EB</strong>(1024 × 1024 TB)까지의 디스크 크기 제공</li>
+  <li><strong>16TB</strong>까지의 파일 지원</li>
+  <li>디렉토리 개수는 <strong>64000개</strong>까지 가능</li>
+</ul>
+
+<h4 id="xfs">XFS</h4>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">xfsprogs</code> 패키지를 설치해야 사용 가능</li>
+  <li>최대 <strong>16EB</strong>까지 지원</li>
+</ul>
+
+<h3 id="리눅스에서-지원하는-파일-시스템">리눅스에서 지원하는 파일 시스템</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">nfs</code>: 원격 서버의 디스크를 연결할 때 사용</li>
+  <li><code class="language-plaintext highlighter-rouge">ntfs</code>: 윈도우 파일 시스템</li>
+  <li><code class="language-plaintext highlighter-rouge">hfs</code>: Mac 파일 시스템</li>
+</ul>
+
+<h3 id="특수한-용도의-파일-시스템">특수한 용도의 파일 시스템</h3>
+
+<ul>
+  <li><strong>swap</strong>: 가상 메모리 사용을 위한 파일 시스템</li>
+  <li><strong>tmpfs</strong>: 메모리에 임시 파일을 저장
+    <ul>
+      <li>시스템 재시작 시 내용 소멸</li>
+      <li><code class="language-plaintext highlighter-rouge">/tmp</code> 디렉토리가 대표적</li>
+      <li>필요 시 swap 사용 가능</li>
+    </ul>
+  </li>
+  <li><strong>ramfs</strong>: 디스크 대신 메모리를 저장 공간처럼 사용
+    <ul>
+      <li>임베디드 장치에서 사용</li>
+      <li>tmpfs와 다른 점은 swap 사용 여부 (ramfs는 swap 사용 안 함)</li>
+    </ul>
+  </li>
+  <li><strong>rootfs</strong>: 시스템 초기화 및 관리에 필요한 내용을 저장하는 루트 파일 시스템</li>
+  <li><strong>proc</strong>: 커널의 현재 상태를 나타내는 파일을 소유
+    <ul>
+      <li>실제 디스크에 저장되는 것이 아니고 <strong>메모리</strong>에 저장</li>
+      <li><code class="language-plaintext highlighter-rouge">/proc/cpuinfo</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="2-리눅스에서-새로운-디스크-사용-방법">2) 리눅스에서 새로운 디스크 사용 방법</h2>
+<hr />
+<h3 id="디스크-장착">디스크 장착</h3>
+<ul>
+  <li>물리적 디스크를 시스템에 장착</li>
+</ul>
+
+<h3 id="디스크-확인">디스크 확인</h3>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>fdisk <span class="nt">-l</span>
+</code></pre></div></div>
+
+<ul>
+  <li>디스크는 <code class="language-plaintext highlighter-rouge">sd영문자</code> 형태로 이름 생성 → <code class="language-plaintext highlighter-rouge">sda</code>, <code class="language-plaintext highlighter-rouge">sdb</code>, <code class="language-plaintext highlighter-rouge">sdc</code></li>
+</ul>
+
+<h3 id="파티션-생성">파티션 생성</h3>
+<ul>
+  <li>파티션: 데이터를 기록할 수 있는 <strong>논리적인 공간</strong></li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>fdisk /dev/하드디스크이름
+</code></pre></div></div>
+
+<ul>
+  <li>새로 만들기 → <code class="language-plaintext highlighter-rouge">n</code></li>
+  <li>기존 파티션 삭제 → <code class="language-plaintext highlighter-rouge">d</code></li>
+  <li>파티션 종류 선택 → <code class="language-plaintext highlighter-rouge">p</code>
+    <ul>
+      <li><strong>Primary</strong>(4개까지 가능)와 <strong>Extended</strong></li>
+    </ul>
+  </li>
+  <li>파티션 번호 → 1~4 사이</li>
+  <li>First Sector: 시작 위치 (기본 2048부터)
+    <ul>
+      <li>하나의 물리적 디스크를 논리적으로 여러 개 생성 가능</li>
+    </ul>
+  </li>
+  <li>Last Sector: 기본값은 최대값 (사이즈나 섹터 번호로 설정)</li>
+  <li><strong>마지막에 <code class="language-plaintext highlighter-rouge">w</code>를 입력해야 실제로 파티션 생성</strong></li>
+</ul>
+
+<h3 id="포맷-및-파일-시스템-생성">포맷 및 파일 시스템 생성</h3>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>mke2fs <span class="nt">-t</span> ext4 /dev/sd디스크이름파티션번호
+<span class="nb">sudo </span>mke2fs <span class="nt">-t</span> ext4 /dev/sdb1
+</code></pre></div></div>
+
+<h3 id="마운트">마운트</h3>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>mount /dev/sd디스크이름파티션번호 마운트할디렉토리
+</code></pre></div></div>
+
+<ul>
+  <li>VirtualBox 같은 가상화 소프트웨어에서 디스크 크기를 늘린 경우 반드시 수행</li>
+</ul>
+
+<h2 id="3-lvm-logical-volume-manager">3) LVM (Logical Volume Manager)</h2>
+<hr />
+<h3 id="개요-1">개요</h3>
+<ul>
+  <li>리눅스의 저장 공간을 효율적이고 유연하게 관리하기 위한 커널의 한 부분</li>
+  <li>여러 개의 하드디스크를 <strong>한 개의 파티션</strong>으로 구성한 후 다시 필요에 따라 분할</li>
+  <li><strong>Volume</strong>이라는 개념을 도입해 저장 장치를 다룸</li>
+  <li>스토리지 확장/변경 시 유연하게 크기 변경 가능</li>
+  <li>기존 데이터의 <strong>이전이 필요 없음</strong></li>
+</ul>
+
+<h3 id="기본-개념">기본 개념</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>개념</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>PV</strong> (Physical Volume)</td>
+      <td>실제 하드디스크의 파티션</td>
+    </tr>
+    <tr>
+      <td><strong>VG</strong> (Volume Group)</td>
+      <td>여러 개의 PV를 묶은 것</td>
+    </tr>
+    <tr>
+      <td><strong>LV</strong> (Logical Volume)</td>
+      <td>VG를 다시 적절한 크기의 파티션으로 분할한 것</td>
+    </tr>
+    <tr>
+      <td><strong>PE</strong></td>
+      <td>PV가 가진 일정한 블록</td>
+    </tr>
+    <tr>
+      <td><strong>LE</strong></td>
+      <td>LV가 가진 일정한 블록</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="과정">과정</h3>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 1. fdisk 명령으로 파일 시스템 생성</span>
+
+<span class="c"># 2. PV 생성</span>
+pvcreate
+
+<span class="c"># 3. PV를 하나의 VG로 생성</span>
+vgcreate
+
+<span class="c"># 4. VG 활성화</span>
+vgchange <span class="nt">-a</span> y
+
+<span class="c"># 5. LV 생성</span>
+lvcreate
+
+<span class="c"># 6. LV에 파일 시스템 생성</span>
+mke2fs
+
+<span class="c"># 7. LV를 마운트해서 사용</span>
+mount
+</code></pre></div></div>
+
+<ul>
+  <li>클라우드 환경의 저장소 제공 서비스에서 이 기능 사용</li>
+</ul>
+
+<h2 id="4-디스크-사용량-확인">4) 디스크 사용량 확인</h2>
+<hr />
+<h3 id="df-파일-시스템별-디스크-사용량">df (파일 시스템별 디스크 사용량)</h3>
+
+<ul>
+  <li>형식: <code class="language-plaintext highlighter-rouge">df [옵션] [파일 시스템]</code></li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">a</code>: 모든 파일 시스템 조회</li>
+      <li><code class="language-plaintext highlighter-rouge">k</code>: KB 단위</li>
+      <li><code class="language-plaintext highlighter-rouge">m</code>: MB 단위</li>
+      <li><code class="language-plaintext highlighter-rouge">h</code>: 알기 쉬운 단위</li>
+      <li><code class="language-plaintext highlighter-rouge">t 파일시스템종류</code>: 특정 파일 시스템 종류만 조회</li>
+      <li><code class="language-plaintext highlighter-rouge">T</code>: 파일 시스템 종류 출력</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="du-디렉토리나-사용자별-사용량">du (디렉토리나 사용자별 사용량)</h3>
+
+<ul>
+  <li>형식: <code class="language-plaintext highlighter-rouge">du [옵션] [디렉토리]</code></li>
+  <li>옵션 없이 사용 → 현재 디렉토리의 사용량 출력</li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">-s 디렉토리</code>: 해당 디렉토리의 사용량</li>
+      <li><code class="language-plaintext highlighter-rouge">-h</code>: 알기 쉬운 단위로 출력</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="5-파일-시스템-검사-및-복구">5) 파일 시스템 검사 및 복구</h2>
+<hr />
+<h3 id="fsck">fsck</h3>
+
+<ul>
+  <li>형식: <code class="language-plaintext highlighter-rouge">fsck [옵션] [장치이름]</code></li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">f</code>: 강제로 점검</li>
+      <li><code class="language-plaintext highlighter-rouge">b</code>: 백업 슈퍼블록 사용</li>
+      <li><code class="language-plaintext highlighter-rouge">y</code>: 모든 질문에 yes로 응답</li>
+      <li><code class="language-plaintext highlighter-rouge">a</code>: 문제 발생 시 자동 복구</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="e2fsck">e2fsck</h3>
+<ul>
+  <li>디스크 검사 명령</li>
+</ul>
+
+<h3 id="badblocks">badblocks</h3>
+<ul>
+  <li>배드블록 검사 명령</li>
+</ul>
+
+<h2 id="6-raid">6) RAID</h2>
+<hr />
+<h3 id="개요-2">개요</h3>
+<ul>
+  <li><strong>RAID</strong>: Redundant Array of Independent Disks</li>
+  <li>여러 개의 하드 디스크를 <strong>하나의 하드 디스크처럼</strong> 사용하는 방식</li>
+  <li>비용 절감 + 신뢰성 향상 + 성능 향상 가능</li>
+</ul>
+
+<h3 id="방식">방식</h3>
+
+<h4 id="hardware-raid">Hardware RAID</h4>
+<ul>
+  <li>하드웨어 제조업체에서 여러 개의 하드 디스크를 연결한 장비를 만들어 공급</li>
+  <li>고가 → <strong>SA-SCSI</strong> 방식</li>
+  <li>중저가 → <strong>SATA</strong> 하드 디스크 이용</li>
+</ul>
+
+<h4 id="software-raid">Software RAID</h4>
+<ul>
+  <li>여러 개의 하드 디스크를 묶어 <strong>운영체제에서 지원</strong></li>
+</ul>
+
+<h3 id="기대-효과">기대 효과</h3>
+<ul>
+  <li>대용량의 <strong>단일 볼륨</strong> 사용 효과</li>
+  <li>디스크 I/O 병렬화로 <strong>성능 향상</strong></li>
+  <li>데이터 복제로 <strong>안정성 향상</strong>
+    <ul>
+      <li>고가용성: 원하는 경우 언제든 사용 가능</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="raid-레벨">RAID 레벨</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>레벨</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Linear RAID</strong></td>
+      <td>여러 하드 디스크를 연결해 첫 번째부터 <strong>순차적</strong>으로 사용</td>
+    </tr>
+    <tr>
+      <td><strong>RAID 0</strong></td>
+      <td>여러 하드 디스크를 연결해 <strong>병렬</strong>로 사용 (속도 가장 빠름), <strong>Stripping</strong></td>
+    </tr>
+    <tr>
+      <td><strong>RAID 1</strong></td>
+      <td>2개의 하드 디스크에 <strong>동일한 내용</strong> 저장, 결함 허용 시스템, <strong>Mirroring</strong></td>
+    </tr>
+    <tr>
+      <td><strong>RAID 5</strong></td>
+      <td>3개 이상의 하드디스크, 하나는 오류 검출용 디스크로 사용</td>
+    </tr>
+    <tr>
+      <td><strong>RAID 6</strong></td>
+      <td>4개 이상의 하드디스크, 오류를 <strong>중첩</strong>해서 검출</td>
+    </tr>
+  </tbody>
+</table>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/07-booting-system/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">부팅 시스템</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/09-user-management/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">사용자 관리</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

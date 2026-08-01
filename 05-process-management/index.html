@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>프로세스 관리 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Linux 프로세스 개념, 관리 명령, 작업 제어, 작업 예약 정리">
+<link rel="canonical" href="https://kkr010128.github.io/05-process-management/">
+<meta property="og:title" content="프로세스 관리 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Linux 프로세스 개념, 관리 명령, 작업 제어, 작업 예약 정리">
+<meta property="og:url" content="https://kkr010128.github.io/05-process-management/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="프로세스 관리 | hyeon.log">
+<meta name="twitter:description" content="Linux 프로세스 개념, 관리 명령, 작업 제어, 작업 예약 정리">
+
+  <meta property="article:published_time" content="2026-07-22T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "프로세스 관리 | hyeon.log",
+    "description": "Linux 프로세스 개념, 관리 명령, 작업 제어, 작업 예약 정리",
+    "url": "https://kkr010128.github.io/05-process-management/",
+    "datePublished": "2026-07-22T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Linux</p>
+    
+    <h1 class="post-head__title">프로세스 관리</h1>
+    
+      <p class="post-head__description">Linux 프로세스 개념, 관리 명령, 작업 제어, 작업 예약 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 22일 · 5분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Linux">Linux</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--프로세스">1 ) 프로세스</h2>
+<hr />
+<h3 id="개요">개요</h3>
+<ul>
+  <li>현재 시스템에서 실행 중인 프로그램의 실행 단위</li>
+  <li>리눅스는 다중 프로세스 시스템이므로 여러 프로세스를 동시에 실행</li>
+  <li>프로세스는 부모-자식 관계
+    <ul>
+      <li>systemd와 kthreadd 두 프로세스를 제외하면 모든 프로세스는 부모-자식 관계
+        <h3 id="pid">PID</h3>
+      </li>
+    </ul>
+  </li>
+  <li>프로세스를 식별하기 윟나 번호</li>
+  <li>부팅 시 systemd가 1번을 가지고 실행, kthreadd가 2번</li>
+  <li>유닉스에서 init이 1번이었던 것이 systemd로 변경됨
+    <h3 id="프로세스-종류">프로세스 종류</h3>
+  </li>
+  <li>일반적인 프로세스 → 실행 후 자신의 작업이 끝나면 종료되는 프로세스</li>
+  <li>Deamon Process
+    <ul>
+      <li>특정 서비스를 제공하기 위해 존재</li>
+      <li>커널에 의해 실행되기 때문에 서비스라고도 함</li>
+      <li>평소에는 대기 상태, 서비스 요청이 오면 서비스를 제공</li>
+      <li>리눅스는 다양한 서비스를 제공하기 위해 여러 데몬이 동작</li>
+    </ul>
+  </li>
+  <li>Orphen Process
+    <ul>
+      <li>부모 프로세스는 종료되었는데 남아있는 자식 프로세스</li>
+      <li>1번 프로세스가 고아 프로세스의 새로운 부모 프로세스가 되어 고아 프로세스가 작업을 마치고 종료될 수 있도록 해야 함</li>
+      <li>자식 프로세스는 자신의 작업을 종료하면 부모 프로세스에게 돌아가야 하는데 부모 프로세스가 없으면 종료될 수 없음</li>
+    </ul>
+  </li>
+  <li>Zombie Process
+    <ul>
+      <li>자식 프로세스가 종료 정보를 보내면 부모 프로세스의 프로세스 테이블 목록에서 제거되어야 하는데 프로세스 테이블 목록에 남아있는 경우 이러한 프로세스는 프로세스 목록에 defunct 프로세스로 나오게 됨</li>
+      <li>이러한 프로세스가 증가하며 프로세스 테이블 목록이 가득 차 정상적인 프로세스가 실행되지 않을 수 있음</li>
+      <li>좀비 프로세스는 kill 명령으로 제거 불가</li>
+      <li>
+        <h2 id="2--관리-명령">2 ) 관리 명령</h2>
+      </li>
+    </ul>
+  </li>
+  <li>목록 확인 명령 → ps</li>
+  <li>현재 실행중인 프로세스에 대한 정보를 출력하는 명령</li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">ps [option]</code></p>
+  </li>
+  <li>Unix Option(- 붙음)
+    <ul>
+      <li>e → 시스템에서 실행 중인 모든 프로세스 정보 출력</li>
+      <li>f → 자세한 정보 출력</li>
+      <li>u uid → uid</li>
+      <li>p pid → pid를 가진 프로세스의 정보 출력</li>
+    </ul>
+  </li>
+  <li>BSD Option(- 붙지 않음)
+    <ul>
+      <li>a → 터미널에서 실행시킨 프로세스 정보 출력</li>
+      <li>u → 상세 정보 출력</li>
+      <li>x → 시스템에서 실행 중인 모든 프로세스의 정보를 출력</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="pgrep">pgrep</h3>
+<ul>
+  <li>특정 프로세스 검색</li>
+  <li><code class="language-plaintext highlighter-rouge">pgrep [opt] [ptrn]</code>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">x</code> → 패턴과 정확히 일치하는 프로세스의 정보를 조회</li>
+      <li><code class="language-plaintext highlighter-rouge">n</code> → 패턴을 포함하고 있는 가장 최신의 프로세스 정보를 조회</li>
+      <li><code class="language-plaintext highlighter-rouge">u {userName}</code> → 사용자가 실행한 프로세스를 조회</li>
+      <li><code class="language-plaintext highlighter-rouge">l</code> → PID 와 프로세스 이름을 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">t {terminalName}</code> → 특정 터미널과 관련된 프로세스를 조회</li>
+    </ul>
+  </li>
+  <li>이 명령만으로는 프로세스 아이디 와 이름까지만 조회가 가능</li>
+  <li>자주 사용하는 방식
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">ps -fp $(pgrep -x bash)</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="프로세스-종료">프로세스 종료</h3>
+<ul>
+  <li>프로세스 종료 시 <code class="language-plaintext highlighter-rouge">kill 또는 pkill</code> 사용</li>
+  <li>프로세스 종료 시 상위 프로세스에게 시그널 전송 필요</li>
+  <li>시그널
+  → 프로세스에게 무언가 발생했음을 알리는 간단한 메시지
+    <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1	SIGNHUP - 종료할 때 발생하는 시그널로 터미널과 연결이 끊긴 것
+2	SIGNNT - 사용자가 CTRL+ c로 중지한 경우
+3	SIGQUIT - 종료 신호로 CTRL + <span class="se">\</span>
+9	SIGKILL - 강제로 종료
+14	SIGALRM - 알람이 발생해서 종료
+15	SIGTERM - <span class="nb">kill </span>명령이 보내는 시그널
+</code></pre></div>    </div>
+  </li>
+  <li>kill 명령
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">kill [-시그널] PID</code></li>
+    </ul>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">- pkill</code>
+  → 프로세스 명령 이름으로 프로세스를 찾아서 종료하는 명령</p>
+  </li>
+  <li>
+    <p>PID는 구별하기 위한 번호이므로 한 번에 하나만 종료되지만 pkill은 이름으로 종료하기 때문에 동일한 명령으로 수행된 모든 프로세스가 종료</p>
+  </li>
+  <li>killall
+  → pkill 과 동일한 기능을 수행, 해당 프로세스를 소유해야</li>
+</ul>
+
+<h3 id="top">top</h3>
+<ul>
+  <li>프로세스 정보를 주기적으로 출력</li>
+  <li>출력 정보
+    <ul>
+      <li>PID → 프로세스 ID</li>
+      <li>USER→ 프로세스 소유자</li>
+      <li>PR→ 커널이 사용하는 실제 실행 우선순위 값</li>
+      <li>NI → Nice 값으로 사용자가 조정하는 우선순위 값(-20 부터 19까지의 값)</li>
+      <li>VIRT → 가상 메모리 크기</li>
+      <li>RES → 프로세스가 사용하는 메모리 크기</li>
+      <li>SHR → 프로세스가 사용하는 공유 메모리 크기</li>
+      <li>%CPU → CPU 사용량</li>
+      <li>%MEM → 메모리 사용량</li>
+      <li>TIME+ → CPU 누적 사용 시간</li>
+      <li>COMMAND → 명령 이름</li>
+    </ul>
+  </li>
+  <li>top 명령 수행 중 실행할 수 있는 명령
+    <ul>
+      <li>ENTER, SPACEBAR → 새로 고침</li>
+      <li>k → 프로세스 종료</li>
+      <li>n → 출력하는 프로세스 개수 변경</li>
+      <li>u → 사용자 별로 정렬</li>
+      <li>M → 메모리 크기에 따라 정렬</li>
+      <li>p → cpu 사용량에 따라 정렬</li>
+      <li>q → 종료</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="jobs">jobs</h3>
+<ul>
+  <li>백그라운드 작업을 전부 출력하는 bash의 내부 명령</li>
+  <li>출력방식
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">[작업 번호] [+는 가장 최근에 접근한 작업, -는 + 바로 직전에 접근한 작업, 공백은 그 이외의 작업] [실행 중, 완료, 종료됨, 멈춤] [명령]</code></li>
+    </ul>
+  </li>
+  <li>jobs [%작업번호]</li>
+</ul>
+
+<h3 id="작업-전환">작업 전환</h3>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">ctrl + z</code> → 포그라운드 작업을 중지</li>
+  <li><code class="language-plaintext highlighter-rouge">bg %작업번호</code> → 작업 번호가 지시하는 작업을 백그라운드로 전환</li>
+  <li><code class="language-plaintext highlighter-rouge">fg %작업번호</code> → 작업 번호가 지시하는 작업을 포그라운드로 전환</li>
+</ul>
+
+<h2 id="작업-종료">작업 종료</h2>
+<ul>
+  <li>포그라운드 작업은 <code class="language-plaintext highlighter-rouge">Ctrl + c</code>를 이용해서 종료</li>
+  <li>다른 터미널에서 해당 프로세스의 <code class="language-plaintext highlighter-rouge">PID를</code> 조회해서 kill 이나 <code class="language-plaintext highlighter-rouge">pkill</code> 명령으로 포그라운드 작업 종료</li>
+  <li>백그라운드 작업도 <code class="language-plaintext highlighter-rouge">kill</code> 명령으로 종료 가능</li>
+</ul>
+
+<h3 id="로그아웃-후에도-백그라운드-작업-계속-실행">로그아웃 후에도 백그라운드 작업 계속 실행</h3>
+<p><code class="language-plaintext highlighter-rouge">nohup 명령 &amp;</code></p>
+
+<h2 id="3--작업-예약">3 ) 작업 예약</h2>
+<ul>
+  <li>정해진 시간에 한 번만 실행 → at
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>at
+</code></pre></div>    </div>
+  </li>
+  <li>현재 실행 대기 중인 명령의 전체 목록 → <code class="language-plaintext highlighter-rouge">l</code></li>
+  <li>현재 실행 대기 중인 명령 중 해당 작업 번호를 삭제 → <code class="language-plaintext highlighter-rouge">r {작업번호}</code></li>
+  <li>출력 결과가 없더라도 작업이 완료되면 사용자에게 메일로 알림 → <code class="language-plaintext highlighter-rouge">m</code></li>
+  <li>표준 입력 대신 실행할 명령을 파일로 지정 → <code class="language-plaintext highlighter-rouge">-f {파일}</code>
+    <ul>
+      <li>script 파일을 만들어 파일의 내용을 수행함</li>
+    </ul>
+  </li>
+  <li>정확한 날짜 및 시간 지정
+  → <code class="language-plaintext highlighter-rouge">t [CC]YY]MMDDHHMM[.ss]</code></li>
+  <li>예약된 작업 내용 확인 → <code class="language-plaintext highlighter-rouge">c {작업번호}</code></li>
+  <li>실행의 우선 순위를 지정
+  → <code class="language-plaintext highlighter-rouge">-q &lt;Queue&gt;</code>
+    <ul>
+      <li>지정하는 값은 <code class="language-plaintext highlighter-rouge">a ~ Z, A ~ Z</code>이며, 기본값은 a</li>
+    </ul>
+  </li>
+  <li>시간 설정
+    <ul>
+      <li>절대 시간
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">at 14:30</code></li>
+          <li><code class="language-plaintext highlighter-rouge">at 2026-01-10 03:00</code></li>
+        </ul>
+      </li>
+      <li>상대 시간
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">at 4pm + 3days</code></li>
+          <li><code class="language-plaintext highlighter-rouge">at 10am Jul 31</code></li>
+          <li><code class="language-plaintext highlighter-rouge">at 1am tomorrow</code></li>
+          <li><code class="language-plaintext highlighter-rouge">at 10:00am today</code></li>
+          <li><code class="language-plaintext highlighter-rouge">at now + 10minutes</code></li>
+        </ul>
+      </li>
+      <li>요일 지정
+        <ul>
+          <li><code class="language-plaintext highlighter-rouge">at 10am next Monday</code></li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>작업 확인
+      - <code class="language-plaintext highlighter-rouge">sudo ls -l /var/spool/cron/atjobs → 파일 확인</code>
+      - <code class="language-plaintext highlighter-rouge">at -l</code>
+      - <code class="language-plaintext highlighter-rouge">atq</code></p>
+  </li>
+  <li>
+    <p>작업 예약(작성 후 종료는 <code class="language-plaintext highlighter-rouge">Ctrl+d</code>)</p>
+  </li>
+  <li>사용제한
+    <ul>
+      <li>시스템 관리자는 <code class="language-plaintext highlighter-rouge">/etcat.allow</code>파일과 <code class="language-plaintext highlighter-rouge">etc/at.deny</code>파일을 이용해서 사용 제한 가능</li>
+      <li>allow 파일에는 사용 가능한 계정 작성,</li>
+      <li>deny 파일에는 사용 불가능한 계정 작성</li>
+      <li>allow 파일을 확인해서 계정이 있으면 deny는 무시</li>
+      <li>allow 파일이 없으면 deny 파일에 존재하지 않는 계정 전부 사용 가능</li>
+      <li>2개의 파일이 모두 없다면 root만 사용 가능</li>
+      <li>초기 설정 → deny는 있지만 비어있음</li>
+    </ul>
+  </li>
+  <li>정해진 시간에 반복 실행 → crontab
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">crontab [-u {user}] [opt] [fileName]</code></li>
+      <li>Option
+        <ul>
+          <li>사용자의 crontab 파일 수정 → <code class="language-plaintext highlighter-rouge">e</code></li>
+          <li>crontab 파일의 목록을 출력 → <code class="language-plaintext highlighter-rouge">l</code></li>
+          <li>crontab 파일을 삭제 → <code class="language-plaintext highlighter-rouge">r</code></li>
+        </ul>
+      </li>
+      <li>crontab 파일은 사용자 별로 생성됨 → 이 파일에 반복 실행할 내용 저장</li>
+      <li>여러 개의 작업을 지정 가능
+        <ul>
+          <li>한 행에 하나씩 작업 설정</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+  <li>작업 설정
+    <ul>
+      <li>분(0~59) 시(0~23) 월(1~12) 요일(0~6) 작업내용</li>
+      <li>각 항목은 공백으로 구분</li>
+      <li>항목의 값이 <code class="language-plaintext highlighter-rouge">*</code>이면 해당 항목의 모든 값을 의미</li>
+      <li>범위 지정 가능(요일 필드에 1-5면 월~금) → <code class="language-plaintext highlighter-rouge">-</code></li>
+      <li>여러개 값 지정 가능(시간 필드에 1, 3, 5면 1시 3시 5시) → <code class="language-plaintext highlighter-rouge">,</code></li>
+      <li>단계 값 지정할 때 사용 가능(1-10/2 →  1, 3, 5, 7, 9가 되며 분 필드가 <code class="language-plaintext highlighter-rouge">*/20</code>이면 20분마다) → <code class="language-plaintext highlighter-rouge">/</code>
+```bash
+        <h1 id="매일-11시-30분에-ls--al--의-결과를-crontabout에-기록">매일 11시 30분에 ls -al / 의 결과를 crontab.out에 기록</h1>
+        <p>30 1 * * * /usr/bin/ls -al / &gt; /home/kkr010128/crontab.out</p>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h1 id="실습1-at-명령으로-현재-시간보다-5분-후-ls--l-tmp--attmp-명령을-수행">실습1. at 명령으로 현재 시간보다 5분 후 ls -l /tmp &gt; ~/at.tmp 명령을 수행</h1>
+
+<h1 id="실습2-crontab-명령으로-매주-일요일-18시에--의-내용을-출력해--아래에-weekout-파일로-저장하도록-설정">실습2. crontab 명령으로 매주 일요일 18시에 ~/ 의 내용을 출력해 ~/ 아래에 weekout 파일로 저장하도록 설정</h1>
+
+<p>```</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/04-file-system/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">파일 시스템</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/06-software-management/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">소프트웨어 관리</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

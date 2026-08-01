@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>DDL (테이블 관리) | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="정규화, 테이블 생성/수정/삭제, 제약 조건, AUTO_INCREMENT 정리">
+<link rel="canonical" href="https://kkr010128.github.io/05-ddl-management/">
+<meta property="og:title" content="DDL (테이블 관리) | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="정규화, 테이블 생성/수정/삭제, 제약 조건, AUTO_INCREMENT 정리">
+<meta property="og:url" content="https://kkr010128.github.io/05-ddl-management/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DDL (테이블 관리) | hyeon.log">
+<meta name="twitter:description" content="정규화, 테이블 생성/수정/삭제, 제약 조건, AUTO_INCREMENT 정리">
+
+  <meta property="article:published_time" content="2026-07-13T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "DDL (테이블 관리) | hyeon.log",
+    "description": "정규화, 테이블 생성/수정/삭제, 제약 조건, AUTO_INCREMENT 정리",
+    "url": "https://kkr010128.github.io/05-ddl-management/",
+    "datePublished": "2026-07-13T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">MariaDB</p>
+    
+    <h1 class="post-head__title">DDL (테이블 관리)</h1>
+    
+      <p class="post-head__description">정규화, 테이블 생성/수정/삭제, 제약 조건, AUTO_INCREMENT 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 13일 · 9분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-관계형-데이터베이스-rdbms-개요">1. 관계형 데이터베이스 (RDBMS) 개요</h2>
+
+<ul>
+  <li><strong>정의</strong>: 데이터베이스를 테이블(릴레이션)의 집합으로 설명하는 관리 시스템임.</li>
+  <li><strong>역사</strong>: 1970년 E.F. Codd에 의해 개발됨.</li>
+  <li><strong>종류</strong>:
+    <ul>
+      <li>상용: Oracle, DB2, MS-SQL, SAP HANA 등.</li>
+      <li>오픈 소스: MySQL, PostgreSQL, SQLite, MariaDB(MySQL의 포크) 등.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="2-rdbms-구성-용어">2. RDBMS 구성 용어</h2>
+
+<ul>
+  <li><strong>릴레이션(Relation)</strong>: 정보 저장의 기본 형태인 2차원 구조의 테이블임. NoSQL에서는 Collection이라고도 부름.
+    <ul>
+      <li><strong>행(Row/Tuple)</strong>: 하나의 개체를 나타냄.</li>
+      <li><strong>열(Column/Attribute/Field)</strong>: 개체의 속성을 의미함.</li>
+    </ul>
+  </li>
+  <li><strong>도메인(Domain)</strong>: 하나의 속성이 가질 수 있는 원자 값들의 집합임.</li>
+  <li><strong>특징</strong>: 튜플들은 모두 상이(Distinct)하며 순서가 없고, 속성 값은 분해할 수 없는 원자 값(Atomic value)이어야 함.</li>
+</ul>
+
+<hr />
+
+<h2 id="3-키key의-종류">3. 키(Key)의 종류</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">키 종류</th>
+      <th style="text-align: left">설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><strong>후보키 (Candidate Key)</strong></td>
+      <td style="text-align: left">유일성(Uniqueness)과 최소성(Minimality)을 만족하는 속성 집합임.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>기본키 (Primary Key)</strong></td>
+      <td style="text-align: left">후보키 중 선정된 키로, 튜플을 유일하게 식별하며 테이블당 하나만 설정 가능함.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>대체키 (Alternate Key)</strong></td>
+      <td style="text-align: left">기본키를 제외한 나머지 후보키들임.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><strong>외래키 (Foreign Key)</strong></td>
+      <td style="text-align: left">다른 테이블의 행을 식별할 수 있는 속성으로, 참조 테이블의 기본키 또는 유일키여야 함.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="4-무결성-제약-조건-integrity-constraints">4. 무결성 제약 조건 (Integrity Constraints)</h2>
+
+<ul>
+  <li><strong>개체 무결성 (Entity Integrity)</strong>: 기본키는 NULL일 수 없고 중복될 수 없음.</li>
+  <li><strong>참조 무결성 (Referential Integrity)</strong>: 외래키 값은 참조하는 테이블에 존재하는 값이거나 NULL이어야 함.</li>
+  <li><strong>도메인 무결성 (Domain Integrity)</strong>: 속성 값은 지정된 타입, 범위, 기본값 등 도메인에 설정된 규칙을 따라야 함.</li>
+</ul>
+
+<hr />
+
+<h2 id="5-데이터베이스-설계-및-모델링">5. 데이터베이스 설계 및 모델링</h2>
+
+<h3 id="51-설계-과정-및-생명주기">5.1 설계 과정 및 생명주기</h3>
+
+<ol>
+  <li><strong>요구 사항 분석</strong>: 구축 범위를 정하는 과정임.</li>
+  <li><strong>개념적 설계</strong>: 엔티티, 속성, 관계를 식별하여 ER 다이어그램을 도출함.</li>
+  <li><strong>논리적 설계</strong>: DBMS에 맞는 테이블 구조로 변환하고 정규화를 수행함.</li>
+  <li><strong>물리적 설계</strong>: 실제 저장 구조 및 인덱스 접근 경로를 도출함.</li>
+</ol>
+
+<h3 id="52-데이터-이상-현상-anomaly">5.2 데이터 이상 현상 (Anomaly)</h3>
+
+<p>데이터 중복으로 인해 발생하는 문제들임.</p>
+
+<ul>
+  <li><strong>삽입 이상</strong>: 새 데이터를 넣기 위해 불필요한 데이터도 함께 삽입해야 함.</li>
+  <li><strong>삭제 이상</strong>: 한 데이터 삭제 시 꼭 필요한 다른 데이터까지 연쇄 삭제됨.</li>
+  <li><strong>갱신 이상</strong>: 일부 중복 데이터만 수정되어 데이터 불일치(모순)가 발생함.</li>
+</ul>
+
+<h3 id="53-정규화-normalization">5.3 정규화 (Normalization)</h3>
+
+<ul>
+  <li><strong>제 1 정규형(1NF)</strong>: 모든 도메인이 원자 값으로 구성됨.</li>
+  <li><strong>제 2 정규형(2NF)</strong>: 1NF 만족 및 <strong>부분 함수적 종속</strong> 제거.</li>
+  <li><strong>제 3 정규형(3NF)</strong>: 2NF 만족 및 <strong>이행적 함수 종속</strong> 제거.</li>
+  <li><strong>BCNF</strong>: 모든 결정자가 후보키가 되도록 함.</li>
+</ul>
+
+<hr />
+
+<h2 id="6-ddl-실무-문법-및-예제">6. DDL 실무 문법 및 예제</h2>
+
+<h3 id="61-check-제약-조건">6.1 CHECK 제약 조건</h3>
+
+<ul>
+  <li><strong>설명</strong>: 컬럼에 저장될 값의 범위를 제한하여 데이터 유효성을 검사함.</li>
+  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">컬럼명 자료형 CHECK (조건)</code></li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CREATE TABLE tCheckTest(
+    gender CHAR(3) NULL CHECK(gender = '남' OR gender = '여'),
+    grade INT NULL CHECK (grade &gt;= 1 AND grade &lt;= 3),
+    origin CHAR(3) NULL CHECK(origin IN ('동','서','남','북')),
+    name CHAR(10) NULL CHECK(name LIKE '김%')
+);
+-- 실행 결과: '김좌진'은 삽입 가능하나 '청산리'는 김씨가 아니므로 에러 발생함.
+</code></pre></div></div>
+
+<h3 id="62-unique-제약-조건">6.2 UNIQUE 제약 조건</h3>
+
+<ul>
+  <li><strong>설명</strong>: 필드 값의 중복을 방지함. 기본키와 달리 NULL을 허용함.</li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tCityUnique</span> <span class="p">(</span>
+    <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">area</span> <span class="nb">INT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="n">popu</span> <span class="nb">INT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="k">CONSTRAINT</span> <span class="n">Unique_tCity_area_popu</span> <span class="k">UNIQUE</span><span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="n">popu</span><span class="p">)</span> <span class="c1">-- 복합 유니크 설정.</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="63-primary-key-기본키">6.3 PRIMARY KEY (기본키)</h3>
+
+<ul>
+  <li><strong>설명</strong>: 행을 고유하게 식별함. NOT NULL 속성을 내포함.</li>
+  <li><strong>예제 (복합키)</strong>:</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tCityCompoKey</span><span class="p">(</span>
+    <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="n">region</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="n">area</span> <span class="nb">INT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="k">CONSTRAINT</span> <span class="n">PK_tCity_name_region</span> <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">region</span><span class="p">)</span> <span class="c1">-- 두 컬럼 조합으로 PK 생성.</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="64-foreign-key-외래키">6.4 FOREIGN KEY (외래키)</h3>
+
+<ul>
+  <li><strong>설명</strong>: 테이블 간 참조 관계를 정의함. <code class="language-plaintext highlighter-rouge">ON DELETE CASCADE</code> 등을 통해 부모 데이터 삭제 시 자식 데이터의 처리 방식을 결정함.</li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tProject</span><span class="p">(</span>
+    <span class="n">projectID</span> <span class="nb">INT</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">employee</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="n">project</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
+    <span class="k">CONSTRAINT</span> <span class="n">FK_emp</span> <span class="k">FOREIGN</span> <span class="k">KEY</span><span class="p">(</span><span class="n">employee</span><span class="p">)</span>
+    <span class="k">REFERENCES</span> <span class="n">tEmployee</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">ON</span> <span class="k">DELETE</span> <span class="k">CASCADE</span> <span class="k">ON</span> <span class="k">UPDATE</span> <span class="k">CASCADE</span> <span class="c1">-- 부모 변경 시 연쇄 반영.</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<h3 id="65-default--auto_increment">6.5 DEFAULT &amp; AUTO_INCREMENT</h3>
+
+<ul>
+  <li><strong>DEFAULT</strong>: 값을 명시하지 않을 때 자동 입력될 값을 지정함.</li>
+  <li><strong>AUTO_INCREMENT</strong>: 정수형 PK에 대해 자동으로 1씩 증가하는 번호를 부여함.</li>
+  <li><strong>예제</strong>:</li>
+</ul>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tSale</span> <span class="p">(</span>
+    <span class="n">saleno</span> <span class="nb">INT</span> <span class="n">AUTO_INCREMENT</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span>
+    <span class="n">customer</span> <span class="nb">NCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span>
+    <span class="n">product</span> <span class="nb">NCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span> <span class="k">DEFAULT</span> <span class="s1">'지팡이'</span>
+<span class="p">);</span>
+<span class="c1">-- 실행 결과: INSERT 시 product를 생략하면 '지팡이'가 자동 입력됨.</span>
+</code></pre></div></div>
+
+<hr />
+
+<blockquote>
+  <p>[!tip] <strong>실무 최적화 팁</strong></p>
+
+  <ul>
+    <li><strong>테이블 압축</strong>: <code class="language-plaintext highlighter-rouge">CREATE TABLE</code> 시 <code class="language-plaintext highlighter-rouge">ROW_FORMAT=COMPRESSED</code>를 추가하면 용량은 절감되나 작업 시간이 길어질 수 있음.</li>
+    <li><strong>반정규화</strong>: 빈번한 Join으로 인한 성능 저하 시, 시스템 성능 향상을 위해 의도적으로 중복을 허용하는 반정규화(Denormalization)를 고려할 수 있음.</li>
+  </ul>
+</blockquote>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">select</span> <span class="k">COUNT</span><span class="p">(</span><span class="n">COMM</span><span class="p">)</span> <span class="k">from</span> <span class="n">EMP</span><span class="p">;</span>
+
+<span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="n">EMP</span><span class="p">;</span>
+
+<span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="k">distinct</span> <span class="n">DEPTNO</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="n">EMP</span><span class="p">;</span>
+
+<span class="c1">-- 연습문제</span>
+<span class="c1">-- tStaff 테이블에서 score가 80 이상인 직원은 몇 명인지 확인</span>
+<span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">tStaff</span> <span class="k">WHERE</span> <span class="p">(</span><span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">80</span><span class="p">);</span>
+
+<span class="c1">-- tStaff 테이블에서 score가 없는 직원은 몇 명?</span>
+<span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">FROM</span> <span class="n">tStaff</span> <span class="k">WHERE</span> <span class="n">score</span> <span class="k">IS</span> <span class="k">NULL</span><span class="p">;</span>
+
+<span class="k">SELECT</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">),</span> <span class="k">SUM</span><span class="p">(</span><span class="n">salary</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="n">tStaff</span>
+<span class="k">WHERE</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">;</span>
+
+<span class="c1">-- EMP 테이블에서 DEPTNO 별 SAL의 평균 조회</span>
+<span class="k">SELECT</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">SAL</span><span class="p">))</span> <span class="k">as</span> <span class="nv">"평균"</span>
+<span class="k">FROM</span> <span class="n">EMP</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">DEPTNO</span><span class="p">;</span>
+
+<span class="c1">-- 되도록이면 그룹화 한 항목을 같이 조회</span>
+<span class="k">SELECT</span> <span class="n">DEPTNO</span><span class="p">,</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">SAL</span><span class="p">))</span> <span class="k">AS</span> <span class="nv">"평균 급여"</span>
+<span class="k">FROM</span> <span class="n">EMP</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">DEPTNO</span><span class="p">;</span>
+
+<span class="c1">-- GROUP BY 이후에 집계 함수가 만들어지므로 WHERE 절에 집계 함수를 사용하면 에러</span>
+<span class="k">SELECT</span> <span class="n">DEPTNO</span><span class="p">,</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">SAL</span><span class="p">))</span> <span class="k">AS</span> <span class="nv">"평균 급여"</span>
+<span class="k">FROM</span> <span class="n">EMP</span>
+<span class="k">WHERE</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">SAL</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">2000</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">DEPTNO</span><span class="p">;</span>
+
+<span class="c1">-- MariaDB에서는 GOURP BY 절에서 묶은 속성 이외의 속성을 조회하면 첫 번째 데이터가 조회됨</span>
+<span class="k">SELECT</span> <span class="n">DEPTNO</span><span class="p">,</span> <span class="n">ENAME</span><span class="p">,</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">SAL</span><span class="p">))</span> <span class="k">AS</span> <span class="nv">"평균 급여"</span>
+<span class="k">FROM</span> <span class="n">EMP</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">DEPTNO</span><span class="p">;</span>
+
+
+
+<span class="c1">-- GROUP BY 다음에 나오는 출력할 그룹의 조건을 지정하는 절 → HAVING</span>
+<span class="c1">-- 집계함수에 대한 조건은 이 절에 작성</span>
+
+<span class="c1">-- EMP 테이블에서  DEPTNO 별로 SAL의 평균을 조회하는데 평균이 2000이 넘는 경우만 조회</span>
+<span class="k">SELECT</span> <span class="n">DEPTNO</span><span class="p">,</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">SAL</span><span class="p">))</span> <span class="k">AS</span> <span class="nv">"평균 급여"</span>
+<span class="k">FROM</span> <span class="n">EMP</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">DEPTNO</span>
+<span class="k">HAVING</span> <span class="n">ROUND</span><span class="p">(</span><span class="k">AVG</span><span class="p">(</span><span class="n">SAL</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">2000</span><span class="p">;</span>
+
+<span class="c1">-- 연습문제</span>
+<span class="c1">-- EMP 테이블에서 JOB 별로 최대 급여와 최소 급여(SAL)를 조회</span>
+<span class="k">SELECT</span> <span class="n">JOB</span><span class="p">,</span> <span class="k">MAX</span><span class="p">(</span><span class="n">SAL</span><span class="p">)</span> <span class="k">as</span> <span class="nv">"최대 급여"</span><span class="p">,</span> <span class="k">MIN</span><span class="p">(</span><span class="n">SAL</span><span class="p">)</span> <span class="k">as</span> <span class="nv">"최소 급여"</span>
+<span class="k">FROM</span> <span class="n">EMP</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">JOB</span><span class="p">;</span>
+
+<span class="c1">-- EMP 테이블에서 JOB 별 인원이 4명 이상인 데이터를 조회하는데 JOB과 인원수를 조회</span>
+<span class="k">SELECT</span> <span class="n">JOB</span><span class="p">,</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="k">as</span> <span class="nv">"인원수"</span>
+<span class="k">FROM</span> <span class="n">EMP</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">JOB</span>
+<span class="k">HAVING</span> <span class="k">COUNT</span><span class="p">(</span><span class="o">*</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">;</span>
+
+
+<span class="c1">-- # 윈도우 함수</span>
+<span class="c1">-- 행과 행 사이의 관계를 쉽게 정의하기 위한 함수</span>
+<span class="c1">-- 이 함수를 이용하면 복잡한 SQL을 쉽게 활용할 수 있음</span>
+	<span class="c1">-- OVER 절이 포함된 함수</span>
+	<span class="c1">-- 집계 함수와 비 집계 함수(CUME_DIST, DENSE_RANK, FIRST_VALUE 등)를 이용</span>
+	
+	
+<span class="c1">-- 순위 함수</span>
+<span class="c1">-- 함수 이름() OVER([PARTITION BY 그룹화할 항목 이름]) ORDER BY 정렬할 컬럼 이름이나 연산식</span>
+
+<span class="c1">-- usertbl 테이블에서 name과 birthyear와 birthyear가 작은 것부터 순위를 매겨 같이 출력(중복없이 출력)</span>
+<span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">birthyear</span><span class="p">,</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">over</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">birthyear</span> <span class="k">ASC</span><span class="p">)</span> <span class="s1">'순위'</span>
+<span class="k">FROM</span> <span class="n">usertbl</span><span class="p">;</span>
+
+<span class="c1">-- birthyear가 같은 경우 name으로 오름차순으로 순위 설정</span>
+<span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">birthyear</span><span class="p">,</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">over</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">birthyear</span> <span class="k">ASC</span><span class="p">,</span> <span class="n">name</span> <span class="k">ASC</span><span class="p">)</span> <span class="s1">'순위'</span>
+<span class="k">FROM</span> <span class="n">usertbl</span><span class="p">;</span>
+
+<span class="c1">-- birthyear가 같은 경우 addr 별로 그룹화 해서 name으로 오름차순으로 순위 설정</span>
+<span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">birthyear</span><span class="p">,</span> <span class="n">ROW_NUMBER</span><span class="p">()</span> <span class="n">over</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">addr</span> <span class="k">ASC</span><span class="p">,</span> <span class="n">name</span> <span class="k">ASC</span><span class="p">)</span> <span class="s1">'순위'</span>
+<span class="k">FROM</span> <span class="n">usertbl</span><span class="p">;</span>
+
+
+<span class="c1">-- 첫 번째 행과의 차이를 출력</span>
+<span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">birthyear</span><span class="p">,</span> <span class="n">birthyear</span> <span class="o">-</span> <span class="p">(</span><span class="n">FIRST_VALUE</span><span class="p">(</span><span class="n">birthyear</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">birthyear</span><span class="p">))</span> <span class="k">AS</span> <span class="nv">"나이 차이"</span>
+<span class="k">FROM</span> <span class="n">usertbl</span><span class="p">;</span>
+
+<span class="c1">-- 이전 행과의 차이를 출력</span>
+<span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">birthyear</span><span class="p">,</span> <span class="n">birthyear</span> <span class="o">-</span> <span class="p">(</span><span class="n">LAG</span><span class="p">(</span><span class="n">birthyear</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="n">OVER</span><span class="p">(</span><span class="k">ORDER</span> <span class="k">BY</span> <span class="n">birthyear</span><span class="p">))</span> <span class="k">AS</span> <span class="nv">"나이 차이"</span>
+<span class="k">FROM</span> <span class="n">usertbl</span><span class="p">;</span>
+
+
+<span class="c1">-- WITH ROLLUP</span>
+<span class="c1">-- GROUP BY 절의 마지막에 작성, 이 명령어가 포함되면 그룹별 합계와 총 합계를 출력</span>
+
+<span class="c1">-- order_d 테이블에서 goodscd 별 qty의 합계를 조회</span>
+<span class="k">SELECT</span> <span class="n">goodscd</span><span class="p">,</span> <span class="k">SUM</span><span class="p">(</span><span class="n">qty</span><span class="p">)</span>
+<span class="k">FROM</span> <span class="n">order_d</span>
+<span class="k">GROUP</span> <span class="k">BY</span> <span class="n">goodscd</span> <span class="k">WITH</span> <span class="k">ROLLUP</span><span class="p">;</span>
+
+
+<span class="c1">-- DDL(Data Definition Language)</span>
+	<span class="c1">-- 개체 무결성: 기본키는 NULL일 수 없다</span>
+	<span class="c1">-- 참조 무결성: 외래키는 참조할 수 없는 값을 가질 수 없다. NULL을 가지는 것은 가능</span>
+	<span class="c1">-- 함수적 종속: 어떤 속성 또는 속성의 집합이 다른 속성의 값을 하나로 결정할 때를 말함</span>
+		<span class="c1">-- 완전 함수적 종속: 기본키가 두 개 이상의 속성으로 구성된 경우 두 개 전체를 알아야만 하나의 값을 알게 되는 경우</span>
+		<span class="c1">-- 부분 함수적 종속: 기본키가 2개 이상의 속성으로 구성된 경우 1개 속성의 값만 알아도 하나의 값을 알게되는 경우</span>
+		<span class="c1">-- 이행적 함수적 종속: A → B, B → C일 때, A → C를 만족하는 경우</span>
+		
+	<span class="c1">-- 데이터 중복으로 생기는 이상현상</span>
+	<span class="c1">-- 1. 삽입 이상 → 삽입하고자 하는 데이터를 삽입하지 못하는 현상</span>
+	<span class="c1">-- 2. 삭제 이상 → 데이터를 삭제할 때 필요한 정보도 같이 삭제되는 현상</span>
+	<span class="c1">-- 3. 변경 이상 → 변경하고자 하는 것은 하나인데 여러번 변경해야 하는 현상</span>
+
+
+
+
+</code></pre></div></div>
+
+<p>이전 정리에 누락되었던 <strong>해시 분할, 범위 분할, 분산 데이터베이스</strong> 등 상세 내용을 포함하여 <strong>5.DDL.pdf</strong>의 모든 내용을 빠짐없이 재구성한 Obsidian 최적화 파일임.</p>
+
+<hr />
+
+<h1 id="05_ddlmd">05_DDL.md</h1>
+
+<h2 id="1-관계형-데이터베이스-rdbms-기초">1. 관계형 데이터베이스 (RDBMS) 기초</h2>
+
+<ul>
+  <li><strong>정의</strong>: 1970년 Codd에 의해 제안됨. 데이터를 테이블(릴레이션)의 집합으로 표현함.</li>
+  <li><strong>용어 정리</strong>:
+    <ul>
+      <li><strong>속성 값(Attribute Value)</strong>: 각 속성이 가지는 데이터 값으로, 더 이상 분해할 수 없는 <strong>원자 값</strong>만 허용함.</li>
+      <li><strong>도메인(Domain)</strong>: 하나의 속성이 가질 수 있는 모든 원자 값들의 집합임.</li>
+    </ul>
+  </li>
+  <li><strong>무결성 제약 조건</strong>:
+    <ul>
+      <li><strong>개체 무결성</strong>: 기본키(PK)는 NULL일 수 없고 중복될 수 없음.</li>
+      <li><strong>참조 무결성</strong>: 외래키(FK) 값은 참조하는 테이블에 존재하거나 NULL이어야 함.</li>
+      <li><strong>도메인 무결성</strong>: 속성 값은 정의된 데이터 타입 및 범위(도메인) 규칙을 지켜야 함.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="2-데이터-모델링-및-3계층-스키마">2. 데이터 모델링 및 3계층 스키마</h2>
+
+<ul>
+  <li><strong>추상화(Abstraction)</strong>: 복잡한 내부 구조(엔진 작동 원리 등)를 은폐하고 사용자에게 필요한 추상적인 뷰만 제공하는 것임.</li>
+  <li><strong>3계층 스키마 구조</strong>:
+    <ol>
+      <li><strong>내부 스키마(Internal)</strong>: 물리적 저장 구조 및 접근 경로 기술.</li>
+      <li><strong>개념 스키마(Conceptual)</strong>: 전체 DB 구조(엔티티, 관계, 제약조건) 기술. 고수준 데이터 모델로 표현됨.</li>
+      <li><strong>외부 스키마(External)</strong>: 개별 사용자나 개발자가 필요로 하는 DB 부분 기술.</li>
+    </ol>
+  </li>
+  <li><strong>데이터 독립성</strong>:
+    <ul>
+      <li><strong>논리적 독립성</strong>: 응용 프로그램을 바꾸지 않고 개념 스키마(데이터 타입 추가 등)를 변경할 수 있는 능력임.</li>
+      <li><strong>물리적 독립성</strong>: 외부/개념 스키마에 영향을 주지 않고 내부 스키마(인덱스 추가 등)를 변경할 수 있는 능력임.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="3-이상-현상anomaly-및-함수적-종속">3. 이상 현상(Anomaly) 및 함수적 종속</h2>
+
+<ul>
+  <li><strong>이상 현상</strong>: 데이터 중복으로 인해 발생함.
+    <ul>
+      <li><strong>삽입 이상</strong>: 새 데이터를 넣기 위해 원치 않는 데이터도 강제로 삽입해야 함.</li>
+      <li><strong>삭제 이상</strong>: 특정 데이터 삭제 시 연쇄적으로 필요한 정보까지 손실됨.</li>
+      <li><strong>갱신 이상</strong>: 중복 데이터 중 일부만 수정되어 데이터 불일치가 발생함.</li>
+    </ul>
+  </li>
+  <li><strong>함수적 종속성</strong>:
+    <ul>
+      <li><strong>완전 함수적 종속</strong>: 기본키의 모든 속성을 알아야 다른 속성을 식별할 수 있는 경우임.</li>
+      <li><strong>부분 함수적 종속</strong>: 기본키가 복합키일 때, 그중 일부 속성에만 종속되는 경우임.</li>
+      <li><strong>이행적 함수 종속</strong>: X→Y, Y→Z 관계에서 X→Z가 성립하는 경우임 (예: 회원번호→생년월일→나이).</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="4-정규화-normalization-단계">4. 정규화 (Normalization) 단계</h2>
+
+<ol>
+  <li><strong>제1정규형(1NF)</strong>: 모든 도메인이 원자 값으로 구성됨. 다가 속성을 분리함.</li>
+  <li><strong>제2정규형(2NF)</strong>: 1NF를 만족하고, <strong>부분 함수적 종속을 제거</strong>함.</li>
+  <li><strong>제3정규형(3NF)</strong>: 2NF를 만족하고, <strong>이행적 함수 종속을 제거</strong>함.</li>
+  <li><strong>BCNF</strong>: 모든 결정자가 후보키가 되도록 함.</li>
+  <li><strong>제4정규형(4NF)</strong>: 다가 종속(MVD) 관계를 제거함.</li>
+  <li><strong>제5정규형(5NF)</strong>: 조인 종속성을 제거하여 무손실 분해를 달성함.</li>
+</ol>
+
+<h2 id="5-반정규화-및-파티셔닝-누락-내용-보강">5. 반정규화 및 파티셔닝 (누락 내용 보강)</h2>
+
+<h3 id="51-반정규화-de-normalization">5.1 반정규화 (De-normalization)</h3>
+
+<ul>
+  <li><strong>목적</strong>: 빈번한 조인으로 인한 성능 저하 방지 및 조회 성능 최적화.</li>
+  <li><strong>기법</strong>: 테이블 추가(중복/통계/이력/부분), 테이블 병합(1:1, 1:M, 슈퍼/서브타입), 컬럼/관계 중복 등.</li>
+</ul>
+
+<h3 id="52-테이블-분할-및-파티셔닝-partitioning">5.2 테이블 분할 및 파티셔닝 (Partitioning)</h3>
+
+<ul>
+  <li><strong>분할 방식</strong>:
+    <ul>
+      <li><strong>수직 분할</strong>: 컬럼 단위로 분리하여 디스크 I/O 분산.</li>
+      <li><strong>수평 분할(Sharding)</strong>: 로우 단위로 쪼개어 접근 효율성 증대.</li>
+    </ul>
+  </li>
+  <li><strong>파티셔닝 기준(Partitioning Criteria)</strong>:
+    <ul>
+      <li><strong>범위 분할 (Range)</strong>: 월 단위 요금 정보 등 날짜/숫자 범위를 기준으로 분할함. 관리 및 삭제(DROP PARTITION)가 용이함.</li>
+      <li><strong>목록 분할 (List)</strong>: 지점 코드, 국가명 등 핵심 코드 값 리스트를 기준으로 분할함.</li>
+      <li><strong>해시 분할 (Hash)</strong>: 해시 알고리즘에 의해 자동 분할됨. 데이터가 골고루 분산되지만, 삭제 기능 등 세부 제어가 어려움.</li>
+      <li><strong>합성 분할 (Composite)</strong>: 범위 분할 후 해시 분할을 추가하는 등 여러 기술을 결합함.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="6-분산-데이터베이스-누락-내용-보강">6. 분산 데이터베이스 (누락 내용 보강)</h2>
+
+<ul>
+  <li><strong>정의</strong>: 물리적으로 분산된 데이터를 하나의 가상 시스템으로 사용함.</li>
+  <li><strong>투명성(Transparency)</strong>:
+    <ul>
+      <li><strong>분할 투명성</strong>: 릴레이션이 분할되어 여러 사이트에 저장됨을 몰라도 됨.</li>
+      <li><strong>위치 투명성</strong>: 데이터 저장 장소를 명시할 필요 없음.</li>
+      <li><strong>중복 투명성</strong>: 여러 곳에 중복 저장되어 있는지 알 필요 없음.</li>
+      <li><strong>지역 사상/장애/병행 투명성</strong> 등 보장.</li>
+    </ul>
+  </li>
+  <li><strong>적용 기법</strong>:
+    <ul>
+      <li><strong>테이블 복제(Replication)</strong>: 부분 복제(지사별 데이터)와 광역 복제(전체 데이터 동일 공유)로 나뉨.</li>
+      <li><strong>테이블 요약(Summarization)</strong>: 분석 요약(동일 구조 통합), 통합 요약(다른 내용 통합).</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="7-실무-ddl-명령어-및-제약조건">7. 실무 DDL 명령어 및 제약조건</h2>
+
+<h3 id="71-check-및-auto_increment">7.1 CHECK 및 AUTO_INCREMENT</h3>
+
+<ul>
+  <li><strong>CHECK</strong>: 값의 범위를 제한함.</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CREATE TABLE tCheckTest(
+    gender CHAR(3) NULL CHECK(gender = '남' OR gender = '여'),
+    grade INT NULL CHECK (grade &gt;= 1 AND grade &lt;= 3),
+    name CHAR(10) NULL CHECK(name LIKE '김%')
+);
+</code></pre></div></div>
+
+<ul>
+  <li><strong>AUTO_INCREMENT</strong>: 자동 증가 번호.</li>
+</ul>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CREATE TABLE tSale (
+    saleno INT AUTO_INCREMENT PRIMARY KEY,
+    customer NCHAR(10)
+);
+-- 시작 값 변경
+ALTER TABLE tSale AUTO_INCREMENT = 100;
+</code></pre></div></div>
+
+<h3 id="72-참조-무결성-옵션">7.2 참조 무결성 옵션</h3>
+
+<ul>
+  <li><strong>ON DELETE CASCADE</strong>: 부모 삭제 시 자식도 자동 삭제됨.</li>
+  <li><strong>ON UPDATE CASCADE</strong>: 부모 변경 시 자식도 자동 변경됨.</li>
+</ul>
+
+<h3 id="73-테이블-압축-및-주석">7.3 테이블 압축 및 주석</h3>
+
+<ul>
+  <li><strong>압축 생성</strong>: <code class="language-plaintext highlighter-rouge">CREATE TABLE ... ROW_FORMAT=COMPRESSED;</code> (용량 절감, 시간 증가).</li>
+  <li><strong>주석</strong>: <code class="language-plaintext highlighter-rouge">COMMENT ON TABLE 테이블명 IS '주석내용';</code>.</li>
+</ul>
+
+<p>![[autoever_0713.spf]]</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/04-group-by-aggregate/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">GROUP BY와 집계</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/06-subquery-join/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">서브쿼리와 JOIN</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>

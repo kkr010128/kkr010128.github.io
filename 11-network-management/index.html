@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>네트워크 관리 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Linux 네트워크 기본 개념, 설정, 상태 확인, 방화벽 정리">
+<link rel="canonical" href="https://kkr010128.github.io/11-network-management/">
+<meta property="og:title" content="네트워크 관리 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Linux 네트워크 기본 개념, 설정, 상태 확인, 방화벽 정리">
+<meta property="og:url" content="https://kkr010128.github.io/11-network-management/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="네트워크 관리 | hyeon.log">
+<meta name="twitter:description" content="Linux 네트워크 기본 개념, 설정, 상태 확인, 방화벽 정리">
+
+  <meta property="article:published_time" content="2026-07-24T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785582635" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785582635" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785582635">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785582635" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785582635">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "네트워크 관리 | hyeon.log",
+    "description": "Linux 네트워크 기본 개념, 설정, 상태 확인, 방화벽 정리",
+    "url": "https://kkr010128.github.io/11-network-management/",
+    "datePublished": "2026-07-24T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Linux</p>
+    
+    <h1 class="post-head__title">네트워크 관리</h1>
+    
+      <p class="post-head__description">Linux 네트워크 기본 개념, 설정, 상태 확인, 방화벽 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 24일 · 9분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Linux">Linux</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-네트워크-기본-개념">1) 네트워크 기본 개념</h2>
+<hr />
+<h3 id="tcpip-프로토콜">TCP/IP 프로토콜</h3>
+<ul>
+  <li><strong>프로토콜</strong>: 통신을 하기 위한 규칙 또는 규약</li>
+  <li><strong>TCP/IP</strong>: 인터넷이라는 통신망의 프로토콜</li>
+</ul>
+
+<h3 id="주소">주소</h3>
+
+<h4 id="mac-address">MAC Address</h4>
+<ul>
+  <li><strong>Media Access Control</strong>의 약자</li>
+  <li>하드웨어를 위한 주소로, 이더넷 주소/하드웨어 주소/물리 주소라고도 불림</li>
+  <li><strong>NIC</strong>(Network Interface Card)에 저장된 주소</li>
+  <li>하드웨어 제조 과정에서 부여되며 원칙적으로는 수정 불가
+    <ul>
+      <li><em>하지만</em> 운영체제에 따라 수정 가능</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">:</code> 또는 <code class="language-plaintext highlighter-rouge">-</code>로 구분되는 6개의 16진수로 구성 → 총 <strong>48bit</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">00:50:56:3e:3c:fe</code> 형태</li>
+      <li>앞의 3개 → <strong>제조사 번호</strong></li>
+      <li>뒤의 3개 → <strong>일련번호</strong></li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="ip-address">IP Address</h4>
+<ul>
+  <li>인터넷 주소 체계</li>
+  <li>현재는 <strong>IPv4</strong>와 <strong>IPv6</strong>만 사용</li>
+</ul>
+
+<p><strong>IPv4</strong></p>
+<ul>
+  <li>32비트 주소 체계</li>
+  <li>8비트씩 끊어 10진수로 표현, 구분은 <code class="language-plaintext highlighter-rouge">.</code></li>
+  <li>0~255까지의 숫자 4개로 표현</li>
+  <li>현재는 주소가 고갈되어 IPv6 사용</li>
+</ul>
+
+<p><strong>IPv6</strong></p>
+<ul>
+  <li>128비트 주소 체계</li>
+  <li>16진수 2개씩 묶어 표현</li>
+  <li>구분은 <code class="language-plaintext highlighter-rouge">:</code></li>
+</ul>
+
+<h4 id="netmask">NetMask</h4>
+<ul>
+  <li>IP 주소에서 <strong>네트워크 부분</strong>을 알려주는 역할</li>
+  <li>동일한 네트워크를 나타내기 위해 사용
+    <ul>
+      <li>내부 통신이 가능한 영역을 표현</li>
+    </ul>
+  </li>
+  <li>IP처럼 10진수 4자리 또는 1의 개수로 표현
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">192.168.0.2 255.255.255.0</code> 또는 <code class="language-plaintext highlighter-rouge">192.168.0.2/24</code> 형태</li>
+      <li><code class="language-plaintext highlighter-rouge">255.255.255.0</code> → <code class="language-plaintext highlighter-rouge">11111111.11111111.11111111.00000000</code></li>
+      <li>1의 개수가 24개 → <code class="language-plaintext highlighter-rouge">/24</code></li>
+      <li>1의 개수 24자리까지 동일하면 <strong>동일한 네트워크</strong>로 간주</li>
+      <li><code class="language-plaintext highlighter-rouge">192.168.0</code>까지 동일하면 동일 네트워크 → 외부 라우터 없이 내부 처리</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="broadcast-address">Broadcast Address</h4>
+<ul>
+  <li>동일 네트워크의 모든 컴퓨터에 메시지를 보낼 때 사용하는 주소</li>
+  <li>일반적으로 네트워크 대역에서 <strong>가장 마지막 주소</strong> 사용
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">192.168.0.2 255.255.255.0</code> → <code class="language-plaintext highlighter-rouge">192.168.0.255</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="호스트-이름">호스트 이름</h4>
+<ul>
+  <li>IP 주소 대신 사용할 수 있는 컴퓨터 이름</li>
+  <li><strong>도메인</strong>: 인터넷에서 사용하는 호스트 이름
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">www.naver.com</code> → <code class="language-plaintext highlighter-rouge">naver.com</code>은 네트워크 부분, <code class="language-plaintext highlighter-rouge">www</code>는 호스트 부분</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="dns-domain-name-service">DNS (Domain Name Service)</h4>
+<ul>
+  <li>도메인을 해석해 <strong>IP로 변환</strong>해주는 시스템</li>
+  <li>도메인 입력 → DNS가 해석 → IP로 변환 → 해당 컴퓨터로 접속</li>
+  <li>IP를 직접 사용하면 도메인보다 속도가 빠름</li>
+</ul>
+
+<h4 id="dhcp-dynamic-host-configuration-protocol">DHCP (Dynamic Host Configuration Protocol)</h4>
+<ul>
+  <li><strong>IP 주소 관리 자동화</strong>를 위한 네트워크 프로토콜</li>
+  <li>네트워크에 연결되는 장비는 IP주소, 넷마스크, 기본 게이트웨이, DNS Server 주소를 설정해야 인터넷 사용 가능</li>
+  <li>DHCP 서버가 장비의 요청을 받아 할당 가능한 주소를 찾아 <strong>대여</strong></li>
+</ul>
+
+<h4 id="gateway">Gateway</h4>
+<ul>
+  <li>로컬 네트워크는 내부 컴퓨터 정보만 알 수 있음</li>
+  <li><strong>외부 네트워크</strong>로 나가기 위해 거쳐야 하는 장비(라우터)</li>
+  <li>인터넷 사용 시 Gateway를 통해 요청</li>
+  <li>보통 사용 가능한 네트워크 주소 대역에서 <strong>첫 번째 주소</strong> 사용
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">192.168.0.2/24</code> → <code class="language-plaintext highlighter-rouge">192.168.0.1</code> (또는 마지막 주소 <code class="language-plaintext highlighter-rouge">192.168.0.254</code> 사용)</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="포트-번호">포트 번호</h4>
+<ul>
+  <li>컴퓨터 내부에서 통신 가능한 <strong>애플리케이션</strong>을 구분하기 위한 번호</li>
+  <li><strong>0~65535</strong>까지 사용 가능</li>
+  <li><strong>0-1023번</strong>: 국제 표준으로 합의된 잘 알려진 포트(Well-known port)
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">cat /etc/services</code>에서 확인 가능</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="인터넷-사용을-위해-설정해야-할-주소">인터넷 사용을 위해 설정해야 할 주소</h3>
+<ol>
+  <li><strong>IP Address</strong></li>
+  <li><strong>Subnet Mask</strong></li>
+  <li><strong>Gateway Address</strong></li>
+  <li><strong>DNS Address</strong></li>
+</ol>
+
+<h2 id="2-네트워크-설정">2) 네트워크 설정</h2>
+<hr />
+<h3 id="ip-명령으로-주소-관리">ip 명령으로 주소 관리</h3>
+<ul>
+  <li>
+    <p>형식: <code class="language-plaintext highlighter-rouge">ip [옵션] 객체 [서브 명령]</code></p>
+  </li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">V</code>: 버전 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">s</code>: 자세한 정보 출력</li>
+    </ul>
+  </li>
+  <li><strong>객체와 서브 명령</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">address [add | del | show | help]</code>: <strong>IP 주소 관리</strong></li>
+      <li><code class="language-plaintext highlighter-rouge">route [add | del | help]</code>: <strong>라우팅 테이블 관리</strong></li>
+      <li><code class="language-plaintext highlighter-rouge">link [set]</code>: 네트워크 인터페이스 <strong>활성화/비활성화</strong></li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 전체 장치에 대한 상세 정보 출력</span>
+ip addr show
+
+<span class="c"># 하나의 인터페이스에 대한 정보 출력</span>
+ip addr show enp0s3
+
+<span class="c"># IP 추가 설정</span>
+<span class="nb">sudo </span>ip addr add 192.168.1.20/24 dev enp0s3
+</code></pre></div></div>
+
+<ul>
+  <li><em>하지만</em> <code class="language-plaintext highlighter-rouge">ip</code> 명령은 <strong>재부팅 시 사라지므로</strong> 별도의 설정 파일에 저장해야 영구 적용됨</li>
+</ul>
+
+<h4 id="라우팅-테이블과-게이트웨이">라우팅 테이블과 게이트웨이</h4>
+<ul>
+  <li><strong>라우팅</strong>: 최적의 경로를 찾아가는 것</li>
+  <li><strong>라우팅 테이블</strong>: 경로 정보를 저장해 놓은 테이블
+    <ul>
+      <li>라우팅 테이블에 없는 경로는 게이트웨이를 통해 찾아감</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 기본 게이트웨이 설정</span>
+<span class="nb">sudo </span>ip route add default via IP주소 dev 인터페이스주소
+</code></pre></div></div>
+
+<h3 id="net-tools-패키지">net-tools 패키지</h3>
+<ul>
+  <li>네트워크 관련 전통적인 명령어들을 제공하는 패키지</li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nb">install </span>net-tools
+</code></pre></div></div>
+
+<h4 id="ifconfig-명령">ifconfig 명령</h4>
+<ul>
+  <li>형식: <code class="language-plaintext highlighter-rouge">ifconfig [인터페이스이름] [옵션] [값]</code></li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">a</code>: 시스템의 전체 인터페이스 정보 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">up/down</code>: 활성화 및 비활성화</li>
+      <li><code class="language-plaintext highlighter-rouge">netmask</code>: 넷마스크 주소 설정</li>
+      <li><code class="language-plaintext highlighter-rouge">broadcast</code>: 브로드캐스트 설정</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="dns-설정">DNS 설정</h3>
+<ul>
+  <li>리눅스는 DNS 정보를 <code class="language-plaintext highlighter-rouge">/etc/resolv.conf</code> 파일에 저장
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">nameserver 127.0.0.53</code> → 로컬 스터브 주소를 가리키는 심볼릭 링크</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># DNS 정보 확인</span>
+resolvectl status
+
+<span class="c"># nmcli 명령으로 DNS 설정</span>
+nmcli con mod 커넥션이름 ipv4.dns DNS주소
+
+<span class="c"># DNS 서버에 질의해 도메인의 IP 확인</span>
+nslookup
+</code></pre></div></div>
+
+<h3 id="netplan">netplan</h3>
+<ul>
+  <li>우분투에서 네트워크 구성을 관리하는 도구</li>
+  <li>설정 파일은 <strong>YAML 형식</strong>으로 작성하며 <code class="language-plaintext highlighter-rouge">/etc/netplan/</code> 디렉토리에 존재
+    <ul>
+      <li>파일 이름은 의미 없음</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 설정 적용</span>
+<span class="nb">sudo </span>netplan apply
+
+<span class="c"># 또는 재부팅</span>
+
+<span class="c"># 권한 변경 (설정 파일들은 권한 변경 필요)</span>
+<span class="nb">sudo chmod </span>600
+</code></pre></div></div>
+
+<ul>
+  <li>파일을 수정하고 <code class="language-plaintext highlighter-rouge">sudo netplan apply</code> 또는 재부팅으로 적용</li>
+</ul>
+
+<h2 id="네트워크-설정">네트워크 설정</h2>
+<hr />
+<h3 id="가상머신-복제">가상머신 복제</h3>
+<ul>
+  <li>여러대의 가상머신을 하나의 네트워크로 구성</li>
+  <li>하나의 NAT 네트워크를 생성(여러 개의 가상머신을 하나의 스위치나 허브로 묶는 장비 생성)</li>
+</ul>
+
+<p>===추가됨===</p>
+
+<h4 id="nat-네트워크-생성">NAT 네트워크 생성</h4>
+<ul>
+  <li>[파일] → [도구] → [네트워크] 메뉴 실행</li>
+  <li>[NAT 네트워크] 탭에서 만들기 선택</li>
+  <li>이름 수정 및 IPv4 접두사에 사용할 IP 대역 설정 (<code class="language-plaintext highlighter-rouge">192.168.0.0/24</code>)</li>
+  <li><strong>DHCP 활성화</strong> 체크 해제</li>
+</ul>
+
+<h4 id="가상머신-네트워크-연결">가상머신 네트워크 연결</h4>
+<ul>
+  <li>가상머신 선택 → 설정 아이콘 → 네트워크 탭 선택</li>
+  <li><code class="language-plaintext highlighter-rouge">Attached to</code>를 <strong>NAT 네트워크</strong>로 선택 → 생성한 NAT 네트워크 선택</li>
+</ul>
+
+<h4 id="가상머신-ip-설정">가상머신 IP 설정</h4>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 네트워크 설정 파일 확인</span>
+<span class="nb">ls</span> /etc/netplan
+
+<span class="c"># 기존 설정 파일 삭제 후 새 파일 생성 (파일명 무관, 확장자는 yaml/yml)</span>
+vi netcfg.yaml
+</code></pre></div></div>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">network</span><span class="pi">:</span>
+  <span class="na">version</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">renderer</span><span class="pi">:</span> <span class="s">networkd</span>
+  <span class="na">ethernets</span><span class="pi">:</span>
+    <span class="na">enp0s3</span><span class="pi">:</span>
+      <span class="na">dhcp4</span><span class="pi">:</span> <span class="s">no</span>
+      <span class="na">addresses</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">192.168.0.101/24</span>
+      <span class="na">gateway4</span><span class="pi">:</span> <span class="s">192.168.0.1</span>
+      <span class="na">nameservers</span><span class="pi">:</span>
+        <span class="na">addresses</span><span class="pi">:</span> <span class="pi">[</span><span class="nv">8.8.8.8</span><span class="pi">,</span> <span class="nv">8.8.4.4</span><span class="pi">]</span>
+</code></pre></div></div>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 적용</span>
+<span class="nb">sudo </span>netplan apply
+</code></pre></div></div>
+
+<ul>
+  <li><em>주의</em>: YAML 파일의 위치는 <code class="language-plaintext highlighter-rouge">/etc/netplan</code>이어야 하며, 이 디렉토리에는 YAML 파일이 1개만 있어야 함</li>
+</ul>
+
+<h4 id="네트워크-연결-확인">네트워크 연결 확인</h4>
+<ul>
+  <li>2개 컴퓨터 간 <code class="language-plaintext highlighter-rouge">ping 상대방IP주소</code>로 연결 확인</li>
+</ul>
+
+<h4 id="포트포워딩-설정">포트포워딩 설정</h4>
+<ul>
+  <li><strong>HOST IP/PORT</strong>: 현재 컴퓨터의 IP와 사용할 포트</li>
+  <li><strong>게스트 IP/PORT</strong>: 가상머신의 IP와 포트 번호 (SSH는 22번)</li>
+</ul>
+
+<h3 id="호스트-이름-관련-명령어">호스트 이름 관련 명령어</h3>
+
+<h4 id="uname">uname</h4>
+<ul>
+  <li>호스트 이름 관련 명령어</li>
+  <li>형식: <code class="language-plaintext highlighter-rouge">uname [옵션]</code></li>
+  <li><strong>옵션</strong>: <code class="language-plaintext highlighter-rouge">m</code>, <code class="language-plaintext highlighter-rouge">n</code>, <code class="language-plaintext highlighter-rouge">r</code>, <code class="language-plaintext highlighter-rouge">s</code>, <code class="language-plaintext highlighter-rouge">v</code>, <code class="language-plaintext highlighter-rouge">a</code></li>
+</ul>
+
+<h4 id="hostname">hostname</h4>
+<ul>
+  <li>호스트 이름과 관련된 명령어</li>
+  <li><code class="language-plaintext highlighter-rouge">hostname -I</code>: 현재 설정된 IP 주소 확인 (IP가 안 보이면 IP 설정 미완료)</li>
+  <li><code class="language-plaintext highlighter-rouge">hostname</code>: 호스트 이름 출력</li>
+  <li><code class="language-plaintext highlighter-rouge">hostname [호스트이름]</code>: 호스트 이름 변경 (다음 로그인 시 적용, <em>하지만</em> 재부팅 시 소멸)</li>
+</ul>
+
+<h4 id="hostnamectl">hostnamectl</h4>
+<ul>
+  <li>호스트 이름 관련 명령 (영구 적용)</li>
+  <li><code class="language-plaintext highlighter-rouge">hostnamectl status</code>: 상태 조회</li>
+  <li><code class="language-plaintext highlighter-rouge">hostnamectl set-hostname 호스트이름</code>: 호스트 이름 변경 (파일 기반 → 재부팅 후 유지)</li>
+</ul>
+
+<h4 id="etchostname">/etc/hostname</h4>
+<ul>
+  <li>hostname 관련 설정 파일</li>
+  <li><code class="language-plaintext highlighter-rouge">hostnamectl</code>은 이 파일을 수정 → 영구 적용</li>
+  <li><code class="language-plaintext highlighter-rouge">hostname</code>은 메모리만 변경 → 재부팅 시 소멸</li>
+</ul>
+
+<h4 id="etchosts">/etc/hosts</h4>
+<ul>
+  <li><strong>개요</strong>
+    <ul>
+      <li>도메인 이름을 IP 주소에 수동 매핑하는 텍스트 파일</li>
+      <li>호스트 이름 사용 시 가장 먼저 참조됨</li>
+      <li>이 파일에 없으면 <strong>DNS</strong>가 해석</li>
+    </ul>
+  </li>
+  <li><strong>용도</strong>
+    <ul>
+      <li><strong>로컬 호스트 및 개발</strong>: 내부 통신 시 IP 대신 사용</li>
+      <li><strong>시스템 최적화</strong>: 자주 사용하는 도메인 기재 → DNS 생략 → 속도 향상</li>
+      <li><strong>특정 사이트 차단</strong>: 도메인에 루프백 주소 설정</li>
+    </ul>
+  </li>
+  <li><strong>설정 형식</strong>: <code class="language-plaintext highlighter-rouge">IP주소 호스트이름 [별명 나열]</code></li>
+</ul>
+
+<p>===여기까지===</p>
+
+<p>===추가됨===</p>
+<h2 id="3-네트워크-상태-확인">3) 네트워크 상태 확인</h2>
+<hr />
+
+<h3 id="ping">ping</h3>
+<ul>
+  <li>외부와 통신이 되는지 확인하거나 외부 서버가 동작 중인지 확인</li>
+  <li>형식: <code class="language-plaintext highlighter-rouge">ping [옵션] [목적지 주소]</code></li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">a</code>: 통신이 되면 소리 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">q</code>: 종합 결과만 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">c 개수</code>: 보낼 패킷 수 지정</li>
+    </ul>
+  </li>
+  <li>출력 해석: <code class="language-plaintext highlighter-rouge">64 bytes from server (192.168.0.101): icmp_seq=1 ttl=64 time=1.52 ms</code>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">icmp_seq</code>: 응답 순서</li>
+      <li><strong>ttl</strong>(Time To Live): 패킷이 목적지까지 거친 라우터 수를 간접적으로 알려줌
+  → 128 또는 64부터 시작, 라우터 거칠 때마다 1씩 감소
+  → 높을수록 경로가 짧거나 안정적</li>
+      <li><code class="language-plaintext highlighter-rouge">time</code>: 왕복 시간</li>
+    </ul>
+  </li>
+  <li>요약 예시: <code class="language-plaintext highlighter-rouge">5 packets transmitted, 5 received, 0% packet loss, time 4005ms</code>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">rtt min/avg/max/mdev</code>: 최소/평균/최대/표준편차</li>
+    </ul>
+  </li>
+  <li>통신이 안 될 때는 <code class="language-plaintext highlighter-rouge">ping</code>으로 <strong>gateway</strong> 확인 후 <strong>DNS</strong> 확인</li>
+</ul>
+
+<h3 id="netstat">netstat</h3>
+<ul>
+  <li>네트워크 연결 상태, 라우팅 테이블, 인터페이스 통계 정보 출력</li>
+  <li>현재 시스템에 열려있는 <strong>포트</strong> 확인 가능</li>
+  <li>형식: <code class="language-plaintext highlighter-rouge">netstat [옵션]</code></li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">a</code>: 모든 소켓 정보 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">r</code>: 라우팅 정보 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">n</code>: IP 주소로 출력 (호스트 이름 대신)</li>
+      <li><code class="language-plaintext highlighter-rouge">i</code>: 모든 네트워크 인터페이스 정보 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">s</code>: 프로토콜별 통계 정보 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">p</code>: 해당 소켓과 관련된 프로세스 이름과 PID 출력</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 열려 있는 포트 확인</span>
+netstat <span class="nt">-an</span> | <span class="nb">grep </span>LISTEN
+
+<span class="c"># 열려 있는 포트의 프로세스 확인</span>
+netstat <span class="nt">-p</span>
+</code></pre></div></div>
+
+<h3 id="arp">arp</h3>
+<ul>
+  <li>같은 네트워크에 있는 시스템들의 <strong>MAC 주소</strong>와 <strong>IP 주소</strong> 확인</li>
+  <li>형식: <code class="language-plaintext highlighter-rouge">arp [IP주소]</code></li>
+</ul>
+
+<h3 id="tcpdump">tcpdump</h3>
+<ul>
+  <li><strong>패킷 캡처</strong> 명령</li>
+  <li>네트워크 상태 확인에 사용</li>
+  <li><strong>옵션</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">c 패킷수</code></li>
+      <li><code class="language-plaintext highlighter-rouge">i 인터페이스이름</code></li>
+      <li><code class="language-plaintext highlighter-rouge">n</code>: IP 주소를 호스트 이름으로 변경하지 않음</li>
+      <li><code class="language-plaintext highlighter-rouge">q</code>: 정보를 간단히 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">X</code>: 패킷 내용을 16진수와 ASCII로 출력</li>
+      <li><code class="language-plaintext highlighter-rouge">w 파일명</code>: 덤프 내용을 파일에 기록</li>
+      <li><code class="language-plaintext highlighter-rouge">r 파일명</code>: 파일에서 읽어오기</li>
+      <li><code class="language-plaintext highlighter-rouge">host 호스트이름</code></li>
+      <li><code class="language-plaintext highlighter-rouge">port</code></li>
+      <li><code class="language-plaintext highlighter-rouge">ip</code></li>
+    </ul>
+  </li>
+  <li>명령보다는 <strong>별도 애플리케이션</strong>(와이어샤크, 패킷트레이서 등)을 이용해 수행</li>
+</ul>
+
+<h2 id="4-방화벽-설정">4) 방화벽 설정</h2>
+<hr />
+
+<h3 id="iptables">iptables</h3>
+<ul>
+  <li><strong>개요</strong>
+    <ul>
+      <li>리눅스 커널 내부의 패킷 필터링 프레임워크인 <strong>netfilter</strong>를 제어하는 명령줄 기반 보안 도구</li>
+      <li>들어오고 나가는 모든 네트워크 패킷을 검사하고 규칙에 따라 허용/차단/전달 결정</li>
+      <li>네트워크 <strong>게이트키퍼</strong> 역할</li>
+    </ul>
+  </li>
+  <li><strong>장점</strong>
+    <ul>
+      <li><strong>커널 레벨의 고성능</strong>: 커널 레이어에서 직접 패킷 제어 → 처리 속도 빠름, 자원 적게 사용</li>
+      <li>포트, IP, 패킷 상태, NIC, MAC 주소, 패킷 문자열 감지 등 정교한 조건 생성 가능</li>
+      <li>오랜 기간 리눅스 표준 방화벽 → 레퍼런스와 스크립트 툴이 다양</li>
+    </ul>
+  </li>
+  <li><strong>단점</strong>
+    <ul>
+      <li><em>하지만</em> 명령어가 복잡하고 가독성이 떨어짐 → 규칙 하나 잘못 추가 시 네트워크 전체 마비 가능</li>
+      <li><em>하지만</em> 규칙을 위에서부터 순서대로 검사 → <strong>순서 의존성</strong></li>
+      <li><em>하지만</em> <strong>휘발성 메모리</strong>에서 작동 → 별도 저장하지 않으면 재부팅 시 규칙 소멸</li>
+    </ul>
+  </li>
+  <li><strong>구조: 3대 테이블</strong>
+    <ul>
+      <li><strong>Filter</strong>(기본 테이블): 패킷 허용/차단 결정 (방화벽 핵심)</li>
+      <li><strong>NAT</strong>(Network Address Translation): 출발지/목적지 IP/포트 변환</li>
+      <li><strong>Mangle</strong>: 패킷 헤더 정보 마킹/수정</li>
+    </ul>
+  </li>
+  <li><strong>구조: 5대 체인</strong>
+    <ul>
+      <li><strong>INPUT</strong>: 외부 → 서버 자체로 들어오는 패킷</li>
+      <li><strong>OUTPUT</strong>: 서버 → 외부로 나가는 패킷</li>
+      <li><strong>FORWARD</strong>: 서버를 거쳐 다른 곳으로 전달되는 패킷 (라우터/공유기 역할)</li>
+      <li><strong>PREROUTING</strong>: NIC 도착 직후, 라우팅 경로 결정 전</li>
+      <li><strong>POSTROUTING</strong>: 라우팅 완료 후, NIC 통해 나가기 직전</li>
+    </ul>
+  </li>
+  <li><strong>패킷 처리 규칙</strong>
+    <ul>
+      <li><strong>ACCEPT</strong>: 허용 및 통과</li>
+      <li><strong>DROP</strong>: 완전 차단 (응답 없음 → <strong>보안상 추천</strong>)</li>
+      <li><strong>REJECT</strong>: 차단 + 거부 메시지(ICMP 에러) 반환</li>
+      <li><strong>LOG</strong>: 시스템 로그 기록 (패킷은 통과)</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 기본 filter 테이블 규칙 조회</span>
+<span class="nb">sudo </span>iptables <span class="nt">-L</span> <span class="nt">-n</span> <span class="nt">-v</span> <span class="nt">--line-numbers</span>
+
+<span class="c"># NAT 테이블 규칙 조회</span>
+<span class="nb">sudo </span>iptables <span class="nt">-t</span> nat <span class="nt">-L</span> <span class="nt">-n</span> <span class="nt">-v</span> <span class="nt">--line-numbers</span>
+
+<span class="c"># 기본 정책 변경</span>
+<span class="nb">sudo </span>iptables <span class="nt">-P</span> INPUT DROP       <span class="c"># 들어오는 패킷 기본 차단</span>
+<span class="nb">sudo </span>iptables <span class="nt">-P</span> OUTPUT ACCEPT    <span class="c"># 나가는 패킷 기본 허용</span>
+<span class="nb">sudo </span>iptables <span class="nt">-P</span> FORWARD DROP     <span class="c"># 거쳐가는 패킷 기본 차단</span>
+
+<span class="c"># 방화벽 규칙 추가</span>
+<span class="nb">sudo </span>iptables <span class="nt">-A</span> INPUT <span class="nt">-i</span> lo <span class="nt">-j</span> ACCEPT                     <span class="c"># 로컬 호스트 트래픽 허용</span>
+<span class="nb">sudo </span>iptables <span class="nt">-A</span> INPUT <span class="nt">-m</span> conntrack <span class="nt">--ctstate</span> ESTABLISHED,RELATED <span class="nt">-j</span> ACCEPT  <span class="c"># 연결된 패킷 자동 허용</span>
+<span class="nb">sudo </span>iptables <span class="nt">-A</span> INPUT <span class="nt">-p</span> tcp <span class="nt">--dport</span> 22 <span class="nt">-j</span> ACCEPT         <span class="c"># SSH(22) 허용</span>
+<span class="nb">sudo </span>iptables <span class="nt">-A</span> INPUT <span class="nt">-p</span> tcp <span class="nt">--dport</span> 80 <span class="nt">-j</span> ACCEPT         <span class="c"># HTTP(80) 허용</span>
+<span class="nb">sudo </span>iptables <span class="nt">-A</span> INPUT <span class="nt">-p</span> tcp <span class="nt">--dport</span> 443 <span class="nt">-j</span> ACCEPT        <span class="c"># HTTPS(443) 허용</span>
+<span class="nb">sudo </span>iptables <span class="nt">-A</span> INPUT <span class="nt">-s</span> 아이피주소 <span class="nt">-j</span> DROP                <span class="c"># 특정 IP 차단</span>
+
+<span class="c"># 방화벽 규칙 삭제</span>
+<span class="nb">sudo </span>iptables <span class="nt">-D</span> INPUT 라인번호    <span class="c"># 번호 기반 삭제</span>
+<span class="nb">sudo </span>iptables <span class="nt">-F</span>                   <span class="c"># 모든 규칙 삭제</span>
+
+<span class="c"># 포트포워딩 (80 → 8080)</span>
+<span class="nb">sudo </span>iptables <span class="nt">-t</span> nat <span class="nt">-A</span> PREROUTING <span class="nt">-p</span> tcp <span class="nt">--dport</span> 80 <span class="nt">-j</span> REDIRECT <span class="nt">--to-port</span> 8080
+</code></pre></div></div>
+
+<ul>
+  <li><strong>규칙 저장</strong></li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 패키지 설치</span>
+<span class="nb">sudo </span>apt <span class="nb">install </span>iptables-persistent
+
+<span class="c"># 파일에 저장</span>
+<span class="nb">sudo </span>iptables-save | <span class="nb">sudo tee</span> /etc/iptables/rules.v4
+
+<span class="c"># 파일에서 읽어오기</span>
+<span class="nb">sudo </span>iptables-restore &lt; /etc/iptables/rules.v4
+</code></pre></div></div>
+
+<ul>
+  <li><strong>현대 리눅스에서 위치</strong>
+    <ul>
+      <li><strong>ufw</strong>: Ubuntu 기본 방화벽 도구 (iptables를 단순화 Wrapping)</li>
+      <li><strong>nftables</strong>: 차세대 패킷 필터링 프레임워크</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="ufw">ufw</h3>
+<ul>
+  <li><strong>개요</strong>
+    <ul>
+      <li><strong>U</strong>n<strong>c</strong>omplicated <strong>F</strong>ire<strong>W</strong>all의 약자</li>
+      <li>iptables를 사용자 친화적으로 <strong>Wrapping</strong>한 도구</li>
+      <li>백엔드는 여전히 iptables 규칙을 생성하지만 사용자는 단순한 명령어로 제어 가능</li>
+    </ul>
+  </li>
+  <li><strong>핵심 동작 방식</strong>
+    <ul>
+      <li><strong>Whitelist</strong> 방식 기본: 외부 접근은 전부 차단, 내부 통신은 전부 허용</li>
+      <li>필요한 포트만 선택적으로 개방</li>
+    </ul>
+  </li>
+  <li><strong>특징</strong>
+    <ul>
+      <li>명령 체계 단순
+        <ul>
+          <li>iptables: <code class="language-plaintext highlighter-rouge">iptables -A INPUT -p tcp --dport 22 -j ACCEPT</code></li>
+          <li>ufw: <code class="language-plaintext highlighter-rouge">sudo ufw allow ssh</code></li>
+        </ul>
+      </li>
+      <li>규칙 관리: <code class="language-plaintext highlighter-rouge">sudo ufw status numbered</code> / <code class="language-plaintext highlighter-rouge">sudo ufw delete 번호</code></li>
+      <li>응용프로그램 프로필 지원: <code class="language-plaintext highlighter-rouge">sudo ufw allow nginx full</code></li>
+      <li>다중 조건 조합 가능 (IP + 프로토콜 + 포트)</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 상태 확인 및 활성화</span>
+<span class="nb">sudo </span>ufw status verbose    <span class="c"># 상태 확인</span>
+<span class="nb">sudo </span>ufw <span class="nb">enable</span>           <span class="c"># 방화벽 활성화</span>
+<span class="nb">sudo </span>ufw disable          <span class="c"># 방화벽 비활성화</span>
+
+<span class="c"># 기본 정책 설정</span>
+<span class="nb">sudo </span>ufw default deny incoming     <span class="c"># 들어오는 모든 접속 차단</span>
+<span class="nb">sudo </span>ufw default allow outgoing    <span class="c"># 나가는 모든 접속 허용</span>
+
+<span class="c"># 포트 번호 기반 설정</span>
+<span class="nb">sudo </span>ufw allow 포트번호              <span class="c"># 특정 포트 허용</span>
+<span class="nb">sudo </span>ufw allow 포트번호/tcp          <span class="c"># 프로토콜 지정 허용</span>
+<span class="nb">sudo </span>ufw deny 포트번호               <span class="c"># 특정 포트 차단</span>
+<span class="nb">sudo </span>ufw allow 시작번호:끝번호/tcp    <span class="c"># 포트 범위 허용</span>
+
+<span class="c"># 서비스 이름 기반 설정</span>
+<span class="nb">sudo </span>ufw allow ssh                <span class="c"># SSH 허용</span>
+
+<span class="c"># 특정 IP 기반 설정</span>
+<span class="nb">sudo </span>ufw allow from IP                       <span class="c"># 특정 IP 접근만 허용</span>
+<span class="nb">sudo </span>ufw allow from 네트워크주소/서브넷마스크  <span class="c"># 특정 네트워크 대역 허용</span>
+<span class="nb">sudo </span>ufw allow from IP주소 to any port 포트번호 proto tcp  <span class="c"># IP + 포트 조건</span>
+
+<span class="c"># 규칙 삭제 및 초기화</span>
+<span class="nb">sudo </span>ufw delete 번호              <span class="c"># 번호로 삭제</span>
+<span class="nb">sudo </span>ufw delete allow 80          <span class="c"># 명령어로 삭제</span>
+<span class="nb">sudo </span>ufw reset                    <span class="c"># 전체 초기화</span>
+</code></pre></div></div>
+
+<p>===여기까지===</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/10-programming-install/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">프로그래밍 언어 설치</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/12-remote-access/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">원격 접속</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785582635"></script>
+  </body>
+</html>
