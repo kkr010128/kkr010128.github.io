@@ -1,6 +1,6 @@
 header:
   show_github_link: true
-  show_rss_link: true
+  show_rss_link: false
   show_theme_toggle: true
 
 tabs:
@@ -29,7 +29,7 @@ hero:
 
 profile:
   github_sync:
-    enabled: true
+    enabled: false
 
 footer:
   tagline: Notes on Software Engineering, Backend and Cloud

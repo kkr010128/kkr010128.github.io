@@ -1,18 +1,19 @@
 python:
   title: Python
-  description: 
+  description: Python
 MariaDB:
   title: MariaDB
-  description: 
+  description: MariaDB
 MongoDB:
   title: MongoDB
-  description: 
+  description: MongoDB
 Redis:
   title: Redis
-  description: 
+  description: Redis
 Linux:
   title: Linux
-  description: 
+  description: Linux
 MongoDB:
+  title: Network
   title: Network
   description: 
