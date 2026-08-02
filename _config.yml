@@ -10,22 +10,22 @@ permalink: /:title/
 
 analytics:
   google:
-    measurement_id: ""
+    measurement_id: "G-S5JKF3RE2G"
 
 comments:
-  provider: ""
+  provider: "giscus"
   disqus:
     shortname: ""
   giscus:
-    repo: "owner/repository"
-    repo_id: "REPOSITORY_NODE_ID"
+    repo: "kkr010128/kkr010128.github.io"
+    repo_id: "R_kgDOToIqkw"
     category: "Announcements"
-    category_id: "CATEGORY_NODE_ID"
+    category_id: "DIC_kwDOToIqk84DCiaL"
     mapping: "pathname"
     strict: true
     reactions_enabled: true
     emit_metadata: false
-    input_position: "bottom"
+    input_position: "top"
     lang: "ko"
     loading: "lazy"
     theme_light: "/assets/css/giscus-velog-light.css"

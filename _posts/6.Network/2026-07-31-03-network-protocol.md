@@ -98,7 +98,7 @@ tags:
 
 ### MAC Address 변경도 됨
 - 일반적으로 ROM 형태로 고정돼 출하되므로 NIC에 고정된 주소를 변경하기는 어려움
-- But, 주소 자체도 메모리에 적재 되어 구동 됨
+- But, 주소 자체도 메모리에 적재 되어 구동 됨
 	- 다양한 방법으로 주소를 변경해 동작시킬 수 있음
 		- Windows의 경우 driver 상세에서 변경 기능 제공
 		- Linux의 경우 GNU MacChanger 네트워크 설정 파일에 MAC Address 입력 시 변경 가능
