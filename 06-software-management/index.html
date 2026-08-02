@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-22T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -238,7 +238,7 @@
         
           <a class="tag-chip" href="/?tag=Linux">Linux</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -295,12 +295,12 @@
   <li>우분투는 패키지와 패키지에 대한 정보를 저장하고 있는 서버인 패키지 저장소 개념 도입</li>
   <li>패키지 저장소는 패키지의 기능 추가나 보안 패치 등 지속적 업그레이드를 집중적으로 관리</li>
   <li>사용자는 저장소에 접속해 최신 패키지를 내려받아 설치</li>
-  <li>패키지 저장소를 이용하기 위해선 패키지 저장소를 설정해야 함
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 해당 파일에 패키지 저장소 설정</span>
-<span class="nb">sudo ls</span> <span class="nt">-l</span> /etc/apt/sources.list.d/ubuntu.sources
-</code></pre></div>    </div>
-  </li>
+  <li>패키지 저장소를 이용하기 위해선 패키지 저장소를 설정해야 함</li>
 </ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 해당 파일에 패키지 저장소 설정</span>
+<span class="nb">sudo ls</span> <span class="nt">-l</span> /etc/apt/sources.list.d/ubuntu.sources
+</code></pre></div></div>
 
 <h2 id="2--package-management">2 ) Package Management</h2>
 <hr />
@@ -415,11 +415,8 @@
   </li>
 </ul>
 
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>blank
-</code></pre></div></div>
-
-<p>===추가됨===</p>
 <h4 id="dpkg-명령-사용-예시">dpkg 명령 사용 예시</h4>
+
 <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 패키지 목록 출력</span>
 dpkg <span class="nt">-l</span>
 
@@ -435,43 +432,71 @@ dpkg <span class="nt">-L</span> 패키지이름
 <span class="c"># 패키지 삭제</span>
 <span class="nb">sudo </span>dpkg <span class="nt">-r</span> 패키지이름
 </code></pre></div></div>
-<p>===여기까지===</p>
 
 <h3 id="aptitude">aptitude</h3>
 <ul>
   <li>옵션이나 서브 명령 없이 사용하면 curses를 이용한 visual mode로 동작</li>
   <li><code class="language-plaintext highlighter-rouge">sudo apt install aptitude -y</code></li>
-  <li><code class="language-plaintext highlighter-rouge">sudo aptitude</code>
-    <h3 id="snap">snap</h3>
-  </li>
+  <li><code class="language-plaintext highlighter-rouge">sudo aptitude</code></li>
+</ul>
+
+<h3 id="snap">snap</h3>
+<ul>
   <li>우분투가 새로 도입한 패키지 형식</li>
   <li>샌드박스 형태의 패키지</li>
   <li>패키지를 만들 때 필요한 모든 라이브러리를 패키지 안에 포함하는 방식</li>
   <li>외부 파일이 내부 시스템에 악영향을 주는 것을 방지하는</li>
-  <li>단점은 패키지의 용량이 커짐
-    <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>OPTION BLANK
-</code></pre></div>    </div>
-  </li>
+  <li>단점은 패키지의 용량이 커짐</li>
 </ul>
 
-<p>===추가됨===</p>
-<h4 id="snap-명령어">snap 명령어</h4>
+<h3 id="snap-명령어">snap 명령어</h3>
 
 <ul>
   <li>형식: <code class="language-plaintext highlighter-rouge">snap [옵션] 명령</code></li>
 </ul>
 
-<p>| 명령 | 설명 |
-|——|——|
-| <code class="language-plaintext highlighter-rouge">disable</code> | 스냅 비활성화 |
-| <code class="language-plaintext highlighter-rouge">download</code> | 스냅 다운로드 |
-| <code class="language-plaintext highlighter-rouge">enable</code> | 스냅 활성화 |
-| <code class="language-plaintext highlighter-rouge">find 스냅이름</code> | 스냅 검색 |
-| <code class="language-plaintext highlighter-rouge">info 스냅이름</code> | 스냅 정보 확인 |
-| <code class="language-plaintext highlighter-rouge">install 스냅이름</code> | 스냅 설치 |
-| <code class="language-plaintext highlighter-rouge">list</code> | 설치된 스냅 목록 |
-| <code class="language-plaintext highlighter-rouge">remove 스냅이름</code> | 스냅 제거 |
-===여기까지===</p>
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">disable</code></td>
+      <td>스냅 비활성화</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">download</code></td>
+      <td>스냅 다운로드</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">enable</code></td>
+      <td>스냅 활성화</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">find 스냅이름</code></td>
+      <td>스냅 검색</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">info 스냅이름</code></td>
+      <td>스냅 정보 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">install 스냅이름</code></td>
+      <td>스냅 설치</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">list</code></td>
+      <td>설치된 스냅 목록</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">remove 스냅이름</code></td>
+      <td>스냅 제거</td>
+    </tr>
+  </tbody>
+</table>
 
 <h2 id="3--압축">3 ) 압축</h2>
 <hr />
@@ -511,47 +536,47 @@ dpkg <span class="nt">-L</span> 패키지이름
       </li>
     </ul>
   </li>
-  <li>실습
-```bash
-    <h1 id="디렉토리-생성">디렉토리 생성</h1>
-    <p>mkdir ex_archive</p>
-  </li>
+  <li>실습</li>
 </ul>
 
-<h1 id="디렉토리-이동">디렉토리 이동</h1>
-<p>cd ex_archive</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 디렉토리 생성</span>
+<span class="nb">mkdir </span>ex_archive
 
-<h1 id="디렉토리-생성-1">디렉토리 생성</h1>
-<p>mkdir sample1 sample2 sample3</p>
+<span class="c"># 디렉토리 이동</span>
+<span class="nb">cd </span>ex_archive
 
-<h1 id="sample1-디렉토리를-압축">sample1 디렉토리를 압축</h1>
-<p>tar cvf sample1.tar smaple1</p>
+<span class="c"># 디렉토리 생성</span>
+<span class="nb">mkdir </span>sample1 sample2 sample3
 
-<h1 id="압축한-내용-확인">압축한 내용 확인</h1>
-<p>tar tvf sample1.tar</p>
+<span class="c"># sample1 디렉토리를 압축</span>
+<span class="nb">tar </span>cvf sample1.tar smaple1
 
-<h1 id="sample1-디렉토리-삭제">sample1 디렉토리 삭제</h1>
-<p>rmdir sample1</p>
+<span class="c"># 압축한 내용 확인</span>
+<span class="nb">tar </span>tvf sample1.tar
 
-<h1 id="압축-해제">압축 해제</h1>
-<p>tar xvf sample1.tar</p>
+<span class="c"># sample1 디렉토리 삭제</span>
+<span class="nb">rmdir </span>sample1
 
-<h1 id="파일-생성">파일 생성</h1>
-<p>touch sample1/data</p>
+<span class="c"># 압축 해제</span>
+<span class="nb">tar </span>xvf sample1.tar
 
-<h1 id="압축된-파일-업데이트">압축된 파일 업데이트</h1>
-<p>tar uvf sample1.tar sample1</p>
+<span class="c"># 파일 생성</span>
+<span class="nb">touch </span>sample1/data
 
-<h1 id="파일-생성-1">파일 생성</h1>
-<p>touch service</p>
+<span class="c"># 압축된 파일 업데이트</span>
+<span class="nb">tar </span>uvf sample1.tar sample1
 
-<h1 id="이미-압축된-파일에-추가">이미 압축된 파일에 추가</h1>
-<p>tar rvf sample1.tar service</p>
+<span class="c"># 파일 생성</span>
+<span class="nb">touch </span>service
 
-<h1 id="아카이브-생성과-함께-압축">아카이브 생성과 함께 압축</h1>
-<p>tar czvf sample1.tar.gz sample1
-tar czvf sample1.tar.bz2 sample1
-```</p>
+<span class="c"># 이미 압축된 파일에 추가</span>
+<span class="nb">tar </span>rvf sample1.tar service
+
+<span class="c"># 아카이브 생성과 함께 압축</span>
+<span class="nb">tar </span>czvf sample1.tar.gz sample1
+<span class="nb">tar </span>czvf sample1.tar.bz2 sample1
+</code></pre></div></div>
+
 <ul>
   <li>아카이브 생성과 함께 압축
     <ul>
@@ -712,6 +737,6 @@ tar czvf sample1.tar.bz2 sample1
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

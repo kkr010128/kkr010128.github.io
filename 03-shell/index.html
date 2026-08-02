@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-20T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -238,7 +238,7 @@
         
           <a class="tag-chip" href="/?tag=Linux">Linux</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -326,77 +326,71 @@
 <hr />
 <h3 id="종류-1">종류</h3>
 
-<p>| 파일 디스크립터 | 대신 사용하는 이름 | 정의    |
-| ——– | ———- | —– |
-| 0        | stdin      | 표준 입력 |
-| 1        | stdout     | 표준 출력 |
-| 2        | stderr     | 표준 오류 |</p>
+<table>
+  <thead>
+    <tr>
+      <th>파일 디스크립터</th>
+      <th>대신 사용하는 이름</th>
+      <th>정의</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>stdin</td>
+      <td>표준 입력</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>stdout</td>
+      <td>표준 출력</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>stderr</td>
+      <td>표준 오류</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3 id="출력-redirection">출력 Redirection</h3>
 <ul>
   <li>출력의 방향을 바꿈</li>
   <li>기본적으로 출력은 모니터</li>
   <li>Format
   → 명령 1 &gt; 경로
-  → 명령 &gt; 경로
-```c
-    <h1 id="date-명령의-결과를-파일로-저장">date 명령의 결과를 파일로 저장</h1>
-    <p>date 1&gt;print.txt
-ls
-exec.txt  print.txt  test.txt  test1.txt
-cat print.txt</p>
-    <ol>
-      <li>
-        <ol>
-          <li>
-            <ol>
-              <li>(화) 10:33:48 KST
- → 명령의 수행 결과를 print.txt로 저장</li>
-            </ol>
-          </li>
-        </ol>
-      </li>
-    </ol>
-  </li>
+  → 명령 &gt; 경로</li>
 </ul>
 
-<h1 id="파일에-내용-추가는----대신--사용">파일에 내용 추가는 ` &gt; ` 대신 ` » `사용</h1>
-<p>date 1»print.txt
-cat print.txt</p>
-<ol>
-  <li>
-    <ol>
-      <li>
-        <ol>
-          <li>(화) 10:33:48 KST</li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-  <li>
-    <ol>
-      <li>
-        <ol>
-          <li>(화) 10:34:37 KST
-```
-            <h3 id="오류-redirection">오류 Redirection</h3>
-            <ul>
-              <li>오류 메시지를 모니터가 아닌 다른 곳에 출력</li>
-              <li>Format
-→ <code class="language-plaintext highlighter-rouge">명령 2&gt;경로</code> 
-→ 1로 하면 성공했을 때 기록, 실패는 기록하지 않음
-                <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># </span>
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp"># date 명령의 결과를 파일로 저장
+</span><span class="n">date</span> <span class="mi">1</span><span class="o">&gt;</span><span class="n">print</span><span class="p">.</span><span class="n">txt</span>
+<span class="n">ls</span>
+<span class="n">exec</span><span class="p">.</span><span class="n">txt</span>  <span class="n">print</span><span class="p">.</span><span class="n">txt</span>  <span class="n">test</span><span class="p">.</span><span class="n">txt</span>  <span class="n">test1</span><span class="p">.</span><span class="n">txt</span>
+<span class="n">cat</span> <span class="n">print</span><span class="p">.</span><span class="n">txt</span>
+<span class="mi">2026</span><span class="p">.</span> <span class="mo">07</span><span class="p">.</span> <span class="mi">21</span><span class="p">.</span> <span class="p">(</span><span class="err">화</span><span class="p">)</span> <span class="mi">10</span><span class="o">:</span><span class="mi">33</span><span class="o">:</span><span class="mi">48</span> <span class="n">KST</span>
+ <span class="err">→</span> <span class="err">명령의</span> <span class="err">수행</span> <span class="err">결과를</span> <span class="n">print</span><span class="p">.</span><span class="n">txt</span><span class="err">로</span> <span class="err">저장</span>
+ 
+ 
+<span class="cp"># 파일에 내용 추가는 ` &gt; ` 대신 ` &gt;&gt; `사용
+</span><span class="n">date</span> <span class="mi">1</span><span class="o">&gt;&gt;</span><span class="n">print</span><span class="p">.</span><span class="n">txt</span>
+<span class="n">cat</span> <span class="n">print</span><span class="p">.</span><span class="n">txt</span>
+<span class="mi">2026</span><span class="p">.</span> <span class="mo">07</span><span class="p">.</span> <span class="mi">21</span><span class="p">.</span> <span class="p">(</span><span class="err">화</span><span class="p">)</span> <span class="mi">10</span><span class="o">:</span><span class="mi">33</span><span class="o">:</span><span class="mi">48</span> <span class="n">KST</span>
+<span class="mi">2027</span><span class="p">.</span> <span class="mo">07</span><span class="p">.</span> <span class="mi">21</span><span class="p">.</span> <span class="p">(</span><span class="err">화</span><span class="p">)</span> <span class="mi">10</span><span class="o">:</span><span class="mi">34</span><span class="o">:</span><span class="mi">37</span> <span class="n">KST</span>
+</code></pre></div></div>
+
+<h3 id="오류-redirection">오류 Redirection</h3>
+<ul>
+  <li>오류 메시지를 모니터가 아닌 다른 곳에 출력</li>
+  <li>Format
+  → <code class="language-plaintext highlighter-rouge">명령 2&gt;경로</code> 
+  → 1로 하면 성공했을 때 기록, 실패는 기록하지 않음</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># </span>
 <span class="nb">ls </span>a 2&gt;err.txt
 <span class="nb">cat </span>err.txt 
 <span class="nb">ls</span>: cannot access <span class="s1">'a'</span>: No such file or directory
-</code></pre></div>                </div>
-              </li>
-            </ul>
-          </li>
-        </ol>
-      </li>
-    </ol>
-  </li>
-</ol>
+</code></pre></div></div>
 
 <ul>
   <li>
@@ -433,7 +427,7 @@ cat print.txt</p>
     <h3 id="변수-생성-및-수정">변수 생성 및 수정</h3>
   </li>
   <li>변수이름 = 값</li>
-  <li>` - `없으면 생성되고 있으면 수정</li>
+  <li><code class="language-plaintext highlighter-rouge">-</code>없으면 생성되고 있으면 수정</li>
 </ul>
 
 
@@ -486,6 +480,6 @@ cat print.txt</p>
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

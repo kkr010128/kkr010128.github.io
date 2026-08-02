@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-15T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -228,7 +228,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 15일 · 3분 읽기
+          2026년 7월 15일 · 1분 읽기
         </span>
       </div>
     </div>
@@ -238,7 +238,7 @@
         
           <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -247,205 +247,43 @@
   </header>
 
   <section class="prose">
-    <ol>
-  <li>스토어드 프로시저 (Stored Procedure)</li>
-</ol>
-
-<ul>
-  <li><strong>정의</strong>: 관계형 데이터베이스에서 절차적 프로그래밍(변수, 조건문, 반복문 등)을 가능하게 하는 객체임.</li>
-  <li><strong>사용 목적</strong>: 성능 향상, 유지 및 관리의 간소화, 모듈화 프로그래밍, 보안 강화 등이 있음.</li>
-</ul>
-
-<h3 id="11-기본-문법-및-호출">1.1 기본 문법 및 호출</h3>
-
-<ul>
-  <li><strong>구조</strong>: MariaDB의 기본 종료 문자인 세미콜론(<code class="language-plaintext highlighter-rouge">;</code>)과의 충돌을 피하기 위해 <code class="language-plaintext highlighter-rouge">DELIMITER</code>를 사용하여 일시적으로 종료 문자를 변경함.</li>
-</ul>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- 선언</span>
-<span class="k">DELIMITER</span> <span class="err">$$</span>
-<span class="k">CREATE</span> <span class="k">PROCEDURE</span> <span class="err">프로시저이름</span><span class="p">()</span>
-<span class="k">BEGIN</span>
-    <span class="c1">-- SQL 및 로직 작성</span>
-<span class="k">END</span> <span class="err">$$</span>
-<span class="k">DELIMITER</span> <span class="p">;</span>
-
-<span class="c1">-- 호출</span>
-<span class="k">CALL</span> <span class="err">프로시저이름</span><span class="p">();</span>
-</code></pre></div></div>
-
+    <h2 id="1-stored-procedure">1) Stored Procedure</h2>
 <hr />
-
-<h2 id="2-제어-흐름-문법">2. 제어 흐름 문법</h2>
-
-<h3 id="21-if--else-조건문">2.1 IF ~ ELSE (조건문)</h3>
-
+<h3 id="개요">개요</h3>
 <ul>
-  <li>조건에 따라 로직을 분기하며, 처리할 문장이 여러 개일 경우 <code class="language-plaintext highlighter-rouge">BEGIN ~ END</code>로 묶음.</li>
-  <li><strong>예제</strong>: 특정 사원의 입사일로부터 5년 경과 여부 확인.</li>
+  <li>데이터베이스에 저장된 <strong>프로그래밍 로직</strong></li>
+  <li>SQL 문을 함수처럼 실행 가능</li>
 </ul>
 
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELIMITER</span> <span class="o">//</span>
-<span class="k">CREATE</span> <span class="k">PROCEDURE</span> <span class="n">ifProc</span><span class="p">()</span>
+<h3 id="생성">생성</h3>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELIMITER</span> <span class="err">$$</span>
+<span class="k">CREATE</span> <span class="k">PROCEDURE</span> <span class="err">프로시저명</span><span class="p">(</span><span class="k">IN</span> <span class="n">param</span> <span class="nb">INT</span><span class="p">)</span>
 <span class="k">BEGIN</span>
-    <span class="k">DECLARE</span> <span class="n">hireDATE</span> <span class="nb">DATE</span><span class="p">;</span> <span class="c1">-- 입사일 저장 변수</span>
-    <span class="k">DECLARE</span> <span class="n">days</span> <span class="nb">INT</span><span class="p">;</span>      <span class="c1">-- 근무 일수</span>
-
-    <span class="k">SELECT</span> <span class="n">HIREDATE</span> <span class="k">INTO</span> <span class="n">hireDate</span> <span class="k">FROM</span> <span class="n">EMP</span> <span class="k">WHERE</span> <span class="n">EMPNO</span> <span class="o">=</span> <span class="mi">7369</span><span class="p">;</span>
-    <span class="k">SET</span> <span class="n">days</span> <span class="o">=</span> <span class="n">DATEDIFF</span><span class="p">(</span><span class="k">CURRENT_DATE</span><span class="p">(),</span> <span class="n">hireDATE</span><span class="p">);</span>
-
-    <span class="n">IF</span> <span class="p">(</span><span class="n">days</span><span class="o">/</span><span class="mi">365</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">5</span> <span class="k">THEN</span>
-        <span class="k">SELECT</span> <span class="s1">'입사한지 5년이 지났습니다.'</span> <span class="k">AS</span> <span class="err">결과</span><span class="p">;</span>
-    <span class="k">ELSE</span>
-        <span class="k">SELECT</span> <span class="s1">'입사한지 아직 5년이 되지 않았습니다.'</span> <span class="k">AS</span> <span class="err">결과</span><span class="p">;</span>
-    <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
-<span class="k">END</span> <span class="o">//</span>
+    <span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="err">테이블</span> <span class="k">WHERE</span> <span class="err">컬럼</span> <span class="o">=</span> <span class="n">param</span><span class="p">;</span>
+<span class="k">END</span><span class="err">$$</span>
 <span class="k">DELIMITER</span> <span class="p">;</span>
-
-<span class="c1">-- 실행 결과</span>
-<span class="k">CALL</span> <span class="n">ifProc</span><span class="p">();</span> <span class="c1">-- '입사한지 5년이 지났습니다.' (데이터에 따라 다름)</span>
 </code></pre></div></div>
 
-<h3 id="22-case--when-다중-분기">2.2 CASE ~ WHEN (다중 분기)</h3>
-
-<ul>
-  <li>여러 조건 중 일치하는 하나를 수행함.</li>
-  <li><strong>예제</strong>: 점수에 따른 학점 계산.</li>
-</ul>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELIMITER</span> <span class="o">//</span>
-<span class="k">CREATE</span> <span class="k">PROCEDURE</span> <span class="n">caseProc</span><span class="p">()</span>
-<span class="k">BEGIN</span>
-    <span class="k">DECLARE</span> <span class="n">point</span> <span class="nb">INT</span> <span class="k">DEFAULT</span> <span class="mi">77</span><span class="p">;</span>
-    <span class="k">DECLARE</span> <span class="n">credit</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
-
-    <span class="k">CASE</span>
-        <span class="k">WHEN</span> <span class="n">point</span> <span class="o">&gt;=</span> <span class="mi">90</span> <span class="k">THEN</span> <span class="k">SET</span> <span class="n">credit</span> <span class="o">=</span> <span class="s1">'A'</span><span class="p">;</span>
-        <span class="k">WHEN</span> <span class="n">point</span> <span class="o">&gt;=</span> <span class="mi">80</span> <span class="k">THEN</span> <span class="k">SET</span> <span class="n">credit</span> <span class="o">=</span> <span class="s1">'B'</span><span class="p">;</span>
-        <span class="k">WHEN</span> <span class="n">point</span> <span class="o">&gt;=</span> <span class="mi">70</span> <span class="k">THEN</span> <span class="k">SET</span> <span class="n">credit</span> <span class="o">=</span> <span class="s1">'C'</span><span class="p">;</span>
-        <span class="k">ELSE</span> <span class="k">SET</span> <span class="n">credit</span> <span class="o">=</span> <span class="s1">'F'</span><span class="p">;</span>
-    <span class="k">END</span> <span class="k">CASE</span><span class="p">;</span>
-    <span class="k">SELECT</span> <span class="n">CONCAT</span><span class="p">(</span><span class="s1">'점수: '</span><span class="p">,</span> <span class="n">point</span><span class="p">,</span> <span class="s1">', 학점: '</span><span class="p">,</span> <span class="n">credit</span><span class="p">)</span> <span class="k">AS</span> <span class="err">성적</span><span class="p">;</span>
-<span class="k">END</span> <span class="o">//</span>
-<span class="k">DELIMITER</span> <span class="p">;</span>
-
-<span class="c1">-- 실행 결과</span>
-<span class="k">CALL</span> <span class="n">caseProc</span><span class="p">();</span> <span class="c1">-- '점수: 77, 학점: C'</span>
+<h3 id="호출">호출</h3>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CALL</span> <span class="err">프로시저명</span><span class="p">(</span><span class="err">값</span><span class="p">);</span>
 </code></pre></div></div>
 
-<h3 id="23-while-반복문">2.3 WHILE (반복문)</h3>
-
-<ul>
-  <li>조건이 참인 동안 명령문을 반복 수행함.</li>
-  <li><strong>ITERATE</strong>: 지정한 레이블로 이동(자바의 <code class="language-plaintext highlighter-rouge">continue</code>와 유사).</li>
-  <li><strong>LEAVE</strong>: 반복문을 즉시 종료(자바의 <code class="language-plaintext highlighter-rouge">break</code>와 유사).</li>
-  <li><strong>예제</strong>: 1~100까지 합을 구하다가 7의 배수는 건너뛰고 합계가 1000을 넘으면 중단.</li>
-</ul>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELIMITER</span> <span class="o">//</span>
-<span class="k">CREATE</span> <span class="k">PROCEDURE</span> <span class="n">whileProc</span><span class="p">()</span>
-<span class="k">BEGIN</span>
-    <span class="k">DECLARE</span> <span class="n">i</span> <span class="nb">INT</span> <span class="k">DEFAULT</span> <span class="mi">1</span><span class="p">;</span>
-    <span class="k">DECLARE</span> <span class="n">hap</span> <span class="nb">INT</span> <span class="k">DEFAULT</span> <span class="mi">0</span><span class="p">;</span>
-
-    <span class="n">myWhile</span><span class="p">:</span> <span class="n">WHILE</span> <span class="p">(</span><span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">100</span><span class="p">)</span> <span class="k">DO</span>
-        <span class="n">IF</span> <span class="p">(</span><span class="n">i</span> <span class="o">%</span> <span class="mi">7</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="k">THEN</span>
-            <span class="k">SET</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-            <span class="k">ITERATE</span> <span class="n">myWhile</span><span class="p">;</span> <span class="c1">-- 7의 배수는 더하지 않고 다시 위로</span>
-        <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
-        <span class="k">SET</span> <span class="n">hap</span> <span class="o">=</span> <span class="n">hap</span> <span class="o">+</span> <span class="n">i</span><span class="p">;</span>
-        <span class="n">IF</span> <span class="p">(</span><span class="n">hap</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">)</span> <span class="k">THEN</span>
-            <span class="n">LEAVE</span> <span class="n">myWhile</span><span class="p">;</span> <span class="c1">-- 합계가 1000 초과 시 반복 종료</span>
-        <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
-        <span class="k">SET</span> <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-    <span class="k">END</span> <span class="n">WHILE</span><span class="p">;</span>
-    <span class="k">SELECT</span> <span class="n">hap</span><span class="p">;</span>
-<span class="k">END</span> <span class="o">//</span>
-<span class="k">DELIMITER</span> <span class="p">;</span>
-
-<span class="c1">-- 실행 결과</span>
-<span class="k">CALL</span> <span class="n">whileProc</span><span class="p">();</span> <span class="c1">-- 1029 (조건에 따른 합계 결과)</span>
+<h3 id="삭제">삭제</h3>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DROP</span> <span class="k">PROCEDURE</span> <span class="err">프로시저명</span><span class="p">;</span>
 </code></pre></div></div>
 
+<h2 id="2-trigger">2) Trigger</h2>
 <hr />
+<h3 id="개요-1">개요</h3>
+<p>특정 테이블에 INSERT/UPDATE/DELETE 발생 시 <strong>자동 실행</strong></p>
 
-<h2 id="3-오류-처리-error-handling">3. 오류 처리 (Error Handling)</h2>
-
-<ul>
-  <li>프로시저 실행 중 발생하는 에러에 대해 <code class="language-plaintext highlighter-rouge">DECLARE HANDLER</code>를 사용하여 대응함.</li>
-  <li><strong>액션</strong>: <code class="language-plaintext highlighter-rouge">CONTINUE</code>(계속 수행) 또는 <code class="language-plaintext highlighter-rouge">EXIT</code>(종료) 중 선택함.</li>
-  <li><strong>예제</strong>: 존재하지 않는 테이블 조회 시 커스텀 메시지 출력.</li>
-</ul>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DECLARE</span> <span class="k">CONTINUE</span> <span class="k">HANDLER</span> <span class="k">FOR</span> <span class="mi">1146</span>
-    <span class="k">SELECT</span> <span class="s1">'테이블이 존재하지 않습니다.'</span> <span class="k">AS</span> <span class="s1">'오류 메시지'</span><span class="p">;</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="4-동적-sql-dynamic-sql">4. 동적 SQL (Dynamic SQL)</h2>
-
-<ul>
-  <li>SQL문을 미리 준비(<code class="language-plaintext highlighter-rouge">PREPARE</code>)해 두었다가 필요할 때 실행(<code class="language-plaintext highlighter-rouge">EXECUTE</code>)하고 해제(<code class="language-plaintext highlighter-rouge">DEALLOCATE</code>)함.</li>
-  <li><strong>예제</strong>: 매개변수를 받는 동적 쿼리.</li>
-</ul>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">PREPARE</span> <span class="n">paramQuery</span> <span class="k">FROM</span> <span class="s1">'SELECT * FROM EMP WHERE empno = ?'</span><span class="p">;</span>
-<span class="k">SET</span> <span class="o">@</span><span class="n">empno</span> <span class="o">=</span> <span class="mi">7788</span><span class="p">;</span>
-<span class="k">EXECUTE</span> <span class="n">paramQuery</span> <span class="k">USING</span> <span class="o">@</span><span class="n">empno</span><span class="p">;</span> <span class="c1">-- 사원번호 7788 데이터 조회됨</span>
-<span class="k">DEALLOCATE</span> <span class="k">PREPARE</span> <span class="n">paramQuery</span><span class="p">;</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="5-트리거-trigger">5. 트리거 (TRIGGER)</h2>
-
-<ul>
-  <li>테이블에 <code class="language-plaintext highlighter-rouge">INSERT</code>, <code class="language-plaintext highlighter-rouge">UPDATE</code>, <code class="language-plaintext highlighter-rouge">DELETE</code> 사건이 발생할 때 자동으로 실행되는 프로그래밍 블록임.</li>
-  <li><strong>제한</strong>: 트랜잭션 제어 문장(<code class="language-plaintext highlighter-rouge">COMMIT</code>, <code class="language-plaintext highlighter-rouge">ROLLBACK</code>)을 직접 사용할 수 없음.</li>
-</ul>
-
-<h3 id="51-트리거의-old와-new">5.1 트리거의 OLD와 NEW</h3>
-
-<ul>
-  <li><strong>INSERT</strong>: <code class="language-plaintext highlighter-rouge">NEW</code>만 존재 (새로 삽입된 값).</li>
-  <li><strong>UPDATE</strong>: <code class="language-plaintext highlighter-rouge">OLD</code>(수정 전)와 <code class="language-plaintext highlighter-rouge">NEW</code>(수정 후) 모두 존재.</li>
-  <li><strong>DELETE</strong>: <code class="language-plaintext highlighter-rouge">OLD</code>만 존재 (삭제된 원래 값).</li>
-</ul>
-
-<h3 id="52-실무-활용-예제">5.2 실무 활용 예제</h3>
-
-<ul>
-  <li><strong>급여 수정 제한</strong>: 현재 값보다 적게 수정하거나 10% 이상 높게 수정하는 것을 차단함.</li>
-</ul>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELIMITER</span> <span class="o">//</span>
-<span class="k">CREATE</span> <span class="k">TRIGGER</span> <span class="n">emp_sal_chk</span>
-<span class="k">BEFORE</span> <span class="k">UPDATE</span> <span class="k">ON</span> <span class="n">EMP</span>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TRIGGER</span> <span class="err">트리거명</span>
+<span class="p">{</span><span class="k">BEFORE</span> <span class="o">|</span> <span class="k">AFTER</span><span class="p">}</span> <span class="p">{</span><span class="k">INSERT</span> <span class="o">|</span> <span class="k">UPDATE</span> <span class="o">|</span> <span class="k">DELETE</span><span class="p">}</span> <span class="k">ON</span> <span class="err">테이블명</span>
 <span class="k">FOR</span> <span class="k">EACH</span> <span class="k">ROW</span>
 <span class="k">BEGIN</span>
-    <span class="c1">-- 수정 전 급여보다 낮거나, 1.1배를 초과할 경우 에러 발생시킴</span>
-    <span class="n">IF</span> <span class="p">(</span><span class="k">NEW</span><span class="p">.</span><span class="n">sal</span> <span class="o">&lt;</span> <span class="k">OLD</span><span class="p">.</span><span class="n">sal</span> <span class="k">OR</span> <span class="k">NEW</span><span class="p">.</span><span class="n">sal</span> <span class="o">&gt;</span> <span class="k">OLD</span><span class="p">.</span><span class="n">sal</span> <span class="o">*</span> <span class="mi">1</span><span class="p">.</span><span class="mi">1</span><span class="p">)</span> <span class="k">THEN</span>
-        <span class="n">SIGNAL</span> <span class="k">SQLSTATE</span> <span class="s1">'45000'</span>
-        <span class="k">SET</span> <span class="k">MESSAGE_TEXT</span> <span class="o">=</span> <span class="s1">'급여 수정 범위가 잘못되었습니다.'</span><span class="p">;</span>
-    <span class="k">END</span> <span class="n">IF</span><span class="p">;</span>
-<span class="k">END</span> <span class="o">//</span>
-<span class="k">DELIMITER</span> <span class="p">;</span>
-
-<span class="c1">-- 실행 결과</span>
-<span class="k">UPDATE</span> <span class="n">EMP</span> <span class="k">SET</span> <span class="n">SAL</span> <span class="o">=</span> <span class="n">SAL</span> <span class="o">*</span> <span class="mi">1</span><span class="p">.</span><span class="mi">2</span><span class="p">;</span> <span class="c1">-- '급여 수정 범위가 잘못되었습니다.' 에러 출력됨</span>
+    <span class="c1">-- 실행 코드</span>
+<span class="k">END</span><span class="p">;</span>
 </code></pre></div></div>
-
-<hr />
-
-<blockquote>
-  <p>[!tip] <strong>보강 내용</strong></p>
-
-  <ul>
-    <li><strong>SIGNAL SQLSTATE</strong>: 트리거 내부에서 의도적으로 사용자 정의 오류를 발생시켜 DML 작업을 중단시킬 때 사용함.</li>
-    <li><strong>IN/OUT 파라미터</strong>: 프로시저 생성 시 <code class="language-plaintext highlighter-rouge">(IN 변수명 타입)</code>으로 입력값을 받거나 <code class="language-plaintext highlighter-rouge">(OUT 변수명 타입)</code>으로 결과값을 외부로 내보낼 수 있음.</li>
-  </ul>
-</blockquote>
 
   </section>
 
@@ -496,6 +334,6 @@
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

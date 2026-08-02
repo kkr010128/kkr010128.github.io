@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-15T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -228,7 +228,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 15일 · 3분 읽기
+          2026년 7월 15일 · 1분 읽기
         </span>
       </div>
     </div>
@@ -238,7 +238,7 @@
         
           <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -247,149 +247,87 @@
   </header>
 
   <section class="prose">
-    <h2 id="1-트랜잭션transaction-개요">1. 트랜잭션(Transaction) 개요</h2>
-
-<ul>
-  <li><strong>정의</strong>: 데이터베이스에서 발생하는 여러 개의 SQL 명령문을 하나의 논리적 작업 단위로 묶어서 처리하는 것임.</li>
-  <li><strong>원칙</strong>: ‘All-or-Nothing’ 방식으로 처리됨. 묶인 명령어가 모두 성공하면 반영하고, 하나라도 실패하면 전체를 취소함.</li>
-  <li><strong>목적</strong>: 데이터의 일관성을 유지하고 안정적인 복구를 보장하기 위함임.</li>
-</ul>
-
-<h3 id="11-트랜잭션의-성질-acid">1.1 트랜잭션의 성질 (ACID)</h3>
-
-<ol>
-  <li><strong>원자성(Atomicity)</strong>: 트랜잭션 내 작업이 부분적으로 실행되다가 중단되지 않음을 보장함.</li>
-  <li><strong>일관성(Consistency)</strong>: 성공 완료 후 데이터베이스는 언제나 일관된 상태를 유지함.</li>
-  <li><strong>독립성(Isolation)</strong>: 수행 중인 트랜잭션에 다른 트랜잭션의 연산이 끼어들지 못하게 함.</li>
-  <li><strong>지속성(Durability)</strong>: 성공 완료된 트랜잭션 결과는 시스템 장애가 발생해도 영구적으로 반영됨.</li>
-</ol>
-
+    <h2 id="1-트랜잭션transaction">1) 트랜잭션(Transaction)</h2>
 <hr />
+<h3 id="개요">개요</h3>
+<p>하나의 논리적 작업 단위로, <strong>모두 성공(COMMIT)</strong> 하거나 <strong>모두 실패(ROLLBACK)</strong> 해야 함</p>
 
-<h2 id="2-임시-작업-영역-undo-segment">2. 임시 작업 영역 (Undo Segment)</h2>
-<p>트랜잭션을 사용하기 위해 관계형 데이터베이스들은 임시 작업 영역을 이용</p>
-<ul>
-  <li>원본 데이터를 복제해서 생성</li>
-  <li>
-    <p>원본 데이터를 수정하면서 작업 내역 저장</p>
-  </li>
-  <li><strong>동작 방식</strong>: 데이터를 변경하기 전후 상태의 복사본을 임시 영역(오라클: Undo Segment, SQL Server: Transaction Log)에 기록함.</li>
-  <li><strong>반영 과정</strong>: 모든 명령 성공 시 <code class="language-plaintext highlighter-rouge">COMMIT</code>을 통해 변경 후 데이터를 실제 DB에 영구 저장함. 실패 시 <code class="language-plaintext highlighter-rouge">ROLLBACK</code>으로 변경 전 데이터를 다시 써넣어 작업을 취소함.</li>
-</ul>
-
-<hr />
-
-<h2 id="3-tcl-명령어-transaction-control-language">3. TCL 명령어 (Transaction Control Language)</h2>
-
-<h3 id="31-commit-반영">3.1 COMMIT (반영)</h3>
-
-<ul>
-  <li><strong>설명</strong>: 트랜잭션 내의 모든 작업 내용을 데이터베이스에 영구 저장하고 트랜잭션을 종료함.</li>
-  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">sql COMMIT;</code></li>
-  <li><strong>결과</strong>: 이전 데이터가 완전히 업데이트되며, 모든 사용자가 변경된 결과를 확인할 수 있음.</li>
-</ul>
-
-<h3 id="32-rollback-취소">3.2 ROLLBACK (취소)</h3>
-
-<ul>
-  <li><strong>설명</strong>: 트랜잭션 시작 이후 또는 마지막 <code class="language-plaintext highlighter-rouge">COMMIT</code> 이후의 모든 변경 사항을 취소하고 트랜잭션을 종료함.</li>
-  <li><strong>문법</strong>: <code class="language-plaintext highlighter-rouge">sql ROLLBACK;</code></li>
-  <li><strong>결과</strong>: 데이터가 트랜잭션 시작 이전의 상태로 되돌아감.</li>
-</ul>
-
-<h3 id="33-savepoint-저장점">3.3 SAVEPOINT (저장점)</h3>
-
-<ul>
-  <li><strong>설명</strong>: 현재 트랜잭션을 작게 분할하여 특정 지점까지만 취소할 수 있도록 표시를 남기는 기능임.</li>
-  <li><strong>문법</strong>:
-    <ul>
-      <li>지정: <code class="language-plaintext highlighter-rouge">sql SAVEPOINT 별칭;</code></li>
-      <li>취소: <code class="language-plaintext highlighter-rouge">sql ROLLBACK TO 별칭;</code></li>
-    </ul>
-  </li>
-  <li><strong>예제</strong>:</li>
-</ul>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">DELETE</span> <span class="k">FROM</span> <span class="n">tCity</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'서울'</span><span class="p">;</span>
-<span class="n">SAVEPOINT</span> <span class="n">s1</span><span class="p">;</span> <span class="c1">-- 저장점 s1 설정</span>
-<span class="k">DELETE</span> <span class="k">FROM</span> <span class="n">tCity</span> <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'부산'</span><span class="p">;</span>
-<span class="k">ROLLBACK</span> <span class="k">TO</span> <span class="n">s1</span><span class="p">;</span> <span class="c1">-- '부산' 삭제만 취소됨, '서울'은 삭제된 상태 유지</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="4-트랜잭션-모드-transaction-mode">4. 트랜잭션 모드 (Transaction Mode)</h2>
+<h3 id="acid">ACID</h3>
 
 <table>
   <thead>
     <tr>
-      <th style="text-align: left">모드</th>
-      <th style="text-align: left">설명</th>
-      <th style="text-align: left">특징</th>
+      <th>속성</th>
+      <th>설명</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td style="text-align: left"><strong>자동 커밋 (Auto)</strong></td>
-      <td style="text-align: left">명령 실행 즉시 DB에 반영됨.</td>
-      <td style="text-align: left">MariaDB, MySQL의 기본값임. 속도는 빠르나 취소가 불가능함.</td>
+      <td><strong>A</strong>tomicity (원자성)</td>
+      <td>전부 실행 또는 전부 취소</td>
     </tr>
     <tr>
-      <td style="text-align: left"><strong>수동 커밋 (Manual)</strong></td>
-      <td style="text-align: left">명시적으로 <code class="language-plaintext highlighter-rouge">COMMIT</code>을 내려야 반영됨.</td>
-      <td style="text-align: left">오라클의 기본값임. 안전하지만 데이터 일관성 유지를 위해 락(Lock)을 활용함.</td>
+      <td><strong>C</strong>onsistency (일관성)</td>
+      <td>실행 전후 데이터 무결성 유지</td>
+    </tr>
+    <tr>
+      <td><strong>I</strong>solation (격리성)</td>
+      <td>동시 트랜잭션 간 간섭 방지</td>
+    </tr>
+    <tr>
+      <td><strong>D</strong>urability (지속성)</td>
+      <td>성공한 트랜잭션은 영구 저장</td>
     </tr>
   </tbody>
 </table>
 
+<h2 id="2-tcl-명령어">2) TCL 명령어</h2>
+<hr />
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">START</span> <span class="n">TRANSACTION</span><span class="p">;</span>     <span class="c1">-- 트랜잭션 시작</span>
+<span class="k">COMMIT</span><span class="p">;</span>                <span class="c1">-- 변경사항 영구 저장</span>
+<span class="k">ROLLBACK</span><span class="p">;</span>              <span class="c1">-- 변경사항 취소</span>
+<span class="n">SAVEPOINT</span> <span class="err">이름</span><span class="p">;</span>        <span class="c1">-- 중간 저장점</span>
+<span class="k">ROLLBACK</span> <span class="k">TO</span> <span class="err">이름</span><span class="p">;</span>      <span class="c1">-- 저장점으로 복귀</span>
+</code></pre></div></div>
+
+<h2 id="3-격리-수준">3) 격리 수준</h2>
 <hr />
 
-<h2 id="5-lock-및-격리-수준-isolation">5. Lock 및 격리 수준 (Isolation)</h2>
-
-<h3 id="51-lock-잠금">5.1 Lock (잠금)</h3>
+<table>
+  <thead>
+    <tr>
+      <th>수준</th>
+      <th>설명</th>
+      <th>문제점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>READ UNCOMMITTED</strong></td>
+      <td>커밋 안 된 데이터 읽기 가능</td>
+      <td>Dirty Read</td>
+    </tr>
+    <tr>
+      <td><strong>READ COMMITTED</strong></td>
+      <td>커밋된 데이터만 읽기</td>
+      <td>Non-Repeatable Read</td>
+    </tr>
+    <tr>
+      <td><strong>REPEATABLE READ</strong></td>
+      <td>같은 조회 결과 보장</td>
+      <td>Phantom Read</td>
+    </tr>
+    <tr>
+      <td><strong>SERIALIZABLE</strong></td>
+      <td>완벽한 격리</td>
+      <td>성능 저하</td>
+    </tr>
+  </tbody>
+</table>
 
 <ul>
-  <li><strong>목적</strong>: 한 사용자가 데이터를 변경하는 동안 다른 사용자가 동일 데이터를 수정하지 못하도록 대기시켜 일관성을 유지함.</li>
-  <li><strong>종류</strong>:
-    <ul>
-      <li><strong>공유락(Shared Lock)</strong>: 읽기는 허용하나 쓰기는 금지함.</li>
-      <li><strong>배타락(Exclusive Lock)</strong>: 읽기와 쓰기 모두 금지함.</li>
-    </ul>
-  </li>
+  <li><code class="language-plaintext highlighter-rouge">InnoDB</code>의 기본 격리 수준은 <strong>REPEATABLE READ</strong></li>
 </ul>
-
-<h3 id="52-동시성-부작용-side-effects">5.2 동시성 부작용 (Side Effects)</h3>
-
-<p>격리 수준이 낮을 때 발생할 수 있는 문제들임.</p>
-
-<ul>
-  <li><strong>손실 업데이트</strong>: 두 트랜잭션이 동시에 값을 수정하여 한쪽의 갱신 내용이 사라짐.</li>
-  <li><strong>Dirty Read</strong>: 커밋되지 않은 트랜잭션의 데이터를 다른 곳에서 읽어 발생하는 오류임.</li>
-  <li><strong>Phantom Read</strong>: 트랜잭션 도중 새로운 레코드가 삽입되어 없던 데이터가 나타나는 현상임.</li>
-</ul>
-
-<h3 id="53-격리-수준-isolation-level">5.3 격리 수준 (Isolation Level)</h3>
-<ul>
-  <li>트랜잭션 작업 도중 어느 정도까지 작업을 허용할 것인가 하는 것</li>
-  <li>
-    <p>트랜잭션 작업 도중인 데이터는 외부에서는 기본적으로 읽기와 쓰기가 되지 않음: SSERIALIZABLE</p>
-  </li>
-  <li><strong>READ UNCOMMITTED</strong>: 커밋되지 않은 데이터도 읽음. 가장 낮음.</li>
-  <li><strong>READ COMMITTED</strong>: 커밋된 데이터만 읽음. 일반적인 기본 설정임.</li>
-  <li><strong>REPEATABLE READ</strong>: 트랜잭션 중 읽은 데이터를 다른 사용자가 수정하지 못하게 함.</li>
-  <li><strong>SERIALIZABLE</strong>: 가장 높은 수준으로, 데이터 삽입조차 허용하지 않아 성능은 낮으나 정확함.</li>
-</ul>
-
-<hr />
-
-<blockquote>
-  <p>[!warning] <strong>주의사항</strong></p>
-
-  <ul>
-    <li>DDL(<code class="language-plaintext highlighter-rouge">CREATE</code>, <code class="language-plaintext highlighter-rouge">ALTER</code>, <code class="language-plaintext highlighter-rouge">DROP</code> 등)과 <code class="language-plaintext highlighter-rouge">TRUNCATE</code>는 실행 시 <strong>자동 커밋</strong>이 발생하므로 이전 DML 작업이 롤백되지 않음을 유의해야 함.</li>
-    <li>수동 모드에서는 락으로 인한 대기 상태가 길어질 수 있으므로 작업이 끝나면 반드시 <code class="language-plaintext highlighter-rouge">COMMIT</code>이나 <code class="language-plaintext highlighter-rouge">ROLLBACK</code>을 수행해야 함.</li>
-  </ul>
-</blockquote>
 
   </section>
 
@@ -440,6 +378,6 @@
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

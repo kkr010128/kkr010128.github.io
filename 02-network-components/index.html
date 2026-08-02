@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-30T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -236,7 +236,7 @@
         
           <a class="tag-chip" href="/?tag=Network">Network</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -331,8 +331,9 @@
 </ol>
 
 <blockquote>
-  <p>VPN 과 일반 네트워크의 속도 차이?
-VPN은 목적지의 주소를 알고 있기 때문에 최적의 라우팅 경로로 이동하게 됨
+  <p>VPN 과 일반 네트워크의 속도 차이?</p>
+
+  <p>VPN은 목적지의 주소를 알고 있기 때문에 최적의 라우팅 경로로 이동하게 됨
 암호화와 복호화를 진행하더라도 라우팅 속도가 빠르기 때문에 VPN의 통신 속도가 일반 네트워크 대비 우수함</p>
 </blockquote>
 
@@ -378,39 +379,47 @@ VPN은 목적지의 주소를 알고 있기 때문에 최적의 라우팅 경로
       <li><code class="language-plaintext highlighter-rouge">1000BASE-T / 10GBASE-T</code> 
   → 속도는 1000Mbps, 트위스트 페어 케이블 사용하는 Ethernet 표준</li>
       <li><code class="language-plaintext highlighter-rouge">1000BASE-SX / 10GBASE-SR</code> 
- → 속도는 1000Mbps, 광 케이블 사용하는 Ethernet 표준
-        <h3 id="hub">Hub</h3>
-      </li>
+ → 속도는 1000Mbps, 광 케이블 사용하는 Ethernet 표준</li>
     </ul>
   </li>
+</ul>
+
+<h3 id="hub">Hub</h3>
+<ul>
   <li>케이블과 동일한 1계층 장비</li>
   <li>멀어질 수록 줄어드는 전기 신호를 재생성해줌</li>
   <li>여러 대의 장비를 연결</li>
   <li>허브는 들어온 신호를 단순히 모든 포트로 내보냄 (Broadcasting)
     <ul>
       <li>네트워크에 접속된 모든 노드가 경쟁하므로 전체 성능이 줄어드는 문제가 있음</li>
-      <li>패킷이 무한 순환하여 네트워크 전체를 마비시키는 루프와 같은 다양한 장애 원인이 될 수 있음
-        <h3 id="switch">Switch</h3>
-      </li>
+      <li>패킷이 무한 순환하여 네트워크 전체를 마비시키는 루프와 같은 다양한 장애 원인이 될 수 있음</li>
     </ul>
   </li>
+</ul>
+
+<h3 id="switch">Switch</h3>
+<ul>
   <li>Hub와 동일하게 여러 장비를 연결</li>
   <li>통신을 중재하는 2계층 장비</li>
   <li>허브의 역할을 수행함</li>
   <li>Switching Hub 라고도 함</li>
   <li>MAC 을 이해할 수 있음 
-  → 한 번 데이터를 전송한 포트에 연결된 장비 주소를 학습 다음에 다른 포트에서 해당 장비에게 전달 시 Broadcasting이 아닌 Unicasting(1:1)을 수행
-    <h3 id="router">Router</h3>
-  </li>
+  → 한 번 데이터를 전송한 포트에 연결된 장비 주소를 학습 다음에 다른 포트에서 해당 장비에게 전달 시 Broadcasting이 아닌 Unicasting(1:1)을 수행</li>
+</ul>
+
+<h3 id="router">Router</h3>
+<ul>
   <li>내부 네트워크가 아닌 다른 네트워크와 통신 가능하도록 해줌</li>
   <li>3계층 장비</li>
   <li>Broadcast와 Multicast를 컨트롤함
   → 원격지로 필요 없는 패킷이 전달되지 않도록</li>
   <li>불분명한 주소로 통신 시도 시 데이터를 버림</li>
   <li>정확한 방향으로 패킷이 전송되도록 경로를 지정, 최적의 경로로 패킷을 Fowarding</li>
-  <li>이와 유사한 L3 Switch나 공유기는 쉽게 찾아볼 수 있음
-    <h3 id="load-balancer">Load Balancer</h3>
-  </li>
+  <li>이와 유사한 L3 Switch나 공유기는 쉽게 찾아볼 수 있음</li>
+</ul>
+
+<h3 id="load-balancer">Load Balancer</h3>
+<ul>
   <li>OSI 4계층에서 동작하는 장비</li>
   <li>최근에는 7계층에서 동작하는 것도 있음</li>
   <li>Application 형태의 LoadBalancer도 존재함 (7계층에서 동작)
@@ -426,20 +435,24 @@ VPN은 목적지의 주소를 알고 있기 때문에 최적의 라우팅 경로
       <li>요청 수신 시 IP 주소 변경을 통해 부하를 분산함</li>
     </ul>
   </li>
-  <li>Health Check와 대용량 세션 처리 기능을 수행하기도 함
-    <h3 id="보안-장비">보안 장비</h3>
-  </li>
+  <li>Health Check와 대용량 세션 처리 기능을 수행하기도 함</li>
+</ul>
+
+<h3 id="보안-장비">보안 장비</h3>
+<ul>
   <li>정보 전달 목적이 아닌 정보를 잘 제어하고 공격을 방어하는 데 초첨을 둠</li>
   <li>방어의 목적, 설치 위치에 따라 다양하게 구분 됨</li>
   <li>대표적으로 방화벽이 있음
     <ul>
       <li>OSI 7 계층의 4계층에서 동작</li>
       <li>방화벽을 통과하는 패킷의 3, 4 계층 정보(IP와 Port)를 확인,</li>
-      <li>패킷을 보안 정책과 비교해 버리거나 Forwarding 함
-        <h3 id="공유기">공유기</h3>
-      </li>
+      <li>패킷을 보안 정책과 비교해 버리거나 Forwarding 함</li>
     </ul>
   </li>
+</ul>
+
+<h3 id="공유기">공유기</h3>
+<ul>
   <li>간단한 방화벽 기능을 한 곳에 모아둔 장비
     <ul>
       <li>2계층 스위치, 3계층 라우터, 4계층 NAT</li>
@@ -452,9 +465,11 @@ VPN은 목적지의 주소를 알고 있기 때문에 최적의 라우팅 경로
       <li>라우터 회로</li>
     </ul>
   </li>
-  <li>내부적으로는 크게 Switch, Wireless AP, Router 부분으로 구성되는 복잡한 장비
-    <h3 id="모뎀">모뎀</h3>
-  </li>
+  <li>내부적으로는 크게 Switch, Wireless AP, Router 부분으로 구성되는 복잡한 장비</li>
+</ul>
+
+<h3 id="모뎀">모뎀</h3>
+<ul>
   <li>원거리 통신을 가능하도록 하는 장비</li>
   <li>짧은 거리, 먼 거리를 통신할 수 있는 기술이 다르기에 이 기술들을 변환해주는 장비임</li>
 </ul>
@@ -508,6 +523,6 @@ VPN은 목적지의 주소를 알고 있기 때문에 최적의 라우팅 경로
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-07T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -226,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 7일 · 3분 읽기
+          2026년 7월 7일 · 1분 읽기
         </span>
       </div>
     </div>
@@ -236,7 +236,7 @@
         
           <a class="tag-chip" href="/?tag=Python">Python</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -245,388 +245,87 @@
   </header>
 
   <section class="prose">
-    <h1 id="메모리-구조">메모리 구조</h1>
-
-<h2 id="stack">Stack</h2>
-
+    <h2 id="1-메모리-구조">1) 메모리 구조</h2>
+<hr />
+<h3 id="stack">Stack</h3>
 <ul>
-  <li>지역 변수(Local Variable)가 저장되는 영역임.</li>
-  <li>함수가 호출되면 생성되고, 함수가 종료되면 자동으로 제거됨.</li>
-  <li>컴파일 시 크기가 결정되는 데이터가 저장됨.</li>
-  <li>LIFO(Last In First Out) 구조임.</li>
+  <li>함수 호출 시 생성되는 <strong>지역 변수</strong> 저장</li>
+  <li>함수 종료 시 자동 소멸</li>
+  <li>LIFO (Last In First Out) 구조</li>
 </ul>
 
-<h2 id="heap">Heap</h2>
-
+<h3 id="heap">Heap</h3>
 <ul>
-  <li>동적으로 생성한 객체가 저장되는 영역임.</li>
-  <li>개발자가 직접 생성하는 메모리 영역임.</li>
-  <li>Python에서는 GC(Garbage Collector)가 사용하지 않는 객체를 자동으로 제거함.</li>
-  <li>Java에서는 Garbage Collector가 관리함.</li>
-  <li>C에서는 <code class="language-plaintext highlighter-rouge">malloc()</code>으로 생성하고 <code class="language-plaintext highlighter-rouge">free()</code>로 직접 해제해야 함.</li>
+  <li><strong>객체(인스턴스)</strong> 저장</li>
+  <li>개발자가 직접 메모리 관리 (Python은 GC가 자동 관리)</li>
+  <li>참조가 없어지면 Garbage Collector가 정리</li>
 </ul>
 
-<h2 id="instance">Instance</h2>
-
-<ul>
-  <li>Heap 영역에 생성된 객체(인스턴스)를 의미함.</li>
-</ul>
-
-<h2 id="literal--class">Literal / Class</h2>
-
-<ul>
-  <li>문자열 리터럴, 클래스 정보 등이 저장되는 영역임.</li>
-  <li>프로그램 실행 중 변경되지 않는 데이터가 저장됨.</li>
-  <li>Static 영역이라고도 함.</li>
-</ul>
-
+<h2 id="2-is와-">2) is와 ==</h2>
 <hr />
 
-<h1 id="연산자">연산자</h1>
+<table>
+  <thead>
+    <tr>
+      <th>연산자</th>
+      <th>비교 대상</th>
+      <th>오버라이딩</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">==</code></td>
+      <td>데이터 값 비교 (<code class="language-plaintext highlighter-rouge">__eq__</code>)</td>
+      <td>가능</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">is</code></td>
+      <td><strong>id</strong>(메모리 주소) 비교</td>
+      <td>불가능</td>
+    </tr>
+  </tbody>
+</table>
 
-<ul>
-  <li>연산자는 우선순위를 가짐.</li>
-  <li>괄호 <code class="language-plaintext highlighter-rouge">()</code>를 사용하면 우선순위를 변경할 수 있음.</li>
-</ul>
-
-<hr />
-
-<h1 id="자료형-변환type-casting">자료형 변환(Type Casting)</h1>
-
-<h2 id="개요">개요</h2>
-
-<ul>
-  <li>데이터의 자료형을 다른 자료형으로 변경하는 것임.</li>
-  <li>변환 가능한 경우 자동 또는 명시적으로 변환됨.</li>
-  <li>변환이 불가능하면 오류가 발생함.</li>
-</ul>
-
-<h2 id="특징">특징</h2>
-
-<ul>
-  <li>실수를 정수로 변환하면 소수 부분이 제거됨.</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">int</span><span class="p">(</span><span class="mf">3.9</span><span class="p">)</span>
-<span class="c1"># 3
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="n">b</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">)</span>  <span class="c1"># True (값이 같음)
+</span><span class="k">print</span><span class="p">(</span><span class="n">a</span> <span class="ow">is</span> <span class="n">b</span><span class="p">)</span>  <span class="c1"># False (다른 객체)
 </span></code></pre></div></div>
 
-<ul>
-  <li>bool을 숫자로 변환하면</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="bp">True</span>  <span class="o">-&gt;</span> <span class="mi">1</span>
-<span class="bp">False</span> <span class="o">-&gt;</span> <span class="mi">0</span>
-</code></pre></div></div>
-
+<h2 id="3-mutable-vs-immutable">3) Mutable vs Immutable</h2>
 <hr />
 
-<h1 id="제어문control-statement">제어문(Control Statement)</h1>
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>종류</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Mutable</strong> (가변)</td>
+      <td><code class="language-plaintext highlighter-rouge">list</code>, <code class="language-plaintext highlighter-rouge">dict</code>, <code class="language-plaintext highlighter-rouge">set</code></td>
+      <td>생성 후 내용 변경 가능</td>
+    </tr>
+    <tr>
+      <td><strong>Immutable</strong> (불변)</td>
+      <td><code class="language-plaintext highlighter-rouge">int</code>, <code class="language-plaintext highlighter-rouge">float</code>, <code class="language-plaintext highlighter-rouge">str</code>, <code class="language-plaintext highlighter-rouge">tuple</code></td>
+      <td>생성 후 변경 불가, 변경 시 새 객체 생성</td>
+    </tr>
+  </tbody>
+</table>
 
-<h2 id="개요-1">개요</h2>
-
-<ul>
-  <li>프로그램의 실행 흐름을 제어하는 명령문임.</li>
-</ul>
-
+<h2 id="4-얕은-복사-vs-깊은-복사">4) 얕은 복사 vs 깊은 복사</h2>
 <hr />
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">copy</span>
 
-<h1 id="분기문selection">분기문(Selection)</h1>
+<span class="n">original</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]]</span>
 
-<h2 id="if--elif--else">if / elif / else</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">90</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">"A"</span><span class="p">)</span>
-<span class="k">elif</span> <span class="n">score</span> <span class="o">&gt;=</span> <span class="mi">80</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">"B"</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">"F"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="match-python-310-이상">match (Python 3.10 이상)</h2>
-
-<ul>
-  <li>Java의 switch와 유사한 문법임.</li>
-  <li>Python 3.10 이상에서만 지원됨.</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">weekday</span> <span class="o">=</span> <span class="mi">2</span>
-
-<span class="n">match</span> <span class="n">weekday</span><span class="p">:</span>
-    <span class="n">case</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">"일요일"</span><span class="p">)</span>
-    <span class="n">case</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">"월요일"</span><span class="p">)</span>
-    <span class="n">case</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">"화요일"</span><span class="p">)</span>
-    <span class="n">case</span> <span class="n">_</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s">"기타"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="삼항-연산자">삼항 연산자</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">b</span> <span class="o">=</span> <span class="bp">True</span> <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">20</span> <span class="k">else</span> <span class="bp">False</span>
-</code></pre></div></div>
-
-<p>Java</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">boolean</span> <span class="n">b</span> <span class="o">=</span> <span class="o">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="o">)</span> <span class="o">?</span> <span class="kc">true</span> <span class="o">:</span> <span class="kc">false</span><span class="o">;</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="반복문">반복문</h1>
-
-<h2 id="while">while</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">var</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="k">while</span> <span class="n">var</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-    <span class="n">var</span> <span class="o">+=</span> <span class="mi">1</span>
-</code></pre></div></div>
-
-<ul>
-  <li>조건이 False가 될 때까지 반복 수행함.</li>
-</ul>
-
-<hr />
-
-<h2 id="for">for</h2>
-
-<p>기본 문법</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">변수</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
-    <span class="n">실행문</span>
-</code></pre></div></div>
-
-<p>예시</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s">"excel1"</span><span class="p">,</span> <span class="s">"excel2"</span><span class="p">,</span> <span class="s">"excel3"</span><span class="p">]:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-</code></pre></div></div>
-
-<ul>
-  <li>iterable의 데이터를 하나씩 꺼내 변수에 저장하면서 반복 수행함.</li>
-  <li>변수를 사용하지 않으면 <code class="language-plaintext highlighter-rouge">_</code>를 사용함.</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">"Hello"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="range">range()</h1>
-
-<h2 id="문법">문법</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">range</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
-</code></pre></div></div>
-
-<h3 id="특징-1">특징</h3>
-
-<ul>
-  <li>start 생략 가능</li>
-  <li>step 생략 가능</li>
-  <li>stop은 포함하지 않음.</li>
-</ul>
-
-<p>예시</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>↓</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0 ~ 9
-</code></pre></div></div>
-
-<p>예시</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>↓</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1 ~ 9
-</code></pre></div></div>
-
-<p>예시</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>↓</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>10 9 8 7 ... 1
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="break">break</h1>
-
-<ul>
-  <li>반복문을 즉시 종료함.</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
-        <span class="k">break</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="continue">continue</h1>
-
-<ul>
-  <li>현재 반복만 종료하고 다음 반복을 수행함.</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">continue</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>출력</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0
-1
-3
-4
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="python의-for--while--else">Python의 for / while + else</h1>
-
-<p>Python에서는 반복문 뒤에 else를 사용할 수 있음.</p>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">break</code> 없이 정상적으로 반복이 종료되면 else가 실행됨.</li>
-  <li><code class="language-plaintext highlighter-rouge">break</code>로 종료되면 else는 실행되지 않음.</li>
-</ul>
-
-<p>예시</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">break</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">"정상 종료"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>위 코드는 <code class="language-plaintext highlighter-rouge">break</code>가 발생하므로</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>정상 종료
-</code></pre></div></div>
-
-<p>는 출력되지 않음.</p>
-
-<p>반대로</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="s">"정상 종료"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>출력</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0
-1
-2
-정상 종료
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="반복문-중첩">반복문 중첩</h1>
-
-<ul>
-  <li>반복문 안에 반복문을 사용할 수 있음.</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
-    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="실습-문제">실습 문제</h1>
-
-<h2 id="1-완전수perfect-number">1. 완전수(Perfect Number)</h2>
-
-<ul>
-  <li>2부터 1000까지의 완전수 개수를 출력함.</li>
-  <li>완전수는 자신을 제외한 약수의 합이 자기 자신인 수임.</li>
-</ul>
-
-<p>예시</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>6
-
-약수
-1, 2, 3, 6
-
-1 + 2 + 3 = 6
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="2-윤년leap-year">2. 윤년(Leap Year)</h2>
-
-<p>1년부터 2026년까지 윤년의 개수를 출력함.</p>
-
-<p>윤년 조건</p>
-
-<ul>
-  <li>4의 배수이고 100의 배수가 아니면 윤년임.</li>
-  <li>또는 400의 배수이면 윤년임.</li>
-</ul>
-
-<p>즉,</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">(</span><span class="n">year</span> <span class="o">%</span> <span class="mi">4</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">year</span> <span class="o">%</span> <span class="mi">400</span> <span class="o">==</span> <span class="mi">0</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="3-피보나치-수열">3. 피보나치 수열</h2>
-
-<ul>
-  <li>n번째 피보나치 수를 구하는 프로그램 작성</li>
-</ul>
-
-<p>피보나치 수열</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1 1 2 3 5 8 13 ...
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="input">input()</h1>
-
-<ul>
-  <li>사용자로부터 입력을 받는 함수임.</li>
-  <li>입력값은 항상 문자열(String)로 반환됨.</li>
-</ul>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">age</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s">"나이를 입력하세요."</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>숫자로 사용하려면 자료형 변환이 필요함.</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">age</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">input</span><span class="p">(</span><span class="s">"나이를 입력하세요."</span><span class="p">))</span>
-</code></pre></div></div>
+<span class="n">shallow</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="n">original</span><span class="p">)</span>       <span class="c1"># 얕은 복사 (내부 객체는 공유)
+</span><span class="n">deep</span> <span class="o">=</span> <span class="n">copy</span><span class="p">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">original</span><span class="p">)</span>      <span class="c1"># 깊은 복사 (완전히 독립)
+</span></code></pre></div></div>
 
   </section>
 
@@ -677,6 +376,6 @@
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

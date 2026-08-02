@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-24T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -238,7 +238,7 @@
         
           <a class="tag-chip" href="/?tag=Linux">Linux</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -294,7 +294,8 @@
 
 <h3 id="practice"><strong>Practice</strong></h3>
 
-<p>→ `[one.c, two.c]</p>
+<p>→ <code class="language-plaintext highlighter-rouge">[one.c, two.c]</code></p>
+
 <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp">
 </span>
 <span class="k">extern</span> <span class="kt">int</span> <span class="nf">two</span><span class="p">();</span>
@@ -466,29 +467,28 @@ npm init <span class="nt">-y</span>
 <hr />
 <h3 id="installation-2">Installation</h3>
 <ul>
-  <li><code class="language-plaintext highlighter-rouge">sudo rm -rf /usr/local/go</code> → 기존 설치된 go 삭제
-```bash
-    <h1 id="download-go">download Go</h1>
-    <p>curl -OL https://golang.org/dl/go1.22.0.linux-arm64.tar.gz</p>
-  </li>
+  <li><code class="language-plaintext highlighter-rouge">sudo rm -rf /usr/local/go</code> → 기존 설치된 go 삭제</li>
 </ul>
 
-<h1 id="unzip">unzip</h1>
-<p>sudo tar -C /usr/local -xzf go1.22.0.linux-arm64.tar.gz</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># download Go</span>
+curl <span class="nt">-OL</span> https://golang.org/dl/go1.22.0.linux-arm64.tar.gz
 
-<h1 id="add-to-path">Add to Path</h1>
-<p>echo ‘export PATH=$PATH:/usr/local/go/bin’ » ~/.profile
-echo ‘export PATH=$PATH:$(go env GOPATH)/bin’ » ~/.profile</p>
+<span class="c"># unzip</span>
+<span class="nb">sudo tar</span> <span class="nt">-C</span> /usr/local <span class="nt">-xzf</span> go1.22.0.linux-arm64.tar.gz
 
-<h1 id="save-changes">Save Changes</h1>
-<p>source ~/.profile</p>
+<span class="c"># Add to Path</span>
+<span class="nb">echo</span> <span class="s1">'export PATH=$PATH:/usr/local/go/bin'</span> <span class="o">&gt;&gt;</span> ~/.profile
+<span class="nb">echo</span> <span class="s1">'export PATH=$PATH:$(go env GOPATH)/bin'</span> <span class="o">&gt;&gt;</span> ~/.profile
 
-<h1 id="check-installation-1">Check Installation</h1>
-<p>go version</p>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-### Programming
-```bash
-go mod init hello-go
+<span class="c"># Save Changes</span>
+<span class="nb">source</span> ~/.profile
+
+<span class="c"># Check Installation</span>
+go version
+</code></pre></div></div>
+
+<h3 id="programming-2">Programming</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go mod init hello-go
 </code></pre></div></div>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// main.go</span>
@@ -560,6 +560,6 @@ go mod init hello-go
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

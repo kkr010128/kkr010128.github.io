@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-10T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -228,7 +228,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 10일 · 3분 읽기
+          2026년 7월 10일 · 1분 읽기
         </span>
       </div>
     </div>
@@ -238,7 +238,7 @@
         
           <a class="tag-chip" href="/?tag=MariaDB">MariaDB</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -247,149 +247,81 @@
   </header>
 
   <section class="prose">
-    <h2 id="1-mariadb-개요">1. MariaDB 개요</h2>
-
-<ul>
-  <li>SQL에 기반을 둔 관계형 DBMS로 Open Source로 제공됨.</li>
-  <li>리눅스, 유닉스, 윈도우 등 거의 모든 운영체제에서 사용 가능함.</li>
-  <li>처리 속도가 빨라 대용량 데이터 처리에 용이하고 설치가 쉬움.</li>
-  <li><strong>작업 단위</strong>: 데이터베이스 &gt; 테이블 순임.</li>
-  <li>데이터베이스는 사용자 상관없이 생성되며 권한을 부여해서 사용함. 하나의 DB를 여러 사용자가 공유 가능함.</li>
-</ul>
-
-<h2 id="2-서버-설치-및-관리">2. 서버 설치 및 관리</h2>
-
-<h3 id="21-windows-설치">2.1 Windows 설치</h3>
-
-<ul>
-  <li><strong>다운로드</strong>: https://mariadb.org/download/.</li>
-  <li><strong>설정 사항</strong>:
-    <ul>
-      <li>root 비밀번호 설정 및 원격 접속 허용 여부 결정.</li>
-      <li>기본 인코딩을 UTF8로 설정할 것을 권장함.</li>
-      <li>서비스 이름(기본 MariaDB), 포트 번호(기본 3306), 버퍼 사이즈 등을 설정함.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="22-mac-homebrew-설치">2.2 Mac (Homebrew) 설치</h3>
-
-<ul>
-  <li><strong>brew 설치</strong>:
-    <ul>
-      <li>Intel Chip: <code class="language-plaintext highlighter-rouge">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</code>.</li>
-      <li>ARM Chip: <code class="language-plaintext highlighter-rouge">/bin/bash -c "$(curl -fsSL https://gist.githubusercontent.com/nrubin29/bea5aa83e8dfa91370fe83b62dad6dfa/raw/48f48f7fef21abb308e129a80b3214c2538fc611/homebrew_m1.sh )"</code>.</li>
-    </ul>
-  </li>
-  <li><strong>설치 및 확인</strong>: <code class="language-plaintext highlighter-rouge">brew install mariadb</code> 수행 후 <code class="language-plaintext highlighter-rouge">mysql --version</code>으로 확인함.</li>
-  <li><strong>서비스 제어</strong>: <code class="language-plaintext highlighter-rouge">brew services [start | stop | restart] mariadb</code> 사용함.</li>
-  <li><strong>접속 및 설정</strong>: <code class="language-plaintext highlighter-rouge">sudo mysql -u root</code> 접속 후 <code class="language-plaintext highlighter-rouge">ALTER USER</code> 명령어로 비밀번호 설정함.</li>
-  <li><strong>설정 파일 경로</strong>: <code class="language-plaintext highlighter-rouge">/opt/homebrew/etc/my.cnf</code>.</li>
-  <li><strong>삭제</strong>: <code class="language-plaintext highlighter-rouge">brew uninstall mariadb</code> 후 <code class="language-plaintext highlighter-rouge">/usr/local/var/mysql</code>, <code class="language-plaintext highlighter-rouge">/usr/local/etc/my.cnf</code> 등 데이터 모두 삭제함.</li>
-</ul>
-
-<h3 id="23-ubuntu-linux-설치">2.3 Ubuntu Linux 설치</h3>
-
-<ul>
-  <li>패키지 업데이트: <code class="language-plaintext highlighter-rouge">sudo apt update &amp;&amp; sudo apt upgrade -y</code>.</li>
-  <li>설치: <code class="language-plaintext highlighter-rouge">sudo apt install mariadb-server mariadb-client -y</code>.</li>
-  <li>보안 설정: <code class="language-plaintext highlighter-rouge">sudo mysql_secure_installation</code>으로 root 비번 및 익명 사용자 정리함.</li>
-  <li>설정 파일: <code class="language-plaintext highlighter-rouge">/etc/mysql/mariadb.conf.d/50-server.cnf</code>.</li>
-</ul>
-
-<h3 id="24-docker-설치">2.4 Docker 설치</h3>
-
-<ul>
-  <li>이미지 다운로드: <code class="language-plaintext highlighter-rouge">docker pull mariadb</code>.</li>
-  <li>컨테이너 생성: <code class="language-plaintext highlighter-rouge">docker run --name mariadb -d -p [외부포트]:3306 -e MYSQL_ROOT_PASSWORD=[비밀번호] mariadb</code>.</li>
-</ul>
-
-<h2 id="3-외부-접속-및-권한-설정">3. 외부 접속 및 권한 설정</h2>
-
-<h3 id="31-설정-파일-수정">3.1 설정 파일 수정</h3>
-
-<ul>
-  <li>Mac/Linux 직접 설치 시: 설정 파일 내 <code class="language-plaintext highlighter-rouge">bind-address = 127.0.0.1</code>을 <code class="language-plaintext highlighter-rouge">0.0.0.0</code>으로 수정함.</li>
-  <li>Docker 설치 시: <code class="language-plaintext highlighter-rouge">docker exec -it [컨테이너명] bash</code> 접속 후 vim 설치하여 설정 파일(<code class="language-plaintext highlighter-rouge">50-server.cnf</code>) 수정함.</li>
-</ul>
-
-<h3 id="32-사용자-및-권한-관리">3.2 사용자 및 권한 관리</h3>
-
-<ul>
-  <li><strong>유저 생성</strong>: <code class="language-plaintext highlighter-rouge">CREATE USER '계정'@'%' IDENTIFIED BY '비밀번호';</code> (<code class="language-plaintext highlighter-rouge">%</code>는 모든 IP 허용).</li>
-  <li><strong>권한 부여</strong>: <code class="language-plaintext highlighter-rouge">GRANT ALL PRIVILEGES ON *.* TO '계정'@'%';</code>.</li>
-  <li><strong>적용</strong>: <code class="language-plaintext highlighter-rouge">FLUSH PRIVILEGES;</code> 반드시 수행해야 함.</li>
-</ul>
-
-<h2 id="4-데이터베이스-주요-명령어">4. 데이터베이스 주요 명령어</h2>
-
-<ul>
-  <li>존재하는 목록 보기: <code class="language-plaintext highlighter-rouge">SHOW DATABASES;</code>.</li>
-  <li>현재 DB 확인: <code class="language-plaintext highlighter-rouge">SELECT DATABASE();</code>.</li>
-  <li>생성/삭제: <code class="language-plaintext highlighter-rouge">CREATE DATABASE [이름];</code> / <code class="language-plaintext highlighter-rouge">DROP DATABASE [이름];</code>.</li>
-  <li>사용 설정: <code class="language-plaintext highlighter-rouge">USE [이름];</code>.</li>
-  <li>테이블 목록 보기: <code class="language-plaintext highlighter-rouge">SHOW TABLES;</code>.</li>
-  <li>테이블 구조 확인: <code class="language-plaintext highlighter-rouge">DESC [테이블명];</code>.</li>
-</ul>
-
-<h2 id="5-실습용-샘플-데이터-ddldml">5. 실습용 샘플 데이터 (DDL/DML)</h2>
-
-<h3 id="51-tcity-도시-정보">5.1 tCity (도시 정보)</h3>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tCity</span> <span class="p">(</span>
-    <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">area</span> <span class="nb">INT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">popu</span> <span class="nb">INT</span> <span class="k">NULL</span><span class="p">,</span>
-    <span class="n">metro</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">region</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span>
-<span class="p">);</span>
-<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">tCity</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'서울'</span><span class="p">,</span><span class="mi">605</span><span class="p">,</span><span class="mi">974</span><span class="p">,</span><span class="s1">'y'</span><span class="p">,</span><span class="s1">'경기'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'부산'</span><span class="p">,</span><span class="mi">765</span><span class="p">,</span><span class="mi">342</span><span class="p">,</span><span class="s1">'y'</span><span class="p">,</span><span class="s1">'경상'</span><span class="p">),</span> <span class="p">(</span><span class="s1">'오산'</span><span class="p">,</span><span class="mi">42</span><span class="p">,</span><span class="mi">21</span><span class="p">,</span><span class="s1">'n'</span><span class="p">,</span><span class="s1">'경기'</span><span class="p">);</span>
-<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tCity</span><span class="p">;</span>
-</code></pre></div></div>
-
-<h3 id="52-tstaff-직원-정보">5.2 tStaff (직원 정보)</h3>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">tStaff</span> <span class="p">(</span>
-    <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">depart</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">gender</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span>
-    <span class="n">joindate</span> <span class="nb">DATE</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">grade</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">salary</span> <span class="nb">INT</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">,</span> <span class="n">score</span> <span class="nb">DECIMAL</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span> <span class="k">NULL</span>
-<span class="p">);</span>
-<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">tStaff</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'김유신'</span><span class="p">,</span><span class="s1">'총무부'</span><span class="p">,</span><span class="s1">'남'</span><span class="p">,</span><span class="s1">'2000-02-03'</span><span class="p">,</span><span class="s1">'이사'</span><span class="p">,</span><span class="mi">420</span><span class="p">,</span><span class="mi">88</span><span class="p">.</span><span class="mi">8</span><span class="p">);</span>
-<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">tStaff</span><span class="p">;</span>
-</code></pre></div></div>
-
-<h3 id="53-dept--emp-부서-및-사원---외래키-포함">5.3 DEPT &amp; EMP (부서 및 사원 - 외래키 포함)</h3>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">DEPT</span> <span class="p">(</span>
-    <span class="n">DEPTNO</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">DNAME</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">14</span><span class="p">),</span> <span class="n">LOC</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
-<span class="p">);</span>
-<span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">EMP</span> <span class="p">(</span>
-    <span class="n">EMPNO</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="k">PRIMARY</span> <span class="k">KEY</span><span class="p">,</span> <span class="n">ENAME</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">JOB</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">9</span><span class="p">),</span> <span class="n">MGR</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
-    <span class="n">HIREDATE</span> <span class="nb">DATE</span><span class="p">,</span> <span class="n">SAL</span> <span class="nb">FLOAT</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">COMM</span> <span class="nb">FLOAT</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">DEPTNO</span> <span class="nb">INT</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span>
-    <span class="k">CONSTRAINT</span> <span class="n">FK_DEPTNO</span> <span class="k">FOREIGN</span> <span class="k">KEY</span><span class="p">(</span><span class="n">DEPTNO</span><span class="p">)</span> <span class="k">REFERENCES</span> <span class="n">DEPT</span><span class="p">(</span><span class="n">DEPTNO</span><span class="p">)</span>
-<span class="p">);</span>
-</code></pre></div></div>
-
-<h3 id="54-쇼핑몰-샘플-usertbl--buytbl">5.4 쇼핑몰 샘플 (usertbl &amp; buytbl)</h3>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">buytbl</code> 생성 시 <code class="language-plaintext highlighter-rouge">ON DELETE CASCADE</code> 설정을 통해 사용자 삭제 시 구매 기록도 자동 삭제되도록 구현함.</li>
-  <li><code class="language-plaintext highlighter-rouge">auto_increment</code> 속성으로 기본키 자동 증가 기능을 사용함.</li>
-</ul>
-
-<h3 id="55-대용량-데이터-처리">5.5 대용량 데이터 처리</h3>
-
-<ul>
-  <li>외부 SQL 파일 실행: <code class="language-plaintext highlighter-rouge">SOURCE employees.sql</code> 명령을 통해 대량의 샘플 데이터를 한 번에 입력 가능함.</li>
-</ul>
-
+    <h2 id="1-데이터베이스-개요">1) 데이터베이스 개요</h2>
 <hr />
-
-<p><strong>추가 팁 (자료 보강)</strong>:</p>
-
+<h3 id="데이터와-정보">데이터와 정보</h3>
 <ul>
-  <li>MariaDB 접속 시 <code class="language-plaintext highlighter-rouge">-p</code> 옵션 뒤에 비밀번호를 바로 붙여 쓰거나(예: <code class="language-plaintext highlighter-rouge">-p1234</code>), 엔터를 치고 입력하는 것이 보안상 안전함.</li>
-  <li>SQL문은 대소문자를 구분하지 않으나 관례상 예약어는 대문자, 식별자는 소문자로 작성하여 가독성을 높임.</li>
-  <li>외부 접속이 안 될 경우 OS 방화벽에서 3306 포트가 열려 있는지 확인이 필요함.</li>
+  <li><strong>데이터(Data)</strong>: 관찰이나 측정을 통해 얻은 값</li>
+  <li><strong>정보(Information)</strong>: 데이터를 가공하여 의미 있게 만든 결과</li>
 </ul>
 
-<p>![[1.MariaDB(드래그함).pdf]]</p>
+<h3 id="효율적인-데이터-관리를-위한-조건">효율적인 데이터 관리를 위한 조건</h3>
+<ul>
+  <li>중복 최소화, 일관성 유지, 무결성 보장, 보안, 검색 효율</li>
+</ul>
+
+<h2 id="2-dbms">2) DBMS</h2>
+<hr />
+<h3 id="조건">조건</h3>
+<ul>
+  <li>실시간 접근성, 지속적인 변화, 동시 공유, 내용 참조</li>
+</ul>
+
+<h3 id="종류">종류</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>설명</th>
+      <th>대표</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RDBMS</strong></td>
+      <td>관계형, 테이블 기반</td>
+      <td>MariaDB, MySQL, Oracle</td>
+    </tr>
+    <tr>
+      <td><strong>NoSQL</strong></td>
+      <td>비관계형, 유연한 스키마</td>
+      <td>MongoDB, Redis</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="3-mariadb-설치">3) MariaDB 설치</h2>
+<hr />
+<h3 id="설치">설치</h3>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sudo</span> <span class="n">apt</span> <span class="n">install</span> <span class="n">mariadb</span><span class="o">-</span><span class="n">server</span>
+<span class="n">sudo</span> <span class="n">mysql_secure_installation</span>
+</code></pre></div></div>
+
+<h3 id="외부-접속-허용">외부 접속 허용</h3>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bind</span><span class="o">-</span><span class="n">address</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="p">.</span><span class="mi">0</span><span class="p">.</span><span class="mi">0</span>  <span class="o">#</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">mysql</span><span class="o">/</span><span class="n">mariadb</span><span class="p">.</span><span class="n">conf</span><span class="p">.</span><span class="n">d</span><span class="o">/</span><span class="mi">50</span><span class="o">-</span><span class="n">server</span><span class="p">.</span><span class="n">cnf</span>
+</code></pre></div></div>
+
+<h3 id="유저-생성">유저 생성</h3>
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">USER</span> <span class="s1">'user'</span><span class="o">@</span><span class="s1">'%'</span> <span class="n">IDENTIFIED</span> <span class="k">BY</span> <span class="s1">'password'</span><span class="p">;</span>
+<span class="k">GRANT</span> <span class="k">ALL</span> <span class="k">PRIVILEGES</span> <span class="k">ON</span> <span class="o">*</span><span class="p">.</span><span class="o">*</span> <span class="k">TO</span> <span class="s1">'user'</span><span class="o">@</span><span class="s1">'%'</span><span class="p">;</span>
+<span class="n">FLUSH</span> <span class="k">PRIVILEGES</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="4-데이터베이스-관련-명령">4) 데이터베이스 관련 명령</h2>
+<hr />
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SHOW</span> <span class="n">DATABASES</span><span class="p">;</span>
+<span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">dbname</span><span class="p">;</span>
+<span class="n">USE</span> <span class="n">dbname</span><span class="p">;</span>
+<span class="k">DROP</span> <span class="k">DATABASE</span> <span class="n">dbname</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h2 id="5-주석">5) 주석</h2>
+<hr />
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">-- 한 줄 주석</span>
+<span class="o">#</span> <span class="err">한</span> <span class="err">줄</span> <span class="err">주석</span>
+<span class="cm">/* 여러 줄 주석 */</span>
+</code></pre></div></div>
 
   </section>
 
@@ -440,6 +372,6 @@
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

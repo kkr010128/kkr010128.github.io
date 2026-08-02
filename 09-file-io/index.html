@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-09T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -226,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 9일 · 3분 읽기
+          2026년 7월 9일 · 1분 읽기
         </span>
       </div>
     </div>
@@ -236,7 +236,7 @@
         
           <a class="tag-chip" href="/?tag=Python">Python</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -245,68 +245,20 @@
   </header>
 
   <section class="prose">
-    <blockquote>
-  <p>Python의 파일 입출력, CSV, 바이너리 파일, 직렬화, 압축, 로그 분석, Excel 처리를 학습한다.</p>
-</blockquote>
-
+    <h2 id="1-파일-처리-과정">1) 파일 처리 과정</h2>
 <hr />
+<ol>
+  <li>파일 열기 (<code class="language-plaintext highlighter-rouge">open</code>)</li>
+  <li>데이터 읽기/쓰기</li>
+  <li>파일 닫기 (<code class="language-plaintext highlighter-rouge">close</code>)</li>
+</ol>
 
-<p>#Python #FileHandling #CSV #Pickle #Excel #Zip</p>
-
-<h2 id="학습-목표">학습 목표</h2>
-
-<ul>
-  <li>파일 입출력</li>
-  <li>Context Manager</li>
-  <li>CSV 처리</li>
-  <li>Binary File</li>
-  <li>Pickle 직렬화</li>
-  <li>파일 압축</li>
-  <li>로그 분석</li>
-  <li>Excel 처리</li>
-</ul>
-
+<h2 id="2-open">2) open</h2>
 <hr />
-
-<h1 id="파일-처리file-handling">파일 처리(File Handling)</h1>
-
-<h2 id="파일-처리-과정">파일 처리 과정</h2>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>파일 열기(Open)
-        │
-        ▼
-파일 읽기 / 쓰기
-        │
-        ▼
-파일 닫기(Close)
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">변수</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">파일경로</span><span class="p">,</span> <span class="n">모드</span><span class="p">)</span>
 </code></pre></div></div>
 
-<p>대표 함수</p>
-
-<ul>
-  <li>open()</li>
-  <li>read()</li>
-  <li>write()</li>
-  <li>close()</li>
-</ul>
-
-<hr />
-
-<h1 id="open">open()</h1>
-
-<h2 id="기본-형태">기본 형태</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">encoding</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>예</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"test.txt"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="파일-모드">파일 모드</h1>
+<h3 id="모드">모드</h3>
 
 <table>
   <thead>
@@ -317,567 +269,51 @@
   </thead>
   <tbody>
     <tr>
-      <td>r</td>
-      <td>읽기(기본)</td>
+      <td><code class="language-plaintext highlighter-rouge">"r"</code></td>
+      <td>읽기 (기본)</td>
     </tr>
     <tr>
-      <td>w</td>
-      <td>쓰기(기존 내용 삭제)</td>
+      <td><code class="language-plaintext highlighter-rouge">"w"</code></td>
+      <td>쓰기 (기존 내용 덮어씀)</td>
     </tr>
     <tr>
-      <td>a</td>
-      <td>이어쓰기(Append)</td>
+      <td><code class="language-plaintext highlighter-rouge">"a"</code></td>
+      <td>추가 (기존 내용 유지)</td>
     </tr>
     <tr>
-      <td>x</td>
-      <td>새 파일 생성</td>
+      <td><code class="language-plaintext highlighter-rouge">"x"</code></td>
+      <td>새 파일 생성 (기존 파일 있으면 에러)</td>
     </tr>
     <tr>
-      <td>b</td>
-      <td>Binary Mode</td>
-    </tr>
-    <tr>
-      <td>t</td>
-      <td>Text Mode(기본)</td>
-    </tr>
-    <tr>
-      <td>+</td>
-      <td>읽기/쓰기</td>
+      <td><code class="language-plaintext highlighter-rouge">"b"</code></td>
+      <td>바이너리 모드 (rb, wb)</td>
     </tr>
   </tbody>
 </table>
 
+<h2 id="3-파일-읽기">3) 파일 읽기</h2>
 <hr />
-
-<h1 id="파일-경로path">파일 경로(Path)</h1>
-
-<h2 id="절대-경로">절대 경로</h2>
-
-<p>루트부터 전체 경로 지정</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>C:\data\test.txt
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"file.txt"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span>
+<span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">()</span>          <span class="c1"># 전체 읽기
+</span><span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readline</span><span class="p">()</span>         <span class="c1"># 한 줄 읽기
+</span><span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readlines</span><span class="p">()</span>       <span class="c1"># 모든 줄을 리스트로
+</span><span class="n">f</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
 </code></pre></div></div>
 
-<p>또는</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/home/user/test.txt
-</code></pre></div></div>
-
+<h2 id="4-파일-쓰기">4) 파일 쓰기</h2>
 <hr />
-
-<h2 id="상대-경로">상대 경로</h2>
-
-<p>현재 작업 디렉터리 기준</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"file.txt"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span>
+<span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"내용</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="n">f</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
 </code></pre></div></div>
 
-<p>현재 디렉터리</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>../
-</code></pre></div></div>
-
-<p>상위 디렉터리</p>
-
+<h2 id="5-with-구문-권장">5) with 구문 (권장)</h2>
 <hr />
-
-<h1 id="파일-쓰기">파일 쓰기</h1>
-
-<h2 id="write">write()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"test.txt"</span><span class="p">,</span><span class="s">"w"</span><span class="p">,</span><span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"Hello"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="writelines">writelines()</h2>
-
-<p>여러 줄 기록</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s">"Python</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span>
-    <span class="s">"Java</span><span class="se">\n</span><span class="s">"</span>
-<span class="p">]</span>
-
-<span class="n">f</span><span class="p">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="join">join()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">"</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="파일-읽기">파일 읽기</h1>
-
-<h2 id="read">read()</h2>
-
-<p>전체 읽기</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="readline">readline()</h2>
-
-<p>한 줄 읽기</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readline</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="readlines">readlines()</h2>
-
-<p>모든 줄을 List로 반환</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readlines</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="반복문-읽기">반복문 읽기</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="지정한-크기만-읽기">지정한 크기만 읽기</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>100 Byte 읽기</p>
-
-<hr />
-
-<h1 id="context-manager">Context Manager</h1>
-
-<h2 id="with">with</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-    <span class="s">"test.txt"</span><span class="p">,</span>
-    <span class="s">"r"</span><span class="p">,</span>
-    <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">())</span>
-</code></pre></div></div>
-
-<p>장점</p>
-
-<ul>
-  <li>자동 close()</li>
-  <li>예외 발생 시에도 안전</li>
-  <li>코드 간결</li>
-</ul>
-
-<hr />
-
-<h1 id="csv">CSV</h1>
-
-<h2 id="csv란">CSV란?</h2>
-
-<p>Comma Separated Values</p>
-
-<p>텍스트 기반 표 형식 데이터</p>
-
-<hr />
-
-<h2 id="csv-읽기">CSV 읽기</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">csv</span>
-
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-    <span class="s">"test.csv"</span><span class="p">,</span>
-    <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-
-    <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="p">.</span><span class="n">reader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-
-    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="csv-쓰기">CSV 쓰기</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">csv</span>
-
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-    <span class="s">"test.csv"</span><span class="p">,</span>
-    <span class="s">"a"</span><span class="p">,</span>
-    <span class="n">newline</span><span class="o">=</span><span class="s">""</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-
-    <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="p">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-
-    <span class="n">writer</span><span class="p">.</span><span class="n">writerow</span><span class="p">([</span>
-        <span class="mi">1</span><span class="p">,</span>
-        <span class="s">"Python"</span>
-    <span class="p">])</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="delimiter">delimiter</h2>
-
-<p>구분자 변경</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">csv</span><span class="p">.</span><span class="n">reader</span><span class="p">(</span>
-    <span class="n">f</span><span class="p">,</span>
-    <span class="n">delimiter</span><span class="o">=</span><span class="s">";"</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="binary-file">Binary File</h1>
-
-<h2 id="binary-mode">Binary Mode</h2>
-
-<p>쓰기</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-    <span class="s">"test.bin"</span><span class="p">,</span>
-    <span class="s">"wb"</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-
-    <span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span>
-        <span class="s">"Python"</span><span class="p">.</span><span class="n">encode</span><span class="p">()</span>
-    <span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<p>읽기</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-    <span class="s">"test.bin"</span><span class="p">,</span>
-    <span class="s">"rb"</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-
-    <span class="k">print</span><span class="p">(</span>
-        <span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">().</span><span class="n">decode</span><span class="p">()</span>
-    <span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="serialization">Serialization</h1>
-
-<h2 id="pickle">Pickle</h2>
-
-<p>객체를 파일로 저장</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pickle</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="저장">저장</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pickle</span><span class="p">.</span><span class="n">dump</span><span class="p">(</span>
-    <span class="n">obj</span><span class="p">,</span>
-    <span class="nb">file</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="읽기">읽기</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">obj</span> <span class="o">=</span> <span class="n">pickle</span><span class="p">.</span><span class="n">load</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="특징">특징</h2>
-
-<ul>
-  <li>Python 객체 저장</li>
-  <li>List</li>
-  <li>Dictionary</li>
-  <li>Class Instance</li>
-</ul>
-
-<hr />
-
-<h1 id="파일-압축">파일 압축</h1>
-
-<h2 id="zipfile">zipfile</h2>
-
-<p>압축</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">zipfile</span>
-
-<span class="k">with</span> <span class="n">zipfile</span><span class="p">.</span><span class="n">ZipFile</span><span class="p">(</span>
-    <span class="s">"test.zip"</span><span class="p">,</span>
-    <span class="s">"w"</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">z</span><span class="p">:</span>
-
-    <span class="n">z</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"test.txt"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<p>압축 해제</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">zipfile</span><span class="p">.</span><span class="n">ZipFile</span><span class="p">(</span>
-    <span class="s">"test.zip"</span>
-<span class="p">).</span><span class="n">extractall</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="tarfile">tarfile</h2>
-
-<p>압축</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">tarfile</span>
-
-<span class="k">with</span> <span class="n">tarfile</span><span class="p">.</span><span class="nb">open</span><span class="p">(</span>
-    <span class="s">"test.tar.gz"</span><span class="p">,</span>
-    <span class="s">"w:gz"</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
-
-    <span class="n">tar</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="s">"test.txt"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<p>압축 해제</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tarfile</span><span class="p">.</span><span class="nb">open</span><span class="p">(</span>
-    <span class="s">"test.tar.gz"</span>
-<span class="p">).</span><span class="n">extractall</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="로그-파일log">로그 파일(Log)</h1>
-
-<h2 id="apache-log-구조">Apache Log 구조</h2>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>IP
-Date
-Method
-URL
-Status
-Traffic
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="page-view">Page View</h2>
-
-<p>상태 코드</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>200
-</code></pre></div></div>
-
-<p>개수 계산</p>
-
-<hr />
-
-<h2 id="방문자-수">방문자 수</h2>
-
-<p>IP 중복 제거</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">set</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>또는</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">dict</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>활용</p>
-
-<hr />
-
-<h2 id="전체-트래픽">전체 트래픽</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">total</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">byte</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="사용자별-트래픽">사용자별 트래픽</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">dict</span>
-</code></pre></div></div>
-
-<p>집계 후</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sorted</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>정렬</p>
-
-<hr />
-
-<h1 id="excel">Excel</h1>
-
-<h2 id="openpyxl">openpyxl</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">openpyxl</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="workbook-열기">Workbook 열기</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wb</span> <span class="o">=</span> <span class="n">openpyxl</span><span class="p">.</span><span class="n">load_workbook</span><span class="p">(</span>
-    <span class="s">"score.xlsx"</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="worksheet">Worksheet</h2>
-
-<p>현재 Sheet</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ws</span> <span class="o">=</span> <span class="n">wb</span><span class="p">.</span><span class="n">active</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="cell-접근">Cell 접근</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ws</span><span class="p">[</span><span class="s">"A1"</span><span class="p">]</span>
-</code></pre></div></div>
-
-<p>또는</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ws</span><span class="p">.</span><span class="n">cell</span><span class="p">(</span>
-    <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">column</span><span class="o">=</span><span class="mi">1</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="cell-값">Cell 값</h2>
-
-<p>읽기</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">value</span> <span class="o">=</span> <span class="n">ws</span><span class="p">[</span><span class="s">"A1"</span><span class="p">].</span><span class="n">value</span>
-</code></pre></div></div>
-
-<p>쓰기</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ws</span><span class="p">[</span><span class="s">"A1"</span><span class="p">].</span><span class="n">value</span> <span class="o">=</span> <span class="mi">100</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="행-반복">행 반복</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">ws</span><span class="p">.</span><span class="n">rows</span><span class="p">:</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="저장-1">저장</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wb</span><span class="p">.</span><span class="n">save</span><span class="p">(</span>
-    <span class="s">"score2.xlsx"</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="종료">종료</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wb</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="파일-처리-흐름">파일 처리 흐름</h1>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>open()
-   │
-   ▼
-read()
-write()
-   │
-   ▼
-close()
-
-↓
-
-with
-
-↓
-
-자동 close()
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="핵심-암기">핵심 암기</h1>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">open()</code> : 파일 열기</li>
-  <li><code class="language-plaintext highlighter-rouge">read()</code> : 전체 읽기</li>
-  <li><code class="language-plaintext highlighter-rouge">readline()</code> : 한 줄 읽기</li>
-  <li><code class="language-plaintext highlighter-rouge">readlines()</code> : List 반환</li>
-  <li><code class="language-plaintext highlighter-rouge">write()</code> : 파일 기록</li>
-  <li><code class="language-plaintext highlighter-rouge">writelines()</code> : 여러 줄 기록</li>
-  <li><code class="language-plaintext highlighter-rouge">with</code> : 자동 close()</li>
-  <li><code class="language-plaintext highlighter-rouge">csv.reader()</code> : CSV 읽기</li>
-  <li><code class="language-plaintext highlighter-rouge">csv.writer()</code> : CSV 쓰기</li>
-  <li><code class="language-plaintext highlighter-rouge">pickle.dump()</code> : 객체 저장</li>
-  <li><code class="language-plaintext highlighter-rouge">pickle.load()</code> : 객체 복원</li>
-  <li><code class="language-plaintext highlighter-rouge">zipfile</code> : ZIP 압축</li>
-  <li><code class="language-plaintext highlighter-rouge">tarfile</code> : TAR 압축</li>
-  <li><code class="language-plaintext highlighter-rouge">openpyxl</code> : Excel 처리</li>
-</ul>
-
-<hr />
-
-<h1 id="한-페이지-요약">한 페이지 요약</h1>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>File Handling
-│
-├── open()
-│   ├── r
-│   ├── w
-│   ├── a
-│   ├── b
-│   └── +
-│
-├── Read
-│   ├── read
-│   ├── readline
-│   └── readlines
-│
-├── Write
-│   ├── write
-│   ├── writelines
-│   └── join
-│
-├── Context Manager
-│   └── with
-│
-├── CSV
-├── Binary File
-├── Pickle
-├── Zip
-├── Log Analysis
-└── Excel(openpyxl)
-</code></pre></div></div>
+<p>자동으로 파일 닫기 처리</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"file.txt"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">()</span>
+<span class="c1"># 블록 벗어나면 자동 close
+</span></code></pre></div></div>
 
   </section>
 
@@ -928,6 +364,6 @@ with
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

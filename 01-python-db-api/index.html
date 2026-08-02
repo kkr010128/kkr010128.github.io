@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Python DB API | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Python에서 pymongo를 이용한 MongoDB 연결 및 CRUD 연동 정리">
+<link rel="canonical" href="https://kkr010128.github.io/01-python-db-api/">
+<meta property="og:title" content="Python DB API | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Python에서 pymongo를 이용한 MongoDB 연결 및 CRUD 연동 정리">
+<meta property="og:url" content="https://kkr010128.github.io/01-python-db-api/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python DB API | hyeon.log">
+<meta name="twitter:description" content="Python에서 pymongo를 이용한 MongoDB 연결 및 CRUD 연동 정리">
+
+  <meta property="article:published_time" content="2026-07-17T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Python DB API | hyeon.log",
+    "description": "Python에서 pymongo를 이용한 MongoDB 연결 및 CRUD 연동 정리",
+    "url": "https://kkr010128.github.io/01-python-db-api/",
+    "datePublished": "2026-07-17T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">Python DB API</h1>
+    
+      <p class="post-head__description">Python에서 pymongo를 이용한 MongoDB 연결 및 CRUD 연동 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 7월 17일 · 2분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Python">Python</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-개요">1) 개요</h2>
+<hr />
+<ul>
+  <li>Python에서 DB에 접근하기 위한 표준 API</li>
+  <li>DB 연결, 쿼리 수행, 연결 해제 등 기본 기능 정의</li>
+  <li>표준 API를 활용한 ORM(Object Relational Mapping)
+  → RDBMS의 Table과 Object 매핑
+  → SQL 대신 객체 메서드 호출로 DB 사용</li>
+</ul>
+
+<h3 id="db-접속에-필요한-정보">DB 접속에 필요한 정보</h3>
+<ul>
+  <li>URL, Port (기본 포트 사용 시 생략 가능), DB Name, 계정, 비밀번호</li>
+</ul>
+
+<h2 id="2-mongodb-연동">2) MongoDB 연동</h2>
+<hr />
+<h3 id="패키지-설치">패키지 설치</h3>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pip</span> <span class="n">install</span> <span class="n">pymongo</span>
+</code></pre></div></div>
+
+<h3 id="과정">과정</h3>
+<ol>
+  <li>패키지 설치 (<code class="language-plaintext highlighter-rouge">pymongo</code>)</li>
+  <li>데이터베이스 연결: <code class="language-plaintext highlighter-rouge">변수 = pymongo.MongoClient("URL", 포트)</code></li>
+  <li>데이터베이스 생성 또는 연결: <code class="language-plaintext highlighter-rouge">db = 변수.데이터베이스이름</code></li>
+  <li>컬렉션 연결: <code class="language-plaintext highlighter-rouge">컬렉션 = db.컬렉션이름</code></li>
+  <li>데이터베이스 작업 수행 (CRUD)</li>
+  <li>연결 해제: <code class="language-plaintext highlighter-rouge">변수.close()</code></li>
+</ol>
+
+<h2 id="3-데이터-삽입">3) 데이터 삽입</h2>
+<hr />
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pymongo</span> <span class="kn">import</span> <span class="n">MongoClient</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="s">'127.0.0.1'</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">mydb</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="n">db</span><span class="p">.</span><span class="n">users</span>
+
+    <span class="n">users</span><span class="p">.</span><span class="n">insert_one</span><span class="p">({</span><span class="s">'empno'</span><span class="p">:</span> <span class="s">'10001'</span><span class="p">,</span> <span class="s">'name'</span><span class="p">:</span> <span class="s">'kim'</span><span class="p">})</span>
+    <span class="n">users</span><span class="p">.</span><span class="n">insert_many</span><span class="p">([</span>
+        <span class="p">{</span><span class="s">'empno'</span><span class="p">:</span> <span class="s">'10002'</span><span class="p">,</span> <span class="s">'name'</span><span class="p">:</span> <span class="s">'lee'</span><span class="p">},</span>
+        <span class="p">{</span><span class="s">'empno'</span><span class="p">:</span> <span class="s">'10003'</span><span class="p">,</span> <span class="s">'name'</span><span class="p">:</span> <span class="s">'park'</span><span class="p">}</span>
+    <span class="p">])</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"데이터 삽입 성공"</span><span class="p">)</span>
+
+<span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">conn</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div></div>
+
+<h2 id="4-데이터-조회">4) 데이터 조회</h2>
+<hr />
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pymongo</span> <span class="kn">import</span> <span class="n">MongoClient</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="s">'127.0.0.1'</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">mydb</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="n">db</span><span class="p">.</span><span class="n">users</span>
+
+    <span class="c1"># find: 전체 조회 (cursor 반환 → for로 변환 필요)
+</span>    <span class="n">results</span> <span class="o">=</span> <span class="n">users</span><span class="p">.</span><span class="n">find</span><span class="p">().</span><span class="n">sort</span><span class="p">({</span><span class="s">'name'</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">})</span>
+    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s">'name'</span><span class="p">])</span>
+
+<span class="k">except</span> <span class="nb">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">conn</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">find()</code> → 전체 데이터, 커서(cursor) 반환</li>
+  <li><code class="language-plaintext highlighter-rouge">find_one()</code> → 하나의 데이터, dict 반환</li>
+</ul>
+
+<h2 id="5-데이터-수정">5) 데이터 수정</h2>
+<hr />
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">users</span><span class="p">.</span><span class="n">update_one</span><span class="p">({</span><span class="s">'empno'</span><span class="p">:</span> <span class="s">'10001'</span><span class="p">},</span> <span class="p">{</span><span class="s">'$set'</span><span class="p">:</span> <span class="p">{</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'new_name'</span><span class="p">}})</span>
+<span class="n">users</span><span class="p">.</span><span class="n">update_many</span><span class="p">({</span><span class="s">'dept'</span><span class="p">:</span> <span class="s">'sales'</span><span class="p">},</span> <span class="p">{</span><span class="s">'$set'</span><span class="p">:</span> <span class="p">{</span><span class="s">'dept'</span><span class="p">:</span> <span class="s">'marketing'</span><span class="p">}})</span>
+</code></pre></div></div>
+
+<h2 id="6-데이터-삭제">6) 데이터 삭제</h2>
+<hr />
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">users</span><span class="p">.</span><span class="n">delete_one</span><span class="p">({</span><span class="s">'empno'</span><span class="p">:</span> <span class="s">'10001'</span><span class="p">})</span>
+<span class="n">users</span><span class="p">.</span><span class="n">delete_many</span><span class="p">({</span><span class="s">'dept'</span><span class="p">:</span> <span class="s">'old'</span><span class="p">})</span>
+</code></pre></div></div>
+
+<h2 id="7-with-구문-auto-close">7) with 구문 (Auto Close)</h2>
+<hr />
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pymongo</span> <span class="kn">import</span> <span class="n">MongoClient</span>
+
+<span class="k">with</span> <span class="n">MongoClient</span><span class="p">(</span><span class="s">'127.0.0.1'</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">mydb</span>
+    <span class="n">users</span> <span class="o">=</span> <span class="n">db</span><span class="p">.</span><span class="n">users</span>
+
+    <span class="n">users</span><span class="p">.</span><span class="n">insert_one</span><span class="p">({</span><span class="s">'name'</span><span class="p">:</span> <span class="s">'test'</span><span class="p">})</span>
+    <span class="c1"># with 블록 종료 시 자동 close
+</span></code></pre></div></div>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/02-redis-usage/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Redis 사용</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/02-redis-db-api/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Redis DB API</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785657518"></script>
+  </body>
+</html>

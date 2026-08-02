@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-29T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -238,7 +238,7 @@
         
           <a class="tag-chip" href="/?tag=Linux">Linux</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -276,13 +276,15 @@
   <li>실행 가능한 속성으로 변경해서 실행</li>
   <li>스크립트를 만들지 않고 실행
     <ul>
-      <li>echo “이름: “ “$UESR; echo “홈: “ $HOME
-        <h2 id="2--변수">2 ) 변수</h2>
-        <hr />
-        <h3 id="개요">개요</h3>
-      </li>
+      <li>echo “이름: “ “$UESR; echo “홈: “ $HOME</li>
     </ul>
   </li>
+</ul>
+
+<h2 id="2--변수">2 ) 변수</h2>
+<hr />
+<h3 id="개요">개요</h3>
+<ul>
   <li>변수를 사용하기 전 미리 선언할 필요 없음</li>
   <li>처음 변수에 값을 할당 시 자동으로 변수 생성</li>
   <li>변수 이름은 대소문자 구분
@@ -359,39 +361,48 @@ print
 <h3 id="매개변수를-이용한-함수">매개변수를 이용한 함수</h3>
 <ul>
   <li>위치로 변수를 매핑함</li>
-  <li><code class="language-plaintext highlighter-rouge">( )</code>를 이용한 파라피터로 사용하지 않음
-```bash
-./func.sh</li>
+  <li><code class="language-plaintext highlighter-rouge">( )</code>를 이용한 파라피터로 사용하지 않음</li>
 </ul>
 
-<p>#!/bin/bash</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./func.sh
 
-<p>function print() {
-	echo $1$
-}</p>
+<span class="c">#!/bin/bash</span>
 
-<p>print</p>
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-### 전역 변수와 지역 변수
-- **전역 변수**
-	- 함수 외부에서 생성해 모든 곳에서 사용 가능
-- **지역 변수**
-	- 함수 내부에서 local이라는 단어와 함께 생성
-	- 함수 내부에서만 사용 가능
-```bash
-#!/bin/bash
+<span class="k">function </span>print<span class="o">()</span> <span class="o">{</span>
+	<span class="nb">echo</span> <span class="nv">$1</span><span class="err">$</span>
+<span class="o">}</span>
 
-glovalVar="전역변수"
+print
+</code></pre></div></div>
 
-function print() {
-	echo globalVar
-	local localVar="지역변수"
-	echo $localVar
-}
+<h3 id="전역-변수와-지역-변수">전역 변수와 지역 변수</h3>
+<ul>
+  <li><strong>전역 변수</strong>
+    <ul>
+      <li>함수 외부에서 생성해 모든 곳에서 사용 가능</li>
+    </ul>
+  </li>
+  <li><strong>지역 변수</strong>
+    <ul>
+      <li>함수 내부에서 local이라는 단어와 함께 생성</li>
+      <li>함수 내부에서만 사용 가능</li>
+    </ul>
+  </li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nv">glovalVar</span><span class="o">=</span><span class="s2">"전역변수"</span>
+
+<span class="k">function </span>print<span class="o">()</span> <span class="o">{</span>
+	<span class="nb">echo </span>globalVar
+	<span class="nb">local </span><span class="nv">localVar</span><span class="o">=</span><span class="s2">"지역변수"</span>
+	<span class="nb">echo</span> <span class="nv">$localVar</span>
+<span class="o">}</span>
 print
 
-echo globalVar
-echo $localVar
+<span class="nb">echo </span>globalVar
+<span class="nb">echo</span> <span class="nv">$localVar</span>
 </code></pre></div></div>
 
 <h3 id="특수-매개변수">특수 매개변수</h3>
@@ -583,15 +594,43 @@ echo $localVar
 
 <h3 id="크기-비교-연산자">크기 비교 연산자</h3>
 
-<h4 id="정수-비교">정수 비교</h4>
-<p>| 연산자 | 의미 |
-| —— | —- |
-| <code class="language-plaintext highlighter-rouge">-eq</code> | 같음 |
-| <code class="language-plaintext highlighter-rouge">-ne</code> | 같지 않음 |
-| <code class="language-plaintext highlighter-rouge">-gt</code> | 큼 |
-| <code class="language-plaintext highlighter-rouge">-ge</code> | 크거나 같음 |
-| <code class="language-plaintext highlighter-rouge">-lt</code> | 작음 |
-| <code class="language-plaintext highlighter-rouge">-le</code> | 작거나 같음 |</p>
+<h3 id="정수-비교">정수 비교</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>연산자</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-eq</code></td>
+      <td>같음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-ne</code></td>
+      <td>같지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-gt</code></td>
+      <td>큼</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-ge</code></td>
+      <td>크거나 같음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-lt</code></td>
+      <td>작음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-le</code></td>
+      <td>작거나 같음</td>
+    </tr>
+  </tbody>
+</table>
+
 <ul>
   <li><code class="language-plaintext highlighter-rouge">&gt;</code>, <code class="language-plaintext highlighter-rouge">&gt;=</code>, <code class="language-plaintext highlighter-rouge">&lt;</code>, <code class="language-plaintext highlighter-rouge">&lt;=</code>를 사용할 때는 <code class="language-plaintext highlighter-rouge">(( ))</code>를 이용</li>
 </ul>
@@ -812,7 +851,6 @@ echo $localVar
   <li><code class="language-plaintext highlighter-rouge">\&lt;</code>: 단어 시작에서 공백</li>
 </ul>
 
-<h1 id="0730목-"><code class="language-plaintext highlighter-rouge">07/30(목) ~</code></h1>
 <h3 id="문자-클래스">문자 클래스</h3>
 
 <table>
@@ -995,6 +1033,6 @@ phone: 010-2222-5668
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>

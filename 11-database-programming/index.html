@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-07-17T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785644807" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785644807" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785644807">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785644807" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785657518" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785657518" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785657518">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785657518" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785644807">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785657518">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -226,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 17일 · 3분 읽기
+          2026년 7월 17일 · 1분 읽기
         </span>
       </div>
     </div>
@@ -236,7 +236,7 @@
         
           <a class="tag-chip" href="/?tag=Python">Python</a>
         
-          <a class="tag-chip" href="/?tag=AutoEver%20SW%20School">AutoEver SW School</a>
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
       </div>
     
@@ -245,794 +245,51 @@
   </header>
 
   <section class="prose">
-    <blockquote>
-  <p>Python DB API를 이용한 관계형 데이터베이스(MySQL, Oracle)와 NoSQL(MongoDB, Redis) 연동을 학습한다.</p>
-</blockquote>
-
+    <h2 id="1-python-db-api-개요">1) Python DB API 개요</h2>
 <hr />
-
-<p>#Python #Database #MySQL #Oracle #MongoDB #Redis</p>
-
-<h2 id="학습-목표">학습 목표</h2>
-
 <ul>
-  <li>Python DB API</li>
-  <li>MySQL 연동</li>
-  <li>Oracle 연동</li>
-  <li>CRUD</li>
-  <li>Stored Procedure</li>
-  <li>BLOB</li>
-  <li>MongoDB</li>
-  <li>Redis</li>
+  <li>Python에서 DB를 액세스하기 위한 표준 API</li>
+  <li>DB 연결, 쿼리 수행, 연결 해제 등 기본 기능 정의</li>
+  <li>ORM(Object Relational Mapping): RDBMS Table과 Object 매핑, 쿼리 대신 메서드 호출로 DB 사용</li>
 </ul>
 
-<hr />
-
-<h1 id="데이터베이스database">데이터베이스(Database)</h1>
-
-<h2 id="데이터베이스-종류">데이터베이스 종류</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>대표 DB</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>RDBMS</td>
-      <td>MySQL, Oracle, PostgreSQL, SQLite</td>
-    </tr>
-    <tr>
-      <td>NoSQL</td>
-      <td>MongoDB, Redis</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr />
-
-<h1 id="python-db-api">Python DB API</h1>
-
-<p>Python에서 데이터베이스를 접근하기 위한 표준 API</p>
-
-<p>지원 기능</p>
-
+<h3 id="db-접속에-필요한-정보">DB 접속에 필요한 정보</h3>
 <ul>
-  <li>Database 연결</li>
-  <li>SQL 실행</li>
-  <li>Transaction</li>
-  <li>Cursor</li>
-  <li>Commit / Rollback</li>
+  <li>URL, Port, DB Name, 계정, 비밀번호</li>
 </ul>
 
-<p>대표 흐름</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Connect
-    │
-    ▼
-Cursor
-    │
-    ▼
-Execute SQL
-    │
-    ▼
-Commit / Rollback
-    │
-    ▼
-Close
-</code></pre></div></div>
-
+<h2 id="2-mariadb-연동">2) MariaDB 연동</h2>
 <hr />
-
-<h1 id="orm">ORM</h1>
-
-<p>Object Relational Mapping</p>
-
-<p>객체와 데이터베이스를 연결하는 기술</p>
-
-<p>대표 ORM</p>
-
-<ul>
-  <li>Django ORM</li>
-  <li>Peewee</li>
-  <li>PonyORM</li>
-</ul>
-
-<hr />
-
-<h1 id="mysql">MySQL</h1>
-
-<h2 id="설치">설치</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>pymysql
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="연결">연결</h2>
-
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pymysql</span>
 
-<span class="n">conn</span> <span class="o">=</span> <span class="n">pymysql</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span>
-    <span class="n">host</span><span class="o">=</span><span class="s">"localhost"</span><span class="p">,</span>
-    <span class="n">port</span><span class="o">=</span><span class="mi">3306</span><span class="p">,</span>
-    <span class="n">user</span><span class="o">=</span><span class="s">"user"</span><span class="p">,</span>
-    <span class="n">passwd</span><span class="o">=</span><span class="s">"password"</span><span class="p">,</span>
-    <span class="n">db</span><span class="o">=</span><span class="s">"database"</span><span class="p">,</span>
-    <span class="n">charset</span><span class="o">=</span><span class="s">"utf8"</span>
-<span class="p">)</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">pymysql</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"localhost"</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s">"root"</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s">"1234"</span><span class="p">,</span> <span class="n">db</span><span class="o">=</span><span class="s">"mydb"</span><span class="p">)</span>
+<span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"SELECT * FROM users"</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">cursor</span><span class="p">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+<span class="n">conn</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
 </code></pre></div></div>
 
+<h2 id="3-mongodb-연동">3) MongoDB 연동</h2>
 <hr />
-
-<h2 id="cursor">Cursor</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">cursor</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="sql-실행">SQL 실행</h1>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="parameter-binding">Parameter Binding</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="s">"insert into usertbl values(%s,%s,%s)"</span><span class="p">,</span>
-    <span class="n">values</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<p>장점</p>
-
-<ul>
-  <li>SQL Injection 방지</li>
-  <li>코드 가독성 향상</li>
-</ul>
-
-<hr />
-
-<h1 id="transaction">Transaction</h1>
-
-<p>반영</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">conn</span><span class="p">.</span><span class="n">commit</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>취소</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">conn</span><span class="p">.</span><span class="n">rollback</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="crud">CRUD</h1>
-
-<h2 id="insert">INSERT</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="s">"insert into ..."</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="update">UPDATE</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="s">"update ..."</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="delete">DELETE</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="s">"delete ..."</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="select">SELECT</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="s">"select * from usertbl"</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="조회">조회</h1>
-
-<h2 id="fetchone">fetchone()</h2>
-
-<p>한 개 반환</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="p">.</span><span class="n">fetchone</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="fetchall">fetchall()</h2>
-
-<p>전체 반환</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="p">.</span><span class="n">fetchall</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="stored-procedure">Stored Procedure</h1>
-
-<p>프로시저 실행</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">callproc</span><span class="p">(</span>
-    <span class="s">"myproc"</span><span class="p">,</span>
-    <span class="n">args</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="blob">BLOB</h1>
-
-<p>Binary Large Object</p>
-
-<p>이미지</p>
-
-<ul>
-  <li>영상</li>
-  <li>PDF</li>
-  <li>Binary Data</li>
-</ul>
-
-<p>저장 가능</p>
-
-<hr />
-
-<h2 id="저장">저장</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
-    <span class="n">filename</span><span class="p">,</span>
-    <span class="s">"rb"</span>
-<span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-
-    <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>↓</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="n">sql</span><span class="p">,</span>
-    <span class="p">(</span><span class="nb">id</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">data</span><span class="p">)</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="읽기">읽기</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="p">.</span><span class="n">fetchall</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>↓</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">open</span><span class="p">(</span>
-    <span class="n">filename</span><span class="p">,</span>
-    <span class="s">"wb"</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="oracle">Oracle</h1>
-
-<h2 id="설치-1">설치</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>cx_Oracle
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="dsn">DSN</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dsn</span> <span class="o">=</span> <span class="n">cx_Oracle</span><span class="p">.</span><span class="n">makedsn</span><span class="p">(</span>
-    <span class="n">host</span><span class="p">,</span>
-    <span class="n">port</span><span class="p">,</span>
-    <span class="n">sid</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="연결-1">연결</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">conn</span> <span class="o">=</span> <span class="n">cx_Oracle</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span>
-    <span class="n">user</span><span class="p">,</span>
-    <span class="n">password</span><span class="p">,</span>
-    <span class="n">dsn</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="oracle-parameter">Oracle Parameter</h1>
-
-<p>MySQL</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">%</span><span class="n">s</span>
-</code></pre></div></div>
-
-<p>Oracle</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">:</span><span class="mi">1</span>
-<span class="p">:</span><span class="mi">2</span>
-</code></pre></div></div>
-
-<p>예</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="s">"insert into dept values(:1,:2,:3)"</span><span class="p">,</span>
-    <span class="n">values</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="oracle-crud">Oracle CRUD</h1>
-
-<p>동일한 흐름</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Connect
-    │
-Cursor
-    │
-Execute
-    │
-Commit
-    │
-Close
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="oracle-procedure">Oracle Procedure</h1>
-
-<p>실행</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">callproc</span><span class="p">(</span>
-    <span class="s">"INSERT_DEPT"</span><span class="p">,</span>
-    <span class="n">args</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="oracle-blob">Oracle BLOB</h1>
-
-<p>저장</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cursor</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span>
-    <span class="n">sql</span><span class="p">,</span>
-    <span class="n">blob</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<p>읽기</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">blob</span><span class="p">.</span><span class="n">read</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="mongodb">MongoDB</h1>
-
-<h2 id="설치-2">설치</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>pymongo
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="연결-2">연결</h2>
-
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">pymongo</span> <span class="kn">import</span> <span class="n">MongoClient</span>
 
-<span class="n">conn</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span>
-    <span class="s">"127.0.0.1"</span>
-<span class="p">)</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">MongoClient</span><span class="p">(</span><span class="s">"127.0.0.1"</span><span class="p">)</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">mydb</span>
+<span class="n">users</span> <span class="o">=</span> <span class="n">db</span><span class="p">.</span><span class="n">users</span>
+
+<span class="n">users</span><span class="p">.</span><span class="n">insert_one</span><span class="p">({</span><span class="s">"name"</span><span class="p">:</span> <span class="s">"kim"</span><span class="p">})</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">users</span><span class="p">.</span><span class="n">find</span><span class="p">()</span>
 </code></pre></div></div>
 
+<h2 id="4-redis-연동">4) Redis 연동</h2>
 <hr />
-
-<h2 id="database">Database</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">db</span> <span class="o">=</span> <span class="n">conn</span><span class="p">.</span><span class="n">mymongo</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="collection">Collection</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span> <span class="o">=</span> <span class="n">db</span><span class="p">.</span><span class="n">users</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="document">Document</h1>
-
-<p>JSON 형태</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nl">"name"</span><span class="p">:</span><span class="s2">"Kim"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"age"</span><span class="p">:</span><span class="mi">20</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-
-<hr />
-
-<h1 id="insert-1">Insert</h1>
-
-<h2 id="insert_one">insert_one()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">insert_one</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="insert_many">insert_many()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">insert_many</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="search">Search</h1>
-
-<h2 id="find_one">find_one()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">find_one</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="find">find()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">find</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="조건-검색">조건 검색</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">find</span><span class="p">(</span>
-    <span class="p">{</span>
-        <span class="s">"age"</span><span class="p">:{</span>
-            <span class="s">"$gte"</span><span class="p">:</span><span class="mi">30</span>
-        <span class="p">}</span>
-    <span class="p">}</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="정렬">정렬</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">.</span><span class="n">sort</span><span class="p">(</span><span class="s">"age"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="update-1">Update</h1>
-
-<h2 id="update_one">update_one()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">update_one</span><span class="p">(</span>
-    <span class="n">condition</span><span class="p">,</span>
-    <span class="n">update</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="update_many">update_many()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">update_many</span><span class="p">(</span>
-    <span class="n">condition</span><span class="p">,</span>
-    <span class="n">update</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="delete-1">Delete</h1>
-
-<h2 id="delete_one">delete_one()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">delete_one</span><span class="p">(</span>
-    <span class="n">condition</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="delete_many">delete_many()</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">collection</span><span class="p">.</span><span class="n">delete_many</span><span class="p">(</span>
-    <span class="n">condition</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="redis">Redis</h1>
-
-<h2 id="설치-3">설치</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install </span>redis
-</code></pre></div></div>
-
-<hr />
-
-<h2 id="연결-3">연결</h2>
-
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">redis</span>
 
-<span class="n">conn</span> <span class="o">=</span> <span class="n">redis</span><span class="p">.</span><span class="n">StrictRedis</span><span class="p">(</span>
-    <span class="n">host</span><span class="o">=</span><span class="s">"localhost"</span><span class="p">,</span>
-    <span class="n">port</span><span class="o">=</span><span class="mi">6379</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="문자열string">문자열(String)</h1>
-
-<p>저장</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">conn</span><span class="p">.</span><span class="nb">set</span><span class="p">(</span>
-    <span class="s">"name"</span><span class="p">,</span>
-    <span class="s">"adam"</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<p>조회</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">conn</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"name"</span><span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="ttl">TTL</h1>
-
-<p>만료 시간</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">conn</span><span class="p">.</span><span class="n">expire</span><span class="p">(</span>
-    <span class="s">"name"</span><span class="p">,</span>
-    <span class="mi">30</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<p>조회</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">conn</span><span class="p">.</span><span class="n">ttl</span><span class="p">(</span>
-    <span class="s">"name"</span>
-<span class="p">)</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="list">List</h1>
-
-<p>오른쪽 삽입</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rpush</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>왼쪽 삽입</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lpush</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>삭제</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lpop</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>조회</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">lrange</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="hash">Hash</h1>
-
-<p>저장</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">hset</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>조회</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">hget</span><span class="p">()</span>
-
-<span class="n">hgetall</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="set">Set</h1>
-
-<p>저장</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sadd</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>조회</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">smembers</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>집합 연산</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sunion</span><span class="p">()</span>
-
-<span class="n">sinter</span><span class="p">()</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="sorted-set">Sorted Set</h1>
-
-<p>저장</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">zadd</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>조회</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">zrange</span><span class="p">()</span>
-</code></pre></div></div>
-
-<p>내림차순</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">desc</span><span class="o">=</span><span class="bp">True</span>
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="rdbms-vs-nosql">RDBMS vs NoSQL</h1>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>RDBMS</th>
-      <th>NoSQL</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>구조</td>
-      <td>Table</td>
-      <td>Document / Key-Value</td>
-    </tr>
-    <tr>
-      <td>대표</td>
-      <td>MySQL, Oracle</td>
-      <td>MongoDB, Redis</td>
-    </tr>
-    <tr>
-      <td>Schema</td>
-      <td>고정</td>
-      <td>유연</td>
-    </tr>
-    <tr>
-      <td>SQL</td>
-      <td>사용</td>
-      <td>사용 안 함(제품별 상이)</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr />
-
-<h1 id="db-api-흐름">DB API 흐름</h1>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Connect
-    │
-    ▼
-Cursor
-    │
-    ▼
-Execute
-    │
-    ├── INSERT
-    ├── UPDATE
-    ├── DELETE
-    └── SELECT
-    │
-    ▼
-Commit / Rollback
-    │
-    ▼
-Close
-</code></pre></div></div>
-
-<hr />
-
-<h1 id="핵심-암기">핵심 암기</h1>
-
-<ul>
-  <li>Python DB API : 표준 DB 인터페이스</li>
-  <li><code class="language-plaintext highlighter-rouge">cursor()</code> : SQL 실행 객체</li>
-  <li><code class="language-plaintext highlighter-rouge">execute()</code> : SQL 실행</li>
-  <li><code class="language-plaintext highlighter-rouge">commit()</code> : 반영</li>
-  <li><code class="language-plaintext highlighter-rouge">rollback()</code> : 취소</li>
-  <li><code class="language-plaintext highlighter-rouge">fetchone()</code> : 1개 조회</li>
-  <li><code class="language-plaintext highlighter-rouge">fetchall()</code> : 전체 조회</li>
-  <li><code class="language-plaintext highlighter-rouge">callproc()</code> : 프로시저 실행</li>
-  <li>BLOB : 바이너리 데이터 저장</li>
-  <li>MongoDB : Document Database</li>
-  <li><code class="language-plaintext highlighter-rouge">insert_one()</code> : 1개 저장</li>
-  <li><code class="language-plaintext highlighter-rouge">find()</code> : 조회</li>
-  <li><code class="language-plaintext highlighter-rouge">update_many()</code> : 여러 개 수정</li>
-  <li><code class="language-plaintext highlighter-rouge">delete_many()</code> : 여러 개 삭제</li>
-  <li>Redis : In-Memory Database</li>
-  <li><code class="language-plaintext highlighter-rouge">set()</code> / <code class="language-plaintext highlighter-rouge">get()</code> : 문자열</li>
-  <li><code class="language-plaintext highlighter-rouge">hset()</code> : Hash</li>
-  <li><code class="language-plaintext highlighter-rouge">sadd()</code> : Set</li>
-  <li><code class="language-plaintext highlighter-rouge">zadd()</code> : Sorted Set</li>
-  <li><code class="language-plaintext highlighter-rouge">expire()</code> : TTL 설정</li>
-</ul>
-
-<hr />
-
-<h1 id="한-페이지-요약">한 페이지 요약</h1>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Database Programming
-│
-├── Python DB API
-│   ├── Connect
-│   ├── Cursor
-│   ├── Execute
-│   ├── Commit
-│   └── Close
-│
-├── MySQL
-│   ├── CRUD
-│   ├── Procedure
-│   └── BLOB
-│
-├── Oracle
-│   ├── CRUD
-│   ├── Procedure
-│   └── BLOB
-│
-├── MongoDB
-│   ├── Collection
-│   ├── Document
-│   ├── CRUD
-│   └── Query
-│
-└── Redis
-    ├── String
-    ├── List
-    ├── Hash
-    ├── Set
-    ├── Sorted Set
-    └── TTL
+<span class="n">con</span> <span class="o">=</span> <span class="n">redis</span><span class="p">.</span><span class="n">StrictRedis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"127.0.0.1"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">)</span>
+<span class="n">con</span><span class="p">.</span><span class="nb">set</span><span class="p">(</span><span class="s">"key"</span><span class="p">,</span> <span class="s">"value"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">con</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">"key"</span><span class="p">))</span>
 </code></pre></div></div>
 
   </section>
@@ -1084,6 +341,6 @@ Close
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785644807"></script>
+    <script src="/assets/js/site.js?v=1785657518"></script>
   </body>
 </html>
