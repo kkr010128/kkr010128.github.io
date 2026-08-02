@@ -5,7 +5,7 @@ date: 2026-07-22
 series: Linux
 tags:
   - Linux
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1 ) Ubuntu Package
@@ -41,6 +41,7 @@ tags:
 - 패키지 저장소는 패키지의 기능 추가나 보안 패치 등 지속적 업그레이드를 집중적으로 관리
 - 사용자는 저장소에 접속해 최신 패키지를 내려받아 설치
 - 패키지 저장소를 이용하기 위해선 패키지 저장소를 설정해야 함
+
 ```bash
 # 해당 파일에 패키지 저장소 설정
 sudo ls -l /etc/apt/sources.list.d/ubuntu.sources
@@ -122,12 +123,8 @@ sudo ls -l /etc/apt/sources.list.d/ubuntu.sources
 		- 설치 → `i`
 		- 삭제 → `r`
 
-```
-blank
-```
-
-===추가됨===
 #### dpkg 명령 사용 예시
+
 ```sh
 # 패키지 목록 출력
 dpkg -l
@@ -144,38 +141,35 @@ sudo dpkg -i 패키지파일.deb
 # 패키지 삭제
 sudo dpkg -r 패키지이름
 ```
-===여기까지===
 
 ### aptitude
 - 옵션이나 서브 명령 없이 사용하면 curses를 이용한 visual mode로 동작
 - `sudo apt install aptitude -y`
 - `sudo aptitude`
+
 ### snap
 - 우분투가 새로 도입한 패키지 형식
 - 샌드박스 형태의 패키지
 - 패키지를 만들 때 필요한 모든 라이브러리를 패키지 안에 포함하는 방식
 - 외부 파일이 내부 시스템에 악영향을 주는 것을 방지하는
 - 단점은 패키지의 용량이 커짐
-```
-OPTION BLANK
-```
 
-===추가됨===
-#### snap 명령어
+
+### snap 명령어
 
 - 형식: `snap [옵션] 명령`
 
-| 명령 | 설명 |
-|------|------|
-| `disable` | 스냅 비활성화 |
-| `download` | 스냅 다운로드 |
-| `enable` | 스냅 활성화 |
-| `find 스냅이름` | 스냅 검색 |
-| `info 스냅이름` | 스냅 정보 확인 |
-| `install 스냅이름` | 스냅 설치 |
-| `list` | 설치된 스냅 목록 |
-| `remove 스냅이름` | 스냅 제거 |
-===여기까지===
+| 명령             | 설명        |
+| -------------- | --------- |
+| `disable`      | 스냅 비활성화   |
+| `download`     | 스냅 다운로드   |
+| `enable`       | 스냅 활성화    |
+| `find 스냅이름`    | 스냅 검색     |
+| `info 스냅이름`    | 스냅 정보 확인  |
+| `install 스냅이름` | 스냅 설치     |
+| `list`         | 설치된 스냅 목록 |
+| `remove 스냅이름`  | 스냅 제거     |
+
 
 
 ## 3 ) 압축
@@ -205,6 +199,7 @@ OPTION BLANK
 		- 아카이브에 파일 추가 → `rvf`
 
 - 실습
+
 ```bash
 # 디렉토리 생성
 mkdir ex_archive
@@ -243,6 +238,7 @@ tar rvf sample1.tar service
 tar czvf sample1.tar.gz sample1
 tar czvf sample1.tar.bz2 sample1
 ```
+
 - 아카이브 생성과 함께 압축
 	- gzip으로 압축하고자 하는 경우 z 옵션 이용
 	- 일반적으로 압축된 사실을 알려주기 위해 마지막에 확장자 gz를 추가함

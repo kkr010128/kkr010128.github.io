@@ -5,7 +5,7 @@ date: 2026-07-23
 series: Linux
 tags:
   - Linux
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1) 디스크 기반 파일 시스템

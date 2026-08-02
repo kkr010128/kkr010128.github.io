@@ -5,695 +5,190 @@ date: 2026-07-08
 series: Python
 tags:
   - Python
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
-> Python의 객체지향 프로그래밍(OOP), 클래스, 상속, 객체 모델 및 모듈 시스템을 학습한다.
-
+## 1) OOP 개요
 ---
+### 객체지향의 4대 특징
 
-#Python #OOP #Class #Inheritance #Module
+| 특징 | 설명 |
+| ---- | ---- |
+| **캡슐화(Encapsulation)** | 데이터와 기능을 하나로 묶고 내부 구현 은닉 |
+| **상속(Inheritance)** | 하위 클래스가 상위 클래스의 모든 것을 물려받음 |
+| **다형성(Polymorphism)** | 동일한 메시지에 대해 다르게 반응 |
+| **추상화(Abstraction)** | 공통 특징을 추출하여 상위 개념 정의 |
 
-## 학습 목표
-
-- 객체지향 프로그래밍 이해
-- Class와 Instance
-- 생성자와 소멸자
-- Property
-- 연산자 오버로딩
-- 상속
-- Iterator / Generator
-- Module과 Package
-
+## 2) Class와 Instance
 ---
+### 클래스 선언
+```python
+class 이름:
+    데이터 선언
+    def 메서드(self):
+        실행문
+```
 
-# 객체지향 프로그래밍(OOP)
+### 인스턴스 생성
+```python
+s = Student()           # 인스턴스 생성
+s.display()             # 인스턴스 메서드 호출
+Student.display(s)      # 언바운드 호출 (클래스가 직접 호출)
+```
 
-## 객체지향의 4대 특징
+### Method
+- 인스턴스 메서드의 첫 번째 매개변수는 **self** (인스턴스 자신)
 
-### 캡슐화(Encapsulation)
-
-- 데이터와 기능을 하나로 묶음
-- 내부 구현 은닉
-- 정보 은닉(Information Hiding)
-
+## 3) Attribute (속성)
 ---
+### Class Attribute vs Instance Attribute
 
-### 상속(Inheritance)
+| 구분 | 특징 |
+| ---- | ---- |
+| **Class Attribute** | 클래스 안에 1개만 생성, 모든 인스턴스가 공유 |
+| **Instance Attribute** | 각 인스턴스가 별도 소유, `self.속성명`으로 생성 |
 
-- 기존 클래스 재사용
-- 코드 중복 제거
-- 기능 확장
+### Accessor (Getter / Setter)
+```python
+class Student:
+    def getNum(self):
+        return self.num
+    def setNum(self, num):
+        self.num = num
+```
 
+## 4) 생성자와 소멸자
 ---
-
-### 다형성(Polymorphism)
-
-같은 메서드 호출이라도 객체에 따라 다른 동작 수행
-
-대표 방법
-
-- Method Overriding
-
----
-
-### 동적 바인딩(Dynamic Binding)
-
-실행 시점(Runtime)에 호출할 메서드가 결정된다.
-
----
-
-# 객체지향 용어
-
-|용어|설명|
-|---|---|
-|Object|객체|
-|Class|객체 설계도|
-|Instance|클래스로 생성한 객체|
-|Attribute|속성(데이터)|
-|Method|클래스 내부 함수|
-|Constructor|생성자|
-
----
-
-# Class
-
-## 기본 구조
+### `__init__` (생성자)
+인스턴스 생성 시 자동 호출, 속성 초기화에 사용
 
 ```python
 class Student:
-
-    def __init__(self):
-        self.name = "Adam"
-
-    def study(self):
-        print("Study")
-```
-
----
-
-## 객체 생성
-
-```python
-student = Student()
-```
-
----
-
-## 멤버 접근
-
-```python
-student.name
-student.study()
-```
-
----
-
-# self
-
-현재 객체 자신을 의미한다.
-
-모든 인스턴스 메서드의 첫 번째 매개변수
-
-```python
-def study(self):
-```
-
----
-
-# 생성자(Constructor)
-
-객체 생성 시 자동 실행
-
-```python
-class Student:
-
-    def __init__(self, name):
+    def __init__(self, num=0, name="noname"):
+        self.num = num
         self.name = name
 ```
 
-생성
+### `__del__` (소멸자)
+인스턴스 소멸 시 호출, 외부 연결 해제에 사용
+
+### Garbage Collection
+- **참조 카운트(Reference Count)** 방식
+- 참조 시 +1, 참조 해제 시 -1
+- 0이 되면 GC가 메모리 정리 (우선순위 낮음)
 
 ```python
-Student("Adam")
+s1 = Student()  # count: 1
+s2 = s1         # count: 2
+del s1           # count: 1 (소멸 안 됨)
 ```
 
+## 5) Static / Class Method
 ---
-
-# 소멸자(Destructor)
-
-객체가 제거될 때 실행
-
 ```python
-def __del__(self):
-    ...
+class MyClass:
+    @staticmethod
+    def static_method():    # self 없음, 클래스로 직접 호출
+        pass
+    
+    @classmethod
+    def class_method(cls):  # 첫 매개변수는 cls (클래스 자신)
+        pass
 ```
 
-주로
-
-- 파일 종료
-- 네트워크 종료
-- 자원 해제
-
+## 6) Private 멤버
 ---
-
-# Attribute
-
-## Class Attribute
-
-모든 객체가 공유
+- 이름 앞에 `__`를 붙이면 private
+- 클래스 외부에서 직접 접근 불가
 
 ```python
 class Student:
-
-    school = "Python"
+    def __init__(self, name, age):
+        self.name = name        # public
+        self.__age = age        # private
 ```
 
-접근
-
-```python
-Student.school
-```
-
+## 7) Property
 ---
-
-## Instance Attribute
-
-객체마다 별도 저장
-
-```python
-self.name
-```
-
----
-
-# Getter / Setter
-
-객체 데이터를 직접 수정하지 않고 메서드를 이용
-
-```python
-def getName(self):
-    return self.name
-
-def setName(self, name):
-    self.name = name
-```
-
----
-
-# Property
-
-Getter/Setter를 변수처럼 사용
-
-```python
-@property
-def name(self):
-    return self.__name
-```
-
-Setter
-
-```python
-@name.setter
-def name(self, value):
-    self.__name = value
-```
-
-사용
-
-```python
-student.name = "Adam"
-
-print(student.name)
-```
-
----
-
-# private 멤버
-
-이름 앞에 `__`
-
-```python
-self.__name
-```
-
-외부 접근 제한
-
----
-
-# Static Method
-
-객체 생성 없이 호출
-
-```python
-@staticmethod
-def func():
-    ...
-```
-
-호출
-
-```python
-Student.func()
-```
-
-특징
-
-- self 없음
-- 객체 상태 사용 불가
-
----
-
-# Class Method
-
-```python
-@classmethod
-def func(cls):
-```
-
-특징
-
-- cls 사용
-- 클래스 정보 접근 가능
-
----
-
-# __slots__
-
-생성 가능한 Attribute 제한
+Getter/Setter를 변수처럼 호출
 
 ```python
 class Student:
+    @property
+    def name(self):
+        return self.__name
+    
+    @name.setter
+    def name(self, name):
+        self.__name = name
 
-    __slots__ = ["name","score"]
+s = Student()
+s.name = "adam"   # setter 호출
+print(s.name)     # getter 호출
 ```
 
-장점
-
-- 메모리 절약
-- Attribute 추가 방지
-
+## 8) 연산자 오버로딩
 ---
-
-# is 와 ==
-
-## ==
-
-값 비교
+연산자의 기능을 변경 (예: `+`는 숫자 연산이지만 str에서는 문자열 결합)
 
 ```python
-a == b
+class Student:
+    def __add__(self, other):     # + 연산자
+        return self.name + other.name
+    def __eq__(self, other):      # == 연산자
+        return len(self.name) == len(other.name)
+    def __str__(self):            # print() 시 출력
+        return self.name
 ```
 
+## 9) 상속(Inheritance)
 ---
-
-## is
-
-객체 주소(id) 비교
-
-```python
-a is b
-```
-
----
-
-# 특수 메서드(Magic Method)
-
-대표 메서드
-
-|메서드|의미|
-|---|---|
-|`__init__`|생성자|
-|`__del__`|소멸자|
-|`__str__`|문자열 출력|
-|`__repr__`|객체 표현|
-|`__eq__`|==|
-|`__hash__`|hash|
-|`__call__`|객체 호출|
-|`__getitem__`|인덱싱|
-|`__setitem__`|인덱스 저장|
-
----
-
-# Operator Overloading
-
-연산자 기능 재정의
-
-예
-
-```python
-def __add__(self, other):
-```
-
-+
-
----
-
-```python
-def __eq__(self, other):
-```
-
-==
-
----
-
-```python
-def __str__(self):
-```
-
-print()
-
----
-
-```python
-def __getitem__(self, key):
-```
-
-[]
-
----
-
-# Singleton Pattern
-
-객체를 하나만 생성
-
-```python
-def __new__(cls):
-```
-
-사용
-
----
-
-# Inheritance
-
-## 상속
-
+### 기본
 ```python
 class Person:
-    ...
+    def method(self):
+        print("상위 클래스")
 
-class Student(Person):
-    ...
+class Student(Person):     # Person 상속
+    def method(self):
+        super().method()   # 상위 클래스 메서드 호출
+        print("하위 클래스")
 ```
 
-장점
+**목적**: 코드 중복 제거, 기능 확장/추가
 
-- 코드 재사용
-- 기능 확장
+### Method Overriding
+상위 클래스의 메서드를 하위 클래스에서 **재정의**
+- 기능 확장이 목적 → 일반적으로 `super()`로 상위 메서드 호출
 
+### 다중 상속
+```python
+class SubClass(Super1, Super2):
+    pass
+```
+- 동일한 메서드가 여러 상위 클래스에 있으면 왼쪽부터 탐색
+
+## 10) 추상 클래스
 ---
-
-## super()
-
-부모 클래스 호출
+인스턴스를 만들 수 없는 클래스, 상속을 통해서만 사용
 
 ```python
-super().__init__()
+import abc
+
+class Starcraft(metaclass=abc.ABCMeta):
+    @abc.abstractmethod
+    def attack(self):
+        pass
+
+class Terran(Starcraft):
+    def attack(self):
+        print("테란 공격")
 ```
 
+**목적**: 다형성(Polymorphism) 구현, Template Method Pattern
+
+## 11) Coroutine
 ---
-
-## Method Overriding
-
-부모 메서드 재정의
-
-```python
-class Student(Person):
-
-    def greeting(self):
-        super().greeting()
-```
-
----
-
-## 다중 상속
-
-```python
-class Child(A, B):
-```
-
-메서드 탐색
-
-```python
-Class.mro()
-```
-
----
-
-# Abstract Class
-
-추상 클래스
-
-```python
-from abc import ABCMeta
-```
-
-추상 메서드
-
-```python
-@abstractmethod
-```
-
-특징
-
-- 객체 생성 불가
-- 반드시 Override
-
----
-
-# Delegation
-
-없는 메서드 호출 시 위임
-
-```python
-def __getattr__(self, name):
-```
-
----
-
-# Iterator
-
-순차 접근 객체
-
-필수 메서드
-
-```python
-__iter__()
-
-__next__()
-```
-
-반복 종료
-
-```python
-StopIteration
-```
-
----
-
-# enumerate()
-
-인덱스와 데이터 반환
-
-```python
-for idx, value in enumerate(data):
-```
-
----
-
-# Generator
-
-yield를 사용하는 Iterator
-
-```python
-def gen():
-
-    yield 1
-    yield 2
-```
-
-장점
-
-- Lazy Evaluation
-- 메모리 절약
-
----
-
-# Coroutine
-
-Generator 기반
-
-```python
-send()
-```
-
-사용
-
-```python
-yield
-```
-
-값 송수신 가능
-
----
-
-# Module
-
-하나의 Python 파일
-
-가져오기
-
-```python
-import math
-```
-
----
-
-## import
-
-```python
-import math
-```
-
----
-
-```python
-from math import sin
-```
-
----
-
-```python
-import math as m
-```
-
----
-
-# Package
-
-여러 Module을 묶은 디렉터리
-
-구성
-
-```text
-mypackage/
-
-    __init__.py
-
-    module.py
-```
-
----
-
-# pip
-
-설치
-
-```bash
-pip install package
-```
-
-업데이트
-
-```bash
-pip install --upgrade package
-```
-
-삭제
-
-```bash
-pip uninstall package
-```
-
-목록
-
-```bash
-pip list
-```
-
----
-
-# matplotlib
-
-그래프 작성
-
-```python
-import matplotlib.pyplot as plt
-```
-
----
-
-# folium
-
-지도 시각화
-
-```python
-import folium
-```
-
----
-
-# 핵심 암기
-
-- Class = 객체 설계도
-- Instance = 객체
-- self = 현재 객체
-- `__init__()` = 생성자
-- `__del__()` = 소멸자
-- Class Attribute = 공유 변수
-- Instance Attribute = 객체별 변수
-- `@staticmethod` = 정적 메서드
-- `@classmethod` = 클래스 메서드
-- `@property` = Getter / Setter
-- `super()` = 부모 클래스 호출
-- Inheritance = 상속
-- Overriding = 재정의
-- `__str__()` = 문자열 출력
-- `__eq__()` = 비교
-- `__getitem__()` = 인덱싱
-- Iterator = `__iter__`, `__next__`
-- Generator = `yield`
-- Coroutine = `send()`
-- Module = Python 파일
-- Package = Module 묶음
-
----
-
-# 한 페이지 요약
-
-```text
-OOP
-│
-├── Class
-│   ├── Attribute
-│   ├── Method
-│   ├── self
-│   ├── Constructor
-│   └── Destructor
-│
-├── Getter / Setter
-├── Property
-├── Static Method
-├── Class Method
-│
-├── Operator Overloading
-├── Magic Method
-│
-├── Inheritance
-│   ├── super()
-│   ├── Overriding
-│   ├── Multiple Inheritance
-│   └── Abstract Class
-│
-├── Iterator
-├── Generator
-├── Coroutine
-│
-└── Module
-    ├── Package
-    ├── pip
-    ├── matplotlib
-    └── folium
-```
-
+- **협력 루틴(Cooperative Routine)**
+- 함수는 호출되면 종료 후 반환되지만, 코루틴은 종료되지 않고 중단/재개 가능
+- 서로 대등한 관계로 특정 시점에 상대방 코드 실행

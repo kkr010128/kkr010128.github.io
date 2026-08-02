@@ -5,7 +5,7 @@ date: 2026-07-24
 series: Linux
 tags:
   - Linux
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1 ) C Programming
@@ -40,7 +40,8 @@ int main(){
 
 ### **Practice** 
 
-→ `[one.c, two.c]	
+→ `[one.c, two.c]`
+
 ```c
 #include <stdio.h>
 
@@ -209,6 +210,8 @@ server.listen(port, hostname, () => {
 ---
 ### Installation
 - `sudo rm -rf /usr/local/go` → 기존 설치된 go 삭제
+
+
 ```bash
 # download Go
 curl -OL https://golang.org/dl/go1.22.0.linux-arm64.tar.gz
@@ -226,6 +229,7 @@ source ~/.profile
 # Check Installation
 go version
 ```
+
 
 ### Programming
 ```bash

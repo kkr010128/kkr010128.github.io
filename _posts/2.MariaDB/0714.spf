@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ContentFilters</key>
+	<dict/>
+	<key>auto_connect</key>
+	<true/>
+	<key>data</key>
+	<dict>
+		<key>connection</key>
+		<dict>
+			<key>allowDataLocalInfile</key>
+			<integer>0</integer>
+			<key>database</key>
+			<string>practice</string>
+			<key>enableClearTextPlugin</key>
+			<integer>0</integer>
+			<key>host</key>
+			<string>localhost</string>
+			<key>kcid</key>
+			<string>6972335119068738975</string>
+			<key>name</key>
+			<string>autoever</string>
+			<key>port</key>
+			<integer>3197</integer>
+			<key>rdbms_type</key>
+			<string>mysql</string>
+			<key>sslCACertFileLocation</key>
+			<string></string>
+			<key>sslCACertFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslCertificateFileLocation</key>
+			<string></string>
+			<key>sslCertificateFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslKeyFileLocation</key>
+			<string></string>
+			<key>sslKeyFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>type</key>
+			<string>SPTCPIPConnection</string>
+			<key>useSSL</key>
+			<integer>0</integer>
+			<key>user</key>
+			<string>root</string>
+		</dict>
+		<key>session</key>
+		<dict>
+			<key>connectionEncoding</key>
+			<string>utf8mb4</string>
+			<key>contentFilterV2</key>
+			<dict>
+				<key>column</key>
+				<string>projectid</string>
+				<key>enabled</key>
+				<true/>
+				<key>filterClass</key>
+				<string>expressionNode</string>
+				<key>filterComparison</key>
+				<string>=</string>
+				<key>filterType</key>
+				<string>number</string>
+				<key>filterValues</key>
+				<array>
+					<string></string>
+				</array>
+			</dict>
+			<key>contentPageNumber</key>
+			<integer>1</integer>
+			<key>contentSelection</key>
+			<data>
+			YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0
+			b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRk
+			YXRhgAGtCwwZGhscHSEoLDA0OFUkbnVsbNMNDg8QFBhXTlMua2V5
+			c1pOUy5vYmplY3RzViRjbGFzc6MREhOAAoADgASjFRYXgAWABoAI
+			gAxUdHlwZVRyb3dzVGtleXNfECZTZWxlY3Rpb25EZXRhaWxUeXBl
+			UHJpbWFyeUtleWVkRGV0YWlsc9MNDg8eHyCgoIAH0iIjJCVaJGNs
+			YXNzbmFtZVgkY2xhc3Nlc18QE05TTXV0YWJsZURpY3Rpb25hcnmj
+			JCYnXE5TRGljdGlvbmFyeVhOU09iamVjdNIODykroSqACYAL0g8t
+			Li9ZTlMuc3RyaW5ngApZcHJvamVjdGlk0iIjMTJfEA9OU011dGFi
+			bGVTdHJpbmejMTMnWE5TU3RyaW5n0iIjNTZeTlNNdXRhYmxlQXJy
+			YXmjNTcnV05TQXJyYXnSIiMmOaImJwAIABEAGgAkACkAMgA3AEkA
+			TABRAFMAYQBnAG4AdgCBAIgAjACOAJAAkgCWAJgAmgCcAJ4AowCo
+			AK0A1gDdAN4A3wDhAOYA8QD6ARABFAEhASoBLwExATMBNQE6AUQB
+			RgFQAVUBZwFrAXQBeQGIAYwBlAGZAAAAAAAAAgEAAAAAAAAAOgAA
+			AAAAAAAAAAAAAAAAAZw=
+			</data>
+			<key>contentSortColIsAsc</key>
+			<true/>
+			<key>contentViewport</key>
+			<string>{{0, -28}, {713, 1007}}</string>
+			<key>isToolbarVisible</key>
+			<true/>
+			<key>queries</key>
+			<string>CREATE TABLE Employee(
+	name CHAR(10) PRIMARY KEY,
+	salary INT NOT NULL,
+	address VARCHAR(30) NOT NULL);
+	
+INSERT INTO Employee VALUES('배수지', 5000, '광주시');
+INSERT INTO Employee VALUES('아이린', 3000, '대구시');
+
+CREATE TABLE Project (
+	projectid INT PRIMARY KEY,
+	employee CHAR(10) NOT NULL,
+	project VARCHAR(30) NOT NULL,
+	cost INT);
+	
+	
+-- Project 테이블에 데이터 삽입
+INSERT INTO Project VALUES(1, '배수지', 'SKC&amp;C', 1000);
+INSERT INTO Project VALUES(2, '아이린', 'SKCNS', 2000);</string>
+			<key>table</key>
+			<string>Project</string>
+			<key>view</key>
+			<string>SP_VIEW_CUSTOMQUERY</string>
+			<key>windowVerticalDividerPosition</key>
+			<real>214</real>
+		</dict>
+	</dict>
+	<key>encrypted</key>
+	<false/>
+	<key>format</key>
+	<string>connection</string>
+	<key>queryFavorites</key>
+	<array/>
+	<key>rdbms_type</key>
+	<string>mysql</string>
+	<key>rdbms_version</key>
+	<string>12.3.2-MariaDB-ubu2404</string>
+	<key>version</key>
+	<integer>1</integer>
+</dict>
+</plist>

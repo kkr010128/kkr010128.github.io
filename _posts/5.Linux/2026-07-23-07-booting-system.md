@@ -5,7 +5,7 @@ date: 2026-07-23
 series: Linux
 tags:
   - Linux
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1 ) 부팅 메뉴 출력
@@ -62,8 +62,9 @@ tags:
 		- isolate → 지정한 유닛만 시작, 나머지는 정지
 		- kill → 유닛에 시그널 전송
 
-===추가됨===
-#### cron 서비스 실습
+
+### cron 서비스 실습
+
 ```sh
 # cron 서비스 시작
 sudo systemctl start cron
@@ -74,6 +75,7 @@ sudo systemctl start cron
 
 # PID 확인
 ```
+
 
 ### init 프로세스
 - init 프로세스가 다른 프로세스들을 실행
@@ -167,6 +169,7 @@ sudo systemctl daemon-reload
 - `/sys/fs/cgroup` 디렉토리에 가상 파일로 존재
 
 **서브 시스템**
+
 | 서브 시스템 | 설명 |
 |------------|------|
 | **CPU** | CPU 사용 제한 |
@@ -197,4 +200,3 @@ max 100000
 
 ### Union Mount Filesystem
 - 프로세스 별로 별도의 파일을 소유해서 마운트 시킨 후 사용
-===여기까지===

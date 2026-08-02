@@ -5,7 +5,7 @@ date: 2026-07-16
 series: Redis
 tags:
   - Redis
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1) 특징

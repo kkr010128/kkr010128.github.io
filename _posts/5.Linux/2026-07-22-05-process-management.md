@@ -5,7 +5,7 @@ date: 2026-07-22
 series: Linux
 tags:
   - Linux
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1 ) 프로세스
@@ -192,6 +192,7 @@ sudo apt install at
 	- 범위 지정 가능(요일 필드에 1-5면 월~금) → `-`
 	- 여러개 값 지정 가능(시간 필드에 1, 3, 5면 1시 3시 5시) → `,`
 	- 단계 값 지정할 때 사용 가능(1-10/2 →  1, 3, 5, 7, 9가 되며 분 필드가 `*/20`이면 20분마다) → `/`
+
 ```bash
 # 매일 11시 30분에 ls -al / 의 결과를 crontab.out에 기록
 30 1 * * * /usr/bin/ls -al / > /home/kkr010128/crontab.out

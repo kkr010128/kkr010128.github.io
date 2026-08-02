@@ -5,7 +5,7 @@ date: 2026-07-16
 series: MongoDB
 tags:
   - MongoDB
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 데이터 삽입

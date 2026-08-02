@@ -5,7 +5,7 @@ date: 2026-07-06
 series: Python
 tags:
   - Python
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1) 데이터 처리 개요
@@ -59,6 +59,7 @@ tags:
 - 웹 개발, 자동화, 크롤링, 서버 개발 등 다양한 분야에 활용
 
 ### Python 구현체
+
 | 구현체 | 특징 |
 | ----- | ---- |
 | **CPython** | 가장 일반적인 구현체 |
@@ -131,6 +132,7 @@ File → Settings → Python Interpreter → 프로젝트별 Interpreter 선택
 - 하위 레벨 생성 시 상위 레벨 끝에 `:` 추가
 
 ### 구성 요소
+
 | 요소 | 설명 |
 | ---- | ---- |
 | **Literal** | 개발자가 직접 입력한 데이터 |

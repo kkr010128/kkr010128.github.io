@@ -5,7 +5,7 @@ date: 2026-07-06
 series: Python
 tags:
   - Python
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 가상환경 생성

@@ -5,7 +5,7 @@ date: 2026-07-24
 series: Linux
 tags:
   - Linux
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1 ) 사용자 계정 관리 파일
@@ -18,9 +18,6 @@ tags:
 	- 명령어 수정 권장
 - 구조
 	- `{userName}:x:1000:1000:Ubuntu:/home/{userName}:/bin/bash`
-
-
-// blank
 
 ### `/etc/shadow`
 - 비밀번호 관리를 위한 파일
@@ -53,8 +50,6 @@ tags:
 - 그룹아이디 → `4`
 - 그룹의 멤버 → `member`
 - 그룹의 비밀번호는 `/etc/gshadow` 파일에 존재
-
-===추가됨===
 
 ## 2) 계정 관리 명령
 ---
@@ -224,11 +219,14 @@ cp /etc/hosts .
 ### 쿼터 설정 준비
 
 1. 쿼터 속성 설정 → `/etc/fstab`
-```
-파티션	마운트된디렉토리	파일시스템		defaults,usrquota	1 1
-/dev/sdb1	/mnt		ext4		defaults,usrquota	1 1
-```
 
+| 파티션         | 마운트된 디렉토리 | 파일시스템  | 마운트 옵션              | Dump | Pass |
+| ----------- | --------- | ------ | ------------------- | ---- | ---- |
+| `/dev/sdb1` | `/mnt`    | `ext4` | `defaults,usrquota` | `1`  | `1`  |
+
+```fstab
+/dev/sdb1    /mnt    ext4    defaults,usrquota    1    1
+```
 2. 쿼터 속성 적용
 ```sh
 sudo mount -o remount /mnt
@@ -254,4 +252,3 @@ sudo edquota -u user1
 ```
 
 - 클라우드 서비스 중 **메일이나 디스크 관련 서비스**에서 이 기능을 많이 사용
-===여기까지=== 

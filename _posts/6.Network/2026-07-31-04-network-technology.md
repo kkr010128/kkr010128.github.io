@@ -5,7 +5,7 @@ date: 2026-07-31
 series: Network
 tags:
   - Network
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 1) NAT & PAT
@@ -26,6 +26,7 @@ tags:
 
 ### 용도
 #### IPv4 주소 고갈 문제의 솔루션
+
 | 전략 | 내용 |
 | ---- | ---- |
 | 단기 전략 | **Subnetting (Classless)** |

@@ -5,7 +5,7 @@ date: 2026-07-31
 series: Network
 tags:
   - Network
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 목적지 Address를 기준으로 구분

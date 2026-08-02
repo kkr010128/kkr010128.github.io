@@ -5,7 +5,7 @@ date: 2026-07-15
 series: MongoDB
 tags:
   - MongoDB
-  - AutoEver SW School
+  - AutoEverSW
 ---
 
 ## 개요
@@ -66,6 +66,7 @@ tags:
 	- 이미 접속된 상태에서 접속
 	- 
 ## docker installation
+
 ```bash
 # MongoDB 이미지 가져오기
 docker pull mongodb/mongodb-community-server:latest
@@ -121,5 +122,6 @@ db.runCommand({hello: 1})
 4. 크기를 미리 설정해 크기를 초과하면 자동으로 가장 오래된 데이터를 삭제하는 Collection
 	- Capped Collection
 	- `db.createCollection(${name}, {capped:true, size:<${size}>})`
-- 데이터 1개 삽입: db.cappedCollection.insertOne({"X":1})
-- 데이터 조회: db.cappedCollection.find()
+
+- 데이터 1개 삽입: `db.cappedCollection.insertOne({"X":1})`
+- 데이터 조회: `db.cappedCollection.find()`
