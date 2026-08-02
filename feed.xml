@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-02T17:06:40+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Network Protocol</title><link href="https://kkr010128.github.io/03-network-protocol/" rel="alternate" type="text/html" title="Network Protocol" /><published>2026-07-31T00:00:00+09:00</published><updated>2026-07-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-network-protocol</id><content type="html" xml:base="https://kkr010128.github.io/03-network-protocol/"><![CDATA[<p>목적지 Address를 기준으로 구분</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-03T07:33:21+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Network Protocol</title><link href="https://kkr010128.github.io/03-network-protocol/" rel="alternate" type="text/html" title="Network Protocol" /><published>2026-07-31T00:00:00+09:00</published><updated>2026-07-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-network-protocol</id><content type="html" xml:base="https://kkr010128.github.io/03-network-protocol/"><![CDATA[<p>목적지 Address를 기준으로 구분</p>
 <ul>
   <li><strong>Unicast</strong>
     <ul>
@@ -138,7 +138,7 @@
 <h3 id="mac-address-변경도-됨">MAC Address 변경도 됨</h3>
 <ul>
   <li>일반적으로 ROM 형태로 고정돼 출하되므로 NIC에 고정된 주소를 변경하기는 어려움</li>
-  <li>But, 주소 자체도 메모리에 적재 되어 구동 됨
+  <li>But, 주소 자체도 메모리에 적재 되어 구동 됨
     <ul>
       <li>다양한 방법으로 주소를 변경해 동작시킬 수 있음
         <ul>
