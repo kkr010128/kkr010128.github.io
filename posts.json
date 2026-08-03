@@ -6,14 +6,14 @@
       {
         "title": "Network Technology",
         "url": "/04-network-technology/",
-        "description": "NAT/PAT를 이용한 주소 변환과 DNS 레코드 체계 정리",
+        "description": "NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리",
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
         "series_title": null,
         "date_label": "2026년 7월 31일",
-        "reading_time_label": "4분 읽기",
-        "search": "network technology nat/pat를 이용한 주소 변환과 dns 레코드 체계 정리 network autoeversw"
+        "reading_time_label": "12분 읽기",
+        "search": "network technology nat/pat를 이용한 주소 변환, dns/dhcp를 통한 주소 관리, 주요 네트워크 진단 명령어 정리 network autoeversw"
       },
     
       

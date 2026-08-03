@@ -34,28 +34,28 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
 <title>Network Technology | hyeon.log</title>
 <meta name="generator" content="Jekyll v4.3.3">
-<meta name="description" content="NAT/PAT를 이용한 주소 변환과 DNS 레코드 체계 정리">
+<meta name="description" content="NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리">
 <link rel="canonical" href="https://kkr010128.github.io/04-network-technology/">
 <meta property="og:title" content="Network Technology | hyeon.log">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:description" content="NAT/PAT를 이용한 주소 변환과 DNS 레코드 체계 정리">
+<meta property="og:description" content="NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리">
 <meta property="og:url" content="https://kkr010128.github.io/04-network-technology/">
 <meta property="og:site_name" content="hyeon.log">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Network Technology | hyeon.log">
-<meta name="twitter:description" content="NAT/PAT를 이용한 주소 변환과 DNS 레코드 체계 정리">
+<meta name="twitter:description" content="NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리">
 
   <meta property="article:published_time" content="2026-07-31T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785710001" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785710001" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785710001">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785710001" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785724414" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785724414" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785724414">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785724414" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785710001">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785724414">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -97,7 +97,7 @@
     "@type": "BlogPosting",
     "name": "hyeon.log",
     "headline": "Network Technology | hyeon.log",
-    "description": "NAT/PAT를 이용한 주소 변환과 DNS 레코드 체계 정리",
+    "description": "NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리",
     "url": "https://kkr010128.github.io/04-network-technology/",
     "datePublished": "2026-07-31T00:00:00+09:00"
   }
@@ -210,7 +210,7 @@
     
     <h1 class="post-head__title">Network Technology</h1>
     
-      <p class="post-head__description">NAT/PAT를 이용한 주소 변환과 DNS 레코드 체계 정리</p>
+      <p class="post-head__description">NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리</p>
     
 
     <div class="post-head__author">
@@ -226,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 31일 · 4분 읽기
+          2026년 7월 31일 · 12분 읽기
         </span>
       </div>
     </div>
@@ -251,7 +251,7 @@
 <h3 id="개요">개요</h3>
 <ul>
   <li><strong>NAT (Network Address Translation)</strong> → 하나의 네트워크 주소를 다른 하나의 네트워크 주소로 변환하는 기술</li>
-  <li><strong>1:1 변환</strong>이 기본이지만 IP 주소 고갈 문제를 해결하기 위해 여러 개의 IP를 하나의 IP로 변환하기도 함
+  <li>정적 NAT는 1:1 변환을 수행하며, 동적 NAT와 PAT(NAPT)는 여러 내부 주소를 효율적으로 변환하는 방식이다.
     <ul>
       <li>공식 용어는 <strong>NAPT (Network Address Port Translation)</strong></li>
       <li>실무에서는 대부분 <strong>PAT</strong>라고 함</li>
@@ -455,12 +455,7 @@
   <li>요청해서 도메인을 해석하면 그 내용을 캐시에 유지
   → 다음 요청 시 DNS Server에 질의하지 않고 캐시 내용 사용
   → <strong>비유</strong>: 도서관에 한 번 가서 책 정보를 메모해두면, 다음에 또 갈 필요 없이 메모지를 보는 것과 같음</li>
-  <li>캐시 유지 시간 = <strong>TTL</strong>
-    <ul>
-      <li>Windows 기본값: <strong>1시간</strong></li>
-      <li>Linux 기본값: <strong>3시간</strong></li>
-    </ul>
-  </li>
+  <li>캐시 유지 시간 = <strong>TTL</strong></li>
 </ul>
 
 <h3 id="한글-도메인">한글 도메인</h3>
@@ -477,6 +472,753 @@
   → 특정 컴퓨터가 동작 중인지 확인하지 못하기 때문</li>
   <li><strong>GSLB</strong>는 연결된 서비스가 정상적인지 <strong>헬스 체크</strong>를 수행해서 정상적인 레코드에만 반응</li>
   <li>Intelligence DNS라고도 함</li>
+</ul>
+
+<h2 id="3--dhcp">3 ) DHCP</h2>
+<hr />
+<h3 id="개요-1">개요</h3>
+<ul>
+  <li><strong>정적 할당</strong> → IP와 네트워크 정보를 직접 설정하는 것
+    <ul>
+      <li>데이터센터의 서버팜과 같은 운영망에서 사용</li>
+    </ul>
+  </li>
+  <li><strong>직접 할당</strong> → 자동으로 설정하는 것
+    <ul>
+      <li>일반적인 PC 사용자들이 사용</li>
+    </ul>
+  </li>
+</ul>
+
+<blockquote>
+  <p>보안 또는 관리 목적으로 사용자 PC를 정적할당으로 이용하는 경우가 있었으나,</p>
+
+  <p>최근에는 동적 할당 방식을 이용하면서도 보안을 강화하고 쉽게 관리 가능하게 하는 서비스와 장비가 대중화되어 동적할당 방식이 더 많이 사용됨</p>
+
+</blockquote>
+
+<ul>
+  <li>Public Cloud에서 컴퓨터를 임대하는 경우 기본적으로 동적 할당임 → 재부팅 전까지 고정</li>
+  <li>
+    <p>IP를 고정하고자 하는 경우 별도의 IP를 구매해야 함</p>
+
+    <ul>
+      <li>IP를 동적으로 할당할 때 사용되는 프로토콜
+  → DHCP (Dynamic Host Configuration Protocol)</li>
+      <li>DHCP를 사용하면 IP Address, Subnet Mask, 디폴트 게이트웨이, DNS 정보를 자동으로 설정</li>
+      <li>DHCP는 UDP <strong>67(Server)</strong>, <strong>68(Client)</strong> 포트를 사용한다.
+        <ul>
+          <li>UDP로 통신</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<p> <br /></p>
+<h3 id="서버-구성">서버 구성</h3>
+<ul>
+  <li>Windows / Linux 서버의 DHCP 서비스를 이용하는 방법과</li>
+  <li>
+    <p>스위치, 라우터, 방화벽, VPN, IP 공유기 등에서도 설정이 가능함</p>
+  </li>
+  <li><strong>설정 항목</strong>
+    <ul>
+      <li><strong>IP 주소 풀</strong> : 클라이언트에게 할당할 IP 주소 범위 
+  → <code class="language-plaintext highlighter-rouge">192.168.200.0/22</code> / 192.168.200.0 ~ 192.168.203.255</li>
+      <li><strong>예외 IP 주소 풀</strong> : IP 주소 풀에서 클라이언트에게 할당하지 않을 주소
+  → <code class="language-plaintext highlighter-rouge">192.168.200.1</code> : Gateway로 사용하기 때문에 클라이언트에게 할당하면 안 됨</li>
+      <li><strong>임대 시간</strong>: 기본 임대 시간</li>
+      <li><strong>서브넷 마스크</strong>: 255.255.252.0</li>
+      <li><strong>게이트웨이</strong>: 192.168.200.1</li>
+      <li><strong>DNS</strong>: 8.8.8.8</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="4--네트워크-명령어">4 ) 네트워크 명령어</h2>
+<hr />
+<h3 id="1-ping">1. Ping</h3>
+<ul>
+  <li>ICMP 프로토콜을 이용해 목적지에 메시지를 전송하고 응답을 받아오는 명령어</li>
+  <li><code class="language-plaintext highlighter-rouge">ping</code>은 목적지 호스트가 정상적으로 동작하는지 확인하고, 출발지와 목적지 사이의 네트워크 연결 상태를 확인하는 명령어이다.</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>기능</th>
+      <th>Windows</th>
+      <th>Linux</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>기본 동작</td>
+      <td>4회 전송 후 종료</td>
+      <td>무한 반복 (Ctrl + C로 종료)</td>
+    </tr>
+    <tr>
+      <td>횟수 지정</td>
+      <td><code class="language-plaintext highlighter-rouge">-n &lt;횟수&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-c &lt;횟수&gt;</code></td>
+    </tr>
+    <tr>
+      <td>무한 반복</td>
+      <td><code class="language-plaintext highlighter-rouge">-t</code></td>
+      <td>기본 동작 (<code class="language-plaintext highlighter-rouge">ping</code>)</td>
+    </tr>
+    <tr>
+      <td>길이 지정</td>
+      <td><code class="language-plaintext highlighter-rouge">-l &lt;byte&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-s &lt;byte&gt;</code></td>
+    </tr>
+    <tr>
+      <td>시간 간격</td>
+      <td>미지원</td>
+      <td><code class="language-plaintext highlighter-rouge">-i &lt;sec&gt;</code></td>
+    </tr>
+    <tr>
+      <td>타임 아웃</td>
+      <td><code class="language-plaintext highlighter-rouge">-w &lt;밀리초&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-W 또는 -t(이건 TTL)</code></td>
+    </tr>
+    <tr>
+      <td>IPv4</td>
+      <td><code class="language-plaintext highlighter-rouge">-4</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-4</code></td>
+    </tr>
+    <tr>
+      <td>IPv6</td>
+      <td><code class="language-plaintext highlighter-rouge">-6</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-6</code></td>
+    </tr>
+    <tr>
+      <td>소스 지정</td>
+      <td><code class="language-plaintext highlighter-rouge">-S</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-l</code></td>
+    </tr>
+    <tr>
+      <td>홉 기록(라우터 개수)</td>
+      <td><code class="language-plaintext highlighter-rouge">-r &lt;횟수&gt;</code></td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p>Linux 에서 되는 기능이면 라우터같은 장비에서도 되는 거임</p>
+
+  <p>시간 간격 명령으로 Health Check이 가능하다.</p>
+</blockquote>
+
+<h4 id="예-windows">예) Windows</h4>
+
+<p>5번만 전송</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-n</span> 5 google.com
+</code></pre></div></div>
+
+<p>계속 전송</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-t</span> google.com
+</code></pre></div></div>
+
+<h4 id="예-linux">예) Linux</h4>
+
+<p>5번만 전송</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-c</span> 5 google.com
+</code></pre></div></div>
+
+<p>계속 전송 (기본 동작)</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping google.com
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>주의</strong></p>
+
+  <p>Windows의 <code class="language-plaintext highlighter-rouge">-t</code>와 Linux의 <code class="language-plaintext highlighter-rouge">-t</code>는 의미가 다르다.</p>
+
+  <ul>
+    <li><strong>Windows</strong>: <code class="language-plaintext highlighter-rouge">-t</code> → 무한 반복</li>
+    <li><strong>Linux</strong>: <code class="language-plaintext highlighter-rouge">-t</code> → TTL(Time To Live) 값 지정</li>
+  </ul>
+
+  <p>Linux에서는 기본적으로 <code class="language-plaintext highlighter-rouge">ping</code>이 무한 반복되므로 <code class="language-plaintext highlighter-rouge">-t</code> 옵션이 필요 없다.</p>
+</blockquote>
+
+<h3 id="2-tcping-windows"><strong>2. tcping (Windows)</strong></h3>
+<p>ICMP(Internet Control Message Protocol)를 사용하며, 목적지까지 도달하지 못하는 경우 중간 라우터가 반환하는 <strong>ICMP Error Message</strong>를 통해 일부 네트워크 장애나 라우팅 문제를 파악할 수 있다.</p>
+
+<p>하지만 <code class="language-plaintext highlighter-rouge">ping</code>만으로 모든 네트워크 문제를 확인할 수 있는 것은 아니다.</p>
+
+<h4 id="ping의-한계"><strong>ping의 한계</strong></h4>
+
+<ul>
+  <li>목적지 서버가 ICMP Echo Request를 차단하는 경우 응답이 오지 않는다.</li>
+  <li>방화벽이나 보안 정책으로 ICMP가 차단된 경우에도 응답이 없다.</li>
+  <li>따라서 <code class="language-plaintext highlighter-rouge">ping</code>이 실패했다고 해서 반드시 서버가 다운되었거나 네트워크에 문제가 있다고 단정할 수는 없다.</li>
+</ul>
+
+<h4 id="예시"><strong>예시</strong></h4>
+
+<p>대표적으로 <strong>네이버(www.naver.com)</strong> 와 같은 일부 서비스는 보안상의 이유로 ICMP 응답을 차단할 수 있다.</p>
+
+<p>따라서 <code class="language-plaintext highlighter-rouge">ping</code>이 실패하더라도 웹 브라우저에서는 정상적으로 접속되는 경우가 있다.</p>
+
+<h4 id="icmp가-차단된-환경에서는-tcping을-사용하여-특정-서버의-tcp-포트에-연결할-수-있는지-확인할-수-있다">ICMP가 차단된 환경에서는 <code class="language-plaintext highlighter-rouge">tcping</code>을 사용하여 특정 서버의 TCP 포트에 연결할 수 있는지 확인할 수 있다.</h4>
+
+<blockquote>
+  <p><strong>ping을 차단하는 이유</strong></p>
+  <ul>
+    <li>서버 존재 여부를 쉽게 노출하지 않기 위해</li>
+    <li>Host Discovery(서버 탐색)를 어렵게 하기 위해</li>
+    <li>ICMP Flood(Ping Flood) 공격을 완화하기 위해</li>
+    <li>불필요한 ICMP 트래픽을 줄이기 위해</li>
+  </ul>
+</blockquote>
+
+<p><code class="language-plaintext highlighter-rouge">ping</code>이 ICMP 응답 여부를 확인한다면, <code class="language-plaintext highlighter-rouge">tcping</code>은 지정한 TCP 포트로 연결을 시도한다. 따라서 웹 서버의 <code class="language-plaintext highlighter-rouge">80</code>, <code class="language-plaintext highlighter-rouge">443</code> 포트나 데이터베이스 서버의 포트가 실제로 열려 있는지 확인할 때 유용하다.</p>
+
+<p>기본 형식은 다음과 같다.</p>
+
+<pre><code class="language-txt">tcping [옵션] &lt;목적지 주소&gt; [포트 번호]
+</code></pre>
+
+<p>포트 번호를 생략하면 기본적으로 <code class="language-plaintext highlighter-rouge">80</code>번 포트에 연결을 시도한다.</p>
+
+<h4 id="주요-옵션"><strong>주요 옵션</strong></h4>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>옵션</strong></th>
+      <th><strong>설명</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-n &lt;횟수&gt;</code></td>
+      <td>지정한 횟수만큼 연결을 시도한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-t</code></td>
+      <td>사용자가 중단할 때까지 무한히 연결을 시도한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-i &lt;시간&gt;</code></td>
+      <td>연결 시도 사이의 시간 간격을 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[포트 번호]</code></td>
+      <td>확인할 TCP 포트를 지정한다. 생략하면 기본값은 <code class="language-plaintext highlighter-rouge">80</code>이다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="사용-예시"><strong>사용 예시</strong></h4>
+
+<p>네이버의 기본 HTTP 포트인 <code class="language-plaintext highlighter-rouge">80</code>번 포트를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping www.naver.com
+</code></pre></div></div>
+
+<p>HTTPS 포트인 <code class="language-plaintext highlighter-rouge">443</code>번 포트를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping www.naver.com 443
+</code></pre></div></div>
+
+<p>5번만 연결을 시도한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping <span class="nt">-n</span> 5 www.naver.com 443
+</code></pre></div></div>
+
+<p>중단할 때까지 계속 연결을 시도한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping <span class="nt">-t</span> www.naver.com 443
+</code></pre></div></div>
+
+<p>연결 시도 사이의 시간 간격을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping <span class="nt">-i</span> 2 www.naver.com 443
+</code></pre></div></div>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">ping</code> 성공 → 목적지 호스트가 ICMP에 응답하며 네트워크가 연결되어 있음을 의미한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">ping</code> 실패 → 네트워크 장애 또는 ICMP 차단이 원인일 수 있다.</li>
+  <li><code class="language-plaintext highlighter-rouge">tcping</code> 성공 → 지정한 목적지의 TCP 포트까지 연결할 수 있음을 의미한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">tcping</code> 실패 → 해당 포트가 닫혀 있거나, 서비스가 실행 중이 아니거나, 방화벽이 연결을 차단했을 수 있다.</li>
+  <li>경로 문제 확인에는 <code class="language-plaintext highlighter-rouge">traceroute</code>(Linux) 또는 <code class="language-plaintext highlighter-rouge">tracert</code>(Windows)를 함께 사용한다.</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">tcping</code>은 Windows 기본 명령어가 아니므로 별도 설치가 필요하다.</p>
+
+<h4 id="티시핑-설치">티시핑 설치</h4>
+
+<ul>
+  <li>공식 홈페이지에서 <code class="language-plaintext highlighter-rouge">tcping.exe</code>를 다운로드한다.</li>
+  <li>다운로드한 <code class="language-plaintext highlighter-rouge">tcping.exe</code>를 <code class="language-plaintext highlighter-rouge">C:\Windows\System32</code>에 복사하면 어느 경로에서나 사용할 수 있다.</li>
+</ul>
+
+<p>다운로드: https://www.elifulkerson.com/projects/tcping.php</p>
+
+<h3 id="2-traceroute--tracert">2. traceroute / tracert</h3>
+
+<h4 id="개요-2">개요</h4>
+
+<p><code class="language-plaintext highlighter-rouge">traceroute</code>(Linux), <code class="language-plaintext highlighter-rouge">tracert</code>(Windows)는 출발지부터 목적지까지의 <strong>라우팅 경로(홉)</strong> 를 확인하는 명령어이다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ping</code>은 목적지 호스트의 응답 여부를 확인하는 데 주로 사용되는 반면, <code class="language-plaintext highlighter-rouge">traceroute</code>는 목적지까지 어떤 라우터를 거쳐 가는지와 어느 구간에서 문제가 발생했는지 확인하는 데 사용된다.</p>
+
+<h4 id="특징">특징</h4>
+
+<ul>
+  <li>출발지에서 목적지까지의 라우팅 경로를 확인할 수 있다.</li>
+  <li>각 홉(Hop)의 응답 시간(RTT)을 확인할 수 있다.</li>
+  <li>어느 구간부터 패킷이 손실되거나 응답이 없는지 파악할 수 있다.</li>
+  <li>네트워크 장비 간 문제를 확인할 때는 양쪽 장비에서 모두 실행하여 결과를 비교하는 것이 좋다.</li>
+</ul>
+
+<h4 id="traceroute의-한계">traceroute의 한계</h4>
+
+<p><code class="language-plaintext highlighter-rouge">traceroute</code>는 <strong>경로 추적만 가능</strong>하며, <strong>목적지의 서비스 포트가 정상적으로 열려 있는지는 확인할 수 없다.</strong></p>
+
+<p>따라서 서비스 장애가 발생한 경우 다음 중 어떤 원인인지는 <code class="language-plaintext highlighter-rouge">traceroute</code>만으로는 판단할 수 없다.</p>
+
+<ul>
+  <li>중간 네트워크 구간에서 문제가 발생한 경우</li>
+  <li>목적지 방화벽에서 차단된 경우</li>
+  <li>목적지 서버에서 서비스(포트)가 실행되고 있지 않은 경우</li>
+</ul>
+
+<p>이러한 경우에는 <strong><code class="language-plaintext highlighter-rouge">tcptraceroute</code></strong>를 사용한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">tcptraceroute</code>는 <strong>TCP 패킷을 이용하여 경로를 추적</strong>하므로, 목적지까지의 경로뿐만 아니라 <strong>특정 서비스 포트(예: 80, 443)가 정상적으로 열려 있는지</strong>도 함께 확인할 수 있다.</p>
+
+<h4 id="주요-옵션-linux">주요 옵션 (Linux)</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>옵션</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-I</code></td>
+      <td>ICMP 패킷을 사용한다. 일부 환경에서는 방화벽을 통과하기 쉬울 수 있다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-T</code></td>
+      <td>TCP 패킷을 사용한다. 웹 서버(80, 443) 확인 시 유용하다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-p &lt;포트&gt;</code></td>
+      <td>사용할 목적지 포트를 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
+      <td>DNS 역방향 조회를 하지 않아 결과를 더 빠르게 출력한다. (Windows: <code class="language-plaintext highlighter-rouge">-d</code>)</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-m &lt;숫자&gt;</code></td>
+      <td>최대 홉(Hop) 수를 지정한다. 기본값은 <code class="language-plaintext highlighter-rouge">30</code>. (Windows: <code class="language-plaintext highlighter-rouge">-h</code>)</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-q &lt;숫자&gt;</code></td>
+      <td>홉당 전송할 패킷 수를 지정한다. 기본값은 <code class="language-plaintext highlighter-rouge">3</code>이며, <code class="language-plaintext highlighter-rouge">1</code>로 줄이면 실행 속도가 빨라진다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-w &lt;초&gt;</code></td>
+      <td>응답 대기 시간(Timeout)을 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-s &lt;IP&gt;</code></td>
+      <td>출발지(Source) IP 주소를 지정한다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li><code class="language-plaintext highlighter-rouge">ping</code> → 목적지의 응답 여부를 확인한다.</li>
+    <li><code class="language-plaintext highlighter-rouge">traceroute</code> → 목적지까지의 라우팅 경로와 문제 발생 구간을 확인한다.</li>
+    <li><code class="language-plaintext highlighter-rouge">tcptraceroute</code> → 라우팅 경로와 함께 특정 서비스 포트의 연결 가능 여부도 확인한다.</li>
+    <li>경로 이상이 의심될 경우 <code class="language-plaintext highlighter-rouge">ping</code>과 <code class="language-plaintext highlighter-rouge">traceroute</code>, 서비스 이상이 의심될 경우 <code class="language-plaintext highlighter-rouge">tcptraceroute</code>를 함께 사용하는 것이 효과적이다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="3-netstat">3. netstat</h3>
+
+<h4 id="개요-3">개요</h4>
+
+<p><code class="language-plaintext highlighter-rouge">netstat</code>은 서버의 다양한 네트워크 상태를 확인하는 명령어이다.</p>
+
+<p>주로 <strong>서비스 포트 확인</strong>, <strong>TCP 연결 상태 확인</strong>, <strong>라우팅 테이블 확인</strong> 등에 사용된다.</p>
+
+<p>다음과 같은 내용을 확인할 수 있다.</p>
+
+<ul>
+  <li>특정 서비스가 정상적으로 포트를 열고 있는지 (<code class="language-plaintext highlighter-rouge">LISTEN</code>)</li>
+  <li>외부와 TCP 연결이 정상적으로 수립되었는지 (<code class="language-plaintext highlighter-rouge">ESTABLISHED</code>)</li>
+  <li>연결이 정상적으로 종료되는 과정인지 (<code class="language-plaintext highlighter-rouge">TIME_WAIT</code>, <code class="language-plaintext highlighter-rouge">FIN_WAIT</code>, <code class="language-plaintext highlighter-rouge">CLOSE_WAIT</code>)</li>
+  <li>라우팅 테이블 및 네트워크 통계</li>
+</ul>
+
+<h4 id="주요-옵션-1">주요 옵션</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>기능</th>
+      <th>Windows</th>
+      <th>Linux</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>전체 연결 표시</td>
+      <td><code class="language-plaintext highlighter-rouge">-a</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-a</code></td>
+    </tr>
+    <tr>
+      <td>IP/포트를 숫자로 표시</td>
+      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
+    </tr>
+    <tr>
+      <td>PID 표시</td>
+      <td><code class="language-plaintext highlighter-rouge">-o</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-p</code></td>
+    </tr>
+    <tr>
+      <td>프로토콜 지정</td>
+      <td><code class="language-plaintext highlighter-rouge">-p tcp</code> / <code class="language-plaintext highlighter-rouge">-p udp</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-t</code>(TCP), <code class="language-plaintext highlighter-rouge">-u</code>(UDP)</td>
+    </tr>
+    <tr>
+      <td>라우팅 테이블</td>
+      <td><code class="language-plaintext highlighter-rouge">-r</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-r</code></td>
+    </tr>
+    <tr>
+      <td>프로토콜 통계</td>
+      <td><code class="language-plaintext highlighter-rouge">-s</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-s</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="자주-사용하는-명령">자주 사용하는 명령</h4>
+
+<p><strong>Windows</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>netstat <span class="nt">-ano</span>
+</code></pre></div></div>
+
+<ul>
+  <li>모든 연결 표시</li>
+  <li>주소를 숫자로 표시</li>
+  <li>PID 함께 출력</li>
+</ul>
+
+<p><strong>Linux</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netstat <span class="nt">-ntlp</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">-n</code> : 숫자로 표시</li>
+  <li><code class="language-plaintext highlighter-rouge">-t</code> : TCP만 표시</li>
+  <li><code class="language-plaintext highlighter-rouge">-l</code> : LISTEN 상태만 표시</li>
+  <li><code class="language-plaintext highlighter-rouge">-p</code> : 프로세스(PID/프로그램) 표시</li>
+</ul>
+
+<h4 id="주요-tcp-상태">주요 TCP 상태</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>상태</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">LISTEN</code></td>
+      <td>서버 애플리케이션이 클라이언트의 연결을 기다리기 위해 포트를 열어 둔 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ESTABLISHED</code></td>
+      <td>TCP 연결이 정상적으로 수립되어 데이터를 송수신하는 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">TIME_WAIT</code></td>
+      <td>데이터 송수신이 끝난 후 연결을 종료하기 전에 잠시 대기하는 상태. <br />지연되어 도착하는 패킷을 처리하고 동일한 연결 정보의 재사용으로 인한 문제를 방지하기 위해 일정 시간 유지된다. 정상적인 상태이다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">CLOSE_WAIT</code></td>
+      <td>상대방이 연결 종료를 요청한 상태. <br />서버 애플리케이션이 아직 소켓을 닫지 않은 상태이며, 오래 유지되면 애플리케이션 문제를 의심할 수 있다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li><code class="language-plaintext highlighter-rouge">LISTEN</code> → 연결 대기</li>
+    <li><code class="language-plaintext highlighter-rouge">ESTABLISHED</code> → 정상 통신 중</li>
+    <li><code class="language-plaintext highlighter-rouge">TIME_WAIT</code> → 정상 종료 과정</li>
+    <li><code class="language-plaintext highlighter-rouge">CLOSE_WAIT</code> → 상대는 종료했지만 내 프로그램이 아직 연결을 닫지 않은 상태</li>
+  </ul>
+</blockquote>
+
+<h3 id="4-nslookup">4. nslookup</h3>
+
+<h4 id="개요-4">개요</h4>
+
+<p><code class="language-plaintext highlighter-rouge">nslookup</code>은 DNS 서버에 질의하여 도메인과 관련된 정보를 조회하는 명령어이다.</p>
+
+<p>주로 다음 정보를 확인할 때 사용한다.</p>
+
+<ul>
+  <li>도메인에 대한 IP 주소 조회</li>
+  <li>IP 주소에 대한 도메인 조회(Reverse Lookup)</li>
+  <li>특정 DNS 서버의 응답 확인</li>
+  <li>DNS 설정 및 문제 진단</li>
+</ul>
+
+<hr />
+
+<h3 id="5-ipconfigwindows--ifconfiglinux">5. ipconfig(Windows) / ifconfig(Linux)</h3>
+
+<h4 id="개요-5">개요</h4>
+
+<p>현재 시스템의 네트워크 인터페이스 정보를 확인하는 명령어이다.</p>
+
+<ul>
+  <li><strong>Windows</strong> : <code class="language-plaintext highlighter-rouge">ipconfig</code></li>
+  <li><strong>Linux</strong> : <code class="language-plaintext highlighter-rouge">ifconfig</code> (별도 패키지 설치 필요)
+    <ul>
+      <li>최근 Linux에서는 ifconfig보다 ip 명령(ip addr)을 권장한다.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>인터넷 연결이 원활하지 않을 때 네트워크 상태를 확인하거나 IP를 재할당할 때 자주 사용한다.</p>
+
+<h4 id="주요-옵션-2">주요 옵션</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>기능</th>
+      <th>Windows</th>
+      <th>Linux</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>모든 인터페이스 표시</td>
+      <td><code class="language-plaintext highlighter-rouge">ipconfig /all</code></td>
+      <td><code class="language-plaintext highlighter-rouge">ifconfig -a</code></td>
+    </tr>
+    <tr>
+      <td>DHCP IP 반납</td>
+      <td><code class="language-plaintext highlighter-rouge">ipconfig /release</code></td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>DHCP IP 재할당</td>
+      <td><code class="language-plaintext highlighter-rouge">ipconfig /renew</code></td>
+      <td>-</td>
+    </tr>
+    <tr>
+      <td>DNS 캐시 삭제</td>
+      <td><code class="language-plaintext highlighter-rouge">ipconfig /flushdns</code></td>
+      <td>-</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="자주-사용하는-명령-1">자주 사용하는 명령</h4>
+
+<ul>
+  <li>현재 모든 네트워크 정보 확인</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /all
+</code></pre></div></div>
+
+<ul>
+  <li>DHCP 서버에 현재 IP 주소 반납</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /release
+</code></pre></div></div>
+
+<ul>
+  <li>DHCP 서버에서 새로운 IP 주소 재할당</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /renew
+</code></pre></div></div>
+
+<ul>
+  <li>DNS 캐시 삭제</li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /flushdns
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>참고</strong></p>
+
+  <ul>
+    <li><code class="language-plaintext highlighter-rouge">/release</code> : DHCP 서버에 현재 할당받은 IP 주소를 반납한다.</li>
+    <li><code class="language-plaintext highlighter-rouge">/renew</code> : DHCP 서버에서 새로운 IP 주소를 다시 할당받는다.</li>
+    <li><code class="language-plaintext highlighter-rouge">/flushdns</code> : 로컬 DNS 캐시를 삭제하여 최신 DNS 정보를 다시 조회하도록 한다.</li>
+    <li><code class="language-plaintext highlighter-rouge">flush</code>는 원래 “비우다”보다는 “내보내다, 밀어내다”의 의미를 가진다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="6-tcpdump">6. tcpdump</h3>
+
+<h4 id="개요-6">개요</h4>
+
+<p><code class="language-plaintext highlighter-rouge">tcpdump</code>는 네트워크 인터페이스를 통해 송수신되는 패킷을 캡처하고 분석하는 명령어이다.</p>
+
+<p>주로 네트워크 장애 분석, 패킷 분석, 트래픽 확인 등의 목적으로 사용된다.</p>
+
+<p>Linux 서버뿐만 아니라 Linux 커널 기반의 네트워크 장비에서도 사용할 수 있다.</p>
+
+<h4 id="주요-옵션-3">주요 옵션</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>옵션</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-i &lt;인터페이스&gt;</code></td>
+      <td>캡처할 네트워크 인터페이스를 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
+      <td>IP 주소와 호스트 이름을 변환하지 않는다.<br />DNS 역방향 조회를 하지 않는다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-nn</code></td>
+      <td>호스트 이름과 서비스 이름(DNS, HTTP 등) 모두 변환하지 않고 IP 주소와 포트 번호를 그대로 표시한다.<br />DNS 조회와 서비스 이름(HTTP, SSH 등) 변환을 모두 하지 않는다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-X</code></td>
+      <td>패킷 내용을 16진수(Hex)와 ASCII 형태로 함께 출력한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-c &lt;개수&gt;</code></td>
+      <td>지정한 개수만큼 패킷을 캡처한 후 종료한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-w &lt;파일&gt;</code></td>
+      <td>캡처한 패킷을 파일로 저장한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-r &lt;파일&gt;</code></td>
+      <td>저장된 패킷 파일을 읽어 출력한다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="필터">필터</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>필터</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">src &lt;IP&gt;</code></td>
+      <td>출발지 IP가 일치하는 패킷</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">dst &lt;IP&gt;</code></td>
+      <td>목적지 IP가 일치하는 패킷</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">host &lt;IP&gt;</code></td>
+      <td>출발지 또는 목적지 IP가 일치하는 패킷</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">src port &lt;포트&gt;</code></td>
+      <td>출발지 포트가 일치하는 패킷</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">dst port &lt;포트&gt;</code></td>
+      <td>목적지 포트가 일치하는 패킷</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">port &lt;포트&gt;</code></td>
+      <td>출발지 또는 목적지 포트가 일치하는 패킷</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tcp</code></td>
+      <td>TCP 패킷만 캡처</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">udp</code></td>
+      <td>UDP 패킷만 캡처</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="사용-예시-1">사용 예시</h4>
+
+<p>모든 인터페이스에서 TCP 패킷 10개 캡처</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> any <span class="nt">-nn</span> tcp <span class="nt">-c</span> 10
+</code></pre></div></div>
+
+<p>80번 포트 패킷 캡처</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> eth0 port 80
+</code></pre></div></div>
+
+<p>특정 호스트와 통신하는 패킷 캡처</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> eth0 host 192.168.0.10
+</code></pre></div></div>
+
+<p>패킷을 파일로 저장</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> eth0 <span class="nt">-w</span> capture.pcap
+</code></pre></div></div>
+
+<p>저장된 패킷 파일 읽기</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-r</span> capture.pcap
+</code></pre></div></div>
+
+<h4 id="정리">정리</h4>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">tcpdump</code> → 네트워크 패킷을 실시간으로 캡처하고 분석하는 도구</li>
+  <li><code class="language-plaintext highlighter-rouge">-i</code> → 인터페이스 지정</li>
+  <li><code class="language-plaintext highlighter-rouge">-nn</code> → 주소와 포트를 숫자로 표시</li>
+  <li><code class="language-plaintext highlighter-rouge">-X</code> → 패킷 내용을 Hex + ASCII로 출력</li>
+  <li><code class="language-plaintext highlighter-rouge">-w</code> → 패킷 저장</li>
+  <li><code class="language-plaintext highlighter-rouge">-r</code> → 저장된 패킷 분석</li>
+  <li><code class="language-plaintext highlighter-rouge">src</code>, <code class="language-plaintext highlighter-rouge">dst</code>, <code class="language-plaintext highlighter-rouge">host</code>, <code class="language-plaintext highlighter-rouge">port</code>, <code class="language-plaintext highlighter-rouge">tcp</code>, <code class="language-plaintext highlighter-rouge">udp</code> 등을 조합하여 원하는 패킷만 필터링할 수 있다.</li>
 </ul>
 
   </section>
@@ -570,6 +1312,6 @@
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785710001"></script>
+    <script src="/assets/js/site.js?v=1785724414"></script>
   </body>
 </html>
