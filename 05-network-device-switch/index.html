@@ -1,0 +1,1172 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Network Device 1 - Switch | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지">
+<link rel="canonical" href="https://kkr010128.github.io/05-network-device-switch/">
+<meta property="og:title" content="Network Device 1 - Switch | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지">
+<meta property="og:url" content="https://kkr010128.github.io/05-network-device-switch/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Network Device 1 - Switch | hyeon.log">
+<meta name="twitter:description" content="L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지">
+
+  <meta property="article:published_time" content="2026-08-03T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785756597" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785756597" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785756597">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785756597" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785756597">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Network Device 1 - Switch | hyeon.log",
+    "description": "L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지",
+    "url": "https://kkr010128.github.io/05-network-device-switch/",
+    "datePublished": "2026-08-03T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">Network Device 1 - Switch</h1>
+    
+      <p class="post-head__description">L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 3일 · 12분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Network">Network</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h1 id="device-1--switch">Device 1 ) Switch</h1>
+<hr />
+<h3 id="장비-동작">장비 동작</h3>
+
+<h4 id="개요">개요</h4>
+
+<p>스위치(Switch)는 네트워크 중간에서 패킷을 수신하여 <strong>필요한 목적지로만 전달하는 네트워크 중재 장비</strong>이다.</p>
+
+<p>기본적으로 별도의 설정 없이도 <strong>MAC 주소를 학습(MAC Learning)</strong> 하여 목적지에 맞게 패킷을 전달할 수 있다.</p>
+
+<p>또한 단순한 패킷 전달 기능뿐만 아니라 다음과 같은 다양한 기능을 제공한다.</p>
+
+<ul>
+  <li><strong>VLAN(Virtual LAN)</strong> : 하나의 물리적 스위치를 여러 개의 논리적 네트워크로 분리</li>
+  <li><strong>STP(Spanning Tree Protocol)</strong> : 네트워크 루프(Loop) 방지</li>
+  <li><strong>보안 기능</strong> : Port Security, ACL 등 접근 제어 및 보안 강화</li>
+  <li><strong>모니터링 기능</strong> : 포트 미러링, 트래픽 분석 등 네트워크 관리 지원</li>
+</ul>
+
+<p>따라서 스위치는 단순한 L2 패킷 전달 장비를 넘어 네트워크 분리, 안정성 확보, 보안 및 관리 기능을 함께 제공하는 핵심 네트워크 장비이다.</p>
+
+<h4 id="packet--frame">Packet &amp; Frame</h4>
+
+<h5 id="pdu-protocol-data-unit">PDU (Protocol Data Unit)</h5>
+
+<ul>
+  <li>
+    <p>PDU(Protocol Data Unit)는 <strong>각 계층에서 헤더(Header)와 데이터(Data)를 포함한 전송 단위</strong>를 의미한다.</p>
+  </li>
+  <li>
+    <p>OSI 7계층에서는 계층마다 PDU의 이름이 다르다.</p>
+  </li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>계층</th>
+      <th>PDU</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>7 ~ 5 계층</td>
+      <td>Data</td>
+    </tr>
+    <tr>
+      <td>4 계층 (Transport)</td>
+      <td>Segment</td>
+    </tr>
+    <tr>
+      <td>3 계층 (Network)</td>
+      <td>Packet</td>
+    </tr>
+    <tr>
+      <td>2 계층 (Data Link)</td>
+      <td>Frame</td>
+    </tr>
+    <tr>
+      <td>1 계층 (Physical)</td>
+      <td>Bit</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="특징">특징</h4>
+
+<ul>
+  <li><strong>Bit</strong> : 물리 계층에서 전송되는 0과 1의 전기적 신호</li>
+  <li><strong>Frame</strong> : 데이터링크 계층의 전송 단위로, MAC 주소를 포함한다.</li>
+  <li><strong>Packet</strong> : 네트워크 계층의 전송 단위로, IP 주소를 포함한다.</li>
+  <li><strong>Segment</strong> : 전송 계층의 전송 단위로, TCP/UDP 정보를 포함한다.</li>
+  <li><strong>Data</strong> : 상위 계층(세션, 표현, 응용)에서 처리하는 데이터</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>스위치(L2)는 <strong>Frame</strong>을 전달한다.</li>
+    <li>라우터(L3)는 <strong>Packet</strong>을 전달한다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="역할">역할</h3>
+
+<p>스위치의 역할은 <strong>네트워크에서 통신을 중재하여 필요한 목적지에만 데이터를 전달하는 것</strong>이다.</p>
+
+<p>과거에는 허브(Hub)를 사용했지만, 허브는 목적지를 구분하지 못하기 때문에 수신한 데이터를 모든 포트로 전송(Broadcast)하였다. 이로 인해 불필요한 트래픽이 증가하고 충돌(Collision)이 자주 발생하여 네트워크 성능이 크게 저하되었다.</p>
+
+<p>반면 스위치는 <strong>MAC Address Table(CAM Table)</strong> 을 이용하여 단말의 위치를 기억한다. 이후에는 목적지 MAC 주소가 연결된 포트로만 데이터를 전달하므로 불필요한 트래픽이 발생하지 않는다.</p>
+
+<p>또한 각 포트가 독립적인 Collision Domain을 가지므로 여러 단말이 동시에 통신할 수 있어 네트워크 효율이 크게 향상된다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>Hub : 모든 포트로 전송</li>
+    <li>Switch : 목적지 포트로만 전송</li>
+    <li>여러 장비가 동시에 통신 가능하여 네트워크 성능이 향상된다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="스위치의-동작-과정">스위치의 동작 과정</h3>
+
+<h4 id="1-flooding">1. Flooding</h4>
+
+<p>스위치는 처음 부팅되면 MAC Address Table이 비어 있으므로 목적지의 위치를 알 수 없다.</p>
+
+<p>따라서 목적지 MAC 주소를 모르는 프레임을 수신하면 <strong>입력 포트를 제외한 모든 포트로 전송(Flooding)</strong> 한다.</p>
+
+<p>이 시점의 동작은 허브와 거의 동일하다.</p>
+
+<h4 id="특징-1">특징</h4>
+
+<ul>
+  <li>목적지 MAC 주소를 모를 때 발생</li>
+  <li>입력 포트를 제외한 모든 포트로 전송</li>
+  <li>최초 통신 시 주로 발생</li>
+  <li>성능 저하의 원인이 될 수 있으므로 최소화하는 것이 좋다.</li>
+</ul>
+
+<h4 id="flooding-공격">Flooding 공격</h4>
+
+<p>공격자는 존재하지 않는 MAC 주소를 계속 보내거나 MAC Address Table을 가득 채워 스위치가 정상적으로 학습하지 못하도록 만들 수 있다.</p>
+
+<p>이 경우 스위치는 목적지를 찾지 못해 Flooding을 반복하게 되고 네트워크 성능이 크게 저하될 수 있다.</p>
+
+<hr />
+
+<h4 id="2-address-learning">2. Address Learning</h4>
+
+<p>Address Learning은 <strong>MAC Address Table을 생성하고 유지하는 과정</strong>이다.</p>
+
+<p>스위치는 프레임을 수신하면 <strong>출발지(Source) MAC 주소와 수신 포트</strong>를 MAC Address Table에 저장한다.</p>
+
+<p>이를 반복하면서 어느 MAC 주소가 어느 포트에 연결되어 있는지 학습한다.</p>
+
+<p>또한 스위치 간 통신에 필요한 일부 MAC 주소는 미리 등록되어 있을 수도 있다.</p>
+
+<hr />
+
+<h4 id="3-forwarding--filtering">3. Forwarding / Filtering</h4>
+
+<p>목적지 MAC 주소가 이미 MAC Address Table에 존재하면 스위치는 해당 포트로만 프레임을 전달한다(Forwarding).</p>
+
+<p>반대로 목적지와 관계없는 다른 포트에는 프레임을 전달하지 않는다(Filtering).</p>
+
+<p>이 과정 덕분에 불필요한 트래픽이 줄어들고 여러 장비가 동시에 통신할 수 있다.</p>
+
+<hr />
+
+<h3 id="hub와-switch-비교">Hub와 Switch 비교</h3>
+
+<h4 id="hub">Hub</h4>
+
+<p>PC3가 PC2로 데이터를 전송한다고 가정하면,</p>
+
+<ol>
+  <li>Hub는 목적지의 위치를 알지 못한다.</li>
+  <li>연결된 모든 포트로 데이터를 전송한다.</li>
+  <li>PC2만 데이터를 처리하고 나머지 PC들은 데이터를 확인한 뒤 버린다.</li>
+  <li>이러한 과정이 통신할 때마다 반복된다.</li>
+</ol>
+
+<p>따라서 내부 트래픽이 많아지고 Collision이 자주 발생하여 성능이 저하된다.</p>
+
+<hr />
+
+<h4 id="switch">Switch</h4>
+
+<p>Switch 역시 처음에는 목적지를 모르므로 Flooding을 수행한다.</p>
+
+<p>하지만 이 과정에서 출발지 MAC 주소와 포트를 학습한다.</p>
+
+<p>이후에는 MAC Address Table을 이용하여 목적지 포트로만 데이터를 전송한다.</p>
+
+<p>예를 들어,</p>
+
+<ul>
+  <li>PC1 ↔ PC3 통신</li>
+  <li>PC2 ↔ PC4 통신</li>
+</ul>
+
+<p>이 동시에 이루어져도 서로 간섭하지 않고 동시에 통신할 수 있다.</p>
+
+<p>따라서 데이터센터와 같이 DB 서버, 애플리케이션 서버 등 많은 서버가 동시에 통신하는 환경에서는 Hub 대신 Switch를 사용한다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Hub</th>
+        <th>Switch</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>목적지를 모름</td>
+        <td>목적지를 학습함</td>
+      </tr>
+      <tr>
+        <td>모든 포트로 전송</td>
+        <td>목적지 포트로만 전송</td>
+      </tr>
+      <tr>
+        <td>Collision 발생</td>
+        <td>Collision Domain 분리</td>
+      </tr>
+      <tr>
+        <td>동시에 하나의 통신만 가능</td>
+        <td>여러 통신을 동시에 처리 가능</td>
+      </tr>
+      <tr>
+        <td>성능이 낮음</td>
+        <td>성능이 높음</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="lan에서-flooding이-거의-발생하지-않는-이유-arp">LAN에서 Flooding이 거의 발생하지 않는 이유 (ARP)</h3>
+
+<p>이더넷 기반 TCP/IP 네트워크에서는 <strong>스위치가 유니캐스트 프레임을 Flooding하는 경우는 거의 없다.</strong></p>
+
+<p>그 이유는 실제 데이터를 전송하기 전에 <strong>ARP(Address Resolution Protocol)</strong> 를 이용하여 목적지의 MAC 주소를 먼저 알아내기 때문이다.</p>
+
+<p>동작 과정은 다음과 같다.</p>
+
+<ol>
+  <li>송신자가 목적지 IP 주소만 알고 있는 상태</li>
+  <li>ARP Request를 브로드캐스트하여 목적지의 MAC 주소를 조회</li>
+  <li>목적지가 ARP Reply를 유니캐스트로 응답</li>
+  <li>송신자는 ARP Cache에 목적지 MAC 주소를 저장</li>
+  <li>스위치는 이 과정에서 MAC Address Table을 학습</li>
+  <li>이후 실제 데이터(Frame)는 목적지 포트로만 전달(Forwarding)된다.</li>
+</ol>
+
+<p>즉, 실제 유니캐스트 통신이 시작될 때는 이미 MAC 주소가 학습되어 있으므로 Flooding이 거의 발생하지 않는다.</p>
+
+<hr />
+
+<h3 id="aging-time">Aging Time</h3>
+
+<p>ARP Cache와 MAC Address Table은 영구적으로 유지되지 않고 일정 시간이 지나면 삭제된다.</p>
+
+<p>이 시간을 <strong>Aging Time</strong>이라고 한다.</p>
+
+<p>일반적으로 <strong>스위치의 MAC Address Table Aging Time이 단말의 ARP Cache Aging Time보다 길게 설정</strong>된다.</p>
+
+<p>따라서 단말은 아직 ARP 정보를 가지고 있고, 스위치도 해당 MAC 주소를 기억하고 있어 불필요한 Flooding 없이 효율적으로 통신할 수 있다.</p>
+
+<hr />
+
+<h3 id="aging의-의미">Aging의 의미</h3>
+
+<p>Aging은 분야에 따라 의미가 조금 다르다.</p>
+
+<h4 id="네트워크">네트워크</h4>
+
+<ul>
+  <li>일정 시간이 지나면 MAC Address Table이나 ARP Cache 정보를 삭제하는 시간 관리 기법</li>
+</ul>
+
+<h4 id="운영체제os">운영체제(OS)</h4>
+
+<ul>
+  <li><strong>Starvation(기아 상태)</strong> 를 방지하기 위해 오래 기다린 프로세스의 우선순위를 점차 높여주는 기법</li>
+</ul>
+
+<p>예를 들어 SRT(Shortest Remaining Time) 스케줄링에서는 짧은 작업이 계속 들어오면 긴 작업은 계속 뒤로 밀려 실행되지 못할 수 있다.</p>
+
+<p>이를 <strong>Starvation</strong>이라고 하며, 기다린 시간에 비례하여 우선순위를 높여 결국 실행될 수 있도록 하는 기법을 <strong>Aging</strong>이라고 한다.</p>
+
+<h3 id="vlan">VLAN</h3>
+
+<h4 id="개요-1">개요</h4>
+
+<p>VLAN(Virtual LAN)은 <strong>물리적인 배치와 관계없이 하나의 스위치를 여러 개의 논리적인 네트워크로 분리하는 기술</strong>이다.</p>
+
+<p>기업에서는 여러 부서가 하나의 스위치를 함께 사용하는 경우가 많다. 이때 모든 단말을 하나의 네트워크로 구성하면 Broadcast 트래픽이 증가하고 보안이 취약해질 수 있다.</p>
+
+<p>VLAN을 사용하면 하나의 스위치에서도 부서나 서비스별로 독립적인 네트워크를 구성할 수 있다.</p>
+
+<p>또한 서로 다른 스위치에 연결된 단말이라도 동일한 VLAN에 속하면 하나의 네트워크처럼 동작한다.</p>
+
+<blockquote>
+  <p><strong>주의</strong></p>
+
+  <p>서로 다른 VLAN은 서로 다른 네트워크이므로 VLAN 간 통신(Inter-VLAN Routing)을 위해서는 <strong>3계층 장비(Router 또는 L3 Switch)</strong> 가 필요하다.</p>
+</blockquote>
+
+<hr />
+
+<h3 id="vlan-종류">VLAN 종류</h3>
+
+<h4 id="1-port-based-vlan">1. Port-Based VLAN</h4>
+
+<p>가장 일반적으로 사용하는 VLAN 방식이다.</p>
+
+<p>스위치의 <strong>포트에 VLAN을 할당</strong>하며, 해당 포트에 연결된 단말은 자동으로 지정된 VLAN에 속한다.</p>
+
+<h5 id="특징-2">특징</h5>
+
+<ul>
+  <li>가장 많이 사용하는 방식</li>
+  <li>설정이 간단하다.</li>
+  <li>데이터센터에서 주로 사용한다.</li>
+</ul>
+
+<hr />
+
+<h4 id="2-mac-based-vlan-dynamic-vlan">2. MAC-Based VLAN (Dynamic VLAN)</h4>
+
+<p>포트가 아니라 <strong>단말의 MAC 주소를 기준으로 VLAN을 할당</strong>하는 방식이다.</p>
+
+<p>스위치는 연결된 단말의 MAC 주소를 확인하여 해당 포트를 자동으로 지정된 VLAN으로 변경한다.</p>
+
+<h5 id="특징-3">특징</h5>
+
+<ul>
+  <li>단말을 다른 포트에 연결해도 동일한 VLAN을 유지할 수 있다.</li>
+  <li>포트의 VLAN이 동적으로 변경되므로 <strong>Dynamic VLAN</strong>이라고도 한다.</li>
+  <li>이동이 많은 스마트 오피스 환경에서 주로 사용된다.</li>
+</ul>
+
+<hr />
+
+<h3 id="vlan-동작-방식">VLAN 동작 방식</h3>
+
+<p>포트 기반 VLAN에서는 각 포트마다 VLAN을 지정한다.</p>
+
+<p>같은 스위치에 연결되어 있더라도 VLAN이 다르면 서로 통신할 수 없다.</p>
+
+<p>즉, VLAN으로 분리된 네트워크는 마치 <strong>별도의 물리적인 스위치</strong>처럼 동작한다.</p>
+
+<p>따라서 VLAN 간 통신을 위해서는 반드시 Router 또는 L3 Switch가 필요하다.</p>
+
+<hr />
+
+<h3 id="tagged-port-trunk-port">Tagged Port (Trunk Port)</h3>
+
+<p>여러 VLAN이 존재하는 환경에서 스위치와 스위치를 연결하려면 VLAN마다 케이블을 연결할 수도 있다.</p>
+
+<p>하지만 VLAN이 많아질수록 많은 포트가 낭비된다.</p>
+
+<p>이를 해결하기 위해 <strong>하나의 포트로 여러 VLAN의 데이터를 함께 전달</strong>하는 기능을 사용한다.</p>
+
+<p>이를 지원하는 포트를</p>
+
+<ul>
+  <li><strong>Tagged Port</strong></li>
+  <li><strong>Trunk Port(Cisco 용어)</strong></li>
+</ul>
+
+<p>라고 한다.</p>
+
+<h4 id="동작-방식">동작 방식</h4>
+
+<p>Tagged Port는 이더넷 프레임에 <strong>VLAN ID(Tag)</strong> 를 추가하여 여러 VLAN의 데이터를 하나의 링크로 전송한다.</p>
+
+<p>수신한 스위치는 VLAN ID를 확인하여 해당 VLAN으로 프레임을 전달한 뒤 Tag를 제거한다.</p>
+
+<hr />
+
+<h3 id="access-port와-trunk-port">Access Port와 Trunk Port</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Access(Untagged) Port</th>
+      <th>Trunk(Tagged) Port</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>VLAN 개수</td>
+      <td>1개</td>
+      <td>여러 개</td>
+    </tr>
+    <tr>
+      <td>VLAN Tag</td>
+      <td>없음</td>
+      <td>있음</td>
+    </tr>
+    <tr>
+      <td>연결 대상</td>
+      <td>PC, 프린터, 일반 서버</td>
+      <td>스위치, L3 장비, 가상화 서버</td>
+    </tr>
+    <tr>
+      <td>다른 이름</td>
+      <td>Untagged Port</td>
+      <td>Tagged Port</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="vlan-환경에서의-mac-address-table">VLAN 환경에서의 MAC Address Table</h3>
+
+<p>VLAN이 구성되면 스위치의 MAC Address Table에는 <strong>VLAN ID 정보가 함께 저장</strong>된다.</p>
+
+<p>즉,</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VLAN 10 | MAC A | Port 1
+VLAN 20 | MAC A | Port 3
+</code></pre></div></div>
+
+<p>처럼 동일한 MAC 주소라도 VLAN별로 구분하여 관리할 수 있다.</p>
+
+<p>따라서 하나의 스위치 안에 <strong>VLAN별 MAC Address Table이 존재하는 것과 같은 효과</strong>를 얻을 수 있으며, 서로 다른 VLAN 간에는 Frame이 전달되지 않는다.</p>
+
+<hr />
+
+<h3 id="가상화-서버vmware-esxi">가상화 서버(VMware ESXi)</h3>
+
+<p>일반 서버는 하나의 VLAN만 사용하는 경우가 많으므로 <strong>Access Port</strong>로 연결한다.</p>
+
+<p>하지만 VMware ESXi와 같은 가상화 서버는 하나의 물리 서버 안에서 여러 VLAN을 사용하는 경우가 많다.</p>
+
+<p>이 경우</p>
+
+<ul>
+  <li>스위치 포트는 <strong>Trunk(Tagged) Port</strong></li>
+  <li>ESXi의 가상 스위치(vSwitch)도 <strong>VLAN Tag</strong>를 인식하도록 설정</li>
+</ul>
+
+<p>해야 한다.</p>
+
+<p>가상화 서버 내부에는 가상 스위치(vSwitch)가 존재하므로, 스위치와 스위치가 연결된 것처럼 이해하면 쉽다.</p>
+
+<hr />
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>VLAN은 하나의 스위치를 여러 개의 논리적 네트워크로 분리하는 기술이다.</li>
+    <li>서로 다른 VLAN 간에는 직접 통신할 수 없으며 L3 장비가 필요하다.</li>
+    <li>Access(Untagged) Port는 하나의 VLAN만 사용한다.</li>
+    <li>Trunk(Tagged) Port는 여러 VLAN의 데이터를 하나의 링크로 전송한다.</li>
+    <li>VLAN 환경에서는 MAC Address Table에도 VLAN ID가 함께 저장된다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="stp-spanning-tree-protocol">STP (Spanning Tree Protocol)</h3>
+
+<h4 id="개요-2">개요</h4>
+
+<p>네트워크에서는 <strong>SPoF(Single Point of Failure, 단일 장애점)</strong> 를 제거하기 위해 스위치를 이중화하거나 다중화하여 구성한다.</p>
+
+<p>SPoF란 하나의 장비가 고장 났을 때 전체 서비스가 중단되는 지점을 의미한다.</p>
+
+<p>예를 들어 스위치 한 대만 사용하는 경우 해당 스위치에 장애가 발생하면 전체 네트워크가 마비된다.</p>
+
+<p>이를 방지하기 위해 스위치를 여러 대 연결하지만, 이렇게 연결하면 <strong>Loop(루프)</strong> 가 발생할 수 있다.</p>
+
+<p>STP는 이러한 <strong>Loop를 방지하기 위한 프로토콜</strong>이다.</p>
+
+<hr />
+
+<h3 id="spof-single-point-of-failure">SPoF (Single Point of Failure)</h3>
+
+<p>SPoF는 시스템에서 가장 중요하게 고려해야 하는 요소 중 하나이다.</p>
+
+<h4 id="예시">예시</h4>
+
+<ul>
+  <li>스위치가 한 대뿐인 경우</li>
+  <li>웹 서버가 한 대뿐인 경우</li>
+  <li>데이터베이스가 한 대뿐인 경우</li>
+  <li>로드밸런서가 한 대뿐인 경우</li>
+</ul>
+
+<p>모두 SPoF가 될 수 있다.</p>
+
+<p>SPoF를 해결하기 위해 일반적으로 <strong>이중화(Redundancy)</strong> 또는 <strong>다중화</strong>를 수행한다.</p>
+
+<p>예를 들어</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+   │
+Load Balancer
+ ┌──┴──┐
+Web1 Web2
+</code></pre></div></div>
+
+<p>처럼 웹 서버를 두 대 운영하면 한 서버에 장애가 발생해도 다른 서버가 서비스를 계속 제공할 수 있다.</p>
+
+<p>하지만 이 경우에도 <strong>로드밸런서가 하나뿐이라면 로드밸런서가 새로운 SPoF</strong>가 된다.</p>
+
+<p>따라서 필요에 따라 로드밸런서도 이중화해야 한다.</p>
+
+<p>데이터베이스 역시 복제(Replication), RAID 등을 이용해 SPoF를 줄일 수 있지만, 시스템은 점점 복잡해지고 비용도 증가한다.</p>
+
+<p>결국 SPoF는 <strong>비용과 가용성 사이에서 적절한 수준으로 타협</strong>하여 설계해야 한다.</p>
+
+<hr />
+
+<h3 id="loop">Loop</h3>
+
+<p>스위치를 이중화하면 장애에는 강해지지만 새로운 문제가 발생한다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+ ├───Switch A───┐
+ │              │
+ │              │
+ └───Switch B───┘
+</code></pre></div></div>
+
+<p>처럼 루프 구조가 만들어질 수 있다.</p>
+
+<p>이 상태에서는 브로드캐스트 프레임이 계속 순환하면서 네트워크 전체를 마비시킬 수 있다.</p>
+
+<hr />
+
+<h3 id="broadcast-storm">Broadcast Storm</h3>
+
+<p>Loop가 발생한 상태에서 브로드캐스트 패킷이 생성되면,</p>
+
+<ol>
+  <li>스위치는 브로드캐스트를 모든 포트로 Flooding한다.</li>
+  <li>다른 스위치가 다시 Flooding한다.</li>
+  <li>다시 원래 스위치로 돌아온다.</li>
+  <li>이 과정이 무한 반복된다.</li>
+</ol>
+
+<p>이를 <strong>Broadcast Storm</strong>이라고 한다.</p>
+
+<h4 id="왜-계속-반복되는가">왜 계속 반복되는가?</h4>
+
+<p>L3 패킷(IP Packet)에는 <strong>TTL(Time To Live)</strong> 이 존재한다.</p>
+
+<p>TTL은 라우터를 지날 때마다 감소하며 0이 되면 패킷을 폐기한다.</p>
+
+<p>하지만 <strong>스위치가 처리하는 L2 Frame에는 TTL과 같은 수명 정보가 존재하지 않는다.</strong></p>
+
+<p>따라서 Loop가 발생하면 Frame은 계속 살아남아 네트워크를 순환한다.</p>
+
+<h4 id="결과">결과</h4>
+
+<ul>
+  <li>네트워크 대역폭이 거의 모두 소모된다.</li>
+  <li>정상적인 통신이 어려워진다.</li>
+  <li>단말의 네트워크 속도가 매우 느려진다.</li>
+  <li>스위치의 모든 포트 LED가 매우 빠르게 깜빡인다.</li>
+  <li>심한 경우 네트워크 전체가 마비된다.</li>
+</ul>
+
+<hr />
+
+<h3 id="stp의-역할">STP의 역할</h3>
+
+<p>STP(Spanning Tree Protocol)는 스위치 간 Loop를 감지하여 <strong>일부 링크를 논리적으로 차단(Block)</strong> 한다.</p>
+
+<p>평상시에는 하나의 경로만 사용하고,</p>
+
+<p>장애가 발생하면 차단했던 링크를 활성화하여 우회 경로로 통신한다.</p>
+
+<p>즉,</p>
+
+<ul>
+  <li>SPoF를 해결하기 위한 이중화는 유지하면서</li>
+  <li>Loop는 발생하지 않도록 제어하는 프로토콜이다.</li>
+</ul>
+
+<hr />
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>SPoF를 제거하기 위해 네트워크는 이중화한다.</li>
+    <li>이중화하면 Loop가 발생할 수 있다.</li>
+    <li>Loop는 Broadcast Storm을 유발한다.</li>
+    <li>L2 Frame에는 TTL이 없어 Loop가 계속 유지된다.</li>
+    <li>STP는 일부 링크를 차단하여 Loop를 제거하고 장애 시 우회 경로를 활성화한다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="mac-address-flapping">MAC Address Flapping</h3>
+
+<h4 id="개요-3">개요</h4>
+
+<p>MAC Address Flapping은 <strong>동일한 MAC 주소가 서로 다른 포트에서 반복적으로 학습되는 현상</strong>이다.</p>
+
+<p>일반적으로 스위치 간 Loop가 발생하거나 네트워크가 잘못 연결된 경우 발생한다.</p>
+
+<hr />
+
+<h3 id="발생-원인">발생 원인</h3>
+
+<p>스위치는 프레임을 수신하면 <strong>출발지(Source) MAC 주소와 수신 포트</strong>를 MAC Address Table에 저장한다.</p>
+
+<p>하지만 동일한 MAC 주소를 가진 프레임이 서로 다른 포트로 계속 들어오면 스위치는 해당 단말의 위치가 계속 바뀌는 것으로 판단한다.</p>
+
+<p>예를 들어,</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MAC A → Port 1
+</code></pre></div></div>
+
+<p>로 학습한 직후</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MAC A → Port 3
+</code></pre></div></div>
+
+<p>에서 또 들어오면 기존 정보를 Port 3으로 변경한다.</p>
+
+<p>이러한 현상이 반복되면 <strong>MAC Address Flapping</strong>이 발생한다.</p>
+
+<hr />
+
+<h3 id="문제점">문제점</h3>
+
+<ul>
+  <li>MAC Address Table이 계속 변경된다.</li>
+  <li>Frame Forwarding이 비효율적으로 이루어진다.</li>
+  <li>네트워크 성능이 저하된다.</li>
+  <li>Loop 등의 네트워크 이상을 의심할 수 있다.</li>
+</ul>
+
+<hr />
+
+<h3 id="해결-방법">해결 방법</h3>
+
+<p>대부분의 스위치는 MAC Address Flapping을 감지하는 기능을 제공한다.</p>
+
+<p>이상이 감지되면</p>
+
+<ul>
+  <li>관리자에게 로그 또는 경고 메시지를 전송하거나</li>
+  <li>문제가 발생한 포트를 자동으로 <strong>Shutdown(Disable)</strong> 하여 추가적인 장애를 방지한다.</li>
+</ul>
+
+<p>Windows에서도 IP 주소가 중복되면 사용자에게 경고를 표시하는 기능이 있으며, 스위치 역시 비슷한 방식으로 중복 MAC 주소를 감지할 수 있다.</p>
+
+<ul>
+  <li>루프를 확인하고 적절히 포트를 사용하지 못하게 만들어 루프를 예방하는 메커니즘이 등장
+  → Spanning Tree Protocol</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>동일한 MAC 주소가 여러 포트에서 반복 학습되는 현상</li>
+    <li>주로 Loop나 잘못된 네트워크 연결로 발생</li>
+    <li>MAC Address Table이 계속 변경되어 성능이 저하됨</li>
+    <li>일반적으로 경고를 발생시키거나 포트를 Shutdown하여 해결</li>
+  </ul>
+</blockquote>
+
+<h3 id="stp의-동작-방식">STP의 동작 방식</h3>
+
+<p>STP는 루프가 발생하지 않도록 전체 스위치의 연결 상태를 파악해야 한다.</p>
+
+<p>스위치 간 연결 상태를 파악하기 위해 <strong>BPDU(Bridge Protocol Data Unit)</strong> 라는 프로토콜을 사용한다.</p>
+
+<p>BPDU에는 스위치가 가지고 있는 고유 ID와 같은 정보가 포함되어 있으며, 이러한 정보들이 스위치 간에 교환되면서 전체 네트워크의 루프 구간을 확인할 수 있다.</p>
+
+<p>이렇게 확인된 루프 지점은 데이터 트래픽이 통과하지 못하도록 차단(Block)하여 루프를 예방한다.</p>
+
+<hr />
+
+<h3 id="스위치-포트의-상태-및-변경-과정">스위치 포트의 상태 및 변경 과정</h3>
+
+<p>STP가 동작 중인 스위치에서는 루프를 막기 위해 신규 스위치가 연결되면 바로 트래픽이 흐르지 않도록 차단한다.</p>
+
+<p>해당 포트로 트래픽이 흘러도 되는지 확인하기 위해 BPDU를 기다려 학습하고 구조를 파악한 후 트래픽을 흘리거나, 루프 구조인 경우 차단 상태를 유지한다.</p>
+
+<p>차단 상태에서 트래픽이 흐를 때까지 스위치 포트는 다음 상태를 순차적으로 거친다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>상태</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Blocking</strong></td>
+      <td>BPDU를 기다리며 모든 트래픽을 차단</td>
+    </tr>
+    <tr>
+      <td><strong>Listening</strong></td>
+      <td>BPDU를 수신하여 네트워크 구조 학습 준비</td>
+    </tr>
+    <tr>
+      <td><strong>Learning</strong></td>
+      <td>MAC 주소를 학습하나 아직 트래픽은 전달하지 않음</td>
+    </tr>
+    <tr>
+      <td><strong>Forwarding</strong></td>
+      <td>정상적으로 트래픽을 전달</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>이 과정을 거치는 데 약 <strong>50초</strong> 정도의 시간이 소요된다.</p>
+
+<p>STP가 활성화된 경우 스위치 포트는 곧바로 Forwarding 상태가 되지 않기 때문에, 장애가 발생하거나 스위치에 이상이 생긴 것으로 오인하는 경우가 많다.</p>
+
+<blockquote>
+  <p><strong>참고</strong></p>
+
+  <p>부팅 시간이 매우 빠른 OS가 DHCP 네트워크에 접속할 때, 부팅 단계에서 IP를 요청하지만 스위치 포트가 아직 Forwarding 상태가 되지 않아 IP를 정상적으로 할당받지 못하는 경우가 발생할 수 있다.</p>
+</blockquote>
+
+<h3 id="stp-동작-방식">STP 동작 방식</h3>
+
+<p>STP는 다음 순서로 동작한다.</p>
+
+<h4 id="1-루트-스위치root-switch-선정">1. 루트 스위치(Root Switch) 선정</h4>
+
+<p>전체 네트워크에서 기준이 되는 하나의 루트 스위치를 선정한다.</p>
+
+<h4 id="2-루트-포트root-port-선정">2. 루트 포트(Root Port) 선정</h4>
+
+<p>루트가 아닌 스위치 중에서 <strong>루트 스위치에서 보낸 BPDU를 수신하는 포트</strong>를 루트 포트로 선정한다.</p>
+
+<h4 id="3-지정-포트designated-port-선정">3. 지정 포트(Designated Port) 선정</h4>
+
+<p>스위치와 스위치가 연결되는 포트 중 하나를 지정 포트로 선정한다.</p>
+
+<h4 id="결과-정리">결과 정리</h4>
+
+<ul>
+  <li>하나는 루트 포트, 하나는 지정 포트인 경우 → <strong>Forwarding</strong> 상태</li>
+  <li>모두 지정 포트인 경우 → 한쪽은 지정 포트, 다른 쪽은 <strong>대체 포트(Alternate Port)</strong> 로 선정되어 차단 상태 유지</li>
+</ul>
+
+<hr />
+
+<h3 id="stp-사용-시-고려할-사항">STP 사용 시 고려할 사항</h3>
+
+<p>STP는 <strong>스위치끼리 연결될 때</strong>만 고려하면 된다.</p>
+
+<p>PC나 기타 장비가 연결되는 포트는 STP와 무관하다.</p>
+
+<p>스위치가 연결되지 않는 포트는 <strong>Port Fast</strong>로 설정하여 BPDU 대기나 학습 과정 없이 바로 사용 가능하다.</p>
+
+<hr />
+
+<h3 id="rstp-rapid-spanning-tree-protocol">RSTP (Rapid Spanning Tree Protocol)</h3>
+
+<p>STP는 이중화된 스위치 경로 중 정상적인 경로에 문제가 발생하면 백업 경로를 활성화하는 데 <strong>30~50초</strong>가 걸린다.</p>
+
+<p>이런 문제를 해결하기 위해 등장한 프로토콜이 <strong>RSTP(Rapid Spanning Tree Protocol)</strong> 이다.</p>
+
+<p>기본적인 구성이나 동작 방식은 STP와 동일하지만, BPDU 구성을 다르게 하여 <strong>2~3초</strong> 정도의 짧은 전환 시간을 갖는다.</p>
+
+<h3 id="mst-multiple-spanning-tree">MST (Multiple Spanning Tree)</h3>
+
+<p>일반 STP는 VLAN 개수에 상관없이 스패닝 트리 한 개만 동작한다.</p>
+
+<p>이 경우 VLAN이 많더라도 스패닝 트리는 한 개만 동작하면 되므로 스위치의 관리 부하가 적지만, 루프가 발생하는 토폴로지에서 하나의 포트와 회선만 활성화되므로 자원을 효율적으로 활용할 수 없다.</p>
+
+<p>이 문제를 해결하기 위해 <strong>PVST(Per VLAN Spanning Tree)</strong> 가 개발되었다.</p>
+
+<p>PVST는 VLAN마다 다른 스패닝 트리 프로세스가 동작하므로 VLAN마다 별도의 경로와 트리를 만들 수 있다. 하지만 VLAN마다 별도의 블록 포트를 지정하여 각각의 스패닝 트리를 유지해야 하므로 관리 부담이 크다.</p>
+
+<p>PVST의 단점을 보완하기 위해 <strong>MST(Multiple Spanning Tree)</strong> 가 개발되었다.</p>
+
+<p>MST는 여러 개의 VLAN을 하나의 그룹(MST Instance)으로 만들어 그룹별로 스패닝 트리가 동작하도록 하는 방식이다.</p>
+
+<hr />
+
+<h3 id="stp의-대안">STP의 대안</h3>
+
+<p>STP는 루프 예방에 필수적인 프로토콜이지만, 스위치에 부담이 많고 포트가 차단되거나 늦게 Forwarding되어 불편함이 있다.</p>
+
+<p>이를 보완하기 위해 장비 제조사에서는 여러 종류의 대안을 제시하고 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>대안</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>SLPP</strong></td>
+      <td>Nortel 사가 개발한 루프 예방 프로토콜</td>
+    </tr>
+    <tr>
+      <td><strong>Extreme STP</strong></td>
+      <td>Extreme 사가 개발한 루프 예방 프로토콜</td>
+    </tr>
+    <tr>
+      <td><strong>Loop Guard</strong></td>
+      <td>STP와 다른 메커니즘으로 루프를 확인</td>
+    </tr>
+    <tr>
+      <td><strong>BPDU Guard</strong></td>
+      <td>BPDU가 유입될 경우 해당 포트를 차단</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="스위치에-ip를-할당하는-경우">스위치에 IP를 할당하는 경우</h3>
+
+<p>스위치는 2계층에서 동작하는 장비이므로 MAC 주소만 이해할 수 있고, IP는 스위치 자체 동작에 필요하지 않다.</p>
+
+<p>하지만 일정 규모 이상의 네트워크에서 운영되는 스위치는 <strong>관리 목적</strong>으로 IP 주소를 할당한다.</p>
+
+<p>Telnet, SSH, Web과 같은 원격 관리 서비스를 이용하기 위해 IP 주소를 할당하며, 실제 운영 환경에서는 대부분의 스위치에 IP 주소를 할당한다.</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/04-network-technology/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Network Technology</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/06-network-device-router/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Network Device 2 - Router</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785756597"></script>
+  </body>
+</html>

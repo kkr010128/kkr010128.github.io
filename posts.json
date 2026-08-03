@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Network Device 2 - Router",
+        "url": "/06-network-device-router/",
+        "description": "L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 3일",
+        "reading_time_label": "3분 읽기",
+        "search": "network device 2 - router l3 라우팅 핵심 - 라우팅 테이블, next hop, ttl, static / dynamic routing network autoeversw"
+      },
+    
+      
+      
+      {
+        "title": "Network Device 1 - Switch",
+        "url": "/05-network-device-switch/",
+        "description": "L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 3일",
+        "reading_time_label": "12분 읽기",
+        "search": "network device 1 - switch l2 switch의 핵심 개념 - mac 학습, vlan 분리, stp 루프 방지 network autoeversw"
+      },
+    
+      
+      
+      {
         "title": "Network Technology",
         "url": "/04-network-technology/",
         "description": "NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리",

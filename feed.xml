@@ -1,4 +1,1025 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-03T13:28:13+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Network Protocol</title><link href="https://kkr010128.github.io/03-network-protocol/" rel="alternate" type="text/html" title="Network Protocol" /><published>2026-07-31T00:00:00+09:00</published><updated>2026-07-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-network-protocol</id><content type="html" xml:base="https://kkr010128.github.io/03-network-protocol/"><![CDATA[<p>목적지 Address를 기준으로 구분</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-03T20:29:57+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Network Device 1 - Switch</title><link href="https://kkr010128.github.io/05-network-device-switch/" rel="alternate" type="text/html" title="Network Device 1 - Switch" /><published>2026-08-03T00:00:00+09:00</published><updated>2026-08-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/05-network-device-switch</id><content type="html" xml:base="https://kkr010128.github.io/05-network-device-switch/"><![CDATA[<h1 id="device-1--switch">Device 1 ) Switch</h1>
+<hr />
+<h3 id="장비-동작">장비 동작</h3>
+
+<h4 id="개요">개요</h4>
+
+<p>스위치(Switch)는 네트워크 중간에서 패킷을 수신하여 <strong>필요한 목적지로만 전달하는 네트워크 중재 장비</strong>이다.</p>
+
+<p>기본적으로 별도의 설정 없이도 <strong>MAC 주소를 학습(MAC Learning)</strong> 하여 목적지에 맞게 패킷을 전달할 수 있다.</p>
+
+<p>또한 단순한 패킷 전달 기능뿐만 아니라 다음과 같은 다양한 기능을 제공한다.</p>
+
+<ul>
+  <li><strong>VLAN(Virtual LAN)</strong> : 하나의 물리적 스위치를 여러 개의 논리적 네트워크로 분리</li>
+  <li><strong>STP(Spanning Tree Protocol)</strong> : 네트워크 루프(Loop) 방지</li>
+  <li><strong>보안 기능</strong> : Port Security, ACL 등 접근 제어 및 보안 강화</li>
+  <li><strong>모니터링 기능</strong> : 포트 미러링, 트래픽 분석 등 네트워크 관리 지원</li>
+</ul>
+
+<p>따라서 스위치는 단순한 L2 패킷 전달 장비를 넘어 네트워크 분리, 안정성 확보, 보안 및 관리 기능을 함께 제공하는 핵심 네트워크 장비이다.</p>
+
+<h4 id="packet--frame">Packet &amp; Frame</h4>
+
+<h5 id="pdu-protocol-data-unit">PDU (Protocol Data Unit)</h5>
+
+<ul>
+  <li>
+    <p>PDU(Protocol Data Unit)는 <strong>각 계층에서 헤더(Header)와 데이터(Data)를 포함한 전송 단위</strong>를 의미한다.</p>
+  </li>
+  <li>
+    <p>OSI 7계층에서는 계층마다 PDU의 이름이 다르다.</p>
+  </li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>계층</th>
+      <th>PDU</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>7 ~ 5 계층</td>
+      <td>Data</td>
+    </tr>
+    <tr>
+      <td>4 계층 (Transport)</td>
+      <td>Segment</td>
+    </tr>
+    <tr>
+      <td>3 계층 (Network)</td>
+      <td>Packet</td>
+    </tr>
+    <tr>
+      <td>2 계층 (Data Link)</td>
+      <td>Frame</td>
+    </tr>
+    <tr>
+      <td>1 계층 (Physical)</td>
+      <td>Bit</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="특징">특징</h4>
+
+<ul>
+  <li><strong>Bit</strong> : 물리 계층에서 전송되는 0과 1의 전기적 신호</li>
+  <li><strong>Frame</strong> : 데이터링크 계층의 전송 단위로, MAC 주소를 포함한다.</li>
+  <li><strong>Packet</strong> : 네트워크 계층의 전송 단위로, IP 주소를 포함한다.</li>
+  <li><strong>Segment</strong> : 전송 계층의 전송 단위로, TCP/UDP 정보를 포함한다.</li>
+  <li><strong>Data</strong> : 상위 계층(세션, 표현, 응용)에서 처리하는 데이터</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>스위치(L2)는 <strong>Frame</strong>을 전달한다.</li>
+    <li>라우터(L3)는 <strong>Packet</strong>을 전달한다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="역할">역할</h3>
+
+<p>스위치의 역할은 <strong>네트워크에서 통신을 중재하여 필요한 목적지에만 데이터를 전달하는 것</strong>이다.</p>
+
+<p>과거에는 허브(Hub)를 사용했지만, 허브는 목적지를 구분하지 못하기 때문에 수신한 데이터를 모든 포트로 전송(Broadcast)하였다. 이로 인해 불필요한 트래픽이 증가하고 충돌(Collision)이 자주 발생하여 네트워크 성능이 크게 저하되었다.</p>
+
+<p>반면 스위치는 <strong>MAC Address Table(CAM Table)</strong> 을 이용하여 단말의 위치를 기억한다. 이후에는 목적지 MAC 주소가 연결된 포트로만 데이터를 전달하므로 불필요한 트래픽이 발생하지 않는다.</p>
+
+<p>또한 각 포트가 독립적인 Collision Domain을 가지므로 여러 단말이 동시에 통신할 수 있어 네트워크 효율이 크게 향상된다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>Hub : 모든 포트로 전송</li>
+    <li>Switch : 목적지 포트로만 전송</li>
+    <li>여러 장비가 동시에 통신 가능하여 네트워크 성능이 향상된다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="스위치의-동작-과정">스위치의 동작 과정</h3>
+
+<h4 id="1-flooding">1. Flooding</h4>
+
+<p>스위치는 처음 부팅되면 MAC Address Table이 비어 있으므로 목적지의 위치를 알 수 없다.</p>
+
+<p>따라서 목적지 MAC 주소를 모르는 프레임을 수신하면 <strong>입력 포트를 제외한 모든 포트로 전송(Flooding)</strong> 한다.</p>
+
+<p>이 시점의 동작은 허브와 거의 동일하다.</p>
+
+<h4 id="특징-1">특징</h4>
+
+<ul>
+  <li>목적지 MAC 주소를 모를 때 발생</li>
+  <li>입력 포트를 제외한 모든 포트로 전송</li>
+  <li>최초 통신 시 주로 발생</li>
+  <li>성능 저하의 원인이 될 수 있으므로 최소화하는 것이 좋다.</li>
+</ul>
+
+<h4 id="flooding-공격">Flooding 공격</h4>
+
+<p>공격자는 존재하지 않는 MAC 주소를 계속 보내거나 MAC Address Table을 가득 채워 스위치가 정상적으로 학습하지 못하도록 만들 수 있다.</p>
+
+<p>이 경우 스위치는 목적지를 찾지 못해 Flooding을 반복하게 되고 네트워크 성능이 크게 저하될 수 있다.</p>
+
+<hr />
+
+<h4 id="2-address-learning">2. Address Learning</h4>
+
+<p>Address Learning은 <strong>MAC Address Table을 생성하고 유지하는 과정</strong>이다.</p>
+
+<p>스위치는 프레임을 수신하면 <strong>출발지(Source) MAC 주소와 수신 포트</strong>를 MAC Address Table에 저장한다.</p>
+
+<p>이를 반복하면서 어느 MAC 주소가 어느 포트에 연결되어 있는지 학습한다.</p>
+
+<p>또한 스위치 간 통신에 필요한 일부 MAC 주소는 미리 등록되어 있을 수도 있다.</p>
+
+<hr />
+
+<h4 id="3-forwarding--filtering">3. Forwarding / Filtering</h4>
+
+<p>목적지 MAC 주소가 이미 MAC Address Table에 존재하면 스위치는 해당 포트로만 프레임을 전달한다(Forwarding).</p>
+
+<p>반대로 목적지와 관계없는 다른 포트에는 프레임을 전달하지 않는다(Filtering).</p>
+
+<p>이 과정 덕분에 불필요한 트래픽이 줄어들고 여러 장비가 동시에 통신할 수 있다.</p>
+
+<hr />
+
+<h3 id="hub와-switch-비교">Hub와 Switch 비교</h3>
+
+<h4 id="hub">Hub</h4>
+
+<p>PC3가 PC2로 데이터를 전송한다고 가정하면,</p>
+
+<ol>
+  <li>Hub는 목적지의 위치를 알지 못한다.</li>
+  <li>연결된 모든 포트로 데이터를 전송한다.</li>
+  <li>PC2만 데이터를 처리하고 나머지 PC들은 데이터를 확인한 뒤 버린다.</li>
+  <li>이러한 과정이 통신할 때마다 반복된다.</li>
+</ol>
+
+<p>따라서 내부 트래픽이 많아지고 Collision이 자주 발생하여 성능이 저하된다.</p>
+
+<hr />
+
+<h4 id="switch">Switch</h4>
+
+<p>Switch 역시 처음에는 목적지를 모르므로 Flooding을 수행한다.</p>
+
+<p>하지만 이 과정에서 출발지 MAC 주소와 포트를 학습한다.</p>
+
+<p>이후에는 MAC Address Table을 이용하여 목적지 포트로만 데이터를 전송한다.</p>
+
+<p>예를 들어,</p>
+
+<ul>
+  <li>PC1 ↔ PC3 통신</li>
+  <li>PC2 ↔ PC4 통신</li>
+</ul>
+
+<p>이 동시에 이루어져도 서로 간섭하지 않고 동시에 통신할 수 있다.</p>
+
+<p>따라서 데이터센터와 같이 DB 서버, 애플리케이션 서버 등 많은 서버가 동시에 통신하는 환경에서는 Hub 대신 Switch를 사용한다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Hub</th>
+        <th>Switch</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>목적지를 모름</td>
+        <td>목적지를 학습함</td>
+      </tr>
+      <tr>
+        <td>모든 포트로 전송</td>
+        <td>목적지 포트로만 전송</td>
+      </tr>
+      <tr>
+        <td>Collision 발생</td>
+        <td>Collision Domain 분리</td>
+      </tr>
+      <tr>
+        <td>동시에 하나의 통신만 가능</td>
+        <td>여러 통신을 동시에 처리 가능</td>
+      </tr>
+      <tr>
+        <td>성능이 낮음</td>
+        <td>성능이 높음</td>
+      </tr>
+    </tbody>
+  </table>
+</blockquote>
+
+<h3 id="lan에서-flooding이-거의-발생하지-않는-이유-arp">LAN에서 Flooding이 거의 발생하지 않는 이유 (ARP)</h3>
+
+<p>이더넷 기반 TCP/IP 네트워크에서는 <strong>스위치가 유니캐스트 프레임을 Flooding하는 경우는 거의 없다.</strong></p>
+
+<p>그 이유는 실제 데이터를 전송하기 전에 <strong>ARP(Address Resolution Protocol)</strong> 를 이용하여 목적지의 MAC 주소를 먼저 알아내기 때문이다.</p>
+
+<p>동작 과정은 다음과 같다.</p>
+
+<ol>
+  <li>송신자가 목적지 IP 주소만 알고 있는 상태</li>
+  <li>ARP Request를 브로드캐스트하여 목적지의 MAC 주소를 조회</li>
+  <li>목적지가 ARP Reply를 유니캐스트로 응답</li>
+  <li>송신자는 ARP Cache에 목적지 MAC 주소를 저장</li>
+  <li>스위치는 이 과정에서 MAC Address Table을 학습</li>
+  <li>이후 실제 데이터(Frame)는 목적지 포트로만 전달(Forwarding)된다.</li>
+</ol>
+
+<p>즉, 실제 유니캐스트 통신이 시작될 때는 이미 MAC 주소가 학습되어 있으므로 Flooding이 거의 발생하지 않는다.</p>
+
+<hr />
+
+<h3 id="aging-time">Aging Time</h3>
+
+<p>ARP Cache와 MAC Address Table은 영구적으로 유지되지 않고 일정 시간이 지나면 삭제된다.</p>
+
+<p>이 시간을 <strong>Aging Time</strong>이라고 한다.</p>
+
+<p>일반적으로 <strong>스위치의 MAC Address Table Aging Time이 단말의 ARP Cache Aging Time보다 길게 설정</strong>된다.</p>
+
+<p>따라서 단말은 아직 ARP 정보를 가지고 있고, 스위치도 해당 MAC 주소를 기억하고 있어 불필요한 Flooding 없이 효율적으로 통신할 수 있다.</p>
+
+<hr />
+
+<h3 id="aging의-의미">Aging의 의미</h3>
+
+<p>Aging은 분야에 따라 의미가 조금 다르다.</p>
+
+<h4 id="네트워크">네트워크</h4>
+
+<ul>
+  <li>일정 시간이 지나면 MAC Address Table이나 ARP Cache 정보를 삭제하는 시간 관리 기법</li>
+</ul>
+
+<h4 id="운영체제os">운영체제(OS)</h4>
+
+<ul>
+  <li><strong>Starvation(기아 상태)</strong> 를 방지하기 위해 오래 기다린 프로세스의 우선순위를 점차 높여주는 기법</li>
+</ul>
+
+<p>예를 들어 SRT(Shortest Remaining Time) 스케줄링에서는 짧은 작업이 계속 들어오면 긴 작업은 계속 뒤로 밀려 실행되지 못할 수 있다.</p>
+
+<p>이를 <strong>Starvation</strong>이라고 하며, 기다린 시간에 비례하여 우선순위를 높여 결국 실행될 수 있도록 하는 기법을 <strong>Aging</strong>이라고 한다.</p>
+
+<h3 id="vlan">VLAN</h3>
+
+<h4 id="개요-1">개요</h4>
+
+<p>VLAN(Virtual LAN)은 <strong>물리적인 배치와 관계없이 하나의 스위치를 여러 개의 논리적인 네트워크로 분리하는 기술</strong>이다.</p>
+
+<p>기업에서는 여러 부서가 하나의 스위치를 함께 사용하는 경우가 많다. 이때 모든 단말을 하나의 네트워크로 구성하면 Broadcast 트래픽이 증가하고 보안이 취약해질 수 있다.</p>
+
+<p>VLAN을 사용하면 하나의 스위치에서도 부서나 서비스별로 독립적인 네트워크를 구성할 수 있다.</p>
+
+<p>또한 서로 다른 스위치에 연결된 단말이라도 동일한 VLAN에 속하면 하나의 네트워크처럼 동작한다.</p>
+
+<blockquote>
+  <p><strong>주의</strong></p>
+
+  <p>서로 다른 VLAN은 서로 다른 네트워크이므로 VLAN 간 통신(Inter-VLAN Routing)을 위해서는 <strong>3계층 장비(Router 또는 L3 Switch)</strong> 가 필요하다.</p>
+</blockquote>
+
+<hr />
+
+<h3 id="vlan-종류">VLAN 종류</h3>
+
+<h4 id="1-port-based-vlan">1. Port-Based VLAN</h4>
+
+<p>가장 일반적으로 사용하는 VLAN 방식이다.</p>
+
+<p>스위치의 <strong>포트에 VLAN을 할당</strong>하며, 해당 포트에 연결된 단말은 자동으로 지정된 VLAN에 속한다.</p>
+
+<h5 id="특징-2">특징</h5>
+
+<ul>
+  <li>가장 많이 사용하는 방식</li>
+  <li>설정이 간단하다.</li>
+  <li>데이터센터에서 주로 사용한다.</li>
+</ul>
+
+<hr />
+
+<h4 id="2-mac-based-vlan-dynamic-vlan">2. MAC-Based VLAN (Dynamic VLAN)</h4>
+
+<p>포트가 아니라 <strong>단말의 MAC 주소를 기준으로 VLAN을 할당</strong>하는 방식이다.</p>
+
+<p>스위치는 연결된 단말의 MAC 주소를 확인하여 해당 포트를 자동으로 지정된 VLAN으로 변경한다.</p>
+
+<h5 id="특징-3">특징</h5>
+
+<ul>
+  <li>단말을 다른 포트에 연결해도 동일한 VLAN을 유지할 수 있다.</li>
+  <li>포트의 VLAN이 동적으로 변경되므로 <strong>Dynamic VLAN</strong>이라고도 한다.</li>
+  <li>이동이 많은 스마트 오피스 환경에서 주로 사용된다.</li>
+</ul>
+
+<hr />
+
+<h3 id="vlan-동작-방식">VLAN 동작 방식</h3>
+
+<p>포트 기반 VLAN에서는 각 포트마다 VLAN을 지정한다.</p>
+
+<p>같은 스위치에 연결되어 있더라도 VLAN이 다르면 서로 통신할 수 없다.</p>
+
+<p>즉, VLAN으로 분리된 네트워크는 마치 <strong>별도의 물리적인 스위치</strong>처럼 동작한다.</p>
+
+<p>따라서 VLAN 간 통신을 위해서는 반드시 Router 또는 L3 Switch가 필요하다.</p>
+
+<hr />
+
+<h3 id="tagged-port-trunk-port">Tagged Port (Trunk Port)</h3>
+
+<p>여러 VLAN이 존재하는 환경에서 스위치와 스위치를 연결하려면 VLAN마다 케이블을 연결할 수도 있다.</p>
+
+<p>하지만 VLAN이 많아질수록 많은 포트가 낭비된다.</p>
+
+<p>이를 해결하기 위해 <strong>하나의 포트로 여러 VLAN의 데이터를 함께 전달</strong>하는 기능을 사용한다.</p>
+
+<p>이를 지원하는 포트를</p>
+
+<ul>
+  <li><strong>Tagged Port</strong></li>
+  <li><strong>Trunk Port(Cisco 용어)</strong></li>
+</ul>
+
+<p>라고 한다.</p>
+
+<h4 id="동작-방식">동작 방식</h4>
+
+<p>Tagged Port는 이더넷 프레임에 <strong>VLAN ID(Tag)</strong> 를 추가하여 여러 VLAN의 데이터를 하나의 링크로 전송한다.</p>
+
+<p>수신한 스위치는 VLAN ID를 확인하여 해당 VLAN으로 프레임을 전달한 뒤 Tag를 제거한다.</p>
+
+<hr />
+
+<h3 id="access-port와-trunk-port">Access Port와 Trunk Port</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Access(Untagged) Port</th>
+      <th>Trunk(Tagged) Port</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>VLAN 개수</td>
+      <td>1개</td>
+      <td>여러 개</td>
+    </tr>
+    <tr>
+      <td>VLAN Tag</td>
+      <td>없음</td>
+      <td>있음</td>
+    </tr>
+    <tr>
+      <td>연결 대상</td>
+      <td>PC, 프린터, 일반 서버</td>
+      <td>스위치, L3 장비, 가상화 서버</td>
+    </tr>
+    <tr>
+      <td>다른 이름</td>
+      <td>Untagged Port</td>
+      <td>Tagged Port</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="vlan-환경에서의-mac-address-table">VLAN 환경에서의 MAC Address Table</h3>
+
+<p>VLAN이 구성되면 스위치의 MAC Address Table에는 <strong>VLAN ID 정보가 함께 저장</strong>된다.</p>
+
+<p>즉,</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VLAN 10 | MAC A | Port 1
+VLAN 20 | MAC A | Port 3
+</code></pre></div></div>
+
+<p>처럼 동일한 MAC 주소라도 VLAN별로 구분하여 관리할 수 있다.</p>
+
+<p>따라서 하나의 스위치 안에 <strong>VLAN별 MAC Address Table이 존재하는 것과 같은 효과</strong>를 얻을 수 있으며, 서로 다른 VLAN 간에는 Frame이 전달되지 않는다.</p>
+
+<hr />
+
+<h3 id="가상화-서버vmware-esxi">가상화 서버(VMware ESXi)</h3>
+
+<p>일반 서버는 하나의 VLAN만 사용하는 경우가 많으므로 <strong>Access Port</strong>로 연결한다.</p>
+
+<p>하지만 VMware ESXi와 같은 가상화 서버는 하나의 물리 서버 안에서 여러 VLAN을 사용하는 경우가 많다.</p>
+
+<p>이 경우</p>
+
+<ul>
+  <li>스위치 포트는 <strong>Trunk(Tagged) Port</strong></li>
+  <li>ESXi의 가상 스위치(vSwitch)도 <strong>VLAN Tag</strong>를 인식하도록 설정</li>
+</ul>
+
+<p>해야 한다.</p>
+
+<p>가상화 서버 내부에는 가상 스위치(vSwitch)가 존재하므로, 스위치와 스위치가 연결된 것처럼 이해하면 쉽다.</p>
+
+<hr />
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>VLAN은 하나의 스위치를 여러 개의 논리적 네트워크로 분리하는 기술이다.</li>
+    <li>서로 다른 VLAN 간에는 직접 통신할 수 없으며 L3 장비가 필요하다.</li>
+    <li>Access(Untagged) Port는 하나의 VLAN만 사용한다.</li>
+    <li>Trunk(Tagged) Port는 여러 VLAN의 데이터를 하나의 링크로 전송한다.</li>
+    <li>VLAN 환경에서는 MAC Address Table에도 VLAN ID가 함께 저장된다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="stp-spanning-tree-protocol">STP (Spanning Tree Protocol)</h3>
+
+<h4 id="개요-2">개요</h4>
+
+<p>네트워크에서는 <strong>SPoF(Single Point of Failure, 단일 장애점)</strong> 를 제거하기 위해 스위치를 이중화하거나 다중화하여 구성한다.</p>
+
+<p>SPoF란 하나의 장비가 고장 났을 때 전체 서비스가 중단되는 지점을 의미한다.</p>
+
+<p>예를 들어 스위치 한 대만 사용하는 경우 해당 스위치에 장애가 발생하면 전체 네트워크가 마비된다.</p>
+
+<p>이를 방지하기 위해 스위치를 여러 대 연결하지만, 이렇게 연결하면 <strong>Loop(루프)</strong> 가 발생할 수 있다.</p>
+
+<p>STP는 이러한 <strong>Loop를 방지하기 위한 프로토콜</strong>이다.</p>
+
+<hr />
+
+<h3 id="spof-single-point-of-failure">SPoF (Single Point of Failure)</h3>
+
+<p>SPoF는 시스템에서 가장 중요하게 고려해야 하는 요소 중 하나이다.</p>
+
+<h4 id="예시">예시</h4>
+
+<ul>
+  <li>스위치가 한 대뿐인 경우</li>
+  <li>웹 서버가 한 대뿐인 경우</li>
+  <li>데이터베이스가 한 대뿐인 경우</li>
+  <li>로드밸런서가 한 대뿐인 경우</li>
+</ul>
+
+<p>모두 SPoF가 될 수 있다.</p>
+
+<p>SPoF를 해결하기 위해 일반적으로 <strong>이중화(Redundancy)</strong> 또는 <strong>다중화</strong>를 수행한다.</p>
+
+<p>예를 들어</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+   │
+Load Balancer
+ ┌──┴──┐
+Web1 Web2
+</code></pre></div></div>
+
+<p>처럼 웹 서버를 두 대 운영하면 한 서버에 장애가 발생해도 다른 서버가 서비스를 계속 제공할 수 있다.</p>
+
+<p>하지만 이 경우에도 <strong>로드밸런서가 하나뿐이라면 로드밸런서가 새로운 SPoF</strong>가 된다.</p>
+
+<p>따라서 필요에 따라 로드밸런서도 이중화해야 한다.</p>
+
+<p>데이터베이스 역시 복제(Replication), RAID 등을 이용해 SPoF를 줄일 수 있지만, 시스템은 점점 복잡해지고 비용도 증가한다.</p>
+
+<p>결국 SPoF는 <strong>비용과 가용성 사이에서 적절한 수준으로 타협</strong>하여 설계해야 한다.</p>
+
+<hr />
+
+<h3 id="loop">Loop</h3>
+
+<p>스위치를 이중화하면 장애에는 강해지지만 새로운 문제가 발생한다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+ ├───Switch A───┐
+ │              │
+ │              │
+ └───Switch B───┘
+</code></pre></div></div>
+
+<p>처럼 루프 구조가 만들어질 수 있다.</p>
+
+<p>이 상태에서는 브로드캐스트 프레임이 계속 순환하면서 네트워크 전체를 마비시킬 수 있다.</p>
+
+<hr />
+
+<h3 id="broadcast-storm">Broadcast Storm</h3>
+
+<p>Loop가 발생한 상태에서 브로드캐스트 패킷이 생성되면,</p>
+
+<ol>
+  <li>스위치는 브로드캐스트를 모든 포트로 Flooding한다.</li>
+  <li>다른 스위치가 다시 Flooding한다.</li>
+  <li>다시 원래 스위치로 돌아온다.</li>
+  <li>이 과정이 무한 반복된다.</li>
+</ol>
+
+<p>이를 <strong>Broadcast Storm</strong>이라고 한다.</p>
+
+<h4 id="왜-계속-반복되는가">왜 계속 반복되는가?</h4>
+
+<p>L3 패킷(IP Packet)에는 <strong>TTL(Time To Live)</strong> 이 존재한다.</p>
+
+<p>TTL은 라우터를 지날 때마다 감소하며 0이 되면 패킷을 폐기한다.</p>
+
+<p>하지만 <strong>스위치가 처리하는 L2 Frame에는 TTL과 같은 수명 정보가 존재하지 않는다.</strong></p>
+
+<p>따라서 Loop가 발생하면 Frame은 계속 살아남아 네트워크를 순환한다.</p>
+
+<h4 id="결과">결과</h4>
+
+<ul>
+  <li>네트워크 대역폭이 거의 모두 소모된다.</li>
+  <li>정상적인 통신이 어려워진다.</li>
+  <li>단말의 네트워크 속도가 매우 느려진다.</li>
+  <li>스위치의 모든 포트 LED가 매우 빠르게 깜빡인다.</li>
+  <li>심한 경우 네트워크 전체가 마비된다.</li>
+</ul>
+
+<hr />
+
+<h3 id="stp의-역할">STP의 역할</h3>
+
+<p>STP(Spanning Tree Protocol)는 스위치 간 Loop를 감지하여 <strong>일부 링크를 논리적으로 차단(Block)</strong> 한다.</p>
+
+<p>평상시에는 하나의 경로만 사용하고,</p>
+
+<p>장애가 발생하면 차단했던 링크를 활성화하여 우회 경로로 통신한다.</p>
+
+<p>즉,</p>
+
+<ul>
+  <li>SPoF를 해결하기 위한 이중화는 유지하면서</li>
+  <li>Loop는 발생하지 않도록 제어하는 프로토콜이다.</li>
+</ul>
+
+<hr />
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>SPoF를 제거하기 위해 네트워크는 이중화한다.</li>
+    <li>이중화하면 Loop가 발생할 수 있다.</li>
+    <li>Loop는 Broadcast Storm을 유발한다.</li>
+    <li>L2 Frame에는 TTL이 없어 Loop가 계속 유지된다.</li>
+    <li>STP는 일부 링크를 차단하여 Loop를 제거하고 장애 시 우회 경로를 활성화한다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="mac-address-flapping">MAC Address Flapping</h3>
+
+<h4 id="개요-3">개요</h4>
+
+<p>MAC Address Flapping은 <strong>동일한 MAC 주소가 서로 다른 포트에서 반복적으로 학습되는 현상</strong>이다.</p>
+
+<p>일반적으로 스위치 간 Loop가 발생하거나 네트워크가 잘못 연결된 경우 발생한다.</p>
+
+<hr />
+
+<h3 id="발생-원인">발생 원인</h3>
+
+<p>스위치는 프레임을 수신하면 <strong>출발지(Source) MAC 주소와 수신 포트</strong>를 MAC Address Table에 저장한다.</p>
+
+<p>하지만 동일한 MAC 주소를 가진 프레임이 서로 다른 포트로 계속 들어오면 스위치는 해당 단말의 위치가 계속 바뀌는 것으로 판단한다.</p>
+
+<p>예를 들어,</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MAC A → Port 1
+</code></pre></div></div>
+
+<p>로 학습한 직후</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MAC A → Port 3
+</code></pre></div></div>
+
+<p>에서 또 들어오면 기존 정보를 Port 3으로 변경한다.</p>
+
+<p>이러한 현상이 반복되면 <strong>MAC Address Flapping</strong>이 발생한다.</p>
+
+<hr />
+
+<h3 id="문제점">문제점</h3>
+
+<ul>
+  <li>MAC Address Table이 계속 변경된다.</li>
+  <li>Frame Forwarding이 비효율적으로 이루어진다.</li>
+  <li>네트워크 성능이 저하된다.</li>
+  <li>Loop 등의 네트워크 이상을 의심할 수 있다.</li>
+</ul>
+
+<hr />
+
+<h3 id="해결-방법">해결 방법</h3>
+
+<p>대부분의 스위치는 MAC Address Flapping을 감지하는 기능을 제공한다.</p>
+
+<p>이상이 감지되면</p>
+
+<ul>
+  <li>관리자에게 로그 또는 경고 메시지를 전송하거나</li>
+  <li>문제가 발생한 포트를 자동으로 <strong>Shutdown(Disable)</strong> 하여 추가적인 장애를 방지한다.</li>
+</ul>
+
+<p>Windows에서도 IP 주소가 중복되면 사용자에게 경고를 표시하는 기능이 있으며, 스위치 역시 비슷한 방식으로 중복 MAC 주소를 감지할 수 있다.</p>
+
+<ul>
+  <li>루프를 확인하고 적절히 포트를 사용하지 못하게 만들어 루프를 예방하는 메커니즘이 등장
+  → Spanning Tree Protocol</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>동일한 MAC 주소가 여러 포트에서 반복 학습되는 현상</li>
+    <li>주로 Loop나 잘못된 네트워크 연결로 발생</li>
+    <li>MAC Address Table이 계속 변경되어 성능이 저하됨</li>
+    <li>일반적으로 경고를 발생시키거나 포트를 Shutdown하여 해결</li>
+  </ul>
+</blockquote>
+
+<h3 id="stp의-동작-방식">STP의 동작 방식</h3>
+
+<p>STP는 루프가 발생하지 않도록 전체 스위치의 연결 상태를 파악해야 한다.</p>
+
+<p>스위치 간 연결 상태를 파악하기 위해 <strong>BPDU(Bridge Protocol Data Unit)</strong> 라는 프로토콜을 사용한다.</p>
+
+<p>BPDU에는 스위치가 가지고 있는 고유 ID와 같은 정보가 포함되어 있으며, 이러한 정보들이 스위치 간에 교환되면서 전체 네트워크의 루프 구간을 확인할 수 있다.</p>
+
+<p>이렇게 확인된 루프 지점은 데이터 트래픽이 통과하지 못하도록 차단(Block)하여 루프를 예방한다.</p>
+
+<hr />
+
+<h3 id="스위치-포트의-상태-및-변경-과정">스위치 포트의 상태 및 변경 과정</h3>
+
+<p>STP가 동작 중인 스위치에서는 루프를 막기 위해 신규 스위치가 연결되면 바로 트래픽이 흐르지 않도록 차단한다.</p>
+
+<p>해당 포트로 트래픽이 흘러도 되는지 확인하기 위해 BPDU를 기다려 학습하고 구조를 파악한 후 트래픽을 흘리거나, 루프 구조인 경우 차단 상태를 유지한다.</p>
+
+<p>차단 상태에서 트래픽이 흐를 때까지 스위치 포트는 다음 상태를 순차적으로 거친다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>상태</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Blocking</strong></td>
+      <td>BPDU를 기다리며 모든 트래픽을 차단</td>
+    </tr>
+    <tr>
+      <td><strong>Listening</strong></td>
+      <td>BPDU를 수신하여 네트워크 구조 학습 준비</td>
+    </tr>
+    <tr>
+      <td><strong>Learning</strong></td>
+      <td>MAC 주소를 학습하나 아직 트래픽은 전달하지 않음</td>
+    </tr>
+    <tr>
+      <td><strong>Forwarding</strong></td>
+      <td>정상적으로 트래픽을 전달</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>이 과정을 거치는 데 약 <strong>50초</strong> 정도의 시간이 소요된다.</p>
+
+<p>STP가 활성화된 경우 스위치 포트는 곧바로 Forwarding 상태가 되지 않기 때문에, 장애가 발생하거나 스위치에 이상이 생긴 것으로 오인하는 경우가 많다.</p>
+
+<blockquote>
+  <p><strong>참고</strong></p>
+
+  <p>부팅 시간이 매우 빠른 OS가 DHCP 네트워크에 접속할 때, 부팅 단계에서 IP를 요청하지만 스위치 포트가 아직 Forwarding 상태가 되지 않아 IP를 정상적으로 할당받지 못하는 경우가 발생할 수 있다.</p>
+</blockquote>
+
+<h3 id="stp-동작-방식">STP 동작 방식</h3>
+
+<p>STP는 다음 순서로 동작한다.</p>
+
+<h4 id="1-루트-스위치root-switch-선정">1. 루트 스위치(Root Switch) 선정</h4>
+
+<p>전체 네트워크에서 기준이 되는 하나의 루트 스위치를 선정한다.</p>
+
+<h4 id="2-루트-포트root-port-선정">2. 루트 포트(Root Port) 선정</h4>
+
+<p>루트가 아닌 스위치 중에서 <strong>루트 스위치에서 보낸 BPDU를 수신하는 포트</strong>를 루트 포트로 선정한다.</p>
+
+<h4 id="3-지정-포트designated-port-선정">3. 지정 포트(Designated Port) 선정</h4>
+
+<p>스위치와 스위치가 연결되는 포트 중 하나를 지정 포트로 선정한다.</p>
+
+<h4 id="결과-정리">결과 정리</h4>
+
+<ul>
+  <li>하나는 루트 포트, 하나는 지정 포트인 경우 → <strong>Forwarding</strong> 상태</li>
+  <li>모두 지정 포트인 경우 → 한쪽은 지정 포트, 다른 쪽은 <strong>대체 포트(Alternate Port)</strong> 로 선정되어 차단 상태 유지</li>
+</ul>
+
+<hr />
+
+<h3 id="stp-사용-시-고려할-사항">STP 사용 시 고려할 사항</h3>
+
+<p>STP는 <strong>스위치끼리 연결될 때</strong>만 고려하면 된다.</p>
+
+<p>PC나 기타 장비가 연결되는 포트는 STP와 무관하다.</p>
+
+<p>스위치가 연결되지 않는 포트는 <strong>Port Fast</strong>로 설정하여 BPDU 대기나 학습 과정 없이 바로 사용 가능하다.</p>
+
+<hr />
+
+<h3 id="rstp-rapid-spanning-tree-protocol">RSTP (Rapid Spanning Tree Protocol)</h3>
+
+<p>STP는 이중화된 스위치 경로 중 정상적인 경로에 문제가 발생하면 백업 경로를 활성화하는 데 <strong>30~50초</strong>가 걸린다.</p>
+
+<p>이런 문제를 해결하기 위해 등장한 프로토콜이 <strong>RSTP(Rapid Spanning Tree Protocol)</strong> 이다.</p>
+
+<p>기본적인 구성이나 동작 방식은 STP와 동일하지만, BPDU 구성을 다르게 하여 <strong>2~3초</strong> 정도의 짧은 전환 시간을 갖는다.</p>
+
+<h3 id="mst-multiple-spanning-tree">MST (Multiple Spanning Tree)</h3>
+
+<p>일반 STP는 VLAN 개수에 상관없이 스패닝 트리 한 개만 동작한다.</p>
+
+<p>이 경우 VLAN이 많더라도 스패닝 트리는 한 개만 동작하면 되므로 스위치의 관리 부하가 적지만, 루프가 발생하는 토폴로지에서 하나의 포트와 회선만 활성화되므로 자원을 효율적으로 활용할 수 없다.</p>
+
+<p>이 문제를 해결하기 위해 <strong>PVST(Per VLAN Spanning Tree)</strong> 가 개발되었다.</p>
+
+<p>PVST는 VLAN마다 다른 스패닝 트리 프로세스가 동작하므로 VLAN마다 별도의 경로와 트리를 만들 수 있다. 하지만 VLAN마다 별도의 블록 포트를 지정하여 각각의 스패닝 트리를 유지해야 하므로 관리 부담이 크다.</p>
+
+<p>PVST의 단점을 보완하기 위해 <strong>MST(Multiple Spanning Tree)</strong> 가 개발되었다.</p>
+
+<p>MST는 여러 개의 VLAN을 하나의 그룹(MST Instance)으로 만들어 그룹별로 스패닝 트리가 동작하도록 하는 방식이다.</p>
+
+<hr />
+
+<h3 id="stp의-대안">STP의 대안</h3>
+
+<p>STP는 루프 예방에 필수적인 프로토콜이지만, 스위치에 부담이 많고 포트가 차단되거나 늦게 Forwarding되어 불편함이 있다.</p>
+
+<p>이를 보완하기 위해 장비 제조사에서는 여러 종류의 대안을 제시하고 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>대안</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>SLPP</strong></td>
+      <td>Nortel 사가 개발한 루프 예방 프로토콜</td>
+    </tr>
+    <tr>
+      <td><strong>Extreme STP</strong></td>
+      <td>Extreme 사가 개발한 루프 예방 프로토콜</td>
+    </tr>
+    <tr>
+      <td><strong>Loop Guard</strong></td>
+      <td>STP와 다른 메커니즘으로 루프를 확인</td>
+    </tr>
+    <tr>
+      <td><strong>BPDU Guard</strong></td>
+      <td>BPDU가 유입될 경우 해당 포트를 차단</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="스위치에-ip를-할당하는-경우">스위치에 IP를 할당하는 경우</h3>
+
+<p>스위치는 2계층에서 동작하는 장비이므로 MAC 주소만 이해할 수 있고, IP는 스위치 자체 동작에 필요하지 않다.</p>
+
+<p>하지만 일정 규모 이상의 네트워크에서 운영되는 스위치는 <strong>관리 목적</strong>으로 IP 주소를 할당한다.</p>
+
+<p>Telnet, SSH, Web과 같은 원격 관리 서비스를 이용하기 위해 IP 주소를 할당하며, 실제 운영 환경에서는 대부분의 스위치에 IP 주소를 할당한다.</p>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지]]></summary></entry><entry><title type="html">Network Device 2 - Router</title><link href="https://kkr010128.github.io/06-network-device-router/" rel="alternate" type="text/html" title="Network Device 2 - Router" /><published>2026-08-03T00:00:00+09:00</published><updated>2026-08-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/06-network-device-router</id><content type="html" xml:base="https://kkr010128.github.io/06-network-device-router/"><![CDATA[<h1 id="device-2--router--l3-switch">Device 2 ) Router / L3 Switch</h1>
+
+<hr />
+
+<h2 id="개요">개요</h2>
+
+<p>라우터(Router)는 <strong>OSI 7계층의 3계층(Network Layer)</strong> 에서 동작하는 장비이다.</p>
+
+<p>패킷의 목적지 IP 주소를 확인하고, 라우팅 테이블(Routing Table)을 조회하여 최적의 경로로 패킷을 전달(Forwarding)한다.</p>
+
+<p>원격 네트워크 간 통신을 위해 반드시 필요한 장비이며, 서로 다른 네트워크를 연결하는 핵심 장비이다.</p>
+
+<hr />
+
+<h2 id="l3-switch">L3 Switch</h2>
+
+<p>L3 Switch는 스위치 기능(L2)과 라우터 기능(L3)을 함께 제공하는 장비이다.</p>
+
+<p>일반적으로</p>
+
+<ul>
+  <li>스위칭은 ASIC(Hardware)</li>
+  <li>라우팅은 Hardware 또는 Software</li>
+</ul>
+
+<p>로 처리하며 최근에는 라우터와 L3 Switch의 기능 차이가 많이 줄어들었다.</p>
+
+<hr />
+
+<h1 id="라우터의-역할">라우터의 역할</h1>
+
+<p>라우터의 역할은 크게 세 가지이다.</p>
+
+<ol>
+  <li>경로 지정(Path Determination)</li>
+  <li>브로드캐스트 컨트롤(Broadcast Control)</li>
+  <li>프로토콜 변환(Protocol Conversion)</li>
+</ol>
+
+<hr />
+
+<h2 id="경로-지정-path-determination">경로 지정 (Path Determination)</h2>
+
+<p>라우터는 다양한 경로 정보를 수집하여 <strong>라우팅 테이블(Routing Table)</strong> 을 만든다.</p>
+
+<p>패킷이 들어오면 목적지 IP 주소와 라우팅 테이블을 비교하여 가장 적절한 경로로 패킷을 전달한다.</p>
+
+<blockquote>
+  <p><strong>Switch와 Router의 차이</strong></p>
+
+  <ul>
+    <li>Switch : 목적지를 모르면 Flooding</li>
+    <li>Router : 목적지를 모르면 Drop</li>
+  </ul>
+</blockquote>
+
+<p>라우터는 패킷을 전달할 때 기존 L2 헤더를 제거한 뒤 다음 네트워크에 맞는 새로운 L2 헤더를 생성한다.</p>
+
+<p>경로 지정은 두 과정으로 나뉜다.</p>
+
+<ol>
+  <li>경로 정보를 학습</li>
+  <li>학습한 정보를 이용해 패킷 포워딩</li>
+</ol>
+
+<hr />
+
+<h2 id="경로-정보를-얻는-방법">경로 정보를 얻는 방법</h2>
+
+<p>라우터는 다음 세 가지 방법으로 경로를 학습한다.</p>
+
+<h3 id="1-direct-connected">1. Direct Connected</h3>
+
+<p>직접 연결된 네트워크이다.</p>
+
+<p>인터페이스에 IP를 설정하면 자동으로 생성된다.</p>
+
+<ul>
+  <li>자동 생성</li>
+  <li>삭제 불가</li>
+  <li>인터페이스 Down 시 자동 제거</li>
+</ul>
+
+<hr />
+
+<h3 id="2-static-routing">2. Static Routing</h3>
+
+<p>관리자가 직접 목적지와 Next Hop을 입력하는 방식이다.</p>
+
+<h4 id="특징">특징</h4>
+
+<ul>
+  <li>설정이 간단하다.</li>
+  <li>관리가 쉽다.</li>
+  <li>작은 네트워크에 적합하다.</li>
+  <li>장애를 자동으로 우회하지 못한다.</li>
+</ul>
+
+<hr />
+
+<h3 id="3-dynamic-routing">3. Dynamic Routing</h3>
+
+<p>라우터끼리 경로 정보를 교환하여 자동으로 경로를 학습한다.</p>
+
+<h4 id="특징-1">특징</h4>
+
+<ul>
+  <li>경로를 자동 학습</li>
+  <li>장애 발생 시 우회 가능</li>
+  <li>대규모 네트워크에 적합</li>
+</ul>
+
+<hr />
+
+<h2 id="경로-정보의-규모">경로 정보의 규모</h2>
+
+<p>인터넷의 경로 정보는 지속적으로 증가하고 있다.</p>
+
+<p>CIDR(Classless Inter-Domain Routing)이 도입되면서 다양한 Prefix 길이의 네트워크가 사용되고, 라우팅 테이블도 매우 커졌다.</p>
+
+<p>이를 줄이기 위해 라우터는 <strong>Route Summarization(경로 요약)</strong> 을 사용하여 여러 Prefix를 하나로 묶는다.</p>
+
+<p>또한 목적지와 일치하는 경로가 여러 개라면 <strong>Longest Prefix Match</strong> 를 이용하여 가장 구체적인 경로를 선택한다.</p>
+
+<hr />
+
+<h2 id="브로드캐스트-컨트롤">브로드캐스트 컨트롤</h2>
+
+<p>라우터는 서로 다른 네트워크를 연결하지만 브로드캐스트 패킷은 전달하지 않는다.</p>
+
+<p>따라서 브로드캐스트 도메인을 분리하여 불필요한 Broadcast Traffic을 차단한다.</p>
+
+<hr />
+
+<h2 id="hop-by-hop-라우팅">Hop by Hop 라우팅</h2>
+
+<p>인터넷에서는 하나의 라우터가 목적지까지의 전체 경로를 결정하지 않는다.</p>
+
+<p>각 라우터는 자신의 라우팅 테이블만 조회하여 <strong>Next Hop</strong> 만 결정한다.</p>
+
+<p>다음 라우터 역시 같은 과정을 반복하여 최종 목적지까지 패킷을 전달한다.</p>
+
+<p>이를 <strong>Hop by Hop Routing</strong> 이라고 한다.</p>
+
+<blockquote>
+  <p><strong>비유</strong></p>
+
+  <p>네비게이션은 현재 위치에서 다음 길만 계속 안내한다.</p>
+
+  <p>라우터도 목적지까지 모든 경로를 결정하지 않고 다음 라우터만 결정한다.</p>
+</blockquote>
+
+<hr />
+
+<h2 id="next-hop-지정-방법">Next Hop 지정 방법</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>방법</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Next Hop IP</td>
+      <td>가장 일반적인 방식</td>
+    </tr>
+    <tr>
+      <td>Interface</td>
+      <td>출구 인터페이스 지정</td>
+    </tr>
+    <tr>
+      <td>Interface + Next Hop</td>
+      <td>두 정보를 함께 지정</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="ttl-time-to-live">TTL (Time To Live)</h2>
+
+<p>라우터는 패킷을 전달할 때마다 TTL 값을 1 감소시킨다.</p>
+
+<p>TTL이 0이 되면 패킷을 폐기한다.</p>
+
+<p>따라서 라우팅 루프가 발생하더라도 패킷이 영구적으로 순환하지 않는다.</p>
+
+<hr />
+
+<h2 id="프로토콜-변환">프로토콜 변환</h2>
+
+<p>과거에는 LAN과 WAN이 서로 다른 2계층 프로토콜을 사용하였다.</p>
+
+<p>예를 들어</p>
+
+<ul>
+  <li>LAN : Ethernet</li>
+  <li>WAN : PPP</li>
+</ul>
+
+<p>라우터는 Ethernet Frame을 제거하고 PPP Frame으로 다시 캡슐화하여 WAN으로 전달하였다.</p>
+
+<p>현재는 대부분 Ethernet 기반이므로 프로토콜 변환의 중요성은 과거보다 많이 줄어들었다.</p>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing]]></summary></entry><entry><title type="html">Network Protocol</title><link href="https://kkr010128.github.io/03-network-protocol/" rel="alternate" type="text/html" title="Network Protocol" /><published>2026-07-31T00:00:00+09:00</published><updated>2026-07-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-network-protocol</id><content type="html" xml:base="https://kkr010128.github.io/03-network-protocol/"><![CDATA[<p>목적지 Address를 기준으로 구분</p>
 <ul>
   <li><strong>Unicast</strong>
     <ul>
@@ -3530,408 +4551,4 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 }
-</code></pre></div></div>]]></content><author><name></name></author><category term="Linux" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Linux Apache, nginx 웹 서버 설치 및 설정 정리]]></summary></entry><entry><title type="html">파일 서버</title><link href="https://kkr010128.github.io/16-file-server/" rel="alternate" type="text/html" title="파일 서버" /><published>2026-07-28T00:00:00+09:00</published><updated>2026-07-28T00:00:00+09:00</updated><id>https://kkr010128.github.io/16-file-server</id><content type="html" xml:base="https://kkr010128.github.io/16-file-server/"><![CDATA[<h2 id="1-ftp">1) FTP</h2>
-<hr />
-
-<h3 id="개요">개요</h3>
-<ul>
-  <li><strong>FTP</strong>(File Transfer Protocol)는 네트워크를 통해 컴퓨터 간에 파일을 전송하기 위한 가장 기본적인 표준 통신 규약</li>
-  <li>다른 프로토콜과 달리 <strong>2개의 포트</strong>를 동시에 사용</li>
-</ul>
-
-<h3 id="핵심-작동-원리-2개의-채널">핵심 작동 원리: 2개의 채널</h3>
-<ul>
-  <li><strong>Control Channel</strong>(21번 포트): 사용자 아이디/비밀번호 확인, 명령어 전달</li>
-  <li><strong>Data Channel</strong>(20번 포트): 실제 데이터 전송 통로</li>
-</ul>
-
-<h3 id="접속-방식">접속 방식</h3>
-<ul>
-  <li><strong>능동 모드(Active)</strong>: 서버가 클라이언트에게 접속을 시도하는 방식</li>
-  <li><strong>수동 모드(Passive)</strong>: 클라이언트가 서버에게 접속을 시도하는 방식
-    <ul>
-      <li>대부분의 웹 브라우저나 공유기가 사용</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="종류">종류</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>종류</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>기본 FTP</strong></td>
-      <td>아이디와 비밀번호가 암호화되지 않은 채 전송 → 해킹에 취약</td>
-    </tr>
-    <tr>
-      <td><strong>SFTP</strong>(Secure FTP)</td>
-      <td><strong>SSH</strong> 기술을 이용해 전송 과정 전체를 암호화 → 현재 가장 많이 사용</td>
-    </tr>
-    <tr>
-      <td><strong>FTPS</strong>(FTP over SSL/TLS)</td>
-      <td>SSL 인증서를 사용하여 암호화하는 방식</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="장점과-단점">장점과 단점</h3>
-<ul>
-  <li><strong>장점</strong>: 대용량 파일을 일괄 전송하기에 매우 효율적, 전송 속도 빠름</li>
-  <li><strong>단점</strong>: <em>하지만</em> 보안 설정을 하지 않으면 정보 유출 위험이 크고 설정이 복잡해질 수 있음</li>
-</ul>
-
-<h2 id="2-vsftpd">2) vsftpd</h2>
-<hr />
-
-<h3 id="개요-1">개요</h3>
-<ul>
-  <li>우분투에서 기본적으로 제공하는 보안성과 성능이 우수한 <strong>FTP 서버</strong></li>
-  <li>설치 및 운영이 쉬움</li>
-</ul>
-
-<h3 id="설치">설치</h3>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt <span class="nt">-y</span> <span class="nb">install </span>vsftpd
-</code></pre></div></div>
-
-<h3 id="설정-파일">설정 파일</h3>
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">/etc/vsftpd.conf</code></li>
-  <li>주요 옵션
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">anonymous_enable</code>: 익명 사용자의 접속 허용 여부 (로그인 불필요)</li>
-      <li><code class="language-plaintext highlighter-rouge">local_enable</code>: 로컬 컴퓨터에서의 접속</li>
-      <li><code class="language-plaintext highlighter-rouge">max_clients</code>: 동시 최대 접속자 수</li>
-      <li><code class="language-plaintext highlighter-rouge">max_per_ip</code>: 하나의 PC에서 접속할 수 있는 접속자 수</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="실습">실습</h3>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 설정 변경 - /etc/vsftpd.conf 파일 수정</span>
-<span class="c"># anonymous_enable=YES</span>
-<span class="c"># write_enable=YES</span>
-<span class="c"># anon_upload_enable=YES</span>
-<span class="c"># anon_mkdir_write_enable=YES</span>
-
-<span class="c"># 디렉토리 생성</span>
-<span class="nb">cd</span> /srv/ftp
-<span class="nb">sudo mkdir </span>pub
-<span class="nb">sudo chmod </span>777 pub
-<span class="nb">cd </span>pub
-<span class="nb">sudo touch </span>file
-<span class="nb">ls</span> <span class="nt">-l</span>
-
-<span class="c"># vsftpd 재시작</span>
-<span class="nb">sudo </span>systemctl restart vsftpd
-</code></pre></div></div>
-
-<h2 id="3-ssh를-이용한-파일-전송">3) SSH를 이용한 파일 전송</h2>
-<hr />
-
-<h3 id="사용하는-이유">사용하는 이유</h3>
-<ul>
-  <li>별도의 서버 설치 불필요</li>
-  <li><strong>데이터 무결성 검증</strong></li>
-  <li><strong>인증 방식의 다양성</strong></li>
-</ul>
-
-<h3 id="scp-secure-copy">SCP (Secure Copy)</h3>
-<ul>
-  <li>가장 빠르고 간단하게 파일을 복사하는 방식</li>
-  <li>명령어 한 줄로 전송 완료</li>
-</ul>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 로컬 → 원격지 파일 보내기</span>
-scp <span class="o">[</span>파일 경로] <span class="o">[</span>계정]@[IP주소]:[저장경로]
-
-<span class="c"># 원격지 → 로컬 파일 가져오기</span>
-scp <span class="o">[</span>계정]@[IP주소]:[파일경로] <span class="o">[</span>로컬경로]
-</code></pre></div></div>
-
-<h3 id="pem-파일을-이용한-인증">PEM 파일을 이용한 인증</h3>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># PEM 파일 생성</span>
-ssh-keygen <span class="nt">-t</span> rsa <span class="nt">-b</span> 4096 <span class="nt">-m</span> PEM <span class="nt">-f</span> 파일경로
-
-<span class="c"># 파일 소유자에게만 읽기 권한 부여</span>
-<span class="nb">chmod </span>400 파일경로
-
-<span class="c"># 로컬 → 원격지 파일 보내기 (pem 인증)</span>
-scp <span class="nt">-i</span> pem파일경로 <span class="o">[</span>파일 경로] <span class="o">[</span>계정]@[IP주소]:[저장경로]
-
-<span class="c"># 원격지 → 로컬 파일 가져오기 (pem 인증)</span>
-scp <span class="nt">-i</span> pem파일경로 <span class="o">[</span>계정]@[IP주소]:[파일경로] <span class="o">[</span>로컬경로]
-</code></pre></div></div>
-
-<h2 id="4-nfs">4) NFS</h2>
-<hr />
-
-<h3 id="개요-2">개요</h3>
-<ul>
-  <li><strong>NFS</strong>(Network File System)는 네트워크 상의 다른 컴퓨터의 파일 시스템을 마치 자신의 로컬 디스크에 있는 것처럼 사용할 수 있게 해주는 클라이언트/서버 프로토콜</li>
-  <li>유닉스와 리눅스 환경에서 표준 파일 공유 프로토콜로 사용됨</li>
-</ul>
-
-<h3 id="주요-특징">주요 특징</h3>
-<ul>
-  <li><strong>Transparency(투명성)</strong>: 사용자는 파일이 원격 서버에 있는지 로컬 디스크에 있는지 구분하지 않고 동일한 명령어로 파일 읽기/쓰기 가능</li>
-  <li><strong>중앙 집중 관리</strong>: 데이터를 서버 한 곳에 모아 관리 → 백업이나 보안 정책 적용이 효율적</li>
-  <li><strong>플랫폼 독립성</strong>: <strong>RPC</strong>(Remote Procedure Call) 메커니즘을 사용하여 서로 다른 운영체제 간에도 파일 공유 가능</li>
-</ul>
-
-<h3 id="장점">장점</h3>
-<ul>
-  <li>비용 절감</li>
-  <li><strong>편의성</strong>: 사용자 홈 디렉토리를 NFS로 설정하면 어떤 컴퓨터에서 로그인하든 동일한 작업 환경 유지</li>
-</ul>
-
-<h3 id="단점">단점</h3>
-<ul>
-  <li><em>하지만</em> <strong>네트워크 의존성</strong>: 네트워크 장애 시 파일 시스템 사용 불가</li>
-  <li><em>하지만</em> <strong>보안 취약</strong>: 초창기 버전은 호스트 IP 기반 인증 방식 → 보안에 취약</li>
-</ul>
-
-<h3 id="활용-사례">활용 사례</h3>
-<ul>
-  <li><strong>클러스터 서버</strong>: 여러 대의 웹 서버나 애플리케이션 서버가 동일한 데이터를 공유해야 할 때 사용</li>
-  <li><strong>데이터 백업</strong>: 여러 호스트의 데이터를 중앙 스토리지 서버로 모으는 용도</li>
-  <li><strong>Kubernetes</strong>: 컨테이너 환경에서 <strong>영구 볼륨</strong>(Persistent Volume)으로 NFS 연결 → 데이터 휘발성 방지</li>
-</ul>
-
-<h3 id="구현-순서">구현 순서</h3>
-<ul>
-  <li>SERVER
-    <ul>
-      <li>관련 패키지 설치 →</li>
-      <li>서버의 /etc/ecports에 공유할 디렉토리, 접근을 허용할 컴퓨터, 접근 권한을 지정</li>
-      <li>서비스 실행</li>
-    </ul>
-  </li>
-  <li>CLIENT
-    <ul>
-      <li>관련 패키지 설치</li>
-      <li>showmount 명령을 실행해 NFS 서버에 공유된 디렉토리가 있는지 확인</li>
-      <li>mount 명령을 실행해 NFS 서버에 공유된 디렉토리를 마운트</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="구현">구현</h3>
-<ul>
-  <li>SERVER
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">sudo apt update</code></li>
-      <li><code class="language-plaintext highlighter-rouge">sudo apt install nfs-kernel-server -y</code></li>
-      <li>공유할 디렉토리 생성 후 접근 권한 설정
-        <ul>
-          <li><code class="language-plaintext highlighter-rouge">sudo mkdir /share &amp;&amp; sudo chmod 777 /share</code></li>
-        </ul>
-      </li>
-      <li>설정 파일에 추가 → sudo nano /etc/exports
-        <ul>
-          <li><code class="language-plaintext highlighter-rouge">/share 10.0.2.0/24(rw,sync,no_subtree_check,no_root_squash,insecure)</code></li>
-        </ul>
-      </li>
-      <li>설정 내용 반영
-        <ul>
-          <li><code class="language-plaintext highlighter-rouge">sudo exportfs -rav</code></li>
-        </ul>
-      </li>
-      <li>방화벽 설정
-        <ul>
-          <li><code class="language-plaintext highlighter-rouge">sudo ufw allow from 10.0.2.0/24</code></li>
-        </ul>
-      </li>
-      <li>nfs-server가 부팅 시 시작하도록
-        <ul>
-          <li><code class="language-plaintext highlighter-rouge">sudo systemctl enable nfs-server</code></li>
-          <li><code class="language-plaintext highlighter-rouge">sudo systemctl restart nfs-server</code></li>
-          <li><code class="language-plaintext highlighter-rouge">sudo systemctl status nfs-server</code></li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo touch</span> /share/file
-</code></pre></div></div>
-
-<ul>
-  <li>CLIENT
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">sudo apt install nfs-common -y</code></li>
-      <li>NFS 서버에 공유된 디렉토리 확인
-        <ul>
-          <li>showmount -e 10.0.2.3</li>
-        </ul>
-      </li>
-      <li>마운트할 디렉토리 생성
-        <ul>
-          <li>mkdir ~/myshare</li>
-        </ul>
-      </li>
-      <li>마운트
-        <ul>
-          <li>sudo mount -t nfs -o nfservers=3 10.0.2.3:/share ~/myshare</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>]]></content><author><name></name></author><category term="Linux" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Linux FTP, vsftpd, SSH 파일 전송, NFS 파일 서버 설정 정리]]></summary></entry><entry><title type="html">프록시</title><link href="https://kkr010128.github.io/17-proxy/" rel="alternate" type="text/html" title="프록시" /><published>2026-07-28T00:00:00+09:00</published><updated>2026-07-28T00:00:00+09:00</updated><id>https://kkr010128.github.io/17-proxy</id><content type="html" xml:base="https://kkr010128.github.io/17-proxy/"><![CDATA[<h2 id="1--개요">1 ) 개요</h2>
-<hr />
-<ul>
-  <li>clien와 server 사이에서 데이터를 중개하는 대리인 역할 수행하는 서버</li>
-  <li>사용자가 다른 곳과 통신을 하고자 할 때 직접 접속하는 대신 프록시 서ㅓㅂ가 사용자의 요청을 받아 전달, 다시 사용자에게 보내주는 방식</li>
-</ul>
-
-<h3 id="기본-동작-원리">기본 동작 원리</h3>
-<ul>
-  <li>요청: 클라이언트가 다른 곳과 통신ㅇ르 하고자 할 때 요청을 프록시 섭버로 전송</li>
-  <li>중개: 프록시 서버는 클라이언트 대신 목적지 서버에 데이터를 요청</li>
-  <li>응답: 목적지 서버에서 보낸 응답을 프록시 서버가 받은 후 이를 다시 클라이언트에게 전공</li>
-</ul>
-
-<h2 id="2--사용-목적-및-특징">2 ) 사용 목적 및 특징</h2>
-<hr />
-<h3 id="익명성-및-보안privacy--security">익명성 및 보안(Privacy &amp; Security)</h3>
-<ul>
-  <li>IP 주소 숨김
-    <ul>
-      <li>목적지 서버는 클라이언트의 실제 IP가 아닌 프록시 서버의 IP만 알 수 있음</li>
-    </ul>
-  </li>
-  <li>방화벽 역할
-    <ul>
-      <li>외부의 직접적인 공격으로부터 내부 내트워크를 보호, 위험한 사이트로의 접근을 사전에 차단 가능</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="성능-향상">성능 향상</h3>
-<ul>
-  <li>Caching
-    <ul>
-      <li>자주 방문하는 곳의 데이터를 프록시 서버에 임시로 저장</li>
-      <li>동일한 요청이 들어오면 서버까지 가지 않고 저장된 데이터를 즉시 반환</li>
-      <li>속도를 높이고 대역폭을 전환</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="접근-제어-및-필터링">접근 제어 및 필터링</h3>
-<ul>
-  <li>유해 사이트 차단</li>
-  <li>특정 지역에서만 접근 가능한 콘텐츠를 우외하여 접속할 때 사용(VPN 이용 가능)</li>
-</ul>
-
-<h3 id="종류">종류</h3>
-<ul>
-  <li>Forward Proxy
-    <ul>
-      <li>client 앞단에서 서버로 가는 요청을 가로챔</li>
-      <li>목적은 보안, 익명성, 내부망에서 외부 접속 관리 등</li>
-    </ul>
-  </li>
-  <li>Reverse Proxy
-    <ul>
-      <li>server 앞단에서 클라이언트의 요청을 서버로 분산</li>
-      <li>목적은 로드 밸런싱, 서버 보안, SSL 암호화 처리 등</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="3--설치-및-구현">3 ) 설치 및 구현</h2>
-<hr />
-<h3 id="server">SERVER</h3>
-<ul>
-  <li>패키지 설치
-    <ul>
-      <li>→ <code class="language-plaintext highlighter-rouge">sudo apt install squid -y</code></li>
-    </ul>
-  </li>
-  <li>설정 파일 수정
-    <ul>
-      <li>→ <code class="language-plaintext highlighter-rouge">sudo nano /etc/squid/squid.conf</code>
-        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>acl myserver src 10.0.2.0/24
-http_access allow myserver
-cache_dir ufs /var/spool/squid 1000 16 256
-visible_hostname myserver
-</code></pre></div>        </div>
-      </li>
-    </ul>
-  </li>
-  <li>방화벽 중지(안 해도 됨)
-    <ul>
-      <li>sudo ufw disable</li>
-    </ul>
-  </li>
-  <li>squid 재시작
-    <ul>
-      <li>sudo systemctl restart squid
-        <h3 id="client">CLIENT</h3>
-      </li>
-    </ul>
-  </li>
-  <li>설정 파일을 열어 작성
-    <ul>
-      <li>sudo nano /etc/environment</li>
-    </ul>
-  </li>
-  <li>변경 내용 적용
-    <ul>
-      <li>source /etc/environment</li>
-    </ul>
-  </li>
-  <li>apt에 적용할 설정 파일 생성 및 작성
-    <ul>
-      <li>sudo nano /etc/apt/apt.conf.d/99proxy
-        <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">Acquire</span><span class="o">::</span><span class="n">http</span><span class="o">::</span><span class="n">Proxy</span> <span class="s">"http://10.0.2.3:3128/"</span><span class="p">;</span>
-  <span class="n">Acquire</span><span class="o">::</span><span class="n">https</span><span class="o">::</span><span class="n">Proxy</span> <span class="s">"http://10.0.2.3:3128/"</span><span class="p">;</span>
-</code></pre></div>        </div>
-        <h3 id="확인header">확인(Header)</h3>
-      </li>
-    </ul>
-  </li>
-  <li><code class="language-plaintext highlighter-rouge">curl -I https://www.google.com</code></li>
-</ul>
-
-<h4 id="etcenvironment-설정-상세">/etc/environment 설정 상세</h4>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/environment
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http_proxy="http://10.0.2.3:3128/"
-https_proxy="http://10.0.2.3:3128/"
-ftp_proxy="http://10.0.2.3:3128/"
-no_proxy="localhost,127.0.0.1,localaddress"
-HTTP_PROXY="http://10.0.2.3:3128/"
-HTTPS_PROXY="http://10.0.2.3:3128/"
-FTP_PROXY="http://10.0.2.3:3128/"
-NO_PROXY="localhost,127.0.0.1,localaddress"
-</code></pre></div></div>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 변경 내용 적용</span>
-<span class="nb">source</span> /etc/environment
-</code></pre></div></div>
-
-<h4 id="apt-프록시-설정-상세">apt 프록시 설정 상세</h4>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/apt/apt.conf.d/99proxy
-</code></pre></div></div>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Acquire::http::Proxy "http://10.0.2.3:3128/";
-Acquire::https::Proxy "http://10.0.2.3:3128/";
-</code></pre></div></div>
-
-<h4 id="확인">확인</h4>
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">curl -I https://www.google.com</code></li>
-</ul>]]></content><author><name></name></author><category term="Linux" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Linux 프록시 서버 개념, Squid 설치 및 설정 정리]]></summary></entry></feed>
+</code></pre></div></div>]]></content><author><name></name></author><category term="Linux" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Linux Apache, nginx 웹 서버 설치 및 설정 정리]]></summary></entry></feed>

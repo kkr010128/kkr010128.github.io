@@ -32,21 +32,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ffffff" data-theme-color>
 <meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
-<title>파일 입출력 | hyeon.log</title>
+<title>Network Device 2 - Router | hyeon.log</title>
 <meta name="generator" content="Jekyll v4.3.3">
-<meta name="description" content="Python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리">
-<link rel="canonical" href="https://kkr010128.github.io/09-file-io/">
-<meta property="og:title" content="파일 입출력 | hyeon.log">
+<meta name="description" content="L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing">
+<link rel="canonical" href="https://kkr010128.github.io/06-network-device-router/">
+<meta property="og:title" content="Network Device 2 - Router | hyeon.log">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:description" content="Python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리">
-<meta property="og:url" content="https://kkr010128.github.io/09-file-io/">
+<meta property="og:description" content="L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing">
+<meta property="og:url" content="https://kkr010128.github.io/06-network-device-router/">
 <meta property="og:site_name" content="hyeon.log">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="파일 입출력 | hyeon.log">
-<meta name="twitter:description" content="Python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리">
+<meta name="twitter:title" content="Network Device 2 - Router | hyeon.log">
+<meta name="twitter:description" content="L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing">
 
-  <meta property="article:published_time" content="2026-07-09T00:00:00+09:00">
+  <meta property="article:published_time" content="2026-08-03T00:00:00+09:00">
 
 
 <link rel="icon" href="/assets/images/favicon.png?v=1785756597" type="image/png" sizes="256x256">
@@ -96,10 +96,10 @@
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "name": "hyeon.log",
-    "headline": "파일 입출력 | hyeon.log",
-    "description": "Python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리",
-    "url": "https://kkr010128.github.io/09-file-io/",
-    "datePublished": "2026-07-09T00:00:00+09:00"
+    "headline": "Network Device 2 - Router | hyeon.log",
+    "description": "L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing",
+    "url": "https://kkr010128.github.io/06-network-device-router/",
+    "datePublished": "2026-08-03T00:00:00+09:00"
   }
 </script>
 
@@ -208,9 +208,9 @@
 
   <header class="post-head">
     
-    <h1 class="post-head__title">파일 입출력</h1>
+    <h1 class="post-head__title">Network Device 2 - Router</h1>
     
-      <p class="post-head__description">Python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리</p>
+      <p class="post-head__description">L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing</p>
     
 
     <div class="post-head__author">
@@ -226,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 9일 · 1분 읽기
+          2026년 8월 3일 · 3분 읽기
         </span>
       </div>
     </div>
@@ -234,7 +234,7 @@
     
       <div class="post-head__tags">
         
-          <a class="tag-chip" href="/?tag=Python">Python</a>
+          <a class="tag-chip" href="/?tag=Network">Network</a>
         
           <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
         
@@ -245,82 +245,218 @@
   </header>
 
   <section class="prose">
-    <h2 id="1-파일-처리-과정">1) 파일 처리 과정</h2>
+    <h1 id="device-2--router--l3-switch">Device 2 ) Router / L3 Switch</h1>
+
 <hr />
+
+<h2 id="개요">개요</h2>
+
+<p>라우터(Router)는 <strong>OSI 7계층의 3계층(Network Layer)</strong> 에서 동작하는 장비이다.</p>
+
+<p>패킷의 목적지 IP 주소를 확인하고, 라우팅 테이블(Routing Table)을 조회하여 최적의 경로로 패킷을 전달(Forwarding)한다.</p>
+
+<p>원격 네트워크 간 통신을 위해 반드시 필요한 장비이며, 서로 다른 네트워크를 연결하는 핵심 장비이다.</p>
+
+<hr />
+
+<h2 id="l3-switch">L3 Switch</h2>
+
+<p>L3 Switch는 스위치 기능(L2)과 라우터 기능(L3)을 함께 제공하는 장비이다.</p>
+
+<p>일반적으로</p>
+
+<ul>
+  <li>스위칭은 ASIC(Hardware)</li>
+  <li>라우팅은 Hardware 또는 Software</li>
+</ul>
+
+<p>로 처리하며 최근에는 라우터와 L3 Switch의 기능 차이가 많이 줄어들었다.</p>
+
+<hr />
+
+<h1 id="라우터의-역할">라우터의 역할</h1>
+
+<p>라우터의 역할은 크게 세 가지이다.</p>
+
 <ol>
-  <li>파일 열기 (<code class="language-plaintext highlighter-rouge">open</code>)</li>
-  <li>데이터 읽기/쓰기</li>
-  <li>파일 닫기 (<code class="language-plaintext highlighter-rouge">close</code>)</li>
+  <li>경로 지정(Path Determination)</li>
+  <li>브로드캐스트 컨트롤(Broadcast Control)</li>
+  <li>프로토콜 변환(Protocol Conversion)</li>
 </ol>
 
-<h2 id="2-open">2) open</h2>
 <hr />
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">변수</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">파일경로</span><span class="p">,</span> <span class="n">모드</span><span class="p">)</span>
-</code></pre></div></div>
 
-<h3 id="모드">모드</h3>
+<h2 id="경로-지정-path-determination">경로 지정 (Path Determination)</h2>
+
+<p>라우터는 다양한 경로 정보를 수집하여 <strong>라우팅 테이블(Routing Table)</strong> 을 만든다.</p>
+
+<p>패킷이 들어오면 목적지 IP 주소와 라우팅 테이블을 비교하여 가장 적절한 경로로 패킷을 전달한다.</p>
+
+<blockquote>
+  <p><strong>Switch와 Router의 차이</strong></p>
+
+  <ul>
+    <li>Switch : 목적지를 모르면 Flooding</li>
+    <li>Router : 목적지를 모르면 Drop</li>
+  </ul>
+</blockquote>
+
+<p>라우터는 패킷을 전달할 때 기존 L2 헤더를 제거한 뒤 다음 네트워크에 맞는 새로운 L2 헤더를 생성한다.</p>
+
+<p>경로 지정은 두 과정으로 나뉜다.</p>
+
+<ol>
+  <li>경로 정보를 학습</li>
+  <li>학습한 정보를 이용해 패킷 포워딩</li>
+</ol>
+
+<hr />
+
+<h2 id="경로-정보를-얻는-방법">경로 정보를 얻는 방법</h2>
+
+<p>라우터는 다음 세 가지 방법으로 경로를 학습한다.</p>
+
+<h3 id="1-direct-connected">1. Direct Connected</h3>
+
+<p>직접 연결된 네트워크이다.</p>
+
+<p>인터페이스에 IP를 설정하면 자동으로 생성된다.</p>
+
+<ul>
+  <li>자동 생성</li>
+  <li>삭제 불가</li>
+  <li>인터페이스 Down 시 자동 제거</li>
+</ul>
+
+<hr />
+
+<h3 id="2-static-routing">2. Static Routing</h3>
+
+<p>관리자가 직접 목적지와 Next Hop을 입력하는 방식이다.</p>
+
+<h4 id="특징">특징</h4>
+
+<ul>
+  <li>설정이 간단하다.</li>
+  <li>관리가 쉽다.</li>
+  <li>작은 네트워크에 적합하다.</li>
+  <li>장애를 자동으로 우회하지 못한다.</li>
+</ul>
+
+<hr />
+
+<h3 id="3-dynamic-routing">3. Dynamic Routing</h3>
+
+<p>라우터끼리 경로 정보를 교환하여 자동으로 경로를 학습한다.</p>
+
+<h4 id="특징-1">특징</h4>
+
+<ul>
+  <li>경로를 자동 학습</li>
+  <li>장애 발생 시 우회 가능</li>
+  <li>대규모 네트워크에 적합</li>
+</ul>
+
+<hr />
+
+<h2 id="경로-정보의-규모">경로 정보의 규모</h2>
+
+<p>인터넷의 경로 정보는 지속적으로 증가하고 있다.</p>
+
+<p>CIDR(Classless Inter-Domain Routing)이 도입되면서 다양한 Prefix 길이의 네트워크가 사용되고, 라우팅 테이블도 매우 커졌다.</p>
+
+<p>이를 줄이기 위해 라우터는 <strong>Route Summarization(경로 요약)</strong> 을 사용하여 여러 Prefix를 하나로 묶는다.</p>
+
+<p>또한 목적지와 일치하는 경로가 여러 개라면 <strong>Longest Prefix Match</strong> 를 이용하여 가장 구체적인 경로를 선택한다.</p>
+
+<hr />
+
+<h2 id="브로드캐스트-컨트롤">브로드캐스트 컨트롤</h2>
+
+<p>라우터는 서로 다른 네트워크를 연결하지만 브로드캐스트 패킷은 전달하지 않는다.</p>
+
+<p>따라서 브로드캐스트 도메인을 분리하여 불필요한 Broadcast Traffic을 차단한다.</p>
+
+<hr />
+
+<h2 id="hop-by-hop-라우팅">Hop by Hop 라우팅</h2>
+
+<p>인터넷에서는 하나의 라우터가 목적지까지의 전체 경로를 결정하지 않는다.</p>
+
+<p>각 라우터는 자신의 라우팅 테이블만 조회하여 <strong>Next Hop</strong> 만 결정한다.</p>
+
+<p>다음 라우터 역시 같은 과정을 반복하여 최종 목적지까지 패킷을 전달한다.</p>
+
+<p>이를 <strong>Hop by Hop Routing</strong> 이라고 한다.</p>
+
+<blockquote>
+  <p><strong>비유</strong></p>
+
+  <p>네비게이션은 현재 위치에서 다음 길만 계속 안내한다.</p>
+
+  <p>라우터도 목적지까지 모든 경로를 결정하지 않고 다음 라우터만 결정한다.</p>
+</blockquote>
+
+<hr />
+
+<h2 id="next-hop-지정-방법">Next Hop 지정 방법</h2>
 
 <table>
   <thead>
     <tr>
-      <th>모드</th>
+      <th>방법</th>
       <th>설명</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><code class="language-plaintext highlighter-rouge">"r"</code></td>
-      <td>읽기 (기본)</td>
+      <td>Next Hop IP</td>
+      <td>가장 일반적인 방식</td>
     </tr>
     <tr>
-      <td><code class="language-plaintext highlighter-rouge">"w"</code></td>
-      <td>쓰기 (기존 내용 덮어씀)</td>
+      <td>Interface</td>
+      <td>출구 인터페이스 지정</td>
     </tr>
     <tr>
-      <td><code class="language-plaintext highlighter-rouge">"a"</code></td>
-      <td>추가 (기존 내용 유지)</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">"x"</code></td>
-      <td>새 파일 생성 (기존 파일 있으면 에러)</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">"b"</code></td>
-      <td>바이너리 모드 (rb, wb)</td>
+      <td>Interface + Next Hop</td>
+      <td>두 정보를 함께 지정</td>
     </tr>
   </tbody>
 </table>
 
-<h2 id="3-파일-읽기">3) 파일 읽기</h2>
 <hr />
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"file.txt"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span>
-<span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">()</span>          <span class="c1"># 전체 읽기
-</span><span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readline</span><span class="p">()</span>         <span class="c1"># 한 줄 읽기
-</span><span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">readlines</span><span class="p">()</span>       <span class="c1"># 모든 줄을 리스트로
-</span><span class="n">f</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
-</code></pre></div></div>
 
-<h2 id="4-파일-쓰기">4) 파일 쓰기</h2>
-<hr />
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">"file.txt"</span><span class="p">,</span> <span class="s">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span>
-<span class="n">f</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="s">"내용</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
-<span class="n">f</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
-</code></pre></div></div>
+<h2 id="ttl-time-to-live">TTL (Time To Live)</h2>
 
-<h2 id="5-with-구문-권장">5) with 구문 (권장)</h2>
+<p>라우터는 패킷을 전달할 때마다 TTL 값을 1 감소시킨다.</p>
+
+<p>TTL이 0이 되면 패킷을 폐기한다.</p>
+
+<p>따라서 라우팅 루프가 발생하더라도 패킷이 영구적으로 순환하지 않는다.</p>
+
 <hr />
-<p>자동으로 파일 닫기 처리</p>
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s">"file.txt"</span><span class="p">,</span> <span class="s">"r"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="p">.</span><span class="n">read</span><span class="p">()</span>
-<span class="c1"># 블록 벗어나면 자동 close
-</span></code></pre></div></div>
+
+<h2 id="프로토콜-변환">프로토콜 변환</h2>
+
+<p>과거에는 LAN과 WAN이 서로 다른 2계층 프로토콜을 사용하였다.</p>
+
+<p>예를 들어</p>
+
+<ul>
+  <li>LAN : Ethernet</li>
+  <li>WAN : PPP</li>
+</ul>
+
+<p>라우터는 Ethernet Frame을 제거하고 PPP Frame으로 다시 캡슐화하여 WAN으로 전달하였다.</p>
+
+<p>현재는 대부분 Ethernet 기반이므로 프로토콜 변환의 중요성은 과거보다 많이 줄어들었다.</p>
 
   </section>
 
   
     <nav class="post-navigation" aria-label="이전 다음 글">
       
-        <a class="post-navigation__item" href="/08-module-package/">
+        <a class="post-navigation__item" href="/05-network-device-switch/">
           <span class="post-navigation__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
@@ -328,22 +464,10 @@
           </span>
           <span class="post-navigation__content">
             <span class="post-navigation__label">이전 포스트</span>
-            <strong class="post-navigation__title">모듈과 패키지</strong>
+            <strong class="post-navigation__title">Network Device 1 - Switch</strong>
           </span>
         </a>
       
-      
-        <a class="post-navigation__item post-navigation__item--next" href="/10-crawling/">
-          <span class="post-navigation__content">
-            <span class="post-navigation__label">다음 포스트</span>
-            <strong class="post-navigation__title">크롤링</strong>
-          </span>
-          <span class="post-navigation__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
-            </svg>
-          </span>
-        </a>
       
     </nav>
   
