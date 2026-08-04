@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-08-03T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785817435" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785817435" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785817435">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785817435" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1785852010" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785852010" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785852010">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785852010" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785817435">
+<link rel="stylesheet" href="/assets/css/main.css?v=1785852010">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -226,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 3일 · 3분 읽기
+          2026년 8월 3일 · 4분 읽기
         </span>
       </div>
     </div>
@@ -451,6 +451,92 @@
 
 <p>현재는 대부분 Ethernet 기반이므로 프로토콜 변환의 중요성은 과거보다 많이 줄어들었다.</p>
 
+<h3 id="라우터가-경로를-지정하는-방법">라우터가 경로를 지정하는 방법</h3>
+
+<p>라우터가 패킷을 수신하면 목적지 IP 주소를 확인하고, 라우팅 테이블을 참조하여 적절한 경로로 패킷을 전달한다.</p>
+
+<p>이러한 패킷 전달 작업을 <strong>Forwarding(또는 Switching)</strong> 이라고 한다.</p>
+
+<h4 id="longest-prefix-match">Longest Prefix Match</h4>
+
+<p>라우팅 테이블에 목적지 IP와 정확히 일치하는 경로가 없으면 목적지 IP를 포함하는 여러 경로 중 <strong>가장 긴 Prefix를 가진 경로</strong>를 선택한다.</p>
+
+<p>이를 <strong>Longest Prefix Match</strong>라고 한다.</p>
+
+<p>예를 들어 라우팅 테이블이 다음과 같다고 가정한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>10.1.1.0/24 → Ethernet 2
+10.1.1.5/32 → Ethernet 1
+10.1.0.0/16 → Ethernet 3
+10.1.2.0/24 → Ethernet 2
+10.0.0.0/8 → Ethernet 1
+10.1.2.9/32 → Ethernet 3
+</code></pre></div></div>
+
+<p>목적지가 <code class="language-plaintext highlighter-rouge">10.1.1.9</code>인 패킷이 들어오면,</p>
+
+<ol>
+  <li>목적지와 정확히 일치하는 경로는 없다.</li>
+  <li>목적지를 포함하는 경로를 찾는다.</li>
+  <li><code class="language-plaintext highlighter-rouge">/24</code>, <code class="language-plaintext highlighter-rouge">/16</code>, <code class="language-plaintext highlighter-rouge">/8</code> 중 가장 Prefix가 긴 <code class="language-plaintext highlighter-rouge">/24</code>를 선택한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Ethernet 2</code>로 패킷을 전달한다.</li>
+</ol>
+
+<h4 id="switching-cache"><strong>Switching Cache</strong></h4>
+
+<p>매번 Longest Prefix Match를 수행하면 불필요한 연산이 반복될 수 있다.</p>
+
+<p>따라서 한 번 조회한 결과는 캐시에 저장해 두었다가 동일한 목적지의 패킷이 들어오면 캐시를 먼저 조회하여 빠르게 포워딩할 수 있다.</p>
+
+<p>한 목적지와의 통신은 일반적으로 여러 개의 패킷으로 이루어지므로 캐시를 이용하면 처리 속도를 높일 수 있다.</p>
+
+<h3 id="routing--switching-우선순위">Routing / Switching 우선순위</h3>
+
+<p>라우터는 다양한 방법으로 경로 정보를 수집하지만, 라우팅 테이블에는 <strong>가장 적합한 경로만 선택하여 저장</strong>한다.</p>
+
+<p>동일한 목적지 네트워크에 대해 여러 개의 경로가 존재하는 경우에는 <strong>경로를 얻은 방법(Administrative Distance)</strong> 과 <strong>거리(Metric)</strong> 를 기준으로 최적의 경로를 선택한다.</p>
+
+<h4 id="1-administrative-distance-ad">1. Administrative Distance (AD)</h4>
+
+<p>동일한 목적지에 대해 서로 다른 방식으로 학습한 경로가 존재하면 <strong>Administrative Distance(신뢰도)</strong> 를 먼저 비교한다.</p>
+
+<p>일반적인 우선순위는 다음과 같다.</p>
+
+<ol>
+  <li>Direct Connected</li>
+  <li>Static Routing</li>
+  <li>Dynamic Routing</li>
+</ol>
+
+<p>즉,</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Direct Connected &gt; Static Routing &gt; Dynamic Routing
+</code></pre></div></div>
+
+<p>순으로 우선순위가 높다.</p>
+
+<p>기본 우선순위는 라우터에서 미리 정의되어 있지만, 필요에 따라 관리자가 Administrative Distance를 변경하여 원하는 경로를 우선적으로 사용하도록 설정할 수 있다.</p>
+
+<hr />
+
+<h4 id="2-metric">2. Metric</h4>
+
+<p>Administrative Distance가 같은 경우에는 <strong>Metric(거리, 비용)</strong> 을 비교하여 가장 효율적인 경로를 선택한다.</p>
+
+<p>Metric은 사용하는 라우팅 프로토콜에 따라 계산 방식이 다르며, 일반적으로 값이 낮을수록 우선순위가 높다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <p>동일한 목적지에 여러 경로가 존재하면 다음 순서로 선택한다.</p>
+
+  <ol>
+    <li>Administrative Distance 비교</li>
+    <li>Metric 비교</li>
+    <li>가장 적합한 경로를 라우팅 테이블에 저장</li>
+  </ol>
+</blockquote>
+
   </section>
 
   
@@ -468,6 +554,18 @@
           </span>
         </a>
       
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/07-network-device-l4/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Network Device 3 - L4 Device</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
       
     </nav>
   
@@ -542,6 +640,6 @@
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785817435"></script>
+    <script src="/assets/js/site.js?v=1785852010"></script>
   </body>
 </html>

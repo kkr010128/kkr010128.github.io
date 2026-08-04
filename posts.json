@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Network 8 - Router & Switch Lab",
+        "url": "/08-network-lab/",
+        "description": "GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW","Cisco","GNS3"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 4일",
+        "reading_time_label": "3분 읽기",
+        "search": "network 8 - router & switch lab gns3를 이용한 router·switch 실습과 cisco ios 명령어 정리 network autoeversw cisco gns3"
+      },
+    
+      
+      
+      {
+        "title": "Network Device 3 - L4 Device",
+        "url": "/07-network-device-l4/",
+        "description": "L4 장비의 핵심 개념과 Session 기반 동작, Load Balancer, Firewall, Scale Up/Out, 비대칭 경로 문제 및 해결 방법을 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 4일",
+        "reading_time_label": "9분 읽기",
+        "search": "network device 3 - l4 device l4 장비의 핵심 개념과 session 기반 동작, load balancer, firewall, scale up/out, 비대칭 경로 문제 및 해결 방법을 정리 network autoeversw"
+      },
+    
+      
+      
+      {
         "title": "Network Device 2 - Router",
         "url": "/06-network-device-router/",
         "description": "L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing",
@@ -12,7 +42,7 @@
         "series_key": "network",
         "series_title": null,
         "date_label": "2026년 8월 3일",
-        "reading_time_label": "3분 읽기",
+        "reading_time_label": "4분 읽기",
         "search": "network device 2 - router l3 라우팅 핵심 - 라우팅 테이블, next hop, ttl, static / dynamic routing network autoeversw"
       },
     
