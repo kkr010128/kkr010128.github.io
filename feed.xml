@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-04T23:00:10+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Network Device 3 - L4 Device</title><link href="https://kkr010128.github.io/07-network-device-l4/" rel="alternate" type="text/html" title="Network Device 3 - L4 Device" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/07-network-device-l4</id><content type="html" xml:base="https://kkr010128.github.io/07-network-device-l4/"><![CDATA[<h2 id="device-3--l4-장비">Device 3 ) L4 장비</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-04T23:05:45+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Network Device 3 - L4 Device</title><link href="https://kkr010128.github.io/07-network-device-l4/" rel="alternate" type="text/html" title="Network Device 3 - L4 Device" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/07-network-device-l4</id><content type="html" xml:base="https://kkr010128.github.io/07-network-device-l4/"><![CDATA[<h2 id="device-3--l4-장비">Device 3 ) L4 장비</h2>
 
 <h3 id="개요">개요</h3>
 
@@ -724,11 +724,7 @@
       <li>일부 상용 방화벽이나 Load Balancer에서 제공하는 기능</li>
     </ul>
   </li>
-</ol>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L4 장비의 핵심 개념과 Session 기반 동작, Load Balancer, Firewall, Scale Up/Out, 비대칭 경로 문제 및 해결 방법을 정리]]></summary></entry><entry><title type="html">Network 8 - Router &amp;amp; Switch Lab</title><link href="https://kkr010128.github.io/08-network-lab/" rel="alternate" type="text/html" title="Network 8 - Router &amp;amp; Switch Lab" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/08-network-lab</id><content type="html" xml:base="https://kkr010128.github.io/08-network-lab/"><![CDATA[<h1 id="router--switch-lab">Router &amp; Switch Lab</h1>
-
-<hr />
-
-<h2 id="1-gns3">1. GNS3</h2>
+</ol>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L4 장비의 핵심 개념과 Session 기반 동작, Load Balancer, Firewall, Scale Up/Out, 비대칭 경로 문제 및 해결 방법을 정리]]></summary></entry><entry><title type="html">Network - Router &amp;amp; Switch Lab</title><link href="https://kkr010128.github.io/08-network-lab/" rel="alternate" type="text/html" title="Network - Router &amp;amp; Switch Lab" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/08-network-lab</id><content type="html" xml:base="https://kkr010128.github.io/08-network-lab/"><![CDATA[<h2 id="1-gns3">1. GNS3</h2>
 
 <h3 id="개요">개요</h3>
 
