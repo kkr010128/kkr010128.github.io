@@ -49,21 +49,6 @@
       
       
       {
-        "title": "Network - Router & Switch Lab",
-        "url": "/08-network-lab/",
-        "description": "GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리",
-        "thumbnail": null,
-        "tags": ["Network","AutoEverSW","Cisco","GNS3"],
-        "series_key": "network",
-        "series_title": null,
-        "date_label": "2026년 8월 4일",
-        "reading_time_label": "3분 읽기",
-        "search": "network - router & switch lab gns3를 이용한 router·switch 실습과 cisco ios 명령어 정리 network autoeversw cisco gns3"
-      },
-    
-      
-      
-      {
         "title": "Network Device 3 - L4 Device",
         "url": "/07-network-device-l4/",
         "description": "L4 장비의 핵심 개념과 Session 기반 동작, Load Balancer, Firewall, Scale Up/Out, 비대칭 경로 문제 및 해결 방법을 정리",
