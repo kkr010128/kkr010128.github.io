@@ -4,6 +4,51 @@
       
       
       {
+        "title": "Network - Security",
+        "url": "/09-network-security/",
+        "description": "네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 5일",
+        "reading_time_label": "13분 읽기",
+        "search": "network - security 네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리 network autoeversw"
+      },
+    
+      
+      
+      {
+        "title": "Network - Router & Switch Lab 2",
+        "url": "/08-network-lab2/",
+        "description": "GNS3 환경의 Cisco Router 구성 중 IP 설정, 라우팅 테이블, 정적 라우팅, RIP, OSPF 등 라우팅의 기본 개념과 IOS 명령어 실습 내용 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW","Cisco","GNS3"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 5일",
+        "reading_time_label": "8분 읽기",
+        "search": "network - router & switch lab 2 gns3 환경의 cisco router 구성 중 ip 설정, 라우팅 테이블, 정적 라우팅, rip, ospf 등 라우팅의 기본 개념과 ios 명령어 실습 내용 정리 network autoeversw cisco gns3"
+      },
+    
+      
+      
+      {
+        "title": "Network - Router & Switch Lab 1",
+        "url": "/08-network-lab1/",
+        "description": "GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW","Cisco","GNS3"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 4일",
+        "reading_time_label": "3분 읽기",
+        "search": "network - router & switch lab 1 gns3를 이용한 router·switch 실습과 cisco ios 명령어 정리 network autoeversw cisco gns3"
+      },
+    
+      
+      
+      {
         "title": "Network - Router & Switch Lab",
         "url": "/08-network-lab/",
         "description": "GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리",

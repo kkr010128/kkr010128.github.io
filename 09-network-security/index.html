@@ -1,0 +1,1272 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Network - Security | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리">
+<link rel="canonical" href="https://kkr010128.github.io/09-network-security/">
+<meta property="og:title" content="Network - Security | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리">
+<meta property="og:url" content="https://kkr010128.github.io/09-network-security/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Network - Security | hyeon.log">
+<meta name="twitter:description" content="네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리">
+
+  <meta property="article:published_time" content="2026-08-05T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1785941094" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785941094" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785941094">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1785941094" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1785941094">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Network - Security | hyeon.log",
+    "description": "네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리",
+    "url": "https://kkr010128.github.io/09-network-security/",
+    "datePublished": "2026-08-05T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">Network - Security</h1>
+    
+      <p class="post-head__description">네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 5일 · 13분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Network">Network</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--네트워크-보안의-5대-요소">1 ) 네트워크 보안의 5대 요소</h2>
+
+<h4 id="개요">개요</h4>
+
+<p>네트워크 보안은 정보 자산을 안전하게 보호하기 위한 기본 원칙으로 다음 다섯 가지 요소로 구성된다.</p>
+
+<ul>
+  <li>기밀성(Confidentiality)</li>
+  <li>무결성(Integrity)</li>
+  <li>가용성(Availability)</li>
+</ul>
+
+<p>위 세 가지를 <strong>CIA 3대 요소</strong>라고 하며, 여기에 다음 두 가지 인증 요소를 추가한다.</p>
+
+<ul>
+  <li>서버 인증(Server Authentication)</li>
+  <li>클라이언트 인증(Client Authentication)</li>
+</ul>
+
+<hr />
+
+<h3 id="기밀성-confidentiality">기밀성 (Confidentiality)</h3>
+
+<h4 id="개요-1">개요</h4>
+
+<p>기밀성은 인가되지 않은 사용자나 객체가 정보의 내용을 볼 수 없도록 보호하는 것이다.</p>
+
+<h4 id="기밀성을-위한-인증-요소">기밀성을 위한 인증 요소</h4>
+
+<p>사용자의 신원을 확인하기 위해 다음과 같은 인증 요소를 사용할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>설명</th>
+      <th>예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>소유 기반(Possession)</td>
+      <td>사용자가 가지고 있는 것</td>
+      <td>OTP, 보안 토큰</td>
+    </tr>
+    <tr>
+      <td>지식 기반(Knowledge)</td>
+      <td>사용자가 알고 있는 것</td>
+      <td>ID, Password</td>
+    </tr>
+    <tr>
+      <td>생체 기반(Inherence)</td>
+      <td>사용자의 신체적 특징</td>
+      <td>지문, 홍채, 얼굴 인식</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="기밀성의-예">기밀성의 예</h4>
+
+<p>기밀성을 보장하기 위한 대표적인 예는 다음과 같다.</p>
+
+<ul>
+  <li>보안 관련 시스템 및 소프트웨어</li>
+  <li>방화벽(Firewall)</li>
+  <li>암호화</li>
+  <li>Password</li>
+</ul>
+
+<p>방화벽은 대표적으로 MAC Address나 IP Address 등을 확인하여 허가되지 않은 접근을 제한한다.</p>
+
+<h4 id="네트워크-보안에서의-기밀성">네트워크 보안에서의 기밀성</h4>
+
+<p>다음과 같은 통신에서 허가되지 않은 사용자나 객체가 정보의 내용을 알 수 없도록 보호하는 것을 의미한다.</p>
+
+<ul>
+  <li>서버 ↔ 클라이언트</li>
+  <li>서버 ↔ 서버</li>
+  <li>클라이언트 ↔ 클라이언트</li>
+</ul>
+
+<h4 id="기밀성을-해치는-공격">기밀성을 해치는 공격</h4>
+
+<p>대표적인 공격은 Sniffing이다.</p>
+
+<ul>
+  <li>Cookie Sniffing</li>
+  <li>Traffic Sniffing</li>
+  <li>Ethernet Sniffing</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>기밀성은 허가되지 않은 사용자의 정보 열람을 방지하는 것이다.</li>
+    <li>인증 요소는 소유, 지식, 생체 기반으로 구분할 수 있다.</li>
+    <li>네트워크에서 기밀성을 해치는 대표적인 공격은 Sniffing이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="무결성-integrity">무결성 (Integrity)</h3>
+
+<h4 id="개요-2">개요</h4>
+
+<p>무결성은 인가된 사용자만 데이터에 접근하고 수정할 수 있으며, 데이터가 임의로 변경되지 않았음을 보장하는 것이다.</p>
+
+<h4 id="예시">예시</h4>
+
+<p>위조지폐는 원본의 내용이 변경된 것으로 무결성이 훼손된 대표적인 사례이다.</p>
+
+<h4 id="네트워크-보안에서의-무결성">네트워크 보안에서의 무결성</h4>
+
+<p>클라이언트와 서버 사이에서 전송되는 데이터가 중간에서 변조되지 않고 그대로 전달되는 것을 의미한다.</p>
+
+<h4 id="무결성을-해치는-공격">무결성을 해치는 공격</h4>
+
+<p>대표적인 공격은 Session Hijacking이다.</p>
+
+<p>Session Hijacking은 정상 사용자의 세션을 탈취하여 해당 사용자의 권한으로 서비스를 이용하는 공격이다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>무결성은 데이터가 변경되지 않았음을 보장한다.</li>
+    <li>위조지폐는 무결성이 훼손된 대표적인 예이다.</li>
+    <li>네트워크에서 무결성을 해치는 대표적인 공격은 Session Hijacking이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="가용성-availability">가용성 (Availability)</h3>
+
+<h4 id="개요-3">개요</h4>
+
+<p>가용성은 필요한 순간에 정보 자산에 접근하여 서비스를 정상적으로 사용할 수 있도록 보장하는 것이다.</p>
+
+<h4 id="예시-1">예시</h4>
+
+<p>24시간 운영되는 편의점은 사용자가 필요한 시간에 언제든지 이용할 수 있다는 점에서 가용성의 대표적인 예이다.</p>
+
+<h4 id="네트워크-보안에서의-가용성">네트워크 보안에서의 가용성</h4>
+
+<p>허가된 사용자나 객체가 네트워크를 통해 정보나 서비스에 접근하려고 할 때 방해받지 않도록 하는 것을 의미한다.</p>
+
+<h4 id="가용성을-해치는-공격">가용성을 해치는 공격</h4>
+
+<p>대표적인 공격은 DoS(Denial of Service)이다.</p>
+
+<p>DoS는 서비스 거부 공격으로, 정상 사용자가 서비스를 이용하지 못하도록 만드는 공격이다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>가용성은 필요한 시점에 정보와 서비스를 사용할 수 있도록 보장하는 것이다.</li>
+    <li>24시간 편의점은 가용성의 대표적인 예이다.</li>
+    <li>네트워크에서 가용성을 해치는 대표적인 공격은 DoS이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="서버-인증-server-authentication">서버 인증 (Server Authentication)</h3>
+
+<h4 id="개요-4">개요</h4>
+
+<p>서버 인증은 클라이언트가 접속한 서버가 올바른 서버인지 확인하는 과정이다.</p>
+
+<p>즉, 클라이언트가 서버에 접근할 때 서버의 신원을 확인하기 위한 인증이다.</p>
+
+<h4 id="특징">특징</h4>
+
+<ul>
+  <li>HTTPS(SSL/TLS), SSH 등에서 서버 인증을 수행한다.</li>
+  <li>인증서를 이용하여 서버의 신뢰성을 확인한다.</li>
+  <li>인증서에 문제가 있으면 브라우저는 경고를 표시하고 사용자에게 접속 여부를 선택하도록 한다.</li>
+  <li>현재는 강제적인 서버 인증보다 사용자의 선택에 맡기는 방식이 일반적이다.</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>서버 인증은 클라이언트가 올바른 서버에 접속했는지 확인하는 과정이다.</li>
+    <li>HTTPS와 SSH에서 대표적으로 사용된다.</li>
+    <li>인증서에 문제가 있으면 사용자에게 경고를 표시한다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="클라이언트-인증-client-authentication">클라이언트 인증 (Client Authentication)</h3>
+
+<h4 id="개요-5">개요</h4>
+
+<p>클라이언트 인증은 서버가 접속을 시도하는 사용자가 정상적인 클라이언트인지 확인하는 과정이다.</p>
+
+<h4 id="대표적인-인증-방법">대표적인 인증 방법</h4>
+
+<ul>
+  <li>ID / Password</li>
+  <li>OTP</li>
+  <li>인증서</li>
+  <li>생체 인증</li>
+</ul>
+
+<p>웹 사이트에 로그인할 때 사용하는 ID와 Password가 가장 대표적인 클라이언트 인증 방법이다.</p>
+
+<h4 id="클라이언트-인증과-관련된-공격">클라이언트 인증과 관련된 공격</h4>
+
+<ul>
+  <li>Spoofing</li>
+  <li>Session Hijacking</li>
+  <li>Phishing</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>클라이언트 인증은 서버가 사용자의 신원을 확인하는 과정이다.</li>
+    <li>ID와 Password가 가장 대표적인 인증 방법이다.</li>
+    <li>대표적인 관련 공격은 Spoofing, Session Hijacking, Phishing이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="최종-정리">최종 정리</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>요소</th>
+      <th>목적</th>
+      <th>대표적인 위협</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>기밀성</td>
+      <td>정보의 노출 방지</td>
+      <td>Sniffing</td>
+    </tr>
+    <tr>
+      <td>무결성</td>
+      <td>데이터 변조 방지</td>
+      <td>Session Hijacking</td>
+    </tr>
+    <tr>
+      <td>가용성</td>
+      <td>서비스의 지속적인 제공</td>
+      <td>DoS</td>
+    </tr>
+    <tr>
+      <td>서버 인증</td>
+      <td>서버의 신원 확인</td>
+      <td>위조 서버</td>
+    </tr>
+    <tr>
+      <td>클라이언트 인증</td>
+      <td>사용자의 신원 확인</td>
+      <td>Spoofing, Session Hijacking, Phishing</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>네트워크 보안은 CIA 3대 요소와 서버·클라이언트 인증으로 구성된다.</li>
+    <li>기밀성은 정보 노출, 무결성은 데이터 변조, 가용성은 서비스 중단과 관련된다.</li>
+    <li>서버 인증은 서버의 신원을, 클라이언트 인증은 사용자의 신원을 확인하기 위한 과정이다.</li>
+  </ul>
+</blockquote>
+
+<h2 id="2-네트워크-위협">2) 네트워크 위협</h2>
+
+<h4 id="개요-6">개요</h4>
+
+<p>네트워크는 서비스 거부 공격, 악성 코드, 서버 해킹, 사회공학적 피싱, 생성형 AI 악용 등 다양한 위협에 노출된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>위협</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>DDoS 공격</td>
+      <td>다수의 시스템을 이용하여 서비스를 정상적으로 사용할 수 없도록 만든다.</td>
+    </tr>
+    <tr>
+      <td>악성 코드</td>
+      <td>시스템 침해, 정보 탈취, 데이터 암호화 등을 목적으로 동작한다.</td>
+    </tr>
+    <tr>
+      <td>서버 해킹</td>
+      <td>홈페이지, 웹 서버, 애플리케이션의 취약점을 이용한다.</td>
+    </tr>
+    <tr>
+      <td>사회공학적 피싱</td>
+      <td>자극적인 제목이나 메시지로 사용자의 행동을 유도한다.</td>
+    </tr>
+    <tr>
+      <td>생성형 AI 악용</td>
+      <td>피싱 메시지, 허위 정보, 악성 콘텐츠 생성 등에 이용될 수 있다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="악성-코드">악성 코드</h3>
+
+<h4 id="개요-7">개요</h4>
+
+<p>악성 코드(Malware)는 시스템에 피해를 주거나 공격자의 목적을 수행하기 위해 제작된 프로그램이다.</p>
+
+<p>악성 코드는 수행 목적에 따라 다음과 같이 구분할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>주요 목적</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Ransomware</td>
+      <td>데이터 암호화 후 금전 요구</td>
+    </tr>
+    <tr>
+      <td>Backdoor</td>
+      <td>인증 절차 우회 및 재접속 경로 생성</td>
+    </tr>
+    <tr>
+      <td>Exploit</td>
+      <td>운영체제나 프로그램의 취약점 공격</td>
+    </tr>
+    <tr>
+      <td>Bot</td>
+      <td>감염된 시스템을 DDoS 등에 이용</td>
+    </tr>
+    <tr>
+      <td>Scareware</td>
+      <td>공포심을 이용한 구매나 설치 유도</td>
+    </tr>
+    <tr>
+      <td>Downloader</td>
+      <td>추가 프로그램이나 악성 코드 다운로드</td>
+    </tr>
+    <tr>
+      <td>Dropper</td>
+      <td>기존 파일에서 새로운 악성 파일 생성</td>
+    </tr>
+    <tr>
+      <td>Launcher</td>
+      <td>생성되거나 다운로드된 악성 코드 실행</td>
+    </tr>
+    <tr>
+      <td>Adware</td>
+      <td>광고 표시</td>
+    </tr>
+    <tr>
+      <td>Spyware</td>
+      <td>사용자 정보 수집 및 외부 유출</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="ransomware">Ransomware</h4>
+
+<p>랜섬웨어(Ransomware)는 사용자의 데이터를 암호화한 뒤 복구를 대가로 금전을 요구하는 악성 코드이다.</p>
+
+<h4 id="backdoor">Backdoor</h4>
+
+<p>백도어(Backdoor)는 시스템의 유지보수나 문제 해결을 위해 정상적인 보안 절차를 우회하여 접근할 수 있도록 만든 도구이다.</p>
+
+<p>비인가된 접근을 허용하므로 공격자는 일반적인 인증 절차를 거치지 않고 프로그램이나 시스템에 접근할 수 있다.</p>
+
+<p>공격자가 시스템에 침입한 뒤 재접속을 위해 백도어를 설치하기도 하며, 개발자나 관리자가 유지보수 목적으로 만들어 두고 제거하지 않은 백도어가 악용되기도 한다.</p>
+
+<h4 id="exploit">Exploit</h4>
+
+<p>익스플로잇(Exploit)은 운영체제나 특정 프로그램의 취약점을 이용하여 공격을 수행하는 코드이다.</p>
+
+<h4 id="bot">Bot</h4>
+
+<p>봇(Bot)은 감염된 시스템이 공격자의 명령에 따라 DDoS 등의 공격을 수행하도록 만드는 악성 코드이다.</p>
+
+<p>악성 코드에 감염되어 공격자의 명령을 수행하는 PC를 좀비 PC(Zombie PC)라고 하며, 여러 좀비 PC가 연결된 네트워크를 봇넷(Botnet)이라고 한다.</p>
+
+<h4 id="scareware">Scareware</h4>
+
+<p>스케어웨어(Scareware)는 사용자를 놀라게 하거나 겁을 주어 원하는 행동을 유도하는 악성 코드이다.</p>
+
+<p>실제로 악성 코드에 감염되지 않았음에도 감염되었다고 경고한 뒤, 특정 안티바이러스 제품의 구매나 설치를 유도하는 방식이 대표적이다.</p>
+
+<h4 id="downloader">Downloader</h4>
+
+<p>다운로더(Downloader)는 네트워크를 통해 데이터나 프로그램을 내려받는 악성 코드이다.</p>
+
+<p>내려받은 프로그램은 실제 공격을 수행하는 악성 코드이거나 공격 명령의 집합일 수 있다.</p>
+
+<h4 id="dropper">Dropper</h4>
+
+<p>드로퍼(Dropper)는 현재 시스템에 존재하는 파일이나 내부 데이터를 이용하여 새로운 악성 파일을 생성하는 프로그램이다.</p>
+
+<h4 id="launcher">Launcher</h4>
+
+<p>런처(Launcher)는 Downloader나 Dropper가 생성한 파일을 실행하는 악성 코드이다.</p>
+
+<h4 id="adware">Adware</h4>
+
+<p>애드웨어(Adware)는 광고가 포함된 소프트웨어이다.</p>
+
+<p>일부는 정상적인 프로그램이지만, 사용자의 의사와 관계없이 과도한 광고를 표시하거나 다른 악성 행위를 수행하기도 한다.</p>
+
+<h4 id="spyware">Spyware</h4>
+
+<p>스파이웨어(Spyware)는 사용자의 정보를 몰래 수집하여 동의 없이 외부로 유출하는 것을 목적으로 하는 악성 코드이다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>악성 코드는 데이터 암호화, 인증 우회, 취약점 공격, 정보 수집 등의 목적으로 사용된다.</li>
+    <li>Downloader, Dropper, Launcher는 각각 다운로드, 파일 생성, 실행 역할을 수행한다.</li>
+    <li>Bot에 감염된 시스템은 좀비 PC가 되며, 여러 좀비 PC가 Botnet을 구성한다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="주요-네트워크-공격-기법">주요 네트워크 공격 기법</h3>
+
+<h4 id="개요-8">개요</h4>
+
+<p>네트워크 공격은 대상 정보 수집, 패킷 가로채기, 주소 위조, 서비스 자원 고갈 등의 방식으로 수행된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>공격</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>IP Scanning</td>
+      <td>대상의 IP 정보와 운영체제를 확인한다.</td>
+    </tr>
+    <tr>
+      <td>Port Scanning</td>
+      <td>열려 있는 포트와 실행 중인 서비스를 확인한다.</td>
+    </tr>
+    <tr>
+      <td>ARP Spoofing</td>
+      <td>공격자를 Gateway처럼 속여 패킷을 가로챈다.</td>
+    </tr>
+    <tr>
+      <td>IP Spoofing</td>
+      <td>출발지 IP를 위조하여 신뢰 관계를 악용한다.</td>
+    </tr>
+    <tr>
+      <td>DNS Spoofing</td>
+      <td>위조된 DNS 응답으로 가짜 사이트 접속을 유도한다.</td>
+    </tr>
+    <tr>
+      <td>ARP Redirect</td>
+      <td>위조된 ARP 정보를 이용하여 패킷 경로를 변경한다.</td>
+    </tr>
+    <tr>
+      <td>MAC Flooding</td>
+      <td>스위치의 MAC 주소 테이블을 고갈시킨다.</td>
+    </tr>
+    <tr>
+      <td>SSL Sniffing</td>
+      <td>HTTPS 연결을 가로채거나 HTTP로 유도한다.</td>
+    </tr>
+    <tr>
+      <td>SSH Sniffing</td>
+      <td>SSH 패킷이나 비밀키 탈취를 시도한다.</td>
+    </tr>
+    <tr>
+      <td>Ping of Death</td>
+      <td>비정상적인 대형 패킷으로 시스템 오류를 유발한다.</td>
+    </tr>
+    <tr>
+      <td>SYN Flooding</td>
+      <td>대량의 SYN 요청으로 연결 자원을 고갈시킨다.</td>
+    </tr>
+    <tr>
+      <td>LAND Attack</td>
+      <td>출발지와 목적지를 동일하게 설정한다.</td>
+    </tr>
+    <tr>
+      <td>DDoS</td>
+      <td>좀비 PC를 이용하여 대량의 패킷을 전송한다.</td>
+    </tr>
+    <tr>
+      <td>Slowloris Attack</td>
+      <td>불완전한 HTTP 연결을 장시간 유지한다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="ip-scanning">IP Scanning</h4>
+
+<p>IP 스캐닝(IP Scanning)은 공격 대상의 IP 주소, 활성 호스트, 운영체제 등의 정보를 확인하는 행위이다.</p>
+
+<h4 id="port-scanning">Port Scanning</h4>
+
+<p>포트 스캐닝(Port Scanning)은 대상 시스템에서 열려 있는 포트와 실행 중인 서비스를 확인하는 행위이다.</p>
+
+<p>열린 포트 정보는 이후 취약점 공격 대상을 선정하는 데 사용될 수 있다.</p>
+
+<hr />
+
+<h3 id="서비스-거부-공격">서비스 거부 공격</h3>
+
+<h4 id="개요-9">개요</h4>
+
+<p>서비스 거부 공격(DoS, Denial of Service)은 합법적인 사용자가 특정 네트워크나 웹 자원에 접근하지 못하도록 방해하는 공격이다.</p>
+
+<p>다른 공격에 비해 비교적 구조가 단순하며, 서비스에 훼방을 놓는 형태로 이해할 수 있다.</p>
+
+<p>공격자는 대량의 트래픽으로 웹 서버에 과부하를 발생시키거나 비정상적인 요청을 전송하여 서비스가 오작동하거나 완전히 중단되도록 만든다.</p>
+
+<p>DoS 공격은 크게 취약점 공격형과 자원 고갈형으로 구분한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>취약점 공격형</td>
+      <td>비정상적인 패킷을 처리하는 과정의 오류를 이용한다.</td>
+    </tr>
+    <tr>
+      <td>자원 고갈형</td>
+      <td>세션, 대역폭, CPU, 메모리, 저장 공간 등을 소모한다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="취약점-공격형-dos">취약점 공격형 DoS</h3>
+
+<h4 id="개요-10">개요</h4>
+
+<p>취약점 공격형은 특정 형태의 네트워크 패킷을 처리하는 로직의 오류를 이용하여 대상 시스템의 오작동을 유발한다.</p>
+
+<p>대표적인 공격에는 Boink, Bonk, Teardrop, LAND Attack 등이 있다.</p>
+
+<h4 id="boink">Boink</h4>
+
+<p>Boink는 연속된 패킷의 목적지 포트 등을 비정상적으로 변경하여 취약한 시스템의 패킷 처리 과정에서 오류를 유발하는 고전적인 DoS 공격이다.</p>
+
+<h4 id="bonk">Bonk</h4>
+
+<p>Bonk는 오래된 Unix나 Windows 시스템을 대상으로 패킷의 단편화 오프셋(Offset) 값을 비정상적으로 조작하여 오류를 발생시키는 공격이다.</p>
+
+<h4 id="teardrop">Teardrop</h4>
+
+<p>Teardrop은 단편화된 IP 패킷의 일부 영역이 서로 겹치도록 오프셋 값을 조작하여 패킷 재조립 과정에서 오류를 발생시키는 공격이다.</p>
+
+<h4 id="land-attack">LAND Attack</h4>
+
+<p>LAND(Local Area Network Denial) Attack은 출발지와 목적지 IP 주소를 공격 대상의 동일한 주소로 설정하는 공격이다.</p>
+
+<p>취약한 시스템은 자신이 전송한 것처럼 보이는 패킷에 스스로 응답하면서 반복 처리나 자원 고갈이 발생할 수 있다.</p>
+
+<p>강의 자료의 Rand Attack 설명도 출발지와 목적지를 동일하게 설정한다는 점에서 LAND Attack과 유사한 형태로 볼 수 있다.</p>
+
+<p>운영체제와 네트워크 장비의 보안 패치를 적용하여 대응한다.</p>
+
+<h4 id="ping-of-death">Ping of Death</h4>
+
+<p>Ping of Death는 허용 범위를 초과하는 큰 패킷을 여러 조각으로 전송하여 대상 시스템의 패킷 재조립 과정에서 오류를 발생시키는 공격이다.</p>
+
+<p>단순히 많은 Ping을 전송하는 공격이라기보다, 비정상적으로 큰 ICMP 패킷의 처리 취약점을 이용하는 공격이다.</p>
+
+<hr />
+
+<h3 id="자원-고갈형-dos">자원 고갈형 DoS</h3>
+
+<h4 id="syn-flooding">SYN Flooding</h4>
+
+<p>SYN Flooding은 공격자가 TCP 연결 요청인 SYN 패킷만 반복적으로 전송하여 서버의 연결 자원을 고갈시키는 공격이다.</p>
+
+<p>서버가 사용할 수 있는 세션 수에는 한계가 있으므로, 연결 요청이 계속 누적되면 정상 클라이언트의 요청을 처리하지 못하게 된다.</p>
+
+<p>IPS(Intrusion Prevention System) 등의 침입 방지 시스템을 이용하여 탐지하고 차단할 수 있다.</p>
+
+<h4 id="udp-flooding">UDP Flooding</h4>
+
+<p>UDP Flooding은 대량의 UDP 패킷을 임의의 포트로 전송하여 대상 시스템이 지속적으로 응답 메시지를 생성하게 만드는 공격이다.</p>
+
+<p>서비스가 없는 포트에 패킷이 도착하면 ICMP 오류 응답이 생성될 수 있으며, 공격자는 출발지 주소를 위조하여 응답이 자신에게 전달되지 않도록 만들기도 한다.</p>
+
+<p>이 과정이 반복되면 네트워크와 시스템 자원이 고갈된다.</p>
+
+<h4 id="smurf-attack">Smurf Attack</h4>
+
+<p>Smurf Attack은 출발지 IP 주소를 공격 대상의 주소로 위조한 뒤 네트워크 전체에 ICMP Echo Request를 브로드캐스트하는 공격이다.</p>
+
+<p>브로드캐스트를 수신한 여러 시스템의 응답이 공격 대상에게 집중되면서 네트워크가 마비될 수 있다.</p>
+
+<p>공격에 이용되는 제3의 네트워크를 바운스 사이트(Bounce Site)라고 한다.</p>
+
+<p>라우터에서 Directed Broadcast를 차단하여 대응할 수 있다.</p>
+
+<h4 id="ping-of-death-1">Ping of Death</h4>
+
+<p>Ping of Death는 큰 패킷을 의도적으로 대상 시스템에 전송하여 시스템이 서비스를 제공하지 못하도록 만드는 공격이다.</p>
+
+<p>내부 네트워크에서 불필요한 ICMP 요청을 방화벽으로 제한할 수 있지만, 정상적인 네트워크 진단 기능도 영향을 받을 수 있으므로 정책에 따라 적용해야 한다.</p>
+
+<h4 id="http-get-flooding">HTTP GET Flooding</h4>
+
+<p>HTTP GET Flooding은 HTTP GET 메서드로 특정 페이지를 반복 요청하여 웹 서버에 과부하를 발생시키는 공격이다.</p>
+
+<p>GET 요청 자체는 정상적인 요청이므로 서버는 계속 응답을 생성하려고 한다.</p>
+
+<p>공격자가 동일한 URL을 반복 요청하면 웹 서버는 해당 데이터를 조회하고 클라이언트에게 전달하기 위해 CPU, 메모리, 데이터베이스 연결 등의 자원을 사용한다.</p>
+
+<h4 id="http-cc-attack">HTTP CC Attack</h4>
+
+<p>HTTP CC Attack은 HTTP의 캐시(Cache) 기능을 사용하지 못하도록 하여 웹 서버의 부하를 증가시키는 공격이다.</p>
+
+<p>HTTP/1.1에서는 <code class="language-plaintext highlighter-rouge">Cache-Control</code> 헤더를 이용하여 캐시 사용 여부를 제어할 수 있다.</p>
+
+<p>공격자는 캐시를 사용하지 않도록 요청을 반복적으로 전송하여 웹 서버가 동일한 데이터를 계속 생성하고 처리하도록 만든다.</p>
+
+<div class="language-http highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">Cache-Control: no-store, must-revalidate
+</span></code></pre></div></div>
+
+<p>캐시를 사용하지 못하면 동일한 요청에도 웹 서버는 데이터를 다시 조회하고 응답을 생성해야 하므로 CPU와 메모리 등의 자원이 지속적으로 소모된다.</p>
+
+<h4 id="mail-bomb">Mail Bomb</h4>
+
+<p>메일 폭탄(Mail Bomb)은 대량의 메일을 전송하여 메일 서버의 처리 능력과 저장 공간을 고갈시키는 공격이다.</p>
+
+<p>메일 서버는 메일이 폭주하여 디스크 공간이 모두 사용되면 새로운 메일을 수신할 수 없게 된다.</p>
+
+<p>이를 방지하기 위해 일반적으로 사용자별 메일함 용량을 제한하고 스팸 메일을 필터링한다.</p>
+
+<h4 id="slowloris-attack">Slowloris Attack</h4>
+
+<p>Slowloris Attack은 대량의 트래픽을 발생시키는 대신, 다수의 HTTP 연결을 생성한 후 요청을 끝내지 않고 오랫동안 유지하여 웹 서버의 연결 자원을 모두 점유하는 공격이다.</p>
+
+<p>공격자는 HTTP 헤더를 매우 느리게 전송하여 서버가 연결을 계속 유지하도록 만든다.</p>
+
+<p>웹 서버의 연결 수가 한계에 도달하면 정상 사용자의 요청을 처리하지 못하게 된다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>HTTP GET Flooding은 정상적인 GET 요청을 반복하여 서버 자원을 소모시킨다.</li>
+    <li>HTTP CC Attack은 캐시 기능을 사용하지 못하도록 하여 서버 부하를 증가시킨다.</li>
+    <li>Mail Bomb은 메일 서버의 저장 공간과 처리 능력을 고갈시킨다.</li>
+    <li>Slowloris Attack은 HTTP 연결을 장시간 유지하여 연결 자원을 점유한다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="ddos-공격">DDoS 공격</h3>
+
+<h4 id="개요-11">개요</h4>
+
+<p>DDoS(Distributed Denial of Service)는 다수의 시스템을 이용하여 하나의 대상을 동시에 공격하는 분산 서비스 거부 공격이다.</p>
+
+<p>DoS가 단일 시스템에서 수행되는 공격이라면, DDoS는 여러 대의 시스템이 동시에 공격을 수행한다는 차이가 있다.</p>
+
+<p>강의에서는 1999년 미국 미네소타 대학교에서 초기 DDoS 공격 사례가 발생했으며, Yahoo, NBC, CNN 등의 서비스가 공격을 받은 사례를 소개하였다.</p>
+
+<p>DDoS 공격은 공격자의 위치와 실제 발원지를 추적하기 어렵고, 현재도 완벽한 대응이 쉽지 않은 공격으로 알려져 있다.</p>
+
+<h4 id="초기-ddos-구성">초기 DDoS 구성</h4>
+
+<p>초기의 DDoS 공격은 다음과 같은 구조로 구성되었다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>공격자(Attacker)</td>
+      <td>공격을 계획하고 명령을 내리는 시스템</td>
+    </tr>
+    <tr>
+      <td>마스터(Master)</td>
+      <td>공격자의 명령을 받아 여러 에이전트를 관리</td>
+    </tr>
+    <tr>
+      <td>핸들러 프로그램(Handler Program)</td>
+      <td>마스터 역할을 수행하는 프로그램</td>
+    </tr>
+    <tr>
+      <td>에이전트(Agent)</td>
+      <td>실제 공격을 수행하는 시스템</td>
+    </tr>
+    <tr>
+      <td>데몬 프로그램(Daemon Program)</td>
+      <td>에이전트에서 공격을 수행하는 프로그램</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>초기의 DDoS에서는 마스터와 에이전트 역할을 수행하는 시스템 역시 공격자에게 감염된 피해 시스템이었다.</p>
+
+<h4 id="최근-ddos-공격-과정">최근 DDoS 공격 과정</h4>
+
+<p>최근의 DDoS 공격은 봇넷(Botnet)을 이용하는 방식이 일반적이다.</p>
+
+<p>공격 과정은 다음과 같다.</p>
+
+<ol>
+  <li>공격자가 인터넷을 통해 전파 가능한 악성 코드를 제작한다.</li>
+  <li>공격 대상과 공격 시점을 악성 코드에 포함하거나 별도의 명령으로 전달한다.</li>
+  <li>인터넷을 통해 악성 코드를 유포한다.</li>
+  <li>감염된 시스템은 별다른 동작 없이 잠복한다.</li>
+  <li>악성 코드에 감염된 PC가 좀비 PC(Zombie PC)가 된다.</li>
+  <li>여러 대의 좀비 PC가 봇넷(Botnet)을 구성한다.</li>
+  <li>공격자의 명령이나 미리 설정된 일정에 따라 모든 좀비 PC가 동시에 공격을 수행한다.</li>
+</ol>
+
+<h4 id="특징-1">특징</h4>
+
+<ul>
+  <li>여러 대의 시스템이 동시에 공격을 수행한다.</li>
+  <li>공격 출발지가 분산되어 추적이 어렵다.</li>
+  <li>정상 트래픽과 공격 트래픽을 구분하기 어렵다.</li>
+  <li>대량의 네트워크 자원을 동시에 소모시킬 수 있다.</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>DDoS는 다수의 시스템이 동시에 수행하는 서비스 거부 공격이다.</li>
+    <li>초기에는 Master와 Agent 구조를 사용하였다.</li>
+    <li>현재는 Botnet과 Zombie PC를 이용한 공격이 일반적이다.</li>
+    <li>공격자의 실제 위치와 발원지를 추적하기 어렵다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="sniffing-공격">Sniffing 공격</h3>
+
+<h4 id="개요-12">개요</h4>
+
+<p>스니핑(Sniffing)은 다른 사람의 통신 내용을 몰래 엿듣거나 도청하는 공격이다.</p>
+
+<p>공격자가 별다른 동작 없이 네트워크를 지나는 패킷을 수집하기만 해도 되므로 <strong>수동적 공격(Passive Attack)</strong> 이라고도 한다.</p>
+
+<p>과거에는 전화선이나 UTP 케이블을 태핑(Tapping)하여 전기 신호를 분석하거나, TEMPEST 장비를 이용해 전기적 신호를 분석하는 방식도 사용되었다.</p>
+
+<h4 id="공격-원리">공격 원리</h4>
+
+<p>네트워크 카드는 수신한 패킷의 MAC 주소와 IP 주소를 확인한 후 자신의 정보와 일치하는 경우에만 패킷을 운영체제로 전달한다.</p>
+
+<p>즉, 자신의 주소와 관계없는 패킷은 일반적으로 모두 버린다.</p>
+
+<p>하지만 스니핑을 수행하는 공격자는 모든 패킷을 확인해야 하므로 이러한 필터링을 우회해야 한다.</p>
+
+<p>이를 위해 랜카드의 설정을 변경하거나 스니핑 드라이버를 설치하여 <strong>프러미스큐어스 모드(Promiscuous Mode)</strong> 로 동작하도록 만든다.</p>
+
+<p>프러미스큐어스 모드는 데이터 링크 계층의 주소 필터링을 해제하여 네트워크를 지나는 모든 패킷을 수신할 수 있는 랜카드 동작 모드이다.</p>
+
+<h4 id="공격의-종류">공격의 종류</h4>
+
+<h5 id="스위치-재밍-공격">스위치 재밍 공격</h5>
+
+<p>스위치 재밍(Switch Jamming)은 스위치의 MAC Address Table을 가득 채워 정상적인 스위칭 기능을 마비시키는 공격이다.</p>
+
+<p>공격자는 임의의 MAC 주소를 가진 프레임을 지속적으로 전송하여 MAC Address Table의 저장 공간을 모두 사용하게 만든다.</p>
+
+<p>일부 저가형 스위치는 테이블이 가득 차면 허브처럼 모든 포트로 프레임을 전달하게 되고, 공격자는 이를 이용해 스니핑을 수행할 수 있다.</p>
+
+<p>강의에서는 고가의 스위치는 MAC 테이블과 관리용 캐시가 분리되어 있어 이러한 공격이 잘 통하지 않는다고 설명하였다.</p>
+
+<h5 id="span-포트-태핑-공격">SPAN 포트 태핑 공격</h5>
+
+<p>SPAN 포트 태핑은 스위치의 <strong>포트 미러링(Port Mirroring)</strong> 기능을 이용하는 방법이다.</p>
+
+<p>포트 미러링은 특정 포트의 송수신 트래픽을 다른 포트에도 동일하게 복사하는 기능이다.</p>
+
+<p>원래는 침입 탐지 시스템(IDS), 네트워크 모니터링, 로그 분석 등을 위해 사용하는 기능이지만, 공격자가 이를 악용하면 통신 내용을 모두 수집할 수 있다.</p>
+
+<h4 id="스니핑-공격의-탐지">스니핑 공격의 탐지</h4>
+
+<p>스니퍼를 설치한 이후에는 네트워크에 특별한 이상 현상이 나타나지 않기 때문에 사용자가 직접 알아차리기 어렵다.</p>
+
+<p>대표적인 탐지 방법은 다음과 같다.</p>
+
+<ul>
+  <li>존재하지 않는 MAC 주소로 Ping을 전송하여 ICMP Echo Reply가 오는지 확인한다.</li>
+  <li>위조된 ARP Request를 전송한 뒤 ARP Response가 오는지 확인한다.</li>
+  <li>Ping Sweep을 수행한 뒤 Reverse DNS Lookup을 감시한다.</li>
+  <li>가짜 ID와 Password를 네트워크에 흘려 이를 사용하는 시스템을 확인한다.</li>
+  <li>ARP Watch를 이용하여 ARP 트래픽의 변화를 감시한다.</li>
+</ul>
+
+<p>Ping Sweep은 여러 IP 주소에 ICMP Echo Request를 전송하여 활성화된 시스템을 확인하는 방법이다.</p>
+
+<p>ARP Watch는 ARP 트래픽을 모니터링하여 IP 주소와 MAC 주소의 대응 관계가 변경되면 관리자에게 알려주는 도구이다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>Sniffing은 네트워크 통신을 몰래 수집하는 수동적 공격이다.</li>
+    <li>공격자는 랜카드를 Promiscuous Mode로 변경하여 모든 패킷을 수신한다.</li>
+    <li>스위치 재밍과 SPAN 포트 미러링이 대표적인 스니핑 기법이다.</li>
+    <li>Ping, ARP, DNS, ARP Watch 등을 이용하여 스니퍼를 탐지할 수 있다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="spoofing-공격">Spoofing 공격</h3>
+
+<h4 id="개요-13">개요</h4>
+
+<p>스푸핑(Spoofing)은 자신을 다른 사용자나 시스템으로 속이거나 위장하는 공격이다.</p>
+
+<p>공격 대상은 MAC 주소, IP 주소, 포트 번호 등 네트워크 통신에 사용되는 다양한 정보가 될 수 있다.</p>
+
+<h4 id="대응-방법">대응 방법</h4>
+
+<p>관리자는 네트워크에서 사용하는 MAC 주소를 미리 기록하여 관리하는 것이 좋다.</p>
+
+<p>브로드캐스트 Ping이나 <code class="language-plaintext highlighter-rouge">fping</code>, <code class="language-plaintext highlighter-rouge">hunt</code> 등의 도구를 이용하여 네트워크에 존재하는 시스템을 확인할 수 있다.</p>
+
+<p>ARP 캐시가 삭제되기 전에 현재 IP 주소와 MAC 주소의 대응 관계를 확인하려면 다음 명령을 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>arp <span class="nt">-a</span>
+</code></pre></div></div>
+
+<p>MAC 주소가 변경되었거나 등록되지 않은 시스템이 발견되면 해당 장비를 확인하여 원인을 분석해야 한다.</p>
+
+<h4 id="arp-spoofing">ARP Spoofing</h4>
+
+<p>ARP Spoofing은 공격자의 MAC 주소를 Gateway의 MAC 주소인 것처럼 속이는 공격이다.</p>
+
+<p>공격자는 서버와 클라이언트가 서로의 패킷을 자신에게 전달하도록 만들어 통신 흐름을 왜곡하고 스니핑을 수행할 수 있다.</p>
+
+<h4 id="ip-spoofing">IP Spoofing</h4>
+
+<p>IP Spoofing은 다른 사용자의 IP 주소를 위조하는 공격이다.</p>
+
+<p>공격자는 신뢰 관계(Trust Relationship)를 이용하는 서버를 대상으로 정상 사용자의 IP 주소를 획득한 뒤 인증 절차 없이 서버에 접근하려고 한다.</p>
+
+<p>일부에서는 TCP Session Hijacking을 IP Spoofing의 한 형태로 설명하기도 한다.</p>
+
+<h4 id="trust-relationship">Trust Relationship</h4>
+
+<p>트러스트 관계(Trust Relationship)는 특정 호스트를 신뢰하여 인증 절차를 생략하는 설정이다.</p>
+
+<p>과거 유닉스 계열 시스템에서는 <code class="language-plaintext highlighter-rouge">/etc/hosts.equiv</code> 파일에 신뢰할 호스트를 등록하여 비밀번호 없이 접속을 허용하기도 했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>200.200.200.200 root
+100.100.100.100 +
+</code></pre></div></div>
+
+<p>IP 주소만을 신뢰 기준으로 사용하는 방식은 IP Spoofing에 매우 취약하다.</p>
+
+<p>공격자는 정상 클라이언트에 DoS 공격을 수행한 뒤 해당 IP 주소로 위장하여 서버에 접근할 수 있다.</p>
+
+<p>따라서 IP 주소만으로 인증하는 Trust 방식은 사용하지 않는 것이 바람직하다.</p>
+
+<h4 id="icmp-redirect">ICMP Redirect</h4>
+
+<p>ICMP Redirect는 공격자가 자신을 새로운 라우터처럼 인식시키는 공격이다.</p>
+
+<p>성공하면 네트워크의 패킷 흐름이 공격자를 거치게 되어 스니핑이나 중간자 공격이 가능해질 수 있다.</p>
+
+<h4 id="dns-spoofing">DNS Spoofing</h4>
+
+<p>DNS Spoofing은 정상 DNS 서버보다 먼저 위조된 DNS Response를 전송하여 사용자를 가짜 웹사이트로 유도하는 공격이다.</p>
+
+<p>공격자는 실제 사이트를 복제한 웹 페이지를 준비한 뒤 사용자의 ID와 Password를 입력받고, 이후 정상 사이트로 전달하여 사용자가 공격 사실을 알아차리지 못하도록 만들 수 있다.</p>
+
+<p>스위치 환경에서는 DNS Query를 확인하기 위해 ARP Spoofing이 함께 사용될 수 있으며, 허브 환경에서는 별도의 작업 없이도 패킷을 확인할 수 있다.</p>
+
+<h4 id="대응-방법-1">대응 방법</h4>
+
+<p>대표적인 대응 방법은 다음과 같다.</p>
+
+<ul>
+  <li>IP 주소만을 신뢰하는 인증 방식을 사용하지 않는다.</li>
+  <li>ARP 테이블을 주기적으로 확인한다.</li>
+  <li>MAC 주소 변경 여부를 지속적으로 감시한다.</li>
+  <li>자주 사용하는 사이트는 <code class="language-plaintext highlighter-rouge">/etc/hosts</code> 파일을 이용하여 관리할 수 있다.</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>Spoofing은 주소나 신원을 위조하는 공격이다.</li>
+    <li>ARP Spoofing은 MAC 주소를, IP Spoofing은 IP 주소를 위조한다.</li>
+    <li>DNS Spoofing은 위조된 DNS 응답으로 가짜 사이트 접속을 유도한다.</li>
+    <li>Trust Relationship은 IP Spoofing에 악용될 수 있다.</li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/08-network-lab2/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Network - Router & Switch Lab 2</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1785941094"></script>
+  </body>
+</html>
