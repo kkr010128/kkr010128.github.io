@@ -1,4 +1,269 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-05T23:47:09+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Network - Router &amp;amp; Switch Lab 2</title><link href="https://kkr010128.github.io/08-network-lab2/" rel="alternate" type="text/html" title="Network - Router &amp;amp; Switch Lab 2" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/08-network-lab2</id><content type="html" xml:base="https://kkr010128.github.io/08-network-lab2/"><![CDATA[<h3 id="router-실습">Router 실습</h3>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-06T08:52:37+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">float보다 double을 더 많이 사용하는 이유는 무엇일까?</title><link href="https://kkr010128.github.io/03-memo-float-vs-double/" rel="alternate" type="text/html" title="float보다 double을 더 많이 사용하는 이유는 무엇일까?" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-memo-float-vs-double</id><content type="html" xml:base="https://kkr010128.github.io/03-memo-float-vs-double/"><![CDATA[<h3 id="q-float는-4바이트이고-double은-8바이트인데-왜-double을-더-많이-사용할까">Q. float는 4바이트이고 double은 8바이트인데 왜 double을 더 많이 사용할까?</h3>
+
+<p>강의 중 실수형 자료형을 설명하면서 <code class="language-plaintext highlighter-rouge">float</code>는 4바이트, <code class="language-plaintext highlighter-rouge">double</code>은 8바이트라고 배웠다.</p>
+
+<p>메모리만 생각하면 <code class="language-plaintext highlighter-rouge">float</code>를 사용하는 것이 더 효율적일 것 같은데, 실제 코드에서는 오히려 <code class="language-plaintext highlighter-rouge">double</code>이 기본처럼 사용되는 경우가 많다.</p>
+
+<p>왜 이런 차이가 생긴 것일까?</p>
+
+<h3 id="a-현대-컴퓨터에서는-메모리보다-정확도가-더-중요해졌기-때문이다">A. 현대 컴퓨터에서는 메모리보다 정확도가 더 중요해졌기 때문이다.</h3>
+
+<p>과거에는 메모리가 매우 부족했다.</p>
+
+<p>16비트, 32비트 컴퓨터 시절에는 RAM이 수 MB 수준인 경우도 많았기 때문에 4바이트와 8바이트의 차이가 매우 컸다.</p>
+
+<p>하지만 현재 대부분의 PC와 서버는 64비트 환경에서 수 GB에서 수십 GB 이상의 메모리를 사용한다.</p>
+
+<p>이제는 실수 하나를 저장할 때 추가되는 4바이트보다 <strong>계산 정확성</strong>이 훨씬 중요한 요소가 되었다.</p>
+
+<h3 id="float와-double의-차이">float와 double의 차이</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>자료형</th>
+      <th>크기</th>
+      <th>유효 자릿수</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">float</code></td>
+      <td>4 Byte</td>
+      <td>약 7자리</td>
+      <td>메모리 사용량이 적음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">double</code></td>
+      <td>8 Byte</td>
+      <td>약 15~16자리</td>
+      <td>높은 정밀도</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>예를 들어 다음과 같은 계산을 수행하면 차이를 쉽게 볼 수 있다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">0.1</span><span class="n">f</span><span class="p">;</span>
+<span class="kt">double</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">;</span>
+
+<span class="n">printf</span><span class="p">(</span><span class="s">"%.20f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
+<span class="n">printf</span><span class="p">(</span><span class="s">"%.20lf</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>두 값 모두 내부적으로는 정확한 <code class="language-plaintext highlighter-rouge">0.1</code>을 표현하지 못하지만, <code class="language-plaintext highlighter-rouge">double</code>이 훨씬 작은 오차를 가진다.</p>
+
+<h3 id="32비트에서-64비트로-바뀌며-무엇이-달라졌을까">32비트에서 64비트로 바뀌며 무엇이 달라졌을까?</h3>
+
+<p>32비트 환경에서는 메모리 공간이 제한적이었다.</p>
+
+<p>따라서 가능한 작은 자료형을 사용하는 것이 중요한 최적화 방법이었다.</p>
+
+<p>하지만 64비트 환경에서는 다음과 같은 변화가 생겼다.</p>
+
+<ul>
+  <li>메모리 용량이 크게 증가</li>
+  <li>CPU의 연산 성능 향상</li>
+  <li>부동소수점 연산 장치(FPU)의 발전</li>
+  <li>대부분의 컴파일러와 라이브러리가 <code class="language-plaintext highlighter-rouge">double</code> 중심으로 최적화</li>
+</ul>
+
+<p>즉, <strong>메모리를 아끼는 것보다 계산 결과의 신뢰성을 확보하는 것이 더 중요한 시대가 된 것</strong>이다.</p>
+
+<h3 id="오히려-double이-더-자연스러운-경우도-있다">오히려 double이 더 자연스러운 경우도 있다.</h3>
+
+<p>C와 C++에서는 실수 리터럴의 기본 타입이 <code class="language-plaintext highlighter-rouge">double</code>이다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">double</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">3.14</span><span class="p">;</span>   <span class="c1">// 기본</span>
+
+<span class="kt">float</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">3.14</span><span class="n">f</span><span class="p">;</span>   <span class="c1">// f를 붙여야 float</span>
+</code></pre></div></div>
+
+<p>또한 대부분의 수학 함수도 <code class="language-plaintext highlighter-rouge">double</code>을 기준으로 제공된다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sqrt</span><span class="p">()</span>
+<span class="n">sin</span><span class="p">()</span>
+<span class="n">cos</span><span class="p">()</span>
+<span class="n">log</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>이 함수들은 기본적으로 <code class="language-plaintext highlighter-rouge">double</code>을 사용하므로 <code class="language-plaintext highlighter-rouge">float</code>를 전달하면 내부에서 형 변환이 발생할 수 있다.</p>
+
+<h3 id="그렇다면-float는-언제-사용할까">그렇다면 float는 언제 사용할까?</h3>
+
+<p><code class="language-plaintext highlighter-rouge">float</code>가 사라진 것은 아니다.</p>
+
+<p>메모리 사용량이 매우 중요한 환경에서는 여전히 많이 사용된다.</p>
+
+<p>대표적인 예시는 다음과 같다.</p>
+
+<ul>
+  <li>게임 엔진에서 수백만 개의 정점(Vertex) 저장</li>
+  <li>GPU 연산</li>
+  <li>머신러닝 모델의 FP16, FP32 연산</li>
+  <li>모바일 및 임베디드 시스템</li>
+  <li>센서 데이터 처리</li>
+</ul>
+
+<p>이처럼 동일한 데이터를 매우 많이 저장해야 하는 환경에서는 4바이트 차이만으로도 수십~수백 MB 이상의 메모리를 절약할 수 있다.</p>
+
+<h3 id="자주-하는-오해">자주 하는 오해</h3>
+
+<ul>
+  <li><strong>64비트 운영체제에서는 float도 8바이트가 된다.</strong>
+    <ul>
+      <li>아니다. 운영체제와 관계없이 <code class="language-plaintext highlighter-rouge">float</code>는 일반적으로 4바이트, <code class="language-plaintext highlighter-rouge">double</code>은 8바이트이다.</li>
+    </ul>
+  </li>
+  <li><strong>double이 항상 더 빠르다.</strong>
+    <ul>
+      <li>반드시 그렇지는 않다. 하지만 현대 CPU에서는 <code class="language-plaintext highlighter-rouge">double</code>이 특별히 느리지 않으며, 대부분의 일반적인 프로그램에서는 성능 차이를 체감하기 어렵다.</li>
+    </ul>
+  </li>
+  <li><strong>메모리를 아끼려면 항상 float를 사용해야 한다.</strong>
+    <ul>
+      <li>아니다. 일반적인 애플리케이션에서는 메모리 절약보다 정밀도가 더 중요하다.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="정리">정리</h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">float</code>는 4바이트, <code class="language-plaintext highlighter-rouge">double</code>은 8바이트이다.</li>
+  <li>현대 컴퓨터에서는 메모리보다 계산 정확성이 더 중요해졌다.</li>
+  <li>대부분의 실수 연산과 라이브러리는 <code class="language-plaintext highlighter-rouge">double</code>을 기준으로 동작한다.</li>
+  <li>일반적인 애플리케이션에서는 <code class="language-plaintext highlighter-rouge">double</code>을 사용하는 경우가 많다.</li>
+  <li>메모리 사용량이 매우 중요한 환경에서만 <code class="language-plaintext highlighter-rouge">float</code>를 적극적으로 사용하는 것이 일반적이다.</li>
+</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="DataType" /><category term="Memory" /><summary type="html"><![CDATA[float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유]]></summary></entry><entry><title type="html">int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?</title><link href="https://kkr010128.github.io/01-memo-int-vs-char/" rel="alternate" type="text/html" title="int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-memo-int-vs-char</id><content type="html" xml:base="https://kkr010128.github.io/01-memo-int-vs-char/"><![CDATA[<h3 id="q-int는-4바이트이고-char는-1바이트인데-숫자는-char로-저장하는-것이-더-효율적인-것-아닐까">Q. int는 4바이트이고 char는 1바이트인데, 숫자는 char로 저장하는 것이 더 효율적인 것 아닐까?</h3>
+
+<p>강의 중 자료형의 크기를 설명하면서 <code class="language-plaintext highlighter-rouge">char</code>는 1바이트, <code class="language-plaintext highlighter-rouge">int</code>는 4바이트라고 배웠다.</p>
+
+<p>그렇다면 숫자를 저장할 때도 <code class="language-plaintext highlighter-rouge">char</code>를 사용하면 메모리를 4배 절약할 수 있으므로 더 효율적인 것은 아닐까?</p>
+
+<h3 id="a-저장할-수-있는-값의-범위와-cpu의-처리-방식을-함께-고려해야-한다">A. 저장할 수 있는 값의 범위와 CPU의 처리 방식을 함께 고려해야 한다.</h3>
+
+<p>자료형은 단순히 메모리 크기만으로 선택하는 것이 아니다.</p>
+
+<p>가장 먼저 고려해야 하는 것은 <strong>얼마나 큰 값을 저장해야 하는지</strong>이다.</p>
+
+<p>대표적인 자료형의 크기와 표현 가능한 범위는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>자료형</th>
+      <th>크기</th>
+      <th>표현 범위(일반적인 Signed 기준)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">char</code></td>
+      <td>1 Byte</td>
+      <td>-128 ~ 127</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">short</code></td>
+      <td>2 Byte</td>
+      <td>-32,768 ~ 32,767</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">int</code></td>
+      <td>4 Byte</td>
+      <td>약 -21억 ~ 21억</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>예를 들어 나이를 저장한다면 <code class="language-plaintext highlighter-rouge">char</code>만으로도 충분하다.</p>
+
+<p>하지만 학생 수, 파일 크기, 금액, 배열의 인덱스처럼 범위가 커질 수 있는 데이터는 <code class="language-plaintext highlighter-rouge">int</code>가 필요하다.</p>
+
+<p>즉, <strong>메모리를 아끼기 위해 작은 자료형을 사용하는 것이 아니라, 저장해야 하는 값의 범위에 맞는 자료형을 선택하는 것이 원칙</strong>이다.</p>
+
+<h3 id="메모리만-작은-것이-항상-성능이-좋은-것은-아니다">메모리만 작은 것이 항상 성능이 좋은 것은 아니다.</h3>
+
+<p>현대 CPU는 보통 32비트 또는 64비트 단위로 데이터를 처리한다.</p>
+
+<p>따라서 <code class="language-plaintext highlighter-rouge">char</code>를 계산하더라도 내부적으로는 <code class="language-plaintext highlighter-rouge">int</code> 크기로 변환하여 연산하는 경우가 많다.</p>
+
+<p>예를 들어 다음 코드에서</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">char</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
+<span class="kt">char</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
+
+<span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>실제로는 <code class="language-plaintext highlighter-rouge">a</code>와 <code class="language-plaintext highlighter-rouge">b</code>가 연산 과정에서 <code class="language-plaintext highlighter-rouge">int</code>로 승격(Integer Promotion)된 뒤 계산된다.</p>
+
+<p>즉,</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">temp</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">;</span>
+<span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">temp</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>와 유사한 과정이 내부적으로 수행된다.</p>
+
+<p>따라서 단순히 <code class="language-plaintext highlighter-rouge">char</code>를 사용한다고 해서 연산이 더 빠르거나 CPU 사용량이 줄어드는 것은 아니다.</p>
+
+<h3 id="그렇다면-언제-char를-사용할까">그렇다면 언제 char를 사용할까?</h3>
+
+<p><code class="language-plaintext highlighter-rouge">char</code>는 숫자를 저장하기 위해 만들어진 자료형이라기보다 <strong>1바이트 크기의 데이터를 표현하기 위한 자료형</strong>이다.</p>
+
+<p>대표적인 사용 예시는 다음과 같다.</p>
+
+<ul>
+  <li>문자 저장 (<code class="language-plaintext highlighter-rouge">'A'</code>, <code class="language-plaintext highlighter-rouge">'B'</code>)</li>
+  <li>ASCII 문자 표현</li>
+  <li>작은 범위의 정수</li>
+  <li>바이트 단위 데이터 처리</li>
+  <li>파일 및 네트워크 패킷 처리</li>
+</ul>
+
+<p>특히 네트워크 프로그래밍이나 운영체제에서는 데이터를 바이트 단위로 다루기 때문에 <code class="language-plaintext highlighter-rouge">char</code> 또는 <code class="language-plaintext highlighter-rouge">unsigned char</code>를 자주 사용한다.</p>
+
+<h3 id="메모리가-중요한-경우도-있다">메모리가 중요한 경우도 있다.</h3>
+
+<p>임베디드 시스템처럼 메모리가 매우 제한적인 환경에서는 자료형 선택이 중요하다.</p>
+
+<p>예를 들어 센서 값이 항상 <code class="language-plaintext highlighter-rouge">0~100</code>이라면 <code class="language-plaintext highlighter-rouge">int</code> 대신 <code class="language-plaintext highlighter-rouge">uint8_t</code>를 사용하여 메모리를 절약할 수 있다.</p>
+
+<p>반대로 일반적인 애플리케이션에서는 유지보수성과 연산 효율을 고려해 <code class="language-plaintext highlighter-rouge">int</code>를 사용하는 경우가 많다.</p>
+
+<p>즉, 메모리 절약보다 코드의 안정성과 범용성을 우선하는 경우가 대부분이다.</p>
+
+<h3 id="자주-하는-오해">자주 하는 오해</h3>
+
+<ul>
+  <li><strong>char가 1바이트이므로 항상 int보다 효율적이다.</strong>
+    <ul>
+      <li>아니다. 저장 가능한 값의 범위가 매우 작으며 연산 시에는 대부분 <code class="language-plaintext highlighter-rouge">int</code>로 변환된다.</li>
+    </ul>
+  </li>
+  <li><strong>숫자는 모두 char로 저장하면 메모리를 절약할 수 있다.</strong>
+    <ul>
+      <li>저장 가능한 범위를 초과하면 오버플로우가 발생하므로 적절한 자료형을 선택해야 한다.</li>
+    </ul>
+  </li>
+  <li><strong>char는 문자만 저장하는 자료형이다.</strong>
+    <ul>
+      <li>아니다. 1바이트 정수형이며 문자 역시 숫자로 저장된다.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="정리">정리</h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">char</code>는 1바이트, <code class="language-plaintext highlighter-rouge">int</code>는 일반적으로 4바이트이다.</li>
+  <li>자료형은 메모리 크기보다 저장해야 하는 값의 범위를 기준으로 선택한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">char</code>는 연산 과정에서 대부분 <code class="language-plaintext highlighter-rouge">int</code>로 자동 승격된다.</li>
+  <li>따라서 <code class="language-plaintext highlighter-rouge">char</code>가 항상 더 빠르거나 효율적인 것은 아니다.</li>
+  <li>일반적인 프로그램에서는 <code class="language-plaintext highlighter-rouge">int</code>를, 메모리가 중요한 환경에서는 필요한 범위에 맞는 작은 자료형을 사용하는 것이 바람직하다.</li>
+</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="DataType" /><summary type="html"><![CDATA[char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유]]></summary></entry><entry><title type="html">Network - Router &amp;amp; Switch Lab 2</title><link href="https://kkr010128.github.io/08-network-lab2/" rel="alternate" type="text/html" title="Network - Router &amp;amp; Switch Lab 2" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/08-network-lab2</id><content type="html" xml:base="https://kkr010128.github.io/08-network-lab2/"><![CDATA[<h3 id="router-실습">Router 실습</h3>
 
 <h4 id="실습-구성">실습 구성</h4>
 
@@ -1809,7 +2074,95 @@ area
     <li>DNS Spoofing은 위조된 DNS 응답으로 가짜 사이트 접속을 유도한다.</li>
     <li>Trust Relationship은 IP Spoofing에 악용될 수 있다.</li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리]]></summary></entry><entry><title type="html">Network Device 3 - L4 Device</title><link href="https://kkr010128.github.io/07-network-device-l4/" rel="alternate" type="text/html" title="Network Device 3 - L4 Device" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/07-network-device-l4</id><content type="html" xml:base="https://kkr010128.github.io/07-network-device-l4/"><![CDATA[<h2 id="device-3--l4-장비">Device 3 ) L4 장비</h2>
+</blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리]]></summary></entry><entry><title type="html">Ping을 막는 이유는 무엇일까</title><link href="https://kkr010128.github.io/02-memo-pingban/" rel="alternate" type="text/html" title="Ping을 막는 이유는 무엇일까" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/02-memo-pingban</id><content type="html" xml:base="https://kkr010128.github.io/02-memo-pingban/"><![CDATA[<h3 id="q-ping을-막는-이유는-무엇일까-icmp는-ping만을-위한-프로토콜일까">Q. Ping을 막는 이유는 무엇일까? ICMP는 Ping만을 위한 프로토콜일까?</h3>
+
+<p>네트워크를 공부하다 보면 일부 서버는 <code class="language-plaintext highlighter-rouge">ping</code>이 동작하지 않는 경우를 자주 볼 수 있다.</p>
+
+<p>그렇다면 Ping을 차단하는 이유는 무엇일까? 또한 ICMP는 Ping만을 위해 존재하는 프로토콜일까?</p>
+
+<h3 id="a-icmp는-ping만을-위한-프로토콜이-아니다">A. ICMP는 Ping만을 위한 프로토콜이 아니다.</h3>
+
+<p>많은 사람들이 ICMP를 Ping 프로토콜이라고 생각하지만, Ping은 <strong>ICMP를 이용하는 하나의 기능</strong>일 뿐이다.</p>
+
+<p>ICMP(Internet Control Message Protocol)는 네트워크 장비들이 <strong>오류를 알리거나 네트워크 상태를 진단</strong>하기 위해 사용하는 제어 프로토콜이다.</p>
+
+<p>대표적으로 다음과 같은 기능을 수행한다.</p>
+
+<ul>
+  <li>Echo Request / Echo Reply (Ping)</li>
+  <li>Destination Unreachable</li>
+  <li>Time Exceeded (Traceroute)</li>
+  <li>Redirect</li>
+  <li>Fragmentation Needed (PMTU Discovery)</li>
+</ul>
+
+<p>즉, Ping은 ICMP의 여러 메시지 타입 중 하나일 뿐이며 ICMP 자체가 Ping 전용 프로토콜은 아니다.</p>
+
+<h3 id="왜-ping을-차단할까">왜 Ping을 차단할까?</h3>
+
+<p>Ping을 차단한다고 해서 서버가 숨겨지는 것은 아니다.</p>
+
+<p>다만 외부 공격자가 서버를 탐색(Reconnaissance)하기 어렵게 만드는 효과가 있다.</p>
+
+<p>대표적인 이유는 다음과 같다.</p>
+
+<ul>
+  <li>서버의 존재 여부를 쉽게 노출하지 않기 위해</li>
+  <li>Ping Sweep과 같은 대량 정찰을 어렵게 하기 위해</li>
+  <li>ICMP Flood 공격의 영향을 줄이기 위해</li>
+  <li>필요한 서비스 포트만 외부에 노출하기 위해</li>
+</ul>
+
+<p>특히 금융권이나 클라우드 환경에서는 ICMP Echo를 기본적으로 차단하는 경우가 많다.</p>
+
+<h3 id="실제-운영-환경-사례">실제 운영 환경 사례</h3>
+
+<h4 id="aws-ec2">AWS EC2</h4>
+
+<p>AWS EC2는 기본 Security Group에서 ICMP Echo(Ping)를 허용하지 않는다.</p>
+
+<p>따라서 서버가 정상적으로 동작하더라도 SSH나 HTTP는 접속되지만 Ping에는 응답하지 않을 수 있다.</p>
+
+<h4 id="microsoft-azure">Microsoft Azure</h4>
+
+<p>Azure 역시 기본적으로 외부 ICMP를 허용하지 않는다.</p>
+
+<p>필요한 경우 NSG(Network Security Group)와 운영체제 방화벽에서 별도로 허용해야 한다.</p>
+
+<h4 id="google-cloud">Google Cloud</h4>
+
+<p>Google Cloud도 방화벽 정책을 통해 ICMP를 제어한다.</p>
+
+<p>필요한 경우에만 ICMP 허용 규칙을 추가하는 방식을 권장한다.</p>
+
+<h4 id="ibm-techzone">IBM TechZone</h4>
+
+<p>IBM TechZone 환경에서는 공인 IP에 대한 ICMP Echo 응답을 의도적으로 차단한다.</p>
+
+<p>공식 문서에서도 Ping이 응답하지 않는 것은 정상적인 동작이며, SSH나 서비스 포트로 상태를 확인하도록 안내한다.</p>
+
+<h3 id="ping이-안-된다고-서버가-죽은-것은-아니다">Ping이 안 된다고 서버가 죽은 것은 아니다.</h3>
+
+<p>다음과 같은 상황은 충분히 발생할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ping          : 응답 없음
+TCP 22 (SSH)  : 정상
+TCP 443 (HTTPS): 정상
+</code></pre></div></div>
+
+<p>즉, ICMP만 차단되어 있을 뿐 실제 서비스는 정상적으로 제공되는 경우이다.</p>
+
+<p>실제 장애 여부는 서비스 포트가 정상적으로 응답하는지를 기준으로 판단하는 것이 일반적이다.</p>
+
+<h3 id="정리">정리</h3>
+
+<ul>
+  <li>ICMP는 Ping 전용 프로토콜이 아니다.</li>
+  <li>Ping은 ICMP Echo Request/Reply 기능을 이용한다.</li>
+  <li>ICMP는 오류 보고와 네트워크 진단을 위한 다양한 메시지를 제공한다.</li>
+  <li>운영 환경에서는 보안상의 이유로 ICMP Echo를 차단하는 경우가 많다.</li>
+  <li>Ping이 실패하더라도 서비스 자체는 정상적으로 동작할 수 있다.</li>
+</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="Network" /><summary type="html"><![CDATA[CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 ICMP를 제한하는 사례 메모]]></summary></entry><entry><title type="html">Network Device 3 - L4 Device</title><link href="https://kkr010128.github.io/07-network-device-l4/" rel="alternate" type="text/html" title="Network Device 3 - L4 Device" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/07-network-device-l4</id><content type="html" xml:base="https://kkr010128.github.io/07-network-device-l4/"><![CDATA[<h2 id="device-3--l4-장비">Device 3 ) L4 장비</h2>
 
 <h3 id="개요">개요</h3>
 
@@ -2582,7 +2935,7 @@ area
 
 <h4 id="router3745">Router(3745)</h4>
 <ul>
-  <li><code class="language-plaintext highlighter-rouge">(MacOS)시스템 바의 Edit → Preferences → Dynamips → IOS Routers → New</code></li>
+  <li><code class="language-plaintext highlighter-rouge">(MacOS)시스템 바의 GNS3 → Preferences → Dynamips → IOS Routers → New</code></li>
 </ul>
 
 <p><img src="../../assets/post/2026-08-04-08-network-lab/65.webp" alt="" />
@@ -2658,12 +3011,33 @@ area
 
 <h2 id="실행-모드">실행 모드</h2>
 
-<p>| 프롬프트                 | 설명                           |
-| ——————– | —————————- |
-| <code class="language-plaintext highlighter-rouge">Router&gt;</code>            | User EXEC Mode               |
-| <code class="language-plaintext highlighter-rouge">Router#</code>            | Privileged EXEC Mode         |
-| <code class="language-plaintext highlighter-rouge">Router(config)#</code>    | Global Configuration Mode    |
-| <code class="language-plaintext highlighter-rouge">Router(config-if)#</code> | Interface Configuration Mode |</p>
+<table>
+  <thead>
+    <tr>
+      <th>프롬프트</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Router&gt;</code></td>
+      <td>User EXEC Mode</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Router#</code></td>
+      <td>Privileged EXEC Mode</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Router(config)#</code></td>
+      <td>Global Configuration Mode</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Router(config-if)#</code></td>
+      <td>Interface Configuration Mode</td>
+    </tr>
+  </tbody>
+</table>
+
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[계층]
 
 User EXEC
@@ -2674,6 +3048,7 @@ Global Configuration
 ↓
 Interface Configuration
 </code></pre></div></div>
+
 <hr />
 
 <h4 id="모드-전환">모드 전환</h4>
@@ -2855,7 +3230,7 @@ R1 e2/1 ----- R2
 
 <p>라우터의 각 인터페이스는 각각 하나의 독립적인 네트워크이다.</p>
 
-<p>같은 인터페이스에 연결된 장비들은 동일한 네트워크 대역의 IP를 사용해야 한다.</p>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><category term="Cisco" /><category term="GNS3" /><summary type="html"><![CDATA[GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리]]></summary></entry><entry><title type="html">Network Device 1 - Switch</title><link href="https://kkr010128.github.io/05-network-device-switch/" rel="alternate" type="text/html" title="Network Device 1 - Switch" /><published>2026-08-03T00:00:00+09:00</published><updated>2026-08-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/05-network-device-switch</id><content type="html" xml:base="https://kkr010128.github.io/05-network-device-switch/"><![CDATA[<h1 id="device-1--switch">Device 1 ) Switch</h1>
+<p>같은 인터페이스에 연결된 장비들은 동일한 네트워크 대역의 IP를 사용해야 한다.</p>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><category term="Cisco" /><category term="GNS3" /><summary type="html"><![CDATA[GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리]]></summary></entry><entry><title type="html">Network Device 1 - Switch</title><link href="https://kkr010128.github.io/05-network-device-switch/" rel="alternate" type="text/html" title="Network Device 1 - Switch" /><published>2026-08-03T00:00:00+09:00</published><updated>2026-08-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/05-network-device-switch</id><content type="html" xml:base="https://kkr010128.github.io/05-network-device-switch/"><![CDATA[<h2 id="device-1--switch">Device 1 ) Switch</h2>
 <hr />
 <h3 id="장비-동작">장비 동작</h3>
 
@@ -3672,7 +4047,7 @@ Web1 Web2
 
 <p>하지만 일정 규모 이상의 네트워크에서 운영되는 스위치는 <strong>관리 목적</strong>으로 IP 주소를 할당한다.</p>
 
-<p>Telnet, SSH, Web과 같은 원격 관리 서비스를 이용하기 위해 IP 주소를 할당하며, 실제 운영 환경에서는 대부분의 스위치에 IP 주소를 할당한다.</p>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지]]></summary></entry><entry><title type="html">Network Device 2 - Router</title><link href="https://kkr010128.github.io/06-network-device-router/" rel="alternate" type="text/html" title="Network Device 2 - Router" /><published>2026-08-03T00:00:00+09:00</published><updated>2026-08-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/06-network-device-router</id><content type="html" xml:base="https://kkr010128.github.io/06-network-device-router/"><![CDATA[<h1 id="device-2--router--l3-switch">Device 2 ) Router / L3 Switch</h1>
+<p>Telnet, SSH, Web과 같은 원격 관리 서비스를 이용하기 위해 IP 주소를 할당하며, 실제 운영 환경에서는 대부분의 스위치에 IP 주소를 할당한다.</p>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지]]></summary></entry><entry><title type="html">Network Device 2 - Router</title><link href="https://kkr010128.github.io/06-network-device-router/" rel="alternate" type="text/html" title="Network Device 2 - Router" /><published>2026-08-03T00:00:00+09:00</published><updated>2026-08-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/06-network-device-router</id><content type="html" xml:base="https://kkr010128.github.io/06-network-device-router/"><![CDATA[<h2 id="device-2--router--l3-switch">Device 2 ) Router / L3 Switch</h2>
 
 <hr />
 
@@ -3962,367 +4337,649 @@ Web1 Web2
     <li>Metric 비교</li>
     <li>가장 적합한 경로를 라우팅 테이블에 저장</li>
   </ol>
-</blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing]]></summary></entry><entry><title type="html">Network Protocol</title><link href="https://kkr010128.github.io/03-network-protocol/" rel="alternate" type="text/html" title="Network Protocol" /><published>2026-07-31T00:00:00+09:00</published><updated>2026-07-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-network-protocol</id><content type="html" xml:base="https://kkr010128.github.io/03-network-protocol/"><![CDATA[<p>목적지 Address를 기준으로 구분</p>
+</blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing]]></summary></entry><entry><title type="html">Network Protocol</title><link href="https://kkr010128.github.io/03-network-protocol/" rel="alternate" type="text/html" title="Network Protocol" /><published>2026-07-31T00:00:00+09:00</published><updated>2026-07-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-network-protocol</id><content type="html" xml:base="https://kkr010128.github.io/03-network-protocol/"><![CDATA[<h2 id="1-네트워크-통신-방식">1. 네트워크 통신 방식</h2>
+
+<h3 id="개요">개요</h3>
+
+<p>네트워크에서 데이터를 전송할 때는 <strong>목적지 주소(Address)</strong> 를 기준으로 통신 방식을 구분한다.</p>
+
+<p>대표적인 통신 방식은 Unicast, Broadcast, Multicast, Anycast의 네 가지이다.</p>
+
+<h3 id="unicast">Unicast</h3>
+
+<p>Unicast는 하나의 송신자가 하나의 수신자와 통신하는 <strong>1:1 통신 방식</strong>이다.</p>
+
+<p>실제 네트워크에서 이루어지는 대부분의 통신이 Unicast 방식으로 수행된다.</p>
+
+<h4 id="특징">특징</h4>
+
 <ul>
-  <li><strong>Unicast</strong>
-    <ul>
-      <li>출발지와 목적지가 <code class="language-plaintext highlighter-rouge">1 : 1</code> 통신</li>
-      <li>실제 사용하는 대다수의 통신</li>
-    </ul>
-  </li>
-  <li><strong>Broadcast</strong>
-    <ul>
-      <li>동일 네트워크에 존재하는 모든 호스트가 목적지</li>
-      <li>목적지 Address가 네트워크 전체로 표기되어 있는 방식</li>
-      <li>Unicast로 통신하기 전에 상대방의 정확한 위치를 알기 위해 사용</li>
-    </ul>
-  </li>
-  <li><strong>Multicast</strong>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">1 : 그룹</code> (multicast를 구독 호스트) 통신</li>
-      <li>하나의 출발지에서 다수의 특정 목적지로 데이터 전송</li>
-      <li>Multicast 그룹 Address를 이용해 해당 그룹에 속한 다수의 호스트로 패킷을 전송하기 위한 통신 방식</li>
-      <li>IPTV • 사내 방송 • 증권 시세 방송 등 다수에게 동시에 같은 내용을 전달할 때 사용
-        <ul>
-          <li>ZOOM 등</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li><strong>Anycast</strong>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">1 : 1</code> 통신 (목적지는 동일 그룹 내의 1개 호스트)</li>
-      <li>다수의 동일 그룹 중 가까운 호스트에서 응답</li>
-      <li>IPv4에서는 일부 기능 구현</li>
-      <li>IPv6에서는 모두 구현 가능</li>
-      <li>Anycast Address가 같은 호스트들 중, 가장 가깝거나 효율적으로 서비스할 수 있는 호스트와 통신함
-        <ul>
-          <li>가장 가까운 DNS 서버 찾을 때 사용</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li><strong>최종 통신은 대부분 <code class="language-plaintext highlighter-rouge">1 : 1</code>로 Unicast 와 Anycast가 동일하나, 통신 가능한 후보자는 서로 다름</strong>
-    <ul>
-      <li>Unicast → 출발지 목적지가 모두 하나씩</li>
-      <li>Anycast → 같은 목적지를 가진 서버가 여러대 → 통신 가능한 다수의 후보군 존재</li>
-    </ul>
-  </li>
-  <li>현재 주로 사용하는 네트워크 주소 체계는 IPv4</li>
-  <li>일부 모바일 네트워크와 IDC 위주로 새로운 IPv6 기반 주소 체계가 사용되고 있음</li>
-  <li>IPv6에는 Broadcast가 없음 → 링크 로컬 Multicast로 대체됨</li>
+  <li>1:1 통신</li>
+  <li>하나의 목적지만 지정</li>
+  <li>가장 일반적으로 사용되는 통신 방식</li>
 </ul>
 
-<h3 id="링크-로컬-멀티캐스트">링크 로컬 멀티캐스트</h3>
+<hr />
+
+<h3 id="broadcast">Broadcast</h3>
+
+<p>Broadcast는 동일한 네트워크에 존재하는 <strong>모든 호스트</strong>를 대상으로 데이터를 전송하는 방식이다.</p>
+
+<p>목적지 주소가 네트워크 전체를 의미하는 Broadcast Address로 설정되며, 동일한 네트워크의 모든 장비가 해당 패킷을 수신한다.</p>
+
+<p>주로 Unicast 통신을 시작하기 전에 상대방의 위치를 확인하기 위해 사용된다.</p>
+
+<h4 id="특징-1">특징</h4>
+
 <ul>
-  <li>같은 물리적 네트워크 안에 있는 특정 그룹의 장치들에게만 데이터 전송</li>
-  <li>
-    <p><strong>Link Local</strong> 
-  → 라우터를 넘어가지 않는 동일한 로컬 네트워크 내의 범위</p>
-  </li>
-  <li><strong>특징</strong>
-    <ul>
-      <li>범위 제한: 데이터가 라우터를 통과 못하므로 오직 같은 스위치나 허브에 연결된 장치들끼리만 통신 가능</li>
-      <li>네트워크 상의 장치들이 서로를 찾거나 자동으로 설정을 주고 받을 때 사용</li>
-      <li>Broadcast와 달리 해당 데이터를 받기로 설정된 그룹 멤버들에게만 전달되어 불필요한 트래픽을 줄임</li>
-    </ul>
-  </li>
-  <li><strong>사용 사례</strong>
-    <ul>
-      <li>
-        <p>IPv6 에서는 Broadcast가 존재하지 않음
-  → Link Local Multicast를 이용해 구현</p>
-      </li>
-      <li>Address 자동 설정(SLAAC)
-        <ul>
-          <li>장치가 네트워크 접속하자마자 자신의 존재를 알리거나 중복 주소를 확인할 때 사용</li>
-        </ul>
-      </li>
-      <li>인근 장치 탐색 (Neighbor Discovery)
-        <ul>
-          <li>IPv4의 ARP 대신 상대방의 MAC Address 를 알아내기 위해 Multicast 메시지를 보냄</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
+  <li>1:N 통신</li>
+  <li>동일한 네트워크 전체가 목적지</li>
+  <li>상대 장비 탐색에 사용</li>
+  <li>라우터를 넘어 전달되지 않음</li>
 </ul>
+
+<hr />
+
+<h3 id="multicast">Multicast</h3>
+
+<p>Multicast는 하나의 송신자가 특정 그룹에 속한 여러 장비와 통신하는 <strong>1:그룹 통신 방식</strong>이다.</p>
+
+<p>Multicast Group Address를 이용하여 해당 그룹에 가입한 호스트에게만 데이터를 전달한다.</p>
+
+<p>동일한 데이터를 여러 사용자에게 동시에 전송해야 하는 서비스에서 많이 사용된다.</p>
+
+<h4 id="특징-2">특징</h4>
+
+<ul>
+  <li>1:그룹 통신</li>
+  <li>Multicast Group 기반</li>
+  <li>동일한 데이터를 여러 사용자에게 동시에 전달</li>
+</ul>
+
+<h4 id="활용-사례">활용 사례</h4>
+
+<ul>
+  <li>IPTV</li>
+  <li>사내 방송</li>
+  <li>증권 시세 전송</li>
+  <li>화상 회의(Zoom 등)</li>
+</ul>
+
+<hr />
+
+<h3 id="anycast">Anycast</h3>
+
+<p>Anycast는 동일한 서비스를 제공하는 여러 서버 가운데 <strong>가장 가까운 하나의 서버</strong>와 통신하는 방식이다.</p>
+
+<p>최종적으로는 1:1 통신이 이루어지지만, 동일한 Anycast Address를 사용하는 여러 서버 중 가장 효율적인 서버가 응답한다.</p>
+
+<p>IPv4에서는 일부 기능만 구현되어 있으며, IPv6에서는 Anycast를 정식으로 지원한다.</p>
+
+<h4 id="특징-3">특징</h4>
+
+<ul>
+  <li>최종 통신은 1:1</li>
+  <li>동일한 서비스를 제공하는 여러 서버 존재</li>
+  <li>가장 가까운 서버가 응답</li>
+</ul>
+
+<p>대표적인 활용 사례는 DNS 서버 선택이다.</p>
+
+<hr />
+
+<h3 id="unicast와-anycast-비교">Unicast와 Anycast 비교</h3>
+
+<p>최종 통신은 모두 1:1이지만 통신 대상의 선정 방식에는 차이가 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Unicast</th>
+      <th>Anycast</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>통신 대상</td>
+      <td>하나의 목적지</td>
+      <td>동일 서비스를 제공하는 여러 후보 중 하나</td>
+    </tr>
+    <tr>
+      <td>목적지</td>
+      <td>하나</td>
+      <td>여러 후보</td>
+    </tr>
+    <tr>
+      <td>최종 통신</td>
+      <td>1:1</td>
+      <td>1:1</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h3 id="ipv4와-ipv6">IPv4와 IPv6</h3>
+
+<p>현재 가장 많이 사용하는 주소 체계는 IPv4이다.</p>
+
+<p>최근에는 모바일 네트워크와 IDC(Internet Data Center)를 중심으로 IPv6 도입이 확대되고 있다.</p>
+
+<p>IPv6에서는 IPv4와 달리 <strong>Broadcast가 존재하지 않는다.</strong></p>
+
+<p>Broadcast 대신 <strong>Link Local Multicast</strong>를 이용하여 필요한 장비에게만 데이터를 전달한다.</p>
+
+<hr />
+
+<h3 id="link-local-multicast">Link Local Multicast</h3>
+
+<p>Link Local Multicast는 동일한 물리적 네트워크에 연결된 특정 그룹의 장비에게만 데이터를 전달하는 방식이다.</p>
+
+<p><strong>Link Local</strong>이란 라우터를 통과하지 않는 동일한 로컬 네트워크 범위를 의미한다.</p>
+
+<h4 id="특징-4">특징</h4>
+
+<ul>
+  <li>동일한 로컬 네트워크에서만 동작</li>
+  <li>라우터를 통과하지 않음</li>
+  <li>필요한 그룹에게만 데이터 전달</li>
+  <li>Broadcast보다 불필요한 트래픽이 적음</li>
+</ul>
+
+<p>IPv6에서는 다음과 같은 기능을 수행하기 위해 Link Local Multicast를 사용한다.</p>
+
+<h4 id="주소-자동-설정slaac">주소 자동 설정(SLAAC)</h4>
+
+<p>SLAAC(Stateless Address Auto Configuration)는 장비가 네트워크에 연결되면 자동으로 IPv6 주소를 설정하는 기능이다.</p>
+
+<p>이 과정에서 자신의 존재를 알리거나 중복 주소를 검사하기 위해 Link Local Multicast를 사용한다.</p>
+
+<h4 id="neighbor-discovery">Neighbor Discovery</h4>
+
+<p>IPv6에서는 IPv4의 ARP(Address Resolution Protocol)를 사용하지 않는다.</p>
+
+<p>대신 Neighbor Discovery를 이용하여 상대방의 MAC Address를 알아내며, 이 과정에서도 Link Local Multicast가 사용된다.</p>
+
+<hr />
 
 <h3 id="bum-traffic">BUM Traffic</h3>
+
+<p>BUM은 다음 세 가지 트래픽을 의미한다.</p>
+
 <ul>
-  <li>BUM → Broadcast • Unknown Unicast • Multicast
-    <ul>
-      <li>서로 다른 트래픽이지만 네트워크에서의 동작은 유사함</li>
-    </ul>
-  </li>
-  <li>Unknown Unicast?
-  → 목적지 주소는 명시되어 있으나, 스위치가 목적지 MAC 주소를 학습하지 못한 상태의 유니캐스트 트래픽
-  → 목적지 포트를 알 수 없어 수신 포트를 제외한 모든 포트로 플러딩(Flooding)함.
-  → 동작은 브로드캐스트와 유사하지만 목적지 주소는 유니캐스트임.</li>
-  <li>BUM Traffic이 많아지면 네트워크 성능이 저하될 수 있음</li>
-  <li>이더넷 환경에서는 ARP Broadcast를 먼저 보내고 이후 통신을 시작
-  → BUM Traffic 이 많이 발생하지 않음</li>
+  <li>Broadcast</li>
+  <li>Unknown Unicast</li>
+  <li>Multicast</li>
 </ul>
 
-<h2 id="2--mac-address">2 ) MAC Address</h2>
-<hr />
-<h3 id="개요">개요</h3>
-<ul>
-  <li>변경할 수 없도록 하드웨어의 고정돼서 출하되는 주소</li>
-  <li>하드웨어마다 서로 다른 고유의 주소임</li>
-  <li><strong>MAC Address는 일종의 NIC의 주민등록번호</strong> → IP 주소가 택배 주소라면, MAC은 그 주소로 배송된 물건을 받는 <strong>내 집의 실제 위치</strong>로 비유할 수 있음</li>
-  <li><strong>모든 네트워크 장비 업체에서 장비가 출하될 때마다 MAC Address를 할당함</strong>
-  → 매번 Address의 할당 여부 확인 불가
-  → 제조업체 하나에 하나 이상의 주소 풀을 주고, 각 제조업체가 해당 풀 내에서 MAC을 할당함
-      (노나먹자)
-  → 풀을 할당하는 것을 제조사 코드라고 하며 IEEE 국제 기구에서 관리함</li>
-  <li><strong>MAC Address는 48 비트</strong>
-    <ul>
-      <li>16진수 12자리로 표현</li>
-      <li>앞의 24비트 → <code class="language-plaintext highlighter-rouge">OUI</code> (제조사 코드)</li>
-      <li>뒤의 24비트 → UAA (각 제조사에서 자체적 할당하여 각 장비를 구분)</li>
-    </ul>
-  </li>
-  <li><strong>유일하지 않은 MAC Address도 존재함</strong>
-    <ul>
-      <li>UAA가 실수나 의도적으로 중복될 수 있음</li>
-      <li>But, 동일 네트워크에서만 중복되지 않으면 문제 없음</li>
-      <li>서로 다른 네트워크 간 통신은 라우터를 통해 이루어짐.</li>
-      <li>라우터는 패킷을 다른 네트워크로 전달할 때 새로운 이더넷 프레임을 생성함.</li>
-      <li>이 과정에서 출발지 MAC 주소와 목적지 MAC 주소를 다음 홉(Next Hop)에 맞게 변경함.</li>
-      <li>따라서 MAC 주소는 네트워크를 넘어가도 유지되지 않음.</li>
-      <li>반면 IP 주소는 최종 목적지까지 변경되지 않음.</li>
-    </ul>
+<p>이들은 서로 다른 트래픽이지만 네트워크에서는 매우 유사한 방식으로 처리된다.</p>
 
-    <blockquote>
-      <p><strong>MAC 주소는 홉(Hop)마다 변경되고, IP 주소는 종단 간(End-to-End) 유지됨.</strong></p>
-    </blockquote>
-  </li>
+<h4 id="unknown-unicast">Unknown Unicast</h4>
+
+<p>Unknown Unicast는 목적지 MAC Address는 존재하지만 스위치가 아직 해당 MAC Address를 학습하지 못한 상태의 Unicast 트래픽이다.</p>
+
+<p>스위치는 목적지 포트를 알 수 없으므로 수신 포트를 제외한 모든 포트로 Frame을 전달(Flooding)한다.</p>
+
+<p>동작 방식은 Broadcast와 비슷하지만 목적지 주소 자체는 Unicast라는 점이 다르다.</p>
+
+<h4 id="특징-5">특징</h4>
+
+<ul>
+  <li>목적지 MAC은 존재</li>
+  <li>Switch가 MAC Address Table을 아직 학습하지 못함</li>
+  <li>모든 포트로 Flooding 수행</li>
 </ul>
 
-<h3 id="mac-address-변경도-됨">MAC Address 변경도 됨</h3>
-<ul>
-  <li>일반적으로 ROM 형태로 고정돼 출하되므로 NIC에 고정된 주소를 변경하기는 어려움</li>
-  <li>But, 주소 자체도 메모리에 적재 되어 구동 됨
-    <ul>
-      <li>다양한 방법으로 주소를 변경해 동작시킬 수 있음
-        <ul>
-          <li>Windows의 경우 driver 상세에서 변경 기능 제공</li>
-          <li>Linux의 경우 GNU MacChanger 네트워크 설정 파일에 MAC Address 입력 시 변경 가능</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>
+<p>BUM Traffic이 많아질수록 네트워크 전체의 처리량이 증가하여 성능이 저하될 수 있다.</p>
 
-<h3 id="동작">동작</h3>
-<ul>
-  <li>기본 동작 방식
-    <ul>
-      <li>NIC는 자신의 MAC 주소를 가짐</li>
-      <li>전기 신호가 들어오면 2계층에서 데이터 형태로 변환</li>
-      <li>내용 구분 후 도착지 MAC을 확인</li>
-      <li>도착지 MAC이 자신의 MAC과 일치하지 않을 시 폐기함</li>
-      <li>패킷의 목적지 MAC이 자신이거나 Broadcast, Multicast 같은 그룹 Address 면 처리할 주소로 인지
-        <ul>
-          <li>패킷 정보를 상위 계층으로 넘김</li>
-        </ul>
-      </li>
-      <li>도착지 Address가 일치하지 않아 NIC에서 패킷을 자체 폐기하는 경우와 달리
-        <ul>
-          <li>Address, Broadcast Address는 NIC 가 아닌 OS나 애플리케이션에서 처리</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>
+<p>다만 Ethernet 환경에서는 일반적으로 최초 ARP Broadcast 이후에는 MAC Address를 학습하여 Unicast로 통신하므로 BUM Traffic은 지속적으로 발생하지 않는다.</p>
 
 <blockquote>
-  <p><strong>IPv6가 Link Local Multicast를 사용하는 이유</strong></p>
+  <p><strong>정리</strong></p>
+
   <ul>
-    <li>IPv4의 Broadcast는 네트워크의 모든 장치가 수신 여부와 관계없이 패킷을 받아 처리해야 함</li>
-    <li>NIC가 하드웨어 수준에서 처리하지만, 불필요한 패킷이 OS와 Application까지 전달되어 자원 낭비 발생</li>
-    <li>IPv6에서는 Broadcast를 없애고 <strong>Link Local Multicast</strong>로 대체
-→ 필요한 그룹(Multicast Group)에 가입한 장치만 패킷을 수신
-→ 불필요한 트래픽 처리와 자원 낭비를 줄임</li>
+    <li>Unicast는 가장 일반적인 1:1 통신이다.</li>
+    <li>Broadcast는 동일 네트워크 전체를 대상으로 한다.</li>
+    <li>Multicast는 특정 그룹에게만 데이터를 전달한다.</li>
+    <li>Anycast는 동일 서비스를 제공하는 여러 서버 중 가장 가까운 서버와 통신한다.</li>
+    <li>IPv6는 Broadcast 대신 Link Local Multicast를 사용한다.</li>
+    <li>BUM Traffic이 증가하면 네트워크 성능이 저하될 수 있다.</li>
   </ul>
 </blockquote>
 
-<ul>
-  <li><strong>무차별 모드(Promiscuous Mode)</strong>
-    <ul>
-      <li>NIC(Network Interface Card)가 수신한 모든 패킷을 분석할 수 있도록 설정하는 모드임.</li>
-      <li>기본적으로 NIC는 자신의 MAC 주소나 브로드캐스트 주소의 패킷만 처리함.</li>
-      <li>네트워크 모니터링, 디버깅, 패킷 분석 시에는 다른 목적지의 패킷도 확인해야 함.</li>
-      <li>이를 위해 NIC를 무차별 모드로 설정하면 자신의 MAC 주소와 관계없는 패킷도 메모리에 올려 분석할 수 있음.</li>
-      <li>대표적인 애플리케이션으로 Wireshark가 있음.</li>
-    </ul>
-  </li>
-  <li><strong>MAC Address를 여러개 갖는 경우</strong>
-    <ul>
-      <li>MAC은 단말이 아닌 NIC에 종속되므로 단말에 여러 개의 NIC를 장착 시 여러 MAC 주소 소유 가능</li>
-      <li>Multi Layer Switch, Router 같은 장비의 경우 NIC가 여러개임</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="2--ip-address">2 ) IP Address</h2>
 <hr />
+
+<h2 id="2-mac-address">2. MAC Address</h2>
+
+<h3 id="개요-1">개요</h3>
+
+<p>MAC(Media Access Control) Address는 네트워크 인터페이스 카드(NIC)에 부여되는 <strong>물리적 주소(Physical Address)</strong> 이다.</p>
+
+<p>일반적으로 하드웨어가 출하될 때 제조사가 미리 할당하며, 동일한 네트워크에서 장비를 구분하기 위한 고유한 식별자로 사용된다.</p>
+
+<p>강의에서는 <strong>MAC Address는 NIC의 주민등록번호와 같다</strong>고 설명하였다.</p>
+
+<p>IP 주소를 택배를 받을 주소에 비유한다면, MAC Address는 실제로 택배를 받는 집의 위치와 같은 개념이다.</p>
+
+<hr />
+
+<h3 id="mac-address의-구조">MAC Address의 구조</h3>
+
+<p>모든 제조사가 독립적으로 MAC Address를 생성하면 중복 문제가 발생할 수 있다.</p>
+
+<p>이를 방지하기 위해 IEEE가 제조사별 주소 풀을 관리하며, 각 제조사에 고유한 제조사 코드를 할당한다.</p>
+
+<p>MAC Address는 총 <strong>48비트</strong>로 구성된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>크기</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>OUI (Organizationally Unique Identifier)</td>
+      <td>24비트</td>
+      <td>제조사 코드</td>
+    </tr>
+    <tr>
+      <td>UAA (Universally Administered Address)</td>
+      <td>24비트</td>
+      <td>제조사가 장비별로 부여하는 주소</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>일반적으로 16진수 12자리 형태로 표현한다.</p>
+
+<p>예시</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>00:1A:2B:3C:4D:5E
+</code></pre></div></div>
+
+<p>앞의 24비트는 제조사를 의미하고, 뒤의 24비트는 해당 제조사에서 장비를 구분하기 위해 사용한다.</p>
+
+<hr />
+
+<h3 id="mac-address는-항상-유일한가">MAC Address는 항상 유일한가?</h3>
+
+<p>일반적으로는 고유한 주소가 부여되지만 반드시 전 세계에서 유일한 것은 아니다.</p>
+
+<p>제조사의 실수나 의도적인 변경으로 동일한 MAC Address가 존재할 수도 있다.</p>
+
+<p>그러나 동일한 로컬 네트워크에서만 중복되지 않으면 큰 문제가 발생하지 않는다.</p>
+
+<p>그 이유는 Router를 통과할 때마다 새로운 Ethernet Frame이 생성되기 때문이다.</p>
+
+<p>즉,</p>
+
 <ul>
-  <li>OSI 7 계층에서 Address를 갖는 계층은 2 계층과 3 계층</li>
-  <li>3 계층은 논리 Address인 IP Address 사용</li>
-  <li>사용자가 변경 가능한 논리 Address</li>
-  <li>2 부분으로 나뉨
+  <li>MAC Address는 Hop마다 변경된다.</li>
+  <li>IP Address는 최종 목적지까지 유지된다.</li>
+</ul>
+
+<p>이것이 MAC Address와 IP Address의 가장 큰 차이점이다.</p>
+
+<h3 id="mac-address-변경">MAC Address 변경</h3>
+
+<p>일반적으로 MAC Address는 ROM(Read Only Memory)에 저장되어 출하되므로 변경할 수 없는 주소로 알려져 있다.</p>
+
+<p>그러나 실제로는 운영체제가 부팅되면서 MAC Address 정보를 메모리에 적재하여 사용하므로 소프트웨어적으로 변경하여 사용할 수도 있다.</p>
+
+<h4 id="변경-방법">변경 방법</h4>
+
+<ul>
+  <li><strong>Windows</strong>
     <ul>
-      <li>Network Address → 그룹을 의미</li>
-      <li>Host Address → 구별 위함</li>
+      <li>네트워크 어댑터 Driver의 속성에서 MAC Address 변경 기능 제공</li>
+    </ul>
+  </li>
+  <li><strong>Linux</strong>
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">GNU MacChanger</code>와 같은 도구를 사용하거나 네트워크 설정 파일에 MAC Address를 지정하여 변경 가능</li>
     </ul>
   </li>
 </ul>
 
-<h3 id="주소-체계">주소 체계</h3>
-<ul>
-  <li>IPv4
-    <ul>
-      <li>32 비트 체계</li>
-      <li>4개의 옥텟(8비트)로 나뉨</li>
-      <li>각 옥텟은 <code class="language-plaintext highlighter-rouge">.</code>으로 구분하여 10진수로 표현</li>
-      <li>Network와 Host 주소로 구분, 크기 설정이 가능함</li>
-    </ul>
-  </li>
-  <li>IPv6는 128 bit</li>
-</ul>
+<hr />
 
-<h3 id="ipv4-classful">IPv4 Classful</h3>
-<ul>
-  <li>필요한 호스트 IP 개수에 따라 네트워크 크기를 다르게 할 수 있는 클래스 개념 도입</li>
-  <li><code class="language-plaintext highlighter-rouge">A, B, C, D, E</code> 5개의 클래스로 구분</li>
-</ul>
+<h3 id="mac-address의-동작">MAC Address의 동작</h3>
+
+<p>NIC(Network Interface Card)는 자신의 MAC Address를 기준으로 수신한 Frame을 처리할지 여부를 결정한다.</p>
+
+<h4 id="기본-동작-과정">기본 동작 과정</h4>
 
 <ol>
-  <li><strong>A Class: 0.0.0.0 ~ 127.255.255.255</strong>
-    <ul>
-      <li>호스트 개수가 <code class="language-plaintext highlighter-rouge">256 * 256 * 256</code></li>
-      <li>0.0.0.0 / 8</li>
-      <li>1.0.0.0 / 8</li>
-    </ul>
-  </li>
-  <li><strong>B Class: 128.0.0.0 ~ 191.255.255.255</strong>
-    <ul>
-      <li>호스트 개수가 <code class="language-plaintext highlighter-rouge">256 * 256</code></li>
-      <li>128.0.0.0 / 16</li>
-      <li>128.1.0.0 / 16</li>
-    </ul>
-  </li>
-  <li><strong>C Class: 192.0.0.0 ~ 223.255.255.255</strong>
-    <ul>
-      <li>호스트 개수가 <code class="language-plaintext highlighter-rouge">256</code></li>
-      <li>192.0.0.0 / 24</li>
-      <li>192.0.1.0 / 24</li>
-    </ul>
-  </li>
-  <li><strong>D Class: 224.0.0.0 ~ 239.255.255.255</strong>
-    <ul>
-      <li>Multicast 용</li>
-    </ul>
-  </li>
-  <li><strong>E Class: 240.0.0.0 ~ 255.255.255.255</strong>
-    <ul>
-      <li>예비</li>
-    </ul>
-  </li>
+  <li>전기 신호를 수신한다.</li>
+  <li>2계층에서 Frame 형태로 변환한다.</li>
+  <li>목적지 MAC Address를 확인한다.</li>
+  <li>자신의 MAC Address와 비교한다.</li>
+  <li>주소가 일치하면 상위 계층으로 전달한다.</li>
+  <li>주소가 일치하지 않으면 NIC에서 폐기한다.</li>
 </ol>
 
-<h3 id="subnet-mask">SubNet Mask</h3>
+<p>다만 다음과 같은 경우에는 자신의 MAC Address가 아니더라도 처리 대상으로 인식한다.</p>
+
 <ul>
-  <li>네트워크 규모를 나타내기 위한 표현법</li>
-  <li>동일한 주소를 사용하는 영역을 1로 표시 → 비트 수나 IPv4 형태로 표현</li>
-  <li><code class="language-plaintext highlighter-rouge">192.168.0.0/24</code> 또는 <code class="language-plaintext highlighter-rouge">192.168.0.0 255.255.255.0</code> 의 형태로 표현</li>
-  <li>위 네트워크의 의미는 <code class="language-plaintext highlighter-rouge">192.168.0</code>까지 동일하면 같은 네트워크로 간주
-    <ul>
-      <li>이 크기가 주소 대역 별로 고정 돼 있는 방식을 <strong>Classful</strong>이라고 함</li>
-    </ul>
-  </li>
-  <li>0과 1을 반대로 치환해 사용하는 것을 <strong>와일드 마스크</strong>라고 함</li>
-  <li>와일드 마스크는 방화벽에서 사용</li>
+  <li>Broadcast Address</li>
+  <li>Multicast Address</li>
 </ul>
 
-<h3 id="ip-주소-부족">IP 주소 부족</h3>
+<p>이 경우 NIC는 Frame을 운영체제(OS)로 전달하며, 이후 실제 처리는 OS나 애플리케이션에서 수행한다.</p>
+
+<hr />
+
+<h3 id="ipv6와-link-local-multicast">IPv6와 Link Local Multicast</h3>
+
+<p>IPv4에서는 Broadcast를 이용하여 네트워크 전체에 패킷을 전달한다.</p>
+
+<p>하지만 Broadcast는 모든 장비가 패킷을 수신하고 처리 여부를 확인해야 하므로 불필요한 자원 사용이 발생한다.</p>
+
+<p>IPv6에서는 이러한 문제를 해결하기 위해 Broadcast를 제거하고 <strong>Link Local Multicast</strong>를 사용한다.</p>
+
+<p>필요한 Multicast Group에 가입한 장비만 패킷을 수신하므로 네트워크 트래픽과 시스템 자원 사용을 줄일 수 있다.</p>
+
+<hr />
+
+<h3 id="무차별-모드-promiscuous-mode">무차별 모드 (Promiscuous Mode)</h3>
+
+<p>무차별 모드(Promiscuous Mode)는 NIC가 자신의 MAC Address와 관계없이 <strong>모든 패킷을 수신하여 분석</strong>할 수 있도록 하는 동작 모드이다.</p>
+
+<p>기본적으로 NIC는 자신의 MAC Address나 Broadcast, Multicast 패킷만 처리한다.</p>
+
+<p>그러나 패킷 분석이나 네트워크 모니터링을 위해서는 다른 장비의 패킷도 확인해야 하는 경우가 있다.</p>
+
+<p>이때 NIC를 Promiscuous Mode로 설정하면 모든 Frame을 메모리로 전달하여 분석할 수 있다.</p>
+
+<p>대표적인 활용 사례는 <strong>Wireshark</strong>와 같은 패킷 분석 프로그램이다.</p>
+
+<hr />
+
+<h3 id="여러-개의-mac-address">여러 개의 MAC Address</h3>
+
+<p>MAC Address는 장비가 아니라 <strong>NIC에 종속되는 주소</strong>이다.</p>
+
+<p>따라서 하나의 장비에 여러 개의 NIC가 장착되어 있다면 NIC마다 각각 다른 MAC Address를 가진다.</p>
+
+<p>대표적인 예는 다음과 같다.</p>
+
 <ul>
-  <li>인터넷 상용화에 따라 연결되는 호스트가 폭발적으로 증가</li>
-  <li>기존 Classful 방식으로는 감당 불가능</li>
-  <li><strong>해결책</strong>
+  <li>Router</li>
+  <li>Multi Layer Switch</li>
+  <li>다중 NIC를 사용하는 서버</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>MAC Address는 제조사가 부여하는 48비트 물리 주소이다.</li>
+    <li>앞의 24비트는 제조사(OUI), 뒤의 24비트는 장비 식별(UAA)에 사용된다.</li>
+    <li>MAC Address는 Hop마다 변경되고, IP Address는 종단 간 유지된다.</li>
+    <li>Promiscuous Mode에서는 모든 Frame을 분석할 수 있다.</li>
+    <li>MAC Address는 NIC마다 하나씩 존재한다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h2 id="3-ip-address">3. IP Address</h2>
+
+<h3 id="개요-2">개요</h3>
+
+<p>OSI 7계층에서 주소를 사용하는 계층은 2계층과 3계층이다.</p>
+
+<p>2계층에서는 MAC Address를 사용하고, 3계층에서는 <strong>IP(Internet Protocol) Address</strong>를 사용한다.</p>
+
+<p>IP Address는 사용자가 환경에 맞게 변경할 수 있는 <strong>논리적 주소(Logical Address)</strong> 이며, 네트워크를 구분하고 호스트를 식별하기 위해 사용된다.</p>
+
+<p>IP Address는 크게 두 부분으로 구성된다.</p>
+
+<ul>
+  <li>Network Address</li>
+  <li>Host Address</li>
+</ul>
+
+<p>Network Address는 동일한 네트워크를 의미하며, Host Address는 해당 네트워크 안에서 개별 장비를 구분한다.</p>
+
+<hr />
+
+<h3 id="주소-체계">주소 체계</h3>
+
+<h4 id="ipv4">IPv4</h4>
+
+<p>IPv4는 32비트 주소 체계를 사용한다.</p>
+
+<p>32비트는 8비트씩 네 개의 옥텟(Octet)으로 구성되며, 각 옥텟은 <code class="language-plaintext highlighter-rouge">.</code>으로 구분하여 10진수 형태로 표현한다.</p>
+
+<p>예시</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.10.1
+</code></pre></div></div>
+
+<p>IPv4는 Network Address와 Host Address를 구분하여 사용할 수 있다.</p>
+
+<hr />
+
+<h4 id="ipv6">IPv6</h4>
+
+<p>IPv6는 128비트 주소 체계를 사용한다.</p>
+
+<p>IPv4의 주소 부족 문제를 해결하기 위해 등장했으며, 현재 일부 모바일 네트워크와 IDC를 중심으로 사용이 확대되고 있다.</p>
+
+<hr />
+
+<h3 id="classful-주소-체계">Classful 주소 체계</h3>
+
+<p>초기의 IPv4는 필요한 호스트 수에 따라 네트워크를 A, B, C, D, E 다섯 개의 클래스로 구분하였다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Class</th>
+      <th>주소 범위</th>
+      <th>용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>A</td>
+      <td>0.0.0.0 ~ 127.255.255.255</td>
+      <td>대규모 네트워크</td>
+    </tr>
+    <tr>
+      <td>B</td>
+      <td>128.0.0.0 ~ 191.255.255.255</td>
+      <td>중규모 네트워크</td>
+    </tr>
+    <tr>
+      <td>C</td>
+      <td>192.0.0.0 ~ 223.255.255.255</td>
+      <td>소규모 네트워크</td>
+    </tr>
+    <tr>
+      <td>D</td>
+      <td>224.0.0.0 ~ 239.255.255.255</td>
+      <td>Multicast</td>
+    </tr>
+    <tr>
+      <td>E</td>
+      <td>240.0.0.0 ~ 255.255.255.255</td>
+      <td>예약</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>각 클래스는 고정된 네트워크 크기를 사용하였다.</p>
+
+<p>예를 들어 Class C는 <code class="language-plaintext highlighter-rouge">/24</code> 네트워크를 사용하며 일반적인 사설 네트워크에서 가장 많이 볼 수 있는 형태이다.</p>
+
+<hr />
+
+<h3 id="subnet-mask">Subnet Mask</h3>
+
+<p>Subnet Mask는 하나의 IP Address에서 어디까지가 Network Address이고 어디부터 Host Address인지를 나타내는 값이다.</p>
+
+<p>다음 두 표현은 동일한 의미이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.0.0/24
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.0.0 255.255.255.0
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">/24</code>는 앞의 24비트가 Network Address임을 의미한다.</p>
+
+<p>즉, <code class="language-plaintext highlighter-rouge">192.168.0</code>까지 동일하면 같은 네트워크로 판단한다.</p>
+
+<p>초기의 Classful 방식에서는 클래스마다 Subnet Mask 크기가 고정되어 있었다.</p>
+
+<hr />
+
+<h3 id="wildcard-mask">Wildcard Mask</h3>
+
+<p>Wildcard Mask는 Subnet Mask의 0과 1을 반대로 표현한 형태이다.</p>
+
+<p>주로 ACL(Access Control List)이나 방화벽 정책을 설정할 때 사용된다.</p>
+
+<hr />
+
+<h3 id="ipv4-주소-부족">IPv4 주소 부족</h3>
+
+<p>인터넷이 급속도로 보급되면서 IPv4 주소는 빠르게 부족해지기 시작했다.</p>
+
+<p>기존의 Classful 주소 체계만으로는 증가하는 장비를 모두 수용하기 어려웠다.</p>
+
+<p>이를 해결하기 위해 다음과 같은 기술이 등장하였다.</p>
+
+<ul>
+  <li>CIDR(Classless Inter-Domain Routing)</li>
+  <li>NAT(Network Address Translation)</li>
+  <li>Private IP</li>
+  <li>IPv6</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>IP Address는 사용자가 변경 가능한 논리 주소이다.</li>
+    <li>IP는 Network Address와 Host Address로 구성된다.</li>
+    <li>IPv4는 32비트, IPv6는 128비트 주소 체계를 사용한다.</li>
+    <li>IPv4 주소 부족 문제를 해결하기 위해 CIDR, NAT, IPv6 등이 등장하였다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="cidr-classless-inter-domain-routing">CIDR (Classless Inter-Domain Routing)</h3>
+
+<p>CIDR(Classless Inter-Domain Routing)은 IPv4 주소 부족 문제를 해결하기 위해 등장한 주소 체계이다.</p>
+
+<p>기존 Classful 방식은 클래스별로 네트워크 크기가 고정되어 있어 많은 IP 주소가 낭비되는 문제가 있었다.</p>
+
+<p>CIDR은 서브넷 마스크의 크기를 자유롭게 지정하여 필요한 만큼만 네트워크를 할당할 수 있도록 한다.</p>
+
+<h4 id="서브네팅과-슈퍼네팅">서브네팅과 슈퍼네팅</h4>
+
+<p>CIDR에서는 네트워크를 분할하거나 병합하여 사용할 수 있다.</p>
+
+<ul>
+  <li><strong>서브네팅(Subnetting)</strong>
     <ul>
-      <li><strong>CIDR (Classless Inter Domain Routing)</strong> 기반의 Address 체계</li>
-      <li><strong>NAT</strong>와 <strong>Private IP</strong> Address</li>
-      <li><strong>IPv6</strong></li>
+      <li>하나의 큰 네트워크를 여러 개의 작은 네트워크로 분할하는 방식</li>
+    </ul>
+  </li>
+  <li><strong>슈퍼네팅(Supernetting, Route Summarization)</strong>
+    <ul>
+      <li>여러 개의 네트워크를 하나의 큰 네트워크로 묶는 방식</li>
+      <li>라우터에서 여러 경로를 하나의 경로로 광고할 때 주로 사용한다.</li>
     </ul>
   </li>
 </ul>
 
-<h3 id="cidr">CIDR</h3>
+<h4 id="실무에서-고려하는-사항">실무에서 고려하는 사항</h4>
+
+<p><strong>사용자 관점</strong></p>
+
 <ul>
-  <li><strong>등장 배경</strong>
-    <ul>
-      <li>IPv4의 주소 고갈 문제를 해결하기 위해 등장</li>
-      <li>Classful을 이용 시 IP 주소가 낭비됨</li>
-      <li>서브넷 마스크의 크기를 자유롭게 사용</li>
-    </ul>
-  </li>
-  <li><strong>서브네팅</strong>과 <strong>슈퍼네팅</strong> (Route Summarization)
-    <ul>
-      <li>서브네팅 → 기본 Classful 방식의 네트워크를 <strong>분할</strong>해서 사용</li>
-      <li>슈퍼네팅 → 기본 Classful 방식의 네트워크를 <strong>병합</strong>해서 사용
-        <ul>
-          <li>라우터에서 네트워크를 병합하여 광고하기 위해 주로 사용</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>실무에서 고려해야 할 부분
-    <ul>
-      <li><strong>네트워크 사용자 입장</strong>
-        <ul>
-          <li>네트워크에서 사용할 수 있는 IP 범위 파악</li>
-          <li>기본 게이트웨이와 서브넷 마스크 설정이 제대로 되어 있는지 확인</li>
-        </ul>
-      </li>
-      <li><strong>네트워크 설계자 입장</strong>
-  → 네트워크 설계 시 네트워크 내 필요한 단말을 고려한 네트워크 범위 설계</li>
-    </ul>
-  </li>
+  <li>사용할 수 있는 IP 범위를 확인한다.</li>
+  <li>기본 게이트웨이(Default Gateway)와 Subnet Mask가 올바르게 설정되어 있는지 확인한다.</li>
 </ul>
+
+<p><strong>네트워크 설계자 관점</strong></p>
+
+<ul>
+  <li>네트워크에 연결될 단말 수를 고려하여 적절한 네트워크 크기를 설계한다.</li>
+</ul>
+
+<hr />
 
 <h3 id="public-ip와-private-ip">Public IP와 Private IP</h3>
+
+<p>인터넷에서 통신하려면 전 세계에서 유일한 IP Address가 필요하다.</p>
+
+<p>그러나 내부 네트워크에서는 전 세계적으로 유일한 주소가 필요하지 않으므로 Private IP를 사용할 수 있다.</p>
+
+<h4 id="public-ip">Public IP</h4>
+
 <ul>
-  <li>외부와 통신을 하려면 IP Address가 있어야 함</li>
-  <li>IP Address는 네트워크 내에서 유일무이해야 함</li>
-  <li>인터넷을 하고자 할 때는 전 세계 네트워크에서 유일무이한 주소를 사용해야 함
-    <ul>
-      <li>인터넷을 사용하지 않는 곳은 세계에서 유일무이한 IP 주소를 가질 필요가 없음</li>
-    </ul>
-  </li>
-  <li><strong>Private IP</strong> → 외부 네트워크에서 사용하지 않고 내부 네트워크에서만 사용 가능한 IP
-    <ul>
-      <li>Private IP를 사용하면 기본적으로 인터넷에 접속할 수 없지만 <strong>NAT</strong> 장비를 이용하면 접속 가능</li>
-      <li>Private IP 대역
-        <ul>
-          <li><code class="language-plaintext highlighter-rouge">10.0.0.0/8</code>: <code class="language-plaintext highlighter-rouge">10.0.0.0 ~ 10.255.255.255</code></li>
-          <li><code class="language-plaintext highlighter-rouge">172.16.0.0/12</code>: <code class="language-plaintext highlighter-rouge">172.16.0.0 ~ 172.31.255.255</code></li>
-          <li><code class="language-plaintext highlighter-rouge">192.168.0.0/16</code>: <code class="language-plaintext highlighter-rouge">192.168.0.0 ~ 192.168.255.255</code></li>
-        </ul>
-      </li>
-      <li>IP 공유기에서는 <code class="language-plaintext highlighter-rouge">192.168.0.0/24</code>를 주로 이용</li>
-      <li>모바일 디바이스는 <code class="language-plaintext highlighter-rouge">10.</code> 대역이나 <code class="language-plaintext highlighter-rouge">172.16</code> 대역을 주로 이용</li>
-    </ul>
-  </li>
+  <li>인터넷에서 유일한 주소</li>
+  <li>외부 네트워크와 직접 통신 가능</li>
 </ul>
 
-<h4 id="bogon-ip">Bogon IP</h4>
+<h4 id="private-ip">Private IP</h4>
+
 <ul>
-  <li>IP 주소를 할당하는 최상위 기구인 <strong>IANA</strong>가 여러 목적으로 예약해서 Public IP로 할당되지 않는 IP</li>
-  <li>인터넷에서 동작하는 라우터에 해당 IP 정보가 없음</li>
-  <li>Bogon IP로 통신 시도가 있었다면 <strong>IP Spoofing</strong> (IP 주소 변조)했거나 실수로 할당된 IP를 사용한 경우이므로 적절히 필터링하는 것이 좋음</li>
+  <li>내부 네트워크에서만 사용하는 주소</li>
+  <li>NAT(Network Address Translation)를 통해 인터넷에 접속할 수 있다.</li>
 </ul>
+
+<p>Private IP 대역은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>주소 대역</th>
+      <th>범위</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">10.0.0.0/8</code></td>
+      <td><code class="language-plaintext highlighter-rouge">10.0.0.0 ~ 10.255.255.255</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">172.16.0.0/12</code></td>
+      <td><code class="language-plaintext highlighter-rouge">172.16.0.0 ~ 172.31.255.255</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.0/16</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.0 ~ 192.168.255.255</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>일반적인 가정용 공유기는 <code class="language-plaintext highlighter-rouge">192.168.0.0/24</code> 대역을 많이 사용하며, 모바일 네트워크에서는 <code class="language-plaintext highlighter-rouge">10.x.x.x</code> 또는 <code class="language-plaintext highlighter-rouge">172.16.x.x</code> 대역을 사용하는 경우가 많다.</p>
+
+<hr />
+
+<h3 id="bogon-ip">Bogon IP</h3>
+
+<p>Bogon IP는 IANA(Internet Assigned Numbers Authority)가 예약하여 일반적인 Public IP로 할당되지 않는 주소 대역이다.</p>
+
+<p>인터넷 라우터에는 이러한 주소에 대한 경로가 존재하지 않는다.</p>
+
+<p>따라서 외부에서 Bogon IP를 이용한 통신이 발생하면 다음과 같은 가능성을 의심할 수 있다.</p>
+
+<ul>
+  <li>IP Spoofing</li>
+  <li>잘못된 주소 설정</li>
+</ul>
+
+<p>실무에서는 이러한 주소를 방화벽 등에서 필터링하는 경우가 많다.</p>
 
 <table>
   <thead>
@@ -4342,15 +4999,15 @@ Web1 Web2
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">100.64.0.0/10</code></td>
-      <td>통신 사업자가 Private IP 할당용</td>
+      <td>통신사업자 CGNAT</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">127.0.0.0/8</code></td>
-      <td>Loopback 주소</td>
+      <td>Loopback</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">127.0.53.53</code></td>
-      <td>네임 충돌 발생</td>
+      <td>Name Collision</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">169.254.0.0/16</code></td>
@@ -4362,31 +5019,27 @@ Web1 Web2
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">192.0.0.0/24</code></td>
-      <td>IETF 프로토콜 할당</td>
+      <td>IETF 예약</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">192.0.2.0/24</code></td>
-      <td>테스트 용</td>
+      <td>테스트용</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">192.168.0.0/16</code></td>
       <td>Private Network</td>
     </tr>
     <tr>
-      <td><code class="language-plaintext highlighter-rouge">192.168.0.0/15</code></td>
-      <td>네트워크 인터커넥트 디바이스 벤치마크 테스트</td>
-    </tr>
-    <tr>
       <td><code class="language-plaintext highlighter-rouge">198.51.100.0/24</code></td>
-      <td>테스트 용</td>
+      <td>테스트용</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">203.0.113.0/24</code></td>
-      <td>테스트 용</td>
+      <td>테스트용</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">224.0.0.0/4</code></td>
-      <td>멀티캐스트 용</td>
+      <td>Multicast</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">240.0.0.0/4</code></td>
@@ -4394,114 +5047,234 @@ Web1 Web2
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">255.255.255.255/32</code></td>
-      <td>브로드캐스트</td>
+      <td>Broadcast</td>
     </tr>
   </tbody>
 </table>
 
-<h4 id="ip-주소-발신지-확인-방법">IP 주소 발신지 확인 방법</h4>
-<ul>
-  <li>IP Address를 보고 발신자의 신원이나 소속된 조직 이름을 확인할 수 있음</li>
-  <li><strong>Whois</strong>나 <strong>KISA</strong>에서 서비스를 제공</li>
-</ul>
-
-<h2 id="3-tcp--udp">3) TCP &amp; UDP</h2>
 <hr />
 
-<h3 id="4계층-프로토콜과-서비스-포트">4계층 프로토콜과 서비스 포트</h3>
+<h3 id="ip-주소-발신지-확인">IP 주소 발신지 확인</h3>
+
+<p>IP Address를 이용하면 해당 주소를 할당받은 기관이나 조직을 확인할 수 있다.</p>
+
+<p>대표적으로 다음 서비스를 사용한다.</p>
+
 <ul>
-  <li>4계층에서는 <strong>Sequence Number</strong>, <strong>ACK Number</strong> 등이 사용됨</li>
-  <li>2계층 → 이더 타입 / 3계층 → 프로토콜 번호 / 4계층 → 포트 번호가 상위 프로토콜 지시자</li>
-  <li>TCP/IP 스택에서는 <strong>TCP</strong>와 <strong>UDP</strong>가 담당</li>
-  <li>4계층의 목적
-  → 목적지를 찾아가는 주소가 아니라 <strong>애플리케이션에서 사용하는 프로세스를 정확히 찾아가고</strong>
-  → 데이터를 분할한 패킷을 잘 쪼개 보내고 잘 조립하는 것</li>
-  <li>실제 통신 시 목적지와 출발지 모두 포트 번호가 설정됨
-    <ul>
-      <li>일반적으로 이야기하는 포트는 <strong>목적지의 포트 번호</strong></li>
-    </ul>
-  </li>
+  <li>Whois</li>
+  <li>KISA WHOIS</li>
 </ul>
 
-<h4 id="port-range">Port Range</h4>
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>CIDR은 Classful 주소 체계의 비효율성을 해결하기 위해 등장하였다.</li>
+    <li>CIDR에서는 서브네팅과 슈퍼네팅을 이용해 주소 공간을 효율적으로 관리한다.</li>
+    <li>Public IP는 인터넷에서 사용되고 Private IP는 내부 네트워크에서 사용된다.</li>
+    <li>Bogon IP는 일반적인 인터넷 통신에 사용되지 않는 예약 주소이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h2 id="4-tcp--udp">4. TCP &amp; UDP</h2>
+
+<h3 id="개요-3">개요</h3>
+
+<p>TCP(Transmission Control Protocol)와 UDP(User Datagram Protocol)는 OSI 7계층의 <strong>전송 계층(Transport Layer)</strong> 에서 동작하는 대표적인 프로토콜이다.</p>
+
+<p>전송 계층은 목적지 장비를 찾는 것이 아니라 <strong>장비 내부의 애플리케이션(프로세스)</strong> 을 정확하게 찾아 데이터를 전달하는 역할을 수행한다.</p>
+
+<p>또한 데이터를 여러 개의 패킷으로 분할하여 전송하고, 수신 측에서 올바르게 재조립할 수 있도록 관리한다.</p>
+
+<hr />
+
+<h3 id="서비스-포트">서비스 포트</h3>
+
+<p>TCP/IP 스택에서는 계층마다 상위 프로토콜을 구분하기 위한 식별자를 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>계층</th>
+      <th>식별 정보</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>2계층</td>
+      <td>Ether Type</td>
+    </tr>
+    <tr>
+      <td>3계층</td>
+      <td>Protocol Number</td>
+    </tr>
+    <tr>
+      <td>4계층</td>
+      <td>Port Number</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>실제 통신에서는 출발지와 목적지 모두 포트 번호를 사용하지만, 일반적으로 포트 번호라고 하면 목적지 포트를 의미한다.</p>
+
+<hr />
+
+<h3 id="port-range">Port Range</h3>
+
+<p>포트 번호는 크게 세 가지 범위로 구분된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>범위</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Well Known Port</td>
+      <td><code class="language-plaintext highlighter-rouge">0 ~ 1023</code></td>
+      <td>IANA가 예약한 표준 서비스</td>
+    </tr>
+    <tr>
+      <td>Registered Port</td>
+      <td><code class="language-plaintext highlighter-rouge">1024 ~ 49151</code></td>
+      <td>일반 애플리케이션 등록용</td>
+    </tr>
+    <tr>
+      <td>Dynamic / Private Port</td>
+      <td><code class="language-plaintext highlighter-rouge">49152 ~ 65535</code></td>
+      <td>임시 포트, 클라이언트에서 주로 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>대표적인 Well Known Port는 다음과 같다.</p>
+
 <ul>
-  <li><strong>Well Known Port</strong> (<code class="language-plaintext highlighter-rouge">0 ~ 1023</code>)
-    <ul>
-      <li>HTTP TCP <code class="language-plaintext highlighter-rouge">80</code>, HTTPS TCP <code class="language-plaintext highlighter-rouge">443</code>, SMTP TCP <code class="language-plaintext highlighter-rouge">25</code> 등 IANA에 등록된 잘 알려진 포트</li>
-    </ul>
-  </li>
-  <li><strong>Registered Port</strong> (<code class="language-plaintext highlighter-rouge">1024 ~ 49151</code>)
-    <ul>
-      <li>다양한 애플리케이션에 포트 번호를 할당하기 위한 범위</li>
-      <li>신청하면 아무 포트 번호나 할당</li>
-    </ul>
-  </li>
-  <li><strong>Private / 임시 Port</strong> (<code class="language-plaintext highlighter-rouge">49152 ~ 65535</code>)
-    <ul>
-      <li>자동 할당되거나 사설 용도로 할당</li>
-      <li>클라이언트의 임시 포트 번호로 사용</li>
-      <li>쿠버네티스에서는 <code class="language-plaintext highlighter-rouge">30000 ~ 32767</code>을 <strong>Node Port</strong>라고 별도 용도로 할당</li>
-    </ul>
-  </li>
+  <li>HTTP : TCP 80</li>
+  <li>HTTPS : TCP 443</li>
+  <li>SMTP : TCP 25</li>
 </ul>
 
-<h3 id="tcp-프로토콜">TCP 프로토콜</h3>
+<p>쿠버네티스(Kubernetes)는 <code class="language-plaintext highlighter-rouge">30000 ~ 32767</code> 범위를 NodePort 용도로 사용한다.</p>
+
+<hr />
+
+<h3 id="tcp">TCP</h3>
+
+<p>TCP는 <strong>연결 지향(Connection-Oriented)</strong> 전송 프로토콜이다.</p>
+
+<p>데이터가 정확하게 전달되는 것이 중요한 대부분의 서비스에서 사용된다.</p>
+
+<p>대표적인 예는 다음과 같다.</p>
+
 <ul>
-  <li><strong>연결 지향</strong> 전송 계층 프로토콜</li>
-  <li><strong>신뢰성</strong>이 중요한 대부분의 통신에서 사용
-  → HTTP/HTTPS, SSH, SMTP, FTP, 데이터베이스 연결</li>
-  <li><strong>3-way Handshake로 연결 확립</strong>
-  → 통신 전에 클라이언트와 서버가 SYN, SYN-ACK, ACK 세 단계로 연결을 확인
-  → 마치 악수를 하기 전에 “악수할까요?”, “네, 합시다”, “좋아요” 라고 확인하는 과정과 유사</li>
+  <li>HTTP</li>
+  <li>HTTPS</li>
+  <li>SSH</li>
+  <li>SMTP</li>
+  <li>FTP</li>
+  <li>Database 연결</li>
 </ul>
 
-<h4 id="패킷-순서--응답-번호">패킷 순서 &amp; 응답 번호</h4>
+<h4 id="3-way-handshake">3-Way Handshake</h4>
+
+<p>TCP는 통신을 시작하기 전에 연결을 먼저 설정한다.</p>
+
+<p>연결 과정은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client               Server
+
+SYN -------------&gt;
+
+      &lt;------------- SYN + ACK
+
+ACK --------------&gt;
+</code></pre></div></div>
+
+<p>총 세 번의 메시지를 교환하므로 <strong>3-Way Handshake</strong>라고 한다.</p>
+
+<hr />
+
+<h3 id="sequence-number와-ack">Sequence Number와 ACK</h3>
+
+<p>데이터를 여러 개의 패킷으로 나누어 전송하면 순서가 바뀌거나 일부가 유실될 수 있다.</p>
+
+<p>이를 해결하기 위해 TCP는 다음 정보를 사용한다.</p>
+
 <ul>
-  <li>분할된 패킷을 잘 분할하고 수신 측이 잘 조합하도록 패킷에 순서를 주고 응답 번호를 부여</li>
-  <li>패킷에 순서를 부여하는 것이 <strong>시퀀스 번호</strong>, 응답 번호를 부여하는 것이 <strong>ACK</strong></li>
-  <li>이 번호를 확인해서 순서가 바뀌거나 중간에 패킷이 손실된 것을 파악 가능</li>
+  <li>Sequence Number</li>
+  <li>ACK(Acknowledgement Number)</li>
 </ul>
 
-<h4 id="윈도-사이즈와-슬라이딩-윈도우">윈도 사이즈와 슬라이딩 윈도우</h4>
+<p>Sequence Number는 패킷의 순서를 나타내고, ACK는 정상적으로 수신한 패킷을 확인하는 번호이다.</p>
+
+<p>이를 통해 패킷 유실이나 순서 변경을 감지할 수 있다.</p>
+
+<hr />
+
+<h3 id="window-size와-sliding-window">Window Size와 Sliding Window</h3>
+
+<p>패킷을 하나씩 보내고 응답을 기다리면 전송 효율이 매우 떨어진다.</p>
+
+<p>TCP는 여러 개의 패킷을 한 번에 전송한 후 ACK를 받는 방식을 사용한다.</p>
+
 <ul>
-  <li>TCP에서 패킷을 하나씩 주고받아 검사하면 오버헤드가 크므로 한 번에 여러 개의 패킷을 보내고 ACK를 받는 방법을 선택</li>
-  <li>한 번에 보내는 패킷의 개수 → <strong>윈도 사이즈</strong></li>
-  <li>여러 개의 데이터를 한꺼번에 전송하는 방식 → <strong>슬라이딩 윈도우</strong></li>
-  <li>슬라이딩 윈도우 구현 방식
-    <ul>
-      <li>정적으로 크기를 정하는 방식</li>
-      <li>에러 발생 여부에 따라 동적으로 크기를 변경하는 방식</li>
-    </ul>
-  </li>
+  <li>한 번에 전송 가능한 패킷 수 → <strong>Window Size</strong></li>
+  <li>여러 패킷을 연속으로 전송하는 방식 → <strong>Sliding Window</strong></li>
 </ul>
 
-<h3 id="udp-프로토콜">UDP 프로토콜</h3>
+<p>Sliding Window는 네트워크 상태에 따라 크기를 고정하거나 동적으로 조절할 수 있다.</p>
+
+<h3 id="udp">UDP</h3>
+
+<p>UDP(User Datagram Protocol)는 TCP와 달리 신뢰성 보장을 위한 기능을 최소화한 전송 계층 프로토콜이다.</p>
+
+<p>연결을 설정하지 않고 데이터를 전송하므로 처리 과정이 단순하며 지연 시간이 짧다.</p>
+
+<h4 id="특징-6">특징</h4>
+
 <ul>
-  <li>4계층 프로토콜이 가져야 하는 특징이 거의 없음</li>
-  <li>TCP와 달리 <strong>신뢰성 있는 통신을 위한 기능이 없음</strong>
-    <ul>
-      <li>연결 확립 절차 없음 (3방향 핸드셰이크 불필요)</li>
-      <li>시퀀스 번호, ACK 번호, 윈도우 사이즈, 플래그 없음</li>
-      <li>데이터 유실 발생이나 순서 변경 시 복구 불가</li>
-    </ul>
-  </li>
-  <li><strong>제한된 용도로만 사용</strong>
-    <ul>
-      <li>음성 데이터나 실시간 스트리밍 같이 시간에 민감한 프로토콜이나 애플리케이션</li>
-      <li>사내 방송이나 증권 시세 데이터 전송에 사용되는 멀티캐스트처럼 단방향으로 다수의 단말과 통신해서 응답을 받기 어려운 환경</li>
-      <li>중간에 데이터가 몇 개쯤 유실되는 것보다 재전송을 위해 잠시 멈추는 것이 더 큰 문제가 되는 서비스</li>
-    </ul>
-  </li>
-  <li><em>하지만</em> 동영상 전송 방식 중 <strong>넷플릭스나 유튜브</strong>와 같이 시간에 민감하지 않은 단일 시청자를 위한 연결은 <strong>TCP</strong>를 사용
-  → 원활한 시청을 위해 수 초~수 분의 동영상 데이터를 미리 캐시에 저장</li>
+  <li>연결 설정 과정(3-Way Handshake)이 없다.</li>
+  <li>Sequence Number를 사용하지 않는다.</li>
+  <li>ACK를 사용하지 않는다.</li>
+  <li>재전송 기능이 없다.</li>
+  <li>흐름 제어 및 오류 제어 기능이 없다.</li>
 </ul>
+
+<p>즉, 데이터가 손실되거나 순서가 바뀌어도 이를 복구하지 않는다.</p>
+
+<h4 id="사용되는-환경">사용되는 환경</h4>
+
+<p>UDP는 신뢰성보다 <strong>실시간성</strong>이 중요한 서비스에서 사용된다.</p>
+
+<p>대표적인 예는 다음과 같다.</p>
+
+<ul>
+  <li>음성 통화</li>
+  <li>실시간 스트리밍</li>
+  <li>IPTV</li>
+  <li>사내 방송</li>
+  <li>증권 시세 전송</li>
+  <li>Multicast 기반 서비스</li>
+</ul>
+
+<p>이러한 서비스는 일부 패킷이 손실되더라도 재전송으로 인해 지연이 발생하는 것이 더 큰 문제가 된다.</p>
+
+<p>반대로 넷플릭스나 유튜브와 같은 일반적인 동영상 서비스는 일정량의 데이터를 미리 버퍼링할 수 있으므로 TCP를 사용한다.</p>
+
+<hr />
 
 <h3 id="tcp와-udp-비교">TCP와 UDP 비교</h3>
 
 <table>
   <thead>
     <tr>
-      <th> </th>
+      <th>구분</th>
       <th>TCP</th>
       <th>UDP</th>
     </tr>
@@ -4514,707 +5287,28 @@ Web1 Web2
     </tr>
     <tr>
       <td>오류 제어</td>
-      <td>수행함</td>
-      <td>수행하지 않음</td>
+      <td>지원</td>
+      <td>지원하지 않음</td>
     </tr>
     <tr>
       <td>흐름 제어</td>
-      <td>수행함 (속도 조절)</td>
-      <td>수행하지 않음</td>
+      <td>지원</td>
+      <td>지원하지 않음</td>
     </tr>
     <tr>
       <td>전송 방식</td>
-      <td>유니캐스트</td>
-      <td>유니캐스트, 멀티캐스트, 브로드캐스트</td>
+      <td>Unicast</td>
+      <td>Unicast, Broadcast, Multicast</td>
     </tr>
     <tr>
       <td>통신 방식</td>
-      <td>Full Duplex (동시에 주고받기 가능)</td>
-      <td>Half Duplex (어느 순간에는 한쪽만 전송)</td>
+      <td>Full Duplex</td>
+      <td>Half Duplex</td>
     </tr>
     <tr>
-      <td>사용처</td>
-      <td>일반적인 데이터 전송</td>
-      <td>실시간 트래픽 전송</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="4-arp-address-resolution-protocol">4) ARP (Address Resolution Protocol)</h2>
-<hr />
-
-<h3 id="개요-1">개요</h3>
-<ul>
-  <li>OSI 7계층 중 <strong>2계층(MAC)</strong> 과 <strong>3계층(IP)</strong> 이 주소를 가지고 있으나 두 주소 사이에는 아무런 관계가 없음</li>
-  <li>MAC Address는 하드웨어 생산업체가 임의적으로 할당한 주소로 NIC에 종속</li>
-  <li>IP 주소는 직접 할당하거나 <strong>DHCP</strong>를 이용해 자동 할당</li>
-  <li>일반적으로 통신은 IP 주소 기반으로 일어나지만 실제 데이터 전송을 위해 상대방의 <strong>MAC 주소</strong>를 알아내야 함</li>
-  <li>상대방의 MAC 주소를 알아내기 위해 사용되는 프로토콜 → <strong>ARP (Address Resolution Protocol)</strong>
-  → 비유하자면, IP 주소는 “서울시 강남구 123번지”라는 주소이고, MAC 주소는 “그 건물 안의 특정 호실”
-  → ARP는 “강남구 123번지 사는 분, 몇 호실이세요?”라고 <strong>네트워크 전체에 방송</strong>하는 것과 같음</li>
-  <li>ARP는 TCP/IP 프로토콜 스택만을 위해서 동작하는 것은 아님</li>
-</ul>
-
-<h3 id="arp-동작-방식">ARP 동작 방식</h3>
-<ul>
-  <li>통신을 시도할 때 출발지와 목적지 <strong>IP 주소</strong>는 알고 있어 캡슐화 가능</li>
-  <li><em>하지만</em> 상대방의 <strong>MAC 주소</strong>를 알 수 없어 2계층 캡슐화를 할 수 없음</li>
-  <li>상대방의 MAC 주소를 알아내려면 <strong>ARP 브로드캐스트</strong>를 이용해 네트워크 전체에 질의</li>
-  <li>브로드캐스트를 받은 목적지들은 ARP 프로토콜을 이용해 자신의 MAC 주소를 응답</li>
-  <li>이 작업이 완료되면 캡슐화를 진행해서 데이터를 전송</li>
-</ul>
-
-<h3 id="arp-테이블">ARP 테이블</h3>
-<ul>
-  <li>패킷 네트워크에서는 큰 데이터를 잘라 여러 개의 패킷을 전송</li>
-  <li>매 패킷마다 ARP 브로드캐스트를 수행하면 효율성 저하</li>
-  <li>메모리에 ARP 정보를 <strong>테이블 형태</strong>로 저장해두고 재사용</li>
-  <li><code class="language-plaintext highlighter-rouge">arp -a</code> 명령으로 ARP 테이블 정보 확인 가능</li>
-  <li>성능 유지를 위해 ARP 테이블을 오래 유지하는 것이 좋음</li>
-  <li><em>하지만</em> 논리 주소는 언제든지 바뀔 수 있으므로 일정 시간 통신이 없으면 테이블 삭제</li>
-  <li>네트워크 장비에서는 ARP 요청을 CPU에서 직접 수행 → 짧은 시간에 많은 요청이 오면 큰 부하
-    <ul>
-      <li>해커들이 ARP를 이용한 공격을 많이 수행</li>
-      <li>장비는 ARP 저장 기간을 PC보다 길게 설정하고 많은 요청을 필터링하거나 천천히 처리</li>
-      <li>일부 장비는 ARP 테이블을 수동으로만 갱신하도록 설정</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="garp-gratuitous-arp">GARP (Gratuitous ARP)</h3>
-<ul>
-  <li>ARP의 대상자 IP 필드에 <strong>자신의 IP 주소</strong>를 채워서 ARP 요청을 보내는 것</li>
-  <li>자신의 IP 주소와 MAC Address를 알리는 것이 목적</li>
-  <li><strong>용도</strong>
-    <ul>
-      <li>IP 주소 충돌 감지</li>
-      <li>상대방의 ARP 테이블 갱신</li>
-      <li><strong>HA (고가용성)</strong> 용도의 클러스터링</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="rarp-reverse-arp">RARP (Reverse ARP)</h3>
-<ul>
-  <li><strong>Reverse ARP</strong></li>
-  <li>자신의 MAC 주소는 알지만 IP 주소가 없어 서버에게 IP 할당을 요청할 때 사용</li>
-  <li>과거에 네트워크 호스트의 주소 할당에 사용되었지만 제한된 기능으로 인해 <strong>BOOTP</strong>와 <strong>DHCP</strong>로 대체</li>
-  <li>현재는 거의 사용되지 않음</li>
-</ul>
-
-<h2 id="5-subnet--gateway">5) Subnet &amp; Gateway</h2>
-<hr />
-
-<h3 id="게이트웨이-gateway">게이트웨이 (Gateway)</h3>
-<ul>
-  <li>원격 네트워크 통신은 네트워크를 넘어 전달할 수 없는 <strong>브로드캐스트</strong>의 성질 때문에 네트워크 장비의 도움이 필요</li>
-  <li>이 장비를 <strong>Gateway</strong>라고 함
-  → 게이트웨이는 <strong>네트워크의 출입문</strong> 역할
-  → 비유: 아파트 단지 정문 — 같은 단지 내에서는 자유롭게 다닐 수 있지만, 다른 단지로 가려면 반드시 정문(Gateway)을 거쳐야 함</li>
-  <li>게이트웨이에 대한 정보를 PC나 네트워크 장비에 설정하는 항목 → <strong>Default Gateway</strong></li>
-</ul>
-
-<h3 id="proxy-arp">Proxy ARP</h3>
-<ul>
-  <li>ARP를 대행해주는 기능</li>
-  <li>기본 게이트웨이에 <strong>Proxy ARP</strong>를 활성화하면 원격지 통신이더라도 로컬에 ARP 브로드캐스트를 보내서 통신 가능</li>
-  <li>라우터에 기본으로 활성화되어 있어 사용자 몰래 동작하는 경우가 많음</li>
-</ul>
-
-<h3 id="subnet">Subnet</h3>
-<ul>
-  <li>현재 통신이 <strong>로컬 통신</strong>인지 <strong>원격 통신</strong>인지를 알 수 있도록 해주는 것</li>
-</ul>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[MAC 주소, IP 주소, TCP/UDP, ARP, 서브넷 등 OSI 7계층 기반 네트워크 통신 핵심 프로토콜 정리]]></summary></entry><entry><title type="html">Network Technology</title><link href="https://kkr010128.github.io/04-network-technology/" rel="alternate" type="text/html" title="Network Technology" /><published>2026-07-31T00:00:00+09:00</published><updated>2026-07-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/04-network-technology</id><content type="html" xml:base="https://kkr010128.github.io/04-network-technology/"><![CDATA[<h2 id="1-nat--pat">1) NAT &amp; PAT</h2>
-<hr />
-
-<h3 id="개요">개요</h3>
-<ul>
-  <li><strong>NAT (Network Address Translation)</strong> → 하나의 네트워크 주소를 다른 하나의 네트워크 주소로 변환하는 기술</li>
-  <li>정적 NAT는 1:1 변환을 수행하며, 동적 NAT와 PAT(NAPT)는 여러 내부 주소를 효율적으로 변환하는 방식이다.
-    <ul>
-      <li>공식 용어는 <strong>NAPT (Network Address Port Translation)</strong></li>
-      <li>실무에서는 대부분 <strong>PAT</strong>라고 함</li>
-    </ul>
-  </li>
-  <li><strong>비유</strong>: 회사의 <strong>대표번호(Public IP)</strong> 와 <strong>내선번호(Private IP)</strong>
-    <ul>
-      <li>외부에서 회사로 전화 걸 때는 대표번호로만 연결됨</li>
-      <li>내부에서는 각 직원이 내선번호를 가지고 있고, 교환원(NAT)이 대표번호로 온 전화를 적절한 내선으로 연결해줌</li>
-      <li>반대로 직원이 외부로 전화할 때도 교환원을 통해 대표번호로 나가게 됨</li>
-    </ul>
-  </li>
-  <li>일반적으로 <strong>Public IP</strong>를 <strong>Private IP</strong>로 변환하거나 <strong>Private IP</strong>를 <strong>Public IP</strong>로 변환
-    <ul>
-      <li>Public IP → Public IP 또는 Private IP → Private IP 변환도 가능</li>
-    </ul>
-  </li>
-  <li>IPv4 주소를 IPv6로 변환하거나 반대로 변환하는 기술인 <strong>AFT (Address Family Translation)</strong> 도 NAT의 일종</li>
-</ul>
-
-<h3 id="용도">용도</h3>
-<h4 id="ipv4-주소-고갈-문제의-솔루션">IPv4 주소 고갈 문제의 솔루션</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>전략</th>
-      <th>내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>단기 전략</td>
-      <td><strong>Subnetting (Classless)</strong></td>
-    </tr>
-    <tr>
-      <td>중기 전략</td>
-      <td><strong>NAT</strong>와 <strong>Private IP</strong> 주소 체계</td>
-    </tr>
-    <tr>
-      <td>장기 전략</td>
-      <td><strong>IPv6</strong></td>
-    </tr>
-  </tbody>
-</table>
-
-<ul>
-  <li>외부에 공개해야 하는 서비스 → <strong>Public IP</strong> 사용</li>
-  <li>외부에 공개할 필요 없는 일반 사용자 PC나 기타 종단 장비 → <strong>Private IP</strong> 사용</li>
-  <li>필요한 곳에만 효율적으로 IP를 사용할 수 있게 함</li>
-</ul>
-
-<h4 id="보안-강화">보안 강화</h4>
-<ul>
-  <li>외부와 통신 시 내부 IP를 다른 IP로 변환하면 외부에 내부 IP 주소 체계를 숨길 수 있음</li>
-  <li>NAT는 주소 변환 후 <strong>역변환</strong>이 정상적으로 수행되어야만 통신 가능
-  → 이 성질을 이용해 복잡한 룰 설정 없이 방향성을 통제 가능
-  → 내부 → 외부 방향 통신은 허용하지만 외부 → 내부로 들어오는 통신은 방어 가능</li>
-</ul>
-
-<h4 id="ip-주소-체계가-같은-두-네트워크-간-통신">IP 주소 체계가 같은 두 네트워크 간 통신</h4>
-<ul>
-  <li>내부 IP 주소 체계가 같은 네트워크 간 통신 시 <strong>Double NAT</strong> 기술을 이용해 통신 가능</li>
-  <li>이런 회사 간의 통신을 <strong>대외계</strong>라고 함</li>
-</ul>
-
-<h4 id="불필요한-설정-변경-감소">불필요한 설정 변경 감소</h4>
-<ul>
-  <li>IP를 직접 설정하는 경우 통신 사업자를 변경하면 내부 네트워크의 모든 IP를 변경해야 함</li>
-  <li>NAT와 <strong>DHCP</strong>를 사용하면 서버에서만 수정하면 단말 IP 변경 불필요</li>
-</ul>
-
-<h3 id="단점">단점</h3>
-<ul>
-  <li>네트워크 운영자 입장에서는 IP가 변환되면 장애 발생 시 문제 해결이 어려움</li>
-  <li>애플리케이션 개발자는 NAT 환경이 대중화되면서 <strong>Port Forwarding</strong> 등 더 많은 고려 사항이 생김</li>
-  <li>IPv6 전환으로 IPv4 주소 부족 문제가 해결되고 있으므로 NAT를 인터넷에서 없애자는 의견도 있음</li>
-  <li>NAT 밑에 있는 단말도 직접 네트워크에 연결하는 <strong>Hole Punching</strong> 기술이 있었으나 애플리케이션이 복잡해져 거의 사용하지 않음</li>
-</ul>
-
-<h3 id="동적-nat와-정적-nat">동적 NAT와 정적 NAT</h3>
-<ul>
-  <li><strong>동적 NAT</strong> → 여러 개의 주소를 만들어두고 그중 하나와 필요할 때 매핑하는 방식</li>
-  <li><strong>정적 NAT</strong> → 미리 1:1로 매핑을 해두고 사용하는 방식</li>
-</ul>
-
-<table>
-  <thead>
-    <tr>
-      <th> </th>
-      <th>동적 NAT</th>
-      <th>정적 NAT</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>설정</td>
-      <td>1:1, 1:N, N:M</td>
-      <td>1:1</td>
-    </tr>
-    <tr>
-      <td>테이블</td>
-      <td>NAT 수행 시 생성</td>
-      <td>사전 생성</td>
-    </tr>
-    <tr>
-      <td>테이블 타임아웃</td>
-      <td>동작함</td>
-      <td>없음</td>
-    </tr>
-    <tr>
-      <td>수행 정보</td>
-      <td>실시간으로 확인</td>
-      <td>별도 필요 없음</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr />
-
-<h2 id="2-dns">2) DNS</h2>
-<hr />
-
-<h3 id="주요-레코드">주요 레코드</h3>
-<ul>
-  <li><strong>DNS는 인터넷의 전화번호부</strong> → 사람이 이해하기 어려운 IP 주소(예: <code class="language-plaintext highlighter-rouge">192.0.2.1</code>) 대신 <code class="language-plaintext highlighter-rouge">www.example.com</code> 같은 도메인 이름으로 통신할 수 있게 해줌</li>
-</ul>
-
-<h4 id="a-record-ipv4">A Record (IPv4)</h4>
-<ul>
-  <li>기본 레코드로 <strong>도메인 주소 → IP 주소</strong>로 변환</li>
-  <li>사용자가 DNS에 질의한 도메인 주소를 A 레코드에 설정된 IP 주소로 응답</li>
-  <li>하나의 A 레코드에는 <strong>한 개의 도메인 주소</strong>와 <strong>한 개의 IP 주소</strong>가 1:1로 매핑
-    <ul>
-      <li>동일한 도메인을 가진 A 레코드를 여러 개 만들어 서로 다른 IP 주소와 매핑 가능</li>
-      <li>다수의 도메인에 동일한 IP를 매핑한 A 레코드 생성 가능</li>
-    </ul>
-  </li>
-  <li>서버 한 대에 여러 웹 서비스를 구동해야 한다면 여러 도메인에 동일한 IP를 매핑하고 <strong>HTTP 헤더의 HOST 필드</strong>에 도메인을 명시해 웹 서버를 구분</li>
-</ul>
-
-<h4 id="aaaa-record-ipv6">AAAA Record (IPv6)</h4>
-<ul>
-  <li>IPv6 체계에서 사용되는 레코드</li>
-</ul>
-
-<h4 id="cname-canonical-name-record">CNAME (Canonical Name) Record</h4>
-<ul>
-  <li><strong>별명</strong>을 사용할 수 있도록 해주는 레코드</li>
-  <li>A 레코드는 IP 주소를 매핑하지만 CNAME은 <strong>도메인을 매핑</strong></li>
-  <li>DNS Server가 CNAME 레코드에 대한 질의를 받으면 CNAME에 해당하는 도메인 정보를 확인하고 그 도메인 정보를 내부적으로 다시 질의한 결과 IP 값을 응답</li>
-  <li><strong>예시</strong>
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">adam.net</code>과 <code class="language-plaintext highlighter-rouge">www.adam.net</code>이라는 도메인을 같은 IP에 연결하려는 경우</li>
-      <li>A 레코드만 사용하면 2개의 도메인을 각각 IP에 연결해야 함</li>
-      <li>IP 변경 시 2개 도메인의 A Record를 모두 수정해야 함</li>
-      <li><code class="language-plaintext highlighter-rouge">adam.net</code> → A 레코드로 IP 연결, <code class="language-plaintext highlighter-rouge">www.adam.net</code> → CNAME Record로 <code class="language-plaintext highlighter-rouge">adam.net</code>에 연결</li>
-      <li>IP 변경 시 <code class="language-plaintext highlighter-rouge">adam.net</code>의 A 레코드만 수정하면 됨</li>
-    </ul>
-  </li>
-</ul>
-
-<h4 id="soa-start-of-authority-record">SOA (Start Of Authority) Record</h4>
-<ul>
-  <li>도메인 영역에 대한 <strong>권한</strong>을 나타내는 레코드</li>
-  <li>현재 네임 서버가 이 도메인 영역에 대한 관리 주체임을 의미
-  → 해당 도메인에 대해 다른 네임 서버에 질의하지 않고 직접 응답</li>
-  <li>도메인 영역 선언 시 <strong>필수 항목</strong></li>
-  <li>SOA 레코드를 만들지 않으면 해당 도메인은 네임 서버에서 정상적으로 동작 불가
-    <ul>
-      <li>Public Cloud에서는 도메인을 구입하면 이 레코드를 자동 생성</li>
-    </ul>
-  </li>
-</ul>
-
-<h4 id="ns-name-server-record">NS (Name Server) Record</h4>
-<ul>
-  <li>도메인에 대한 권한이 있는 <strong>네임 서버 정보</strong>를 설정하는 레코드</li>
-</ul>
-
-<h4 id="mx-mail-exchange-record">MX (Mail eXchange) Record</h4>
-<ul>
-  <li><strong>메일 서버</strong>를 구성할 때 사용되는 레코드</li>
-</ul>
-
-<h4 id="ptr-pointer-record">PTR (Pointer) Record</h4>
-<ul>
-  <li><strong>IP 주소</strong>에 대한 질의를 <strong>도메인 주소</strong>로 응답하기 위한 레코드</li>
-  <li>주로 <strong>화이트 도메인</strong> 구성용으로 사용</li>
-</ul>
-
-<h4 id="txt-text-record">TXT (TeXT) Record</h4>
-<ul>
-  <li>도메인에 대한 간단한 텍스트를 입력할 수 있는 레코드</li>
-  <li>화이트 도메인을 위한 레코드</li>
-</ul>
-
-<h3 id="ttl-time-to-live">TTL (Time To Live)</h3>
-<ul>
-  <li>DNS에 질의해 응답받은 결괏값을 <strong>캐시에서 유지하는 시간</strong></li>
-  <li>요청해서 도메인을 해석하면 그 내용을 캐시에 유지
-  → 다음 요청 시 DNS Server에 질의하지 않고 캐시 내용 사용
-  → <strong>비유</strong>: 도서관에 한 번 가서 책 정보를 메모해두면, 다음에 또 갈 필요 없이 메모지를 보는 것과 같음</li>
-  <li>캐시 유지 시간 = <strong>TTL</strong></li>
-</ul>
-
-<h3 id="한글-도메인">한글 도메인</h3>
-<ul>
-  <li>한글 도메인 사용 가능</li>
-  <li>한글 도메인 신청 시 한글을 직접 사용하면 안 되고 <strong>퓨니코드</strong>를 이용해 등록</li>
-</ul>
-
-<h3 id="gslb-global-serverservice-load-balancing">GSLB (Global Server/Service Load Balancing)</h3>
-<ul>
-  <li><strong>DNS Load Balancing</strong>을 위한 기술</li>
-  <li>DNS Load Balancing → 하나의 도메인에 여러 개의 IP를 설정해 요청이 올 때 부하를 분산</li>
-  <li><em>하지만</em> 도메인에 여러 개의 컴퓨터 IP를 설정한다고 자동으로 동작하지 않음
-  → 특정 컴퓨터가 동작 중인지 확인하지 못하기 때문</li>
-  <li><strong>GSLB</strong>는 연결된 서비스가 정상적인지 <strong>헬스 체크</strong>를 수행해서 정상적인 레코드에만 반응</li>
-  <li>Intelligence DNS라고도 함</li>
-</ul>
-
-<h2 id="3--dhcp">3 ) DHCP</h2>
-<hr />
-<h3 id="개요-1">개요</h3>
-<ul>
-  <li><strong>정적 할당</strong> → IP와 네트워크 정보를 직접 설정하는 것
-    <ul>
-      <li>데이터센터의 서버팜과 같은 운영망에서 사용</li>
-    </ul>
-  </li>
-  <li><strong>직접 할당</strong> → 자동으로 설정하는 것
-    <ul>
-      <li>일반적인 PC 사용자들이 사용</li>
-    </ul>
-  </li>
-</ul>
-
-<blockquote>
-  <p>보안 또는 관리 목적으로 사용자 PC를 정적할당으로 이용하는 경우가 있었으나,</p>
-
-  <p>최근에는 동적 할당 방식을 이용하면서도 보안을 강화하고 쉽게 관리 가능하게 하는 서비스와 장비가 대중화되어 동적할당 방식이 더 많이 사용됨</p>
-
-</blockquote>
-
-<ul>
-  <li>Public Cloud에서 컴퓨터를 임대하는 경우 기본적으로 동적 할당임 → 재부팅 전까지 고정</li>
-  <li>
-    <p>IP를 고정하고자 하는 경우 별도의 IP를 구매해야 함</p>
-
-    <ul>
-      <li>IP를 동적으로 할당할 때 사용되는 프로토콜
-  → DHCP (Dynamic Host Configuration Protocol)</li>
-      <li>DHCP를 사용하면 IP Address, Subnet Mask, 디폴트 게이트웨이, DNS 정보를 자동으로 설정</li>
-      <li>DHCP는 UDP <strong>67(Server)</strong>, <strong>68(Client)</strong> 포트를 사용한다.
-        <ul>
-          <li>UDP로 통신</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>
-
-<p> <br /></p>
-<h3 id="서버-구성">서버 구성</h3>
-<ul>
-  <li>Windows / Linux 서버의 DHCP 서비스를 이용하는 방법과</li>
-  <li>
-    <p>스위치, 라우터, 방화벽, VPN, IP 공유기 등에서도 설정이 가능함</p>
-  </li>
-  <li><strong>설정 항목</strong>
-    <ul>
-      <li><strong>IP 주소 풀</strong> : 클라이언트에게 할당할 IP 주소 범위 
-  → <code class="language-plaintext highlighter-rouge">192.168.200.0/22</code> / 192.168.200.0 ~ 192.168.203.255</li>
-      <li><strong>예외 IP 주소 풀</strong> : IP 주소 풀에서 클라이언트에게 할당하지 않을 주소
-  → <code class="language-plaintext highlighter-rouge">192.168.200.1</code> : Gateway로 사용하기 때문에 클라이언트에게 할당하면 안 됨</li>
-      <li><strong>임대 시간</strong>: 기본 임대 시간</li>
-      <li><strong>서브넷 마스크</strong>: 255.255.252.0</li>
-      <li><strong>게이트웨이</strong>: 192.168.200.1</li>
-      <li><strong>DNS</strong>: 8.8.8.8</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="4--네트워크-명령어">4 ) 네트워크 명령어</h2>
-<hr />
-<h3 id="1-ping">1. Ping</h3>
-<ul>
-  <li>ICMP 프로토콜을 이용해 목적지에 메시지를 전송하고 응답을 받아오는 명령어</li>
-  <li><code class="language-plaintext highlighter-rouge">ping</code>은 목적지 호스트가 정상적으로 동작하는지 확인하고, 출발지와 목적지 사이의 네트워크 연결 상태를 확인하는 명령어이다.</li>
-</ul>
-
-<table>
-  <thead>
-    <tr>
-      <th>기능</th>
-      <th>Windows</th>
-      <th>Linux</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>기본 동작</td>
-      <td>4회 전송 후 종료</td>
-      <td>무한 반복 (Ctrl + C로 종료)</td>
-    </tr>
-    <tr>
-      <td>횟수 지정</td>
-      <td><code class="language-plaintext highlighter-rouge">-n &lt;횟수&gt;</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-c &lt;횟수&gt;</code></td>
-    </tr>
-    <tr>
-      <td>무한 반복</td>
-      <td><code class="language-plaintext highlighter-rouge">-t</code></td>
-      <td>기본 동작 (<code class="language-plaintext highlighter-rouge">ping</code>)</td>
-    </tr>
-    <tr>
-      <td>길이 지정</td>
-      <td><code class="language-plaintext highlighter-rouge">-l &lt;byte&gt;</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-s &lt;byte&gt;</code></td>
-    </tr>
-    <tr>
-      <td>시간 간격</td>
-      <td>미지원</td>
-      <td><code class="language-plaintext highlighter-rouge">-i &lt;sec&gt;</code></td>
-    </tr>
-    <tr>
-      <td>타임 아웃</td>
-      <td><code class="language-plaintext highlighter-rouge">-w &lt;밀리초&gt;</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-W 또는 -t(이건 TTL)</code></td>
-    </tr>
-    <tr>
-      <td>IPv4</td>
-      <td><code class="language-plaintext highlighter-rouge">-4</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-4</code></td>
-    </tr>
-    <tr>
-      <td>IPv6</td>
-      <td><code class="language-plaintext highlighter-rouge">-6</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-6</code></td>
-    </tr>
-    <tr>
-      <td>소스 지정</td>
-      <td><code class="language-plaintext highlighter-rouge">-S</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-l</code></td>
-    </tr>
-    <tr>
-      <td>홉 기록(라우터 개수)</td>
-      <td><code class="language-plaintext highlighter-rouge">-r &lt;횟수&gt;</code></td>
-      <td> </td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p>Linux 에서 되는 기능이면 라우터같은 장비에서도 되는 거임</p>
-
-  <p>시간 간격 명령으로 Health Check이 가능하다.</p>
-</blockquote>
-
-<h4 id="예-windows">예) Windows</h4>
-
-<p>5번만 전송</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-n</span> 5 google.com
-</code></pre></div></div>
-
-<p>계속 전송</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-t</span> google.com
-</code></pre></div></div>
-
-<h4 id="예-linux">예) Linux</h4>
-
-<p>5번만 전송</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-c</span> 5 google.com
-</code></pre></div></div>
-
-<p>계속 전송 (기본 동작)</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping google.com
-</code></pre></div></div>
-
-<blockquote>
-  <p><strong>주의</strong></p>
-
-  <p>Windows의 <code class="language-plaintext highlighter-rouge">-t</code>와 Linux의 <code class="language-plaintext highlighter-rouge">-t</code>는 의미가 다르다.</p>
-
-  <ul>
-    <li><strong>Windows</strong>: <code class="language-plaintext highlighter-rouge">-t</code> → 무한 반복</li>
-    <li><strong>Linux</strong>: <code class="language-plaintext highlighter-rouge">-t</code> → TTL(Time To Live) 값 지정</li>
-  </ul>
-
-  <p>Linux에서는 기본적으로 <code class="language-plaintext highlighter-rouge">ping</code>이 무한 반복되므로 <code class="language-plaintext highlighter-rouge">-t</code> 옵션이 필요 없다.</p>
-</blockquote>
-
-<h3 id="2-tcping-windows"><strong>2. tcping (Windows)</strong></h3>
-<p>ICMP(Internet Control Message Protocol)를 사용하며, 목적지까지 도달하지 못하는 경우 중간 라우터가 반환하는 <strong>ICMP Error Message</strong>를 통해 일부 네트워크 장애나 라우팅 문제를 파악할 수 있다.</p>
-
-<p>하지만 <code class="language-plaintext highlighter-rouge">ping</code>만으로 모든 네트워크 문제를 확인할 수 있는 것은 아니다.</p>
-
-<h4 id="ping의-한계"><strong>ping의 한계</strong></h4>
-
-<ul>
-  <li>목적지 서버가 ICMP Echo Request를 차단하는 경우 응답이 오지 않는다.</li>
-  <li>방화벽이나 보안 정책으로 ICMP가 차단된 경우에도 응답이 없다.</li>
-  <li>따라서 <code class="language-plaintext highlighter-rouge">ping</code>이 실패했다고 해서 반드시 서버가 다운되었거나 네트워크에 문제가 있다고 단정할 수는 없다.</li>
-</ul>
-
-<h4 id="예시"><strong>예시</strong></h4>
-
-<p>대표적으로 <strong>네이버(www.naver.com)</strong> 와 같은 일부 서비스는 보안상의 이유로 ICMP 응답을 차단할 수 있다.</p>
-
-<p>따라서 <code class="language-plaintext highlighter-rouge">ping</code>이 실패하더라도 웹 브라우저에서는 정상적으로 접속되는 경우가 있다.</p>
-
-<h4 id="icmp가-차단된-환경에서는-tcping을-사용하여-특정-서버의-tcp-포트에-연결할-수-있는지-확인할-수-있다">ICMP가 차단된 환경에서는 <code class="language-plaintext highlighter-rouge">tcping</code>을 사용하여 특정 서버의 TCP 포트에 연결할 수 있는지 확인할 수 있다.</h4>
-
-<blockquote>
-  <p><strong>ping을 차단하는 이유</strong></p>
-  <ul>
-    <li>서버 존재 여부를 쉽게 노출하지 않기 위해</li>
-    <li>Host Discovery(서버 탐색)를 어렵게 하기 위해</li>
-    <li>ICMP Flood(Ping Flood) 공격을 완화하기 위해</li>
-    <li>불필요한 ICMP 트래픽을 줄이기 위해</li>
-  </ul>
-</blockquote>
-
-<p><code class="language-plaintext highlighter-rouge">ping</code>이 ICMP 응답 여부를 확인한다면, <code class="language-plaintext highlighter-rouge">tcping</code>은 지정한 TCP 포트로 연결을 시도한다. 따라서 웹 서버의 <code class="language-plaintext highlighter-rouge">80</code>, <code class="language-plaintext highlighter-rouge">443</code> 포트나 데이터베이스 서버의 포트가 실제로 열려 있는지 확인할 때 유용하다.</p>
-
-<p>기본 형식은 다음과 같다.</p>
-
-<pre><code class="language-txt">tcping [옵션] &lt;목적지 주소&gt; [포트 번호]
-</code></pre>
-
-<p>포트 번호를 생략하면 기본적으로 <code class="language-plaintext highlighter-rouge">80</code>번 포트에 연결을 시도한다.</p>
-
-<h4 id="주요-옵션"><strong>주요 옵션</strong></h4>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>옵션</strong></th>
-      <th><strong>설명</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-n &lt;횟수&gt;</code></td>
-      <td>지정한 횟수만큼 연결을 시도한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-t</code></td>
-      <td>사용자가 중단할 때까지 무한히 연결을 시도한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-i &lt;시간&gt;</code></td>
-      <td>연결 시도 사이의 시간 간격을 지정한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">[포트 번호]</code></td>
-      <td>확인할 TCP 포트를 지정한다. 생략하면 기본값은 <code class="language-plaintext highlighter-rouge">80</code>이다.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="사용-예시"><strong>사용 예시</strong></h4>
-
-<p>네이버의 기본 HTTP 포트인 <code class="language-plaintext highlighter-rouge">80</code>번 포트를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping www.naver.com
-</code></pre></div></div>
-
-<p>HTTPS 포트인 <code class="language-plaintext highlighter-rouge">443</code>번 포트를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping www.naver.com 443
-</code></pre></div></div>
-
-<p>5번만 연결을 시도한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping <span class="nt">-n</span> 5 www.naver.com 443
-</code></pre></div></div>
-
-<p>중단할 때까지 계속 연결을 시도한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping <span class="nt">-t</span> www.naver.com 443
-</code></pre></div></div>
-
-<p>연결 시도 사이의 시간 간격을 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcping <span class="nt">-i</span> 2 www.naver.com 443
-</code></pre></div></div>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">ping</code> 성공 → 목적지 호스트가 ICMP에 응답하며 네트워크가 연결되어 있음을 의미한다.</li>
-  <li><code class="language-plaintext highlighter-rouge">ping</code> 실패 → 네트워크 장애 또는 ICMP 차단이 원인일 수 있다.</li>
-  <li><code class="language-plaintext highlighter-rouge">tcping</code> 성공 → 지정한 목적지의 TCP 포트까지 연결할 수 있음을 의미한다.</li>
-  <li><code class="language-plaintext highlighter-rouge">tcping</code> 실패 → 해당 포트가 닫혀 있거나, 서비스가 실행 중이 아니거나, 방화벽이 연결을 차단했을 수 있다.</li>
-  <li>경로 문제 확인에는 <code class="language-plaintext highlighter-rouge">traceroute</code>(Linux) 또는 <code class="language-plaintext highlighter-rouge">tracert</code>(Windows)를 함께 사용한다.</li>
-</ul>
-
-<p><code class="language-plaintext highlighter-rouge">tcping</code>은 Windows 기본 명령어가 아니므로 별도 설치가 필요하다.</p>
-
-<h4 id="티시핑-설치">티시핑 설치</h4>
-
-<ul>
-  <li>공식 홈페이지에서 <code class="language-plaintext highlighter-rouge">tcping.exe</code>를 다운로드한다.</li>
-  <li>다운로드한 <code class="language-plaintext highlighter-rouge">tcping.exe</code>를 <code class="language-plaintext highlighter-rouge">C:\Windows\System32</code>에 복사하면 어느 경로에서나 사용할 수 있다.</li>
-</ul>
-
-<p>다운로드: https://www.elifulkerson.com/projects/tcping.php</p>
-
-<h3 id="2-traceroute--tracert">2. traceroute / tracert</h3>
-
-<h4 id="개요-2">개요</h4>
-
-<p><code class="language-plaintext highlighter-rouge">traceroute</code>(Linux), <code class="language-plaintext highlighter-rouge">tracert</code>(Windows)는 출발지부터 목적지까지의 <strong>라우팅 경로(홉)</strong> 를 확인하는 명령어이다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">ping</code>은 목적지 호스트의 응답 여부를 확인하는 데 주로 사용되는 반면, <code class="language-plaintext highlighter-rouge">traceroute</code>는 목적지까지 어떤 라우터를 거쳐 가는지와 어느 구간에서 문제가 발생했는지 확인하는 데 사용된다.</p>
-
-<h4 id="특징">특징</h4>
-
-<ul>
-  <li>출발지에서 목적지까지의 라우팅 경로를 확인할 수 있다.</li>
-  <li>각 홉(Hop)의 응답 시간(RTT)을 확인할 수 있다.</li>
-  <li>어느 구간부터 패킷이 손실되거나 응답이 없는지 파악할 수 있다.</li>
-  <li>네트워크 장비 간 문제를 확인할 때는 양쪽 장비에서 모두 실행하여 결과를 비교하는 것이 좋다.</li>
-</ul>
-
-<h4 id="traceroute의-한계">traceroute의 한계</h4>
-
-<p><code class="language-plaintext highlighter-rouge">traceroute</code>는 <strong>경로 추적만 가능</strong>하며, <strong>목적지의 서비스 포트가 정상적으로 열려 있는지는 확인할 수 없다.</strong></p>
-
-<p>따라서 서비스 장애가 발생한 경우 다음 중 어떤 원인인지는 <code class="language-plaintext highlighter-rouge">traceroute</code>만으로는 판단할 수 없다.</p>
-
-<ul>
-  <li>중간 네트워크 구간에서 문제가 발생한 경우</li>
-  <li>목적지 방화벽에서 차단된 경우</li>
-  <li>목적지 서버에서 서비스(포트)가 실행되고 있지 않은 경우</li>
-</ul>
-
-<p>이러한 경우에는 <strong><code class="language-plaintext highlighter-rouge">tcptraceroute</code></strong>를 사용한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">tcptraceroute</code>는 <strong>TCP 패킷을 이용하여 경로를 추적</strong>하므로, 목적지까지의 경로뿐만 아니라 <strong>특정 서비스 포트(예: 80, 443)가 정상적으로 열려 있는지</strong>도 함께 확인할 수 있다.</p>
-
-<h4 id="주요-옵션-linux">주요 옵션 (Linux)</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>옵션</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-I</code></td>
-      <td>ICMP 패킷을 사용한다. 일부 환경에서는 방화벽을 통과하기 쉬울 수 있다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-T</code></td>
-      <td>TCP 패킷을 사용한다. 웹 서버(80, 443) 확인 시 유용하다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-p &lt;포트&gt;</code></td>
-      <td>사용할 목적지 포트를 지정한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
-      <td>DNS 역방향 조회를 하지 않아 결과를 더 빠르게 출력한다. (Windows: <code class="language-plaintext highlighter-rouge">-d</code>)</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-m &lt;숫자&gt;</code></td>
-      <td>최대 홉(Hop) 수를 지정한다. 기본값은 <code class="language-plaintext highlighter-rouge">30</code>. (Windows: <code class="language-plaintext highlighter-rouge">-h</code>)</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-q &lt;숫자&gt;</code></td>
-      <td>홉당 전송할 패킷 수를 지정한다. 기본값은 <code class="language-plaintext highlighter-rouge">3</code>이며, <code class="language-plaintext highlighter-rouge">1</code>로 줄이면 실행 속도가 빨라진다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-w &lt;초&gt;</code></td>
-      <td>응답 대기 시간(Timeout)을 지정한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-s &lt;IP&gt;</code></td>
-      <td>출발지(Source) IP 주소를 지정한다.</td>
+      <td>주요 사용처</td>
+      <td>일반 데이터 통신</td>
+      <td>실시간 데이터 전송</td>
     </tr>
   </tbody>
 </table>
@@ -5223,982 +5317,160 @@ Web1 Web2
   <p><strong>정리</strong></p>
 
   <ul>
-    <li><code class="language-plaintext highlighter-rouge">ping</code> → 목적지의 응답 여부를 확인한다.</li>
-    <li><code class="language-plaintext highlighter-rouge">traceroute</code> → 목적지까지의 라우팅 경로와 문제 발생 구간을 확인한다.</li>
-    <li><code class="language-plaintext highlighter-rouge">tcptraceroute</code> → 라우팅 경로와 함께 특정 서비스 포트의 연결 가능 여부도 확인한다.</li>
-    <li>경로 이상이 의심될 경우 <code class="language-plaintext highlighter-rouge">ping</code>과 <code class="language-plaintext highlighter-rouge">traceroute</code>, 서비스 이상이 의심될 경우 <code class="language-plaintext highlighter-rouge">tcptraceroute</code>를 함께 사용하는 것이 효과적이다.</li>
+    <li>TCP는 신뢰성을 우선하는 전송 프로토콜이다.</li>
+    <li>UDP는 실시간성을 우선하는 전송 프로토콜이다.</li>
+    <li>전송 계층은 포트 번호를 이용해 목적지 애플리케이션을 식별한다.</li>
   </ul>
 </blockquote>
 
-<h3 id="3-netstat">3. netstat</h3>
+<hr />
 
-<h4 id="개요-3">개요</h4>
+<h2 id="5-arp-address-resolution-protocol">5. ARP (Address Resolution Protocol)</h2>
 
-<p><code class="language-plaintext highlighter-rouge">netstat</code>은 서버의 다양한 네트워크 상태를 확인하는 명령어이다.</p>
+<h3 id="개요-4">개요</h3>
 
-<p>주로 <strong>서비스 포트 확인</strong>, <strong>TCP 연결 상태 확인</strong>, <strong>라우팅 테이블 확인</strong> 등에 사용된다.</p>
+<p>ARP(Address Resolution Protocol)는 <strong>IP Address를 이용해 목적지의 MAC Address를 알아내는 프로토콜</strong>이다.</p>
 
-<p>다음과 같은 내용을 확인할 수 있다.</p>
+<p>네트워크에서는 IP 주소를 이용해 통신을 시작하지만 실제 프레임을 전송하기 위해서는 목적지의 MAC 주소가 반드시 필요하다.</p>
 
-<ul>
-  <li>특정 서비스가 정상적으로 포트를 열고 있는지 (<code class="language-plaintext highlighter-rouge">LISTEN</code>)</li>
-  <li>외부와 TCP 연결이 정상적으로 수립되었는지 (<code class="language-plaintext highlighter-rouge">ESTABLISHED</code>)</li>
-  <li>연결이 정상적으로 종료되는 과정인지 (<code class="language-plaintext highlighter-rouge">TIME_WAIT</code>, <code class="language-plaintext highlighter-rouge">FIN_WAIT</code>, <code class="language-plaintext highlighter-rouge">CLOSE_WAIT</code>)</li>
-  <li>라우팅 테이블 및 네트워크 통계</li>
-</ul>
-
-<h4 id="주요-옵션-1">주요 옵션</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>기능</th>
-      <th>Windows</th>
-      <th>Linux</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>전체 연결 표시</td>
-      <td><code class="language-plaintext highlighter-rouge">-a</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-a</code></td>
-    </tr>
-    <tr>
-      <td>IP/포트를 숫자로 표시</td>
-      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
-    </tr>
-    <tr>
-      <td>PID 표시</td>
-      <td><code class="language-plaintext highlighter-rouge">-o</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-p</code></td>
-    </tr>
-    <tr>
-      <td>프로토콜 지정</td>
-      <td><code class="language-plaintext highlighter-rouge">-p tcp</code> / <code class="language-plaintext highlighter-rouge">-p udp</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-t</code>(TCP), <code class="language-plaintext highlighter-rouge">-u</code>(UDP)</td>
-    </tr>
-    <tr>
-      <td>라우팅 테이블</td>
-      <td><code class="language-plaintext highlighter-rouge">-r</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-r</code></td>
-    </tr>
-    <tr>
-      <td>프로토콜 통계</td>
-      <td><code class="language-plaintext highlighter-rouge">-s</code></td>
-      <td><code class="language-plaintext highlighter-rouge">-s</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="자주-사용하는-명령">자주 사용하는 명령</h4>
-
-<p><strong>Windows</strong></p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>netstat <span class="nt">-ano</span>
-</code></pre></div></div>
-
-<ul>
-  <li>모든 연결 표시</li>
-  <li>주소를 숫자로 표시</li>
-  <li>PID 함께 출력</li>
-</ul>
-
-<p><strong>Linux</strong></p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netstat <span class="nt">-ntlp</span>
-</code></pre></div></div>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">-n</code> : 숫자로 표시</li>
-  <li><code class="language-plaintext highlighter-rouge">-t</code> : TCP만 표시</li>
-  <li><code class="language-plaintext highlighter-rouge">-l</code> : LISTEN 상태만 표시</li>
-  <li><code class="language-plaintext highlighter-rouge">-p</code> : 프로세스(PID/프로그램) 표시</li>
-</ul>
-
-<h4 id="주요-tcp-상태">주요 TCP 상태</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>상태</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">LISTEN</code></td>
-      <td>서버 애플리케이션이 클라이언트의 연결을 기다리기 위해 포트를 열어 둔 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ESTABLISHED</code></td>
-      <td>TCP 연결이 정상적으로 수립되어 데이터를 송수신하는 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">TIME_WAIT</code></td>
-      <td>데이터 송수신이 끝난 후 연결을 종료하기 전에 잠시 대기하는 상태. <br />지연되어 도착하는 패킷을 처리하고 동일한 연결 정보의 재사용으로 인한 문제를 방지하기 위해 일정 시간 유지된다. 정상적인 상태이다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">CLOSE_WAIT</code></td>
-      <td>상대방이 연결 종료를 요청한 상태. <br />서버 애플리케이션이 아직 소켓을 닫지 않은 상태이며, 오래 유지되면 애플리케이션 문제를 의심할 수 있다.</td>
-    </tr>
-  </tbody>
-</table>
+<p>즉, ARP는 <strong>3계층(IP)</strong> 과 <strong>2계층(MAC)</strong> 을 연결하는 역할을 수행한다.</p>
 
 <blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li><code class="language-plaintext highlighter-rouge">LISTEN</code> → 연결 대기</li>
-    <li><code class="language-plaintext highlighter-rouge">ESTABLISHED</code> → 정상 통신 중</li>
-    <li><code class="language-plaintext highlighter-rouge">TIME_WAIT</code> → 정상 종료 과정</li>
-    <li><code class="language-plaintext highlighter-rouge">CLOSE_WAIT</code> → 상대는 종료했지만 내 프로그램이 아직 연결을 닫지 않은 상태</li>
-  </ul>
+  <p>IP 주소는 목적지를 나타내는 논리 주소이고, MAC 주소는 실제 데이터를 전달하기 위한 물리 주소이다.</p>
 </blockquote>
-
-<h3 id="4-nslookup">4. nslookup</h3>
-
-<h4 id="개요-4">개요</h4>
-
-<p><code class="language-plaintext highlighter-rouge">nslookup</code>은 DNS 서버에 질의하여 도메인과 관련된 정보를 조회하는 명령어이다.</p>
-
-<p>주로 다음 정보를 확인할 때 사용한다.</p>
-
-<ul>
-  <li>도메인에 대한 IP 주소 조회</li>
-  <li>IP 주소에 대한 도메인 조회(Reverse Lookup)</li>
-  <li>특정 DNS 서버의 응답 확인</li>
-  <li>DNS 설정 및 문제 진단</li>
-</ul>
 
 <hr />
 
-<h3 id="5-ipconfigwindows--ifconfiglinux">5. ipconfig(Windows) / ifconfig(Linux)</h3>
+<h3 id="arp가-필요한-이유">ARP가 필요한 이유</h3>
 
-<h4 id="개요-5">개요</h4>
+<p>출발지는 목적지의 IP 주소는 알고 있지만 MAC 주소는 알지 못하는 경우가 많다.</p>
 
-<p>현재 시스템의 네트워크 인터페이스 정보를 확인하는 명령어이다.</p>
+<p>이 상태에서는 2계층 프레임을 만들 수 없어 데이터를 전송할 수 없다.</p>
 
-<ul>
-  <li><strong>Windows</strong> : <code class="language-plaintext highlighter-rouge">ipconfig</code></li>
-  <li><strong>Linux</strong> : <code class="language-plaintext highlighter-rouge">ifconfig</code> (별도 패키지 설치 필요)
-    <ul>
-      <li>최근 Linux에서는 ifconfig보다 ip 명령(ip addr)을 권장한다.</li>
-    </ul>
-  </li>
-</ul>
+<p>이를 해결하기 위해 ARP를 사용한다.</p>
 
-<p>인터넷 연결이 원활하지 않을 때 네트워크 상태를 확인하거나 IP를 재할당할 때 자주 사용한다.</p>
-
-<h4 id="주요-옵션-2">주요 옵션</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>기능</th>
-      <th>Windows</th>
-      <th>Linux</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>모든 인터페이스 표시</td>
-      <td><code class="language-plaintext highlighter-rouge">ipconfig /all</code></td>
-      <td><code class="language-plaintext highlighter-rouge">ifconfig -a</code></td>
-    </tr>
-    <tr>
-      <td>DHCP IP 반납</td>
-      <td><code class="language-plaintext highlighter-rouge">ipconfig /release</code></td>
-      <td>-</td>
-    </tr>
-    <tr>
-      <td>DHCP IP 재할당</td>
-      <td><code class="language-plaintext highlighter-rouge">ipconfig /renew</code></td>
-      <td>-</td>
-    </tr>
-    <tr>
-      <td>DNS 캐시 삭제</td>
-      <td><code class="language-plaintext highlighter-rouge">ipconfig /flushdns</code></td>
-      <td>-</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="자주-사용하는-명령-1">자주 사용하는 명령</h4>
-
-<ul>
-  <li>현재 모든 네트워크 정보 확인</li>
-</ul>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /all
-</code></pre></div></div>
-
-<ul>
-  <li>DHCP 서버에 현재 IP 주소 반납</li>
-</ul>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /release
-</code></pre></div></div>
-
-<ul>
-  <li>DHCP 서버에서 새로운 IP 주소 재할당</li>
-</ul>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /renew
-</code></pre></div></div>
-
-<ul>
-  <li>DNS 캐시 삭제</li>
-</ul>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ipconfig /flushdns
-</code></pre></div></div>
-
-<blockquote>
-  <p><strong>참고</strong></p>
-
-  <ul>
-    <li><code class="language-plaintext highlighter-rouge">/release</code> : DHCP 서버에 현재 할당받은 IP 주소를 반납한다.</li>
-    <li><code class="language-plaintext highlighter-rouge">/renew</code> : DHCP 서버에서 새로운 IP 주소를 다시 할당받는다.</li>
-    <li><code class="language-plaintext highlighter-rouge">/flushdns</code> : 로컬 DNS 캐시를 삭제하여 최신 DNS 정보를 다시 조회하도록 한다.</li>
-    <li><code class="language-plaintext highlighter-rouge">flush</code>는 원래 “비우다”보다는 “내보내다, 밀어내다”의 의미를 가진다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="6-tcpdump">6. tcpdump</h3>
-
-<h4 id="개요-6">개요</h4>
-
-<p><code class="language-plaintext highlighter-rouge">tcpdump</code>는 네트워크 인터페이스를 통해 송수신되는 패킷을 캡처하고 분석하는 명령어이다.</p>
-
-<p>주로 네트워크 장애 분석, 패킷 분석, 트래픽 확인 등의 목적으로 사용된다.</p>
-
-<p>Linux 서버뿐만 아니라 Linux 커널 기반의 네트워크 장비에서도 사용할 수 있다.</p>
-
-<h4 id="주요-옵션-3">주요 옵션</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>옵션</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-i &lt;인터페이스&gt;</code></td>
-      <td>캡처할 네트워크 인터페이스를 지정한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-n</code></td>
-      <td>IP 주소와 호스트 이름을 변환하지 않는다.<br />DNS 역방향 조회를 하지 않는다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-nn</code></td>
-      <td>호스트 이름과 서비스 이름(DNS, HTTP 등) 모두 변환하지 않고 IP 주소와 포트 번호를 그대로 표시한다.<br />DNS 조회와 서비스 이름(HTTP, SSH 등) 변환을 모두 하지 않는다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-X</code></td>
-      <td>패킷 내용을 16진수(Hex)와 ASCII 형태로 함께 출력한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-c &lt;개수&gt;</code></td>
-      <td>지정한 개수만큼 패킷을 캡처한 후 종료한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-w &lt;파일&gt;</code></td>
-      <td>캡처한 패킷을 파일로 저장한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-r &lt;파일&gt;</code></td>
-      <td>저장된 패킷 파일을 읽어 출력한다.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="필터">필터</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>필터</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">src &lt;IP&gt;</code></td>
-      <td>출발지 IP가 일치하는 패킷</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">dst &lt;IP&gt;</code></td>
-      <td>목적지 IP가 일치하는 패킷</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">host &lt;IP&gt;</code></td>
-      <td>출발지 또는 목적지 IP가 일치하는 패킷</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">src port &lt;포트&gt;</code></td>
-      <td>출발지 포트가 일치하는 패킷</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">dst port &lt;포트&gt;</code></td>
-      <td>목적지 포트가 일치하는 패킷</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">port &lt;포트&gt;</code></td>
-      <td>출발지 또는 목적지 포트가 일치하는 패킷</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">tcp</code></td>
-      <td>TCP 패킷만 캡처</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">udp</code></td>
-      <td>UDP 패킷만 캡처</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="사용-예시-1">사용 예시</h4>
-
-<p>모든 인터페이스에서 TCP 패킷 10개 캡처</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> any <span class="nt">-nn</span> tcp <span class="nt">-c</span> 10
-</code></pre></div></div>
-
-<p>80번 포트 패킷 캡처</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> eth0 port 80
-</code></pre></div></div>
-
-<p>특정 호스트와 통신하는 패킷 캡처</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> eth0 host 192.168.0.10
-</code></pre></div></div>
-
-<p>패킷을 파일로 저장</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-i</span> eth0 <span class="nt">-w</span> capture.pcap
-</code></pre></div></div>
-
-<p>저장된 패킷 파일 읽기</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>tcpdump <span class="nt">-r</span> capture.pcap
-</code></pre></div></div>
-
-<h4 id="정리">정리</h4>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">tcpdump</code> → 네트워크 패킷을 실시간으로 캡처하고 분석하는 도구</li>
-  <li><code class="language-plaintext highlighter-rouge">-i</code> → 인터페이스 지정</li>
-  <li><code class="language-plaintext highlighter-rouge">-nn</code> → 주소와 포트를 숫자로 표시</li>
-  <li><code class="language-plaintext highlighter-rouge">-X</code> → 패킷 내용을 Hex + ASCII로 출력</li>
-  <li><code class="language-plaintext highlighter-rouge">-w</code> → 패킷 저장</li>
-  <li><code class="language-plaintext highlighter-rouge">-r</code> → 저장된 패킷 분석</li>
-  <li><code class="language-plaintext highlighter-rouge">src</code>, <code class="language-plaintext highlighter-rouge">dst</code>, <code class="language-plaintext highlighter-rouge">host</code>, <code class="language-plaintext highlighter-rouge">port</code>, <code class="language-plaintext highlighter-rouge">tcp</code>, <code class="language-plaintext highlighter-rouge">udp</code> 등을 조합하여 원하는 패킷만 필터링할 수 있다.</li>
-</ul>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[NAT/PAT를 이용한 주소 변환, DNS/DHCP를 통한 주소 관리, 주요 네트워크 진단 명령어 정리]]></summary></entry><entry><title type="html">Network</title><link href="https://kkr010128.github.io/01-network/" rel="alternate" type="text/html" title="Network" /><published>2026-07-30T00:00:00+09:00</published><updated>2026-07-30T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-network</id><content type="html" xml:base="https://kkr010128.github.io/01-network/"><![CDATA[<ul>
-  <li>Network Protocol의 목표
-    <ul>
-      <li>적은 컴퓨팅 자원 사용</li>
-      <li>매우 느린 네트워크 속도를 이용한</li>
-      <li>최대한 효율적으로 통신하는 것</li>
-      <li>이로인해 대부분의 프로토콜이 문자 기반이 아닌 2진수 비트 기반으로 만들어짐</li>
-    </ul>
-  </li>
-  <li>최소한의 비트로 내용을 전송하기 위해선 치밀하게 서로간의 약속을 정의해야 함</li>
-  <li>애플리케이션 레벨의 프로토콜은 비트 기반이 아닌 문자 기반 프로토콜이 많이 사용됨
-  → HTTP가 대표적</li>
-  <li>비트로 메시지를 전달하지 않고 문자 자체를 이용해 헤더와 헤더 값 데이터를 표현하고 전송</li>
-</ul>
-
-<h2 id="2--osi-7-계층">2 ) OSI 7 계층</h2>
-<hr />
-<ul>
-  <li>과거에는 통신용 규약이 표준화되지 않고 각 벤더에서 별도로 개발함</li>
-  <li>이로 인해 호환되지 않는 시스템이나 애플리케이션이 많고 통신이 불가능했음</li>
-  <li>이를 하의 규약으로 통합하려는 노력이 현재의 OSI7계층</li>
-</ul>
-
-<p>→ (강사님): 예전에는 Win과 Mac이 사용하는 인터넷 케이블이 달라서 불편함이 많았다</p>
-
-<ul>
-  <li>OSI 계층이 네트워크 동작을 나누어 이해하고 개발하는 데 많은 도움이 됨</li>
-  <li>네트워크의 주요 레퍼런스 모델로 활용되고 있으나 최근에는 TCP/IP 프로토콜 스택 기반으로 되어있음</li>
-</ul>
-
-<table>
-  <thead>
-    <tr>
-      <th>Layer</th>
-      <th>설명</th>
-      <th>Handling</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Application</td>
-      <td>응용</td>
-      <td>Data</td>
-    </tr>
-    <tr>
-      <td>Presentation</td>
-      <td>표현</td>
-      <td>Data</td>
-    </tr>
-    <tr>
-      <td>Session</td>
-      <td>세션</td>
-      <td>Data</td>
-    </tr>
-    <tr>
-      <td>Transport</td>
-      <td>전송</td>
-      <td>Segments</td>
-    </tr>
-    <tr>
-      <td>Network</td>
-      <td>네트워크</td>
-      <td>Packets</td>
-    </tr>
-    <tr>
-      <td>DataLink</td>
-      <td>데이터링크</td>
-      <td>Frames</td>
-    </tr>
-    <tr>
-      <td>Physical</td>
-      <td>물리</td>
-      <td>Bits</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>=&gt; 복잡한 데이터 전송 과정을 계층 관점에서 보면 이해가 쉽다</p>
-
-<ul>
-  <li>OSI 7계층은 다시 2개의 블럭으로 나눌 수 있음
-    <ul>
-      <li>1 ~ 4 계층: <code class="language-plaintext highlighter-rouge">Data Flow Layer (하위 계층 - 기계)</code></li>
-      <li>5 ~ 7 계층: <code class="language-plaintext highlighter-rouge">Application Layer (상위 계층 - 인간)</code></li>
-    </ul>
-  </li>
-  <li>Data Flow Layer
-    <ul>
-      <li>데이터를 상대방에게 잘 전달하는 역할 수행</li>
-      <li>애플리케이션 개발자는 Application Layer 프로토콜을 개발 또는 이용할 때 Data Flow Layer는 고려하지 않음. 데이터를 표현하는데 초첨을 둠</li>
-    </ul>
-  </li>
-  <li>Application Layer
-    <ul>
-      <li>애플리케이션 개발자들이 고려해야 할 영역</li>
-      <li>네트워크 엔지니어는 애플리케이션 계층은 심각하게 고려하지 않음</li>
-      <li>애플리케이션 개발자는 하향식으로, 네트워크 엔지니어는 상향식으로 네트워크 인식</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="1계층-pysical-layer">1계층 (Pysical Layer)</h3>
-<ul>
-  <li>물리적 연결과 관련된 정보를 정의</li>
-  <li>전기 신호를 전달하는 데 초점이 맞추어져 있음</li>
-  <li>장비로는 Hub, Repeater, Cable, Connectorm Tranceiver, TAP 등이 존재</li>
-  <li>1계층 장비는 들어온 전기 신호를 그대로 잘 전달하는 것이 목적</li>
-  <li>주소의 개념이 없으며 전기 신호가 들어온 포트를 제외하고 모든 포트에 동일한 신호를 전송</li>
-</ul>
-
-<blockquote>
-  <p>*TAP : 네트워크 모니터링 및 패킷 분석을 위해 전기 신호를 다른 장비로 복제해주는 장비
-	→ Wireshark, IDS, IPS, 패킷 분석기 등에 전달 - 원래 통신에 영향 없음</p>
-</blockquote>
-
-<h3 id="2계층-data-link-layer">2계층 (Data Link Layer)</h3>
-<ul>
-  <li>전기 신호를 모아 알아볼 수 있는 데이터 형태로 변환</li>
-  <li>주소 정보를 정의하고 정확한 주소로 통신이 되도록 하는 데 초점을 둠</li>
-  <li>1계층에서는 출발지와 목적지 주소를 구분할 수 없으나 2계층에서는 확인함</li>
-  <li>주소를 확인하고 올바르게 보내진 것이 맞는지, 처리 대상인지 검사 후 데이터 처리 수행</li>
-  <li>전기 신호를 모아 데이터 형태로 처리
-  → 데이터에 대한 에러를 탐지하거나 고치는 역할 수행</li>
-  <li>주소 체계가 생겼다? → 동시에 여러 장비와 통신 가능</li>
-  <li>무작정 데이터를 전송하지 않고 수신 가능 여부를 확인해야함 → Flow Control</li>
-  <li>2계층에서 동작하는 네트워크 구성 요소는 NIC(Network Interface Card - 랜카드)와 Switch</li>
-</ul>
-
-<p>가장 중요한 특징 → MAC 이라는 주소 체계가 있다는 것</p>
-<ul>
-  <li>2계층에서 동작하는 NIC와 Switch는 모두 MAC 주소를 인식 가능
-    <ul>
-      <li>Switch는 MAC 주소를 확인 해 통신해야 할 포트를 지정하여 내보내는 것이 가능</li>
-    </ul>
-  </li>
-  <li><strong>NIC 동작</strong>
-    <ul>
-      <li>전기 신호를 데이터 형태로 생성</li>
-      <li>목적지와 출발지 MAC 주소 확인</li>
-      <li>네트워크 인터페이스 카드의 MAC 주소 확인</li>
-      <li>목적지 MAC 주소와 NIC의 MAC 주소가 일치하면 데이터 처리, 다르면 폐기</li>
-    </ul>
-  </li>
-  <li><strong>Switch 동작</strong>
-    <ul>
-      <li>노드가 어떤 MAC 주소이고 어느 포트가 연결 됐는지 주소 학습 가능</li>
-      <li>학습한 주소를 기반으로 노드들이 통신할 때 적절히 필터링, 정확한 포트로 포워딩</li>
-      <li>허브는 한 포트에서 신호가 오면 전체 포트로 신호 전달
-  → 전체 네트워크에서 오직 하나의 장비만 데이터를 보낼 수 있음</li>
-      <li>스위치는 적절한 필터링과 포워딩 기능으로 통신이 필요한 포트만 사용
-        <ul>
-          <li>네트워크 전체에 불필요한 처리 감소, 효율성 향상, 이더넷 기반 네트워크 급증 계기로 작용</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ul>
-
-<blockquote>
-  <p>Forwarding : 출발지 주소를 변경하지 않고 전송(그대로 토스하는 느낌)
-	→ Redirect와 반대</p>
-</blockquote>
-
-<h3 id="3계층-network-layer">3계층 (Network Layer)</h3>
-<ul>
-  <li>IP 주소와 같은 논리적인 주소 정의</li>
-  <li>데이터 통신 시 두 가지 주소가 사용됨
-    <ul>
-      <li>MAC (2계층)</li>
-      <li>IP (3계층)</li>
-    </ul>
-  </li>
-  <li>IP가 왜 논리적인지?
-  → 사용자가 환경에 따라 변경 가능
-  → 네트워크 주소와 호스트 주소로 나뉨</li>
-  <li>3계층을 이해할 수 있는 장비나 노드는 주소 정보로 자신의 네트워크 및 원격지 구분 가능
-    <ul>
-      <li>어디로 가야하죠 →  가야할 원격지 경로 지정 가능</li>
-      <li>Router는 3계층에서 동작</li>
-      <li>Router는 IP를 이용해 최적의 경로를 찾고 해당 경로로 패킷 전송 수행</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="4계층-transport-layer">4계층 (Transport Layer)</h3>
-<ul>
-  <li>데이터들이 정상적으로 잘 보내지도록 확인하는 역할</li>
-  <li>패킷 네트워크는 데이터를 분할해 패킷 단위로 전송
-    <ul>
-      <li>중간에 패킷 유실 또는 순서가 바뀌는 경우 있음
-  → 이를 해결하기 위해 4계층 존재</li>
-    </ul>
-  </li>
-  <li>패킷에 보내는 순서를 명시한 것 → Sequence Number</li>
-  <li>받는 순서를 명시한 것 → ACK(Acknowledgement Number)</li>
-  <li>장치 내의 애플리케이션 구분 가능하도록 포트 사용</li>
-  <li>4계층에서 동작하는 장비는 port와 sequence, ACK를 사용함
-  → 부하 분산, 보안 정책 수립해 패킷을 통과 및 차단하는 기능 수행
-      → 방화벽, 로드 밸런서</li>
-</ul>
-
-<h3 id="5계층-session-layer">5계층 (Session Layer)</h3>
-<ul>
-  <li>양 끝 단의 응용 프로세스가 연결을 성립하도록 도와줌</li>
-  <li>연결이 안정적으로 유지 되도록 관리함</li>
-  <li>작업이 끝나면 연결을 끊음</li>
-  <li>TCP/IP 세션을 생성하고 삭제하는 것, 에러로 인한 중단된 통신에 대해 복구 및 재전송 수행</li>
-</ul>
-
-<h3 id="6계층-presentation-layer">6계층 (Presentation Layer)</h3>
-<ul>
-  <li>표현 방식이 다른 애플리케이션 또는 시스템 간 통신을 돕기 위해 통일된 구문 형식으로 데이터를 변환</li>
-  <li>번역기나 변환기의 역할을 수행하는 계층
-    <ul>
-      <li>사용자 시스템의 응용 계층에서 데이터 형식 상의 차이를 다루는 부담 줄여줌</li>
-    </ul>
-  </li>
-  <li>MIME 인코딩, 암호화, 압축, 코드 변환 등의 동작 수행</li>
-</ul>
-
-<h3 id="7계층-application-layer">7계층 (Application Layer)</h3>
-<ul>
-  <li>네트워크 소프트웨어의 UI • 사용자 입출력 부분 정의</li>
-</ul>
-
-<h3 id="계층-별-프로토콜과-장비">계층 별 프로토콜과 장비</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>Layer</th>
-      <th>Protocol</th>
-      <th>Device</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>7</td>
-      <td>HTTP, HTTPS, TELNET</td>
-      <td>ADC, NGFW, WAF</td>
-    </tr>
-    <tr>
-      <td>6</td>
-      <td>TLS, SSH</td>
-      <td>( )</td>
-    </tr>
-    <tr>
-      <td>5</td>
-      <td>NFS, RPC, SSH</td>
-      <td>( )</td>
-    </tr>
-    <tr>
-      <td>4</td>
-      <td>TCP, UDP</td>
-      <td>로드밸런서, 방화벽</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>ARP, IPv4, IPv6, NAT 등</td>
-      <td>라우터, L3 스위치</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>IEEE 802.2, FDDI</td>
-      <td>스위치, 브릿지, NIC</td>
-    </tr>
-    <tr>
-      <td>1</td>
-      <td>RS-232, RS0449</td>
-      <td>케이블, 허브, TAP</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>ADC</strong> : Application Delivery Controller
-	→ 고성능 로드 밸런서 + 애플리케이션 최적화 장비</p>
-
-  <p><strong>NGFW</strong> : Next Generation FireWall
-	→ 애플리케이션 분석, IPS, IDS 등의 기능 수행</p>
-
-  <p><strong>WAF</strong> : Web Application Firewall
-	→ HTTP나 HTTPS 분석하여 웹 공격 차단</p>
-</blockquote>
-
-<h2 id="3--tcpip-protocol-stack">3 ) TCP/IP Protocol Stack</h2>
-<hr />
-<ul>
-  <li>현대의 네트워크는 TCP/IP 프로토콜과 이더넷으로 이루어져 있음</li>
-  <li>일부 특수한 환경에서는 다른 프로토콜이 사용되기도 함
-    <ul>
-      <li>어떤 것을 선택할 지 고민하진 않음</li>
-    </ul>
-  </li>
-  <li>
-    <p>(강사님) : Nvidia GPU끼리 통신하던 프로토콜이 기업의 장기적 이익을 위해 공개됨
- → NVLink, NVSwitch, CUDA</p>
-  </li>
-  <li>역사적 배경, 만든 조직 또는 프로토콜이 제작된 목표에 따라, 기술 및 표준을 만들 때 성향이 많이 반영 됨
-    <ul>
-      <li>TCP/IP는 이론보다 실용성에 중점을 둔 프로토콜 스택</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="tcpip는-4-계층으로-구분">TCP/IP는 4 계층으로 구분</h3>
-<ul>
-  <li>Application
-    <ul>
-      <li>Application Layer</li>
-      <li>Presentation Layer</li>
-      <li>Session Layer</li>
-    </ul>
-  </li>
-  <li>Transport
-    <ul>
-      <li>Transport</li>
-    </ul>
-  </li>
-  <li>Internet
-    <ul>
-      <li>Network Layer</li>
-    </ul>
-  </li>
-  <li>Network Access
-    <ul>
-      <li>Data Link Layer</li>
-      <li>Physical Layer</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="4--encapsulation--decapsulation">4 ) Encapsulation &amp; Decapsulation</h2>
-<hr />
-<ul>
-  <li>데이터를 보내는 것 → Encapsulation</li>
-  <li>데이터를 받는 것 → Decapsulation</li>
-</ul>
-
-<h3 id="패킷-기반-네트워크">패킷 기반 네트워크</h3>
-<ul>
-  <li>현대의 네트워크는 대부분 패킷 기반 네트워크</li>
-  <li>패킷 네트워크는 작은 데이터 단위인 패킷으로 쪼개 보냄
-    <ul>
-      <li>하나의 통신이 회선 전체를 점유하지 않도록</li>
-      <li>여러 노드가 동시에 통신을 할 수 있도록 하기 위함
-        <h3 id="데이터-전송">데이터 전송</h3>
-      </li>
-    </ul>
-  </li>
-  <li>보내는 쪽에서 상위 계층 프로토콜을 이용해 데이터 생성</li>
-  <li>Transport 계층에서 4계층 헤더를 추가(port)하여 3계층으로 전달</li>
-  <li>Network 계층에서 받은 데이터(Segment)에 3계층 헤더(IP) 추가하여 2계층으로 전달</li>
-  <li>DataLink 계층에서는 받은 데이터(Packet)에 2계층 헤더(MAC) 추가</li>
-  <li>
-    <p>Physical 계층에서는 전기 신호로 변경하여 목적지로 전송
-→ Encapsulation</p>
-  </li>
-  <li>받는 쪽에서  물리계층에서 데이터를 변환해 데이터 링크 계층으로 전송</li>
-  <li>DataLink 계층에서 2계층 헤더를 제거 후 네트워크 계층으로 전송</li>
-  <li>Network 계층에서 3계층 헤더를 제거후 전송 계층으로 전송</li>
-  <li>Transport 계층에서 4계층 헤더를 제거아호 애플리케이션 계층으로 전송해 데이터 해석
-    <h3 id="mss--mtu">MSS &amp; MTU</h3>
-  </li>
-  <li>애플리케이션에서 데이터를 만들어 보낼 때네트워크 상황에 맞게 하위 계층에서 데이터를 쪼개어 전달</li>
-  <li>네트워크에서 수용할 수 있는 크기를 역산정해 데이터가 적절한 크기로 쪼개질 수 있도록 유도함
-    <ul>
-      <li>MSS(Maximum Segment Size)</li>
-    </ul>
-  </li>
-  <li>네트워크에서 한 번에 보낼 수 있는 데이터 크기 MTU (Maximum Transmission Unit)이라 함
-    <ul>
-      <li>일반적 이더넷에서는 1,500 바이트</li>
-    </ul>
-  </li>
-  <li>3계층과 4계층 헤더의 크기가 각각 20바이트이므로 1460 바이트가 MSS</li>
-</ul>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[OSI 7계층 구조, TCP/IP 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리]]></summary></entry><entry><title type="html">Network Components</title><link href="https://kkr010128.github.io/02-network-components/" rel="alternate" type="text/html" title="Network Components" /><published>2026-07-30T00:00:00+09:00</published><updated>2026-07-30T00:00:00+09:00</updated><id>https://kkr010128.github.io/02-network-components</id><content type="html" xml:base="https://kkr010128.github.io/02-network-components/"><![CDATA[<p>=&gt; (강사님): 예전에는 LAN • MAN•WAN이 사용하는 프로토콜과 기술이 달라 구분 가능했으나 현재는 Ethernet으로 통합되어 관리의 범위를 기준으로 구분한다.</p>
-
-<ul>
-  <li>자체 인프라를 사용한 구축 → MAN</li>
-  <li>통신사의 인프라 사용한 구축 → WAN
-    <h3 id="lan">LAN</h3>
-  </li>
-  <li>비교적 소규모의 네트워크</li>
-  <li>스위치와 같은 간단한 장비로 연결</li>
-  <li>이더넷 기반 전송 기술 사용
-    <ul>
-      <li>예전에는 다양한 기술이 사용되었음</li>
-    </ul>
-  </li>
-  <li>자신 소유의 건물 또는 대지에 직접 구축한 선로로 동작시키는 네트워크
-    <h3 id="wan">WAN</h3>
-  </li>
-  <li>먼 거리에 있는 네트워크를 연결</li>
-  <li>멀리 떨어진 LAN을 서로 연결하거나 인터넷에 접속하기 위한 네트워크</li>
-  <li>통신 사업자로부터 회선을 임대해 사용
-    <ul>
-      <li>넓은 범위이므로 직접 구축하는 경우는 거의 없음</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="2--인터넷-회선">2 ) 인터넷 회선</h2>
-<hr />
-<h3 id="일반-인터넷-회선">일반 인터넷 회선</h3>
-<ul>
-  <li>인터넷 접속을 위해 통신 사업자와 연결하는 회선</li>
-  <li>가입자와 통신 사업자 간 직접 연결 구조가 아님</li>
-  <li>전송 선로 공유 기술을 이용(Multiplexing)</li>
-  <li>통신 사업자까지 연결한 회선을 공유하는 구조
-  → 내부 선로가 직접 연결되는 구조라 인터넷 전용 회선처럼 보일 수 있음</li>
-  <li>인터넷 회선의 속도는 전송 가능한 최대 속도이며, 전용 회선과 달리 해당 속도를 보장하지 않
-    <h3 id="전용-회선">전용 회선</h3>
-  </li>
-  <li>가입자와 통신 사업자 간의 대역폭을 보장해주는 서비스</li>
-  <li>대역폭을 보장해주는 기술 중 하나 → TDM(Time Devision Multiplaxing - 시분할 다중화)</li>
-  <li>저속과 고속으로 구분하기도 함</li>
-  <li>LLCF (Link Loss Carry Forward)
-  → 한쪽의 링크가 다운되는 것을 감지해 반대 쪽 링크도 다운시키는 기능
-  =&gt; (강사님): 게임 접속자가 끊겼는지 핑을 보내면서 확인하고, 반응이 없다면 끊어서 연결 가능한 유저 수를 확보하려는 방법이다.
-    <h3 id="인터넷-전용-회선">인터넷 전용 회선</h3>
-  </li>
-  <li>인터넷 연결 회선에 통신 대역폭을 보장해주는 것
-    <h3 id="vpn">VPN</h3>
-  </li>
-  <li>Virtual Private Network
-    <ul>
-      <li>가상으로 물리적 전용선 같은 효과를 주는 가상 네트워크</li>
-    </ul>
-  </li>
-  <li>여러 방법으로 구현되며, 가입자 입장에서의 기술과 통신 사업자 입장에서의 기술이 별도로 발전</li>
-</ul>
+<p>동작 과정은 다음과 같다.</p>
 
 <ol>
-  <li><strong>통신 사업자 VPN</strong>
-    <ul>
-      <li><strong>전용선(Leased Line)</strong>은 계약한 대역폭을 항상 보장함.</li>
-      <li>하지만 가입자가 계약된 대역폭을 항상 100% 사용하는 것은 아님.</li>
-      <li>사용하지 않는 대역폭에도 비용을 지불하므로 비용 낭비가 발생할 수 있음.</li>
-      <li>이를 줄이기 위해 통신사업자의 공용망을 여러 가입자가 함께 사용함.</li>
-      <li>이때 가입자별 트래픽이 섞이지 않도록 논리적으로 분리함.</li>
-      <li>이러한 방식 중 하나가 <strong>MPLS VPN</strong>임.</li>
-      <li>MPLS VPN은 공용망을 사용하면서도 전용선과 유사한 연결 환경을 제공함.</li>
-      <li>전용선보다 비용을 줄이면서 먼 지역의 지점들을 연결할 때 사용함.</li>
-    </ul>
-
-    <p>전용선은 대역폭을 보장하지만 비용이 높을 수 있으며, 이를 보완하기 위해 공용망에서 가입자별 트래픽을 분리하는 MPLS VPN을 사용함.</p>
-  </li>
-  <li><strong>가입자 VPN</strong>
-    <ul>
-      <li>인터넷과 같은 공용망을 이용해 가상의 사설망을 구축함.</li>
-      <li>데이터를 암호화하여 외부에서 내용을 확인하거나 변조하지 못하도록 보호함.</li>
-      <li>별도의 전용선을 설치하지 않아 비용이 저렴함.</li>
-      <li>원격 근무, 재택근무, 외부에서 사내망 접속 등에 주로 사용함.</li>
-      <li>대표적인 프로토콜로 IPsec VPN, SSL VPN, OpenVPN, WireGuard 등이 있음.</li>
-    </ul>
-
-    <p>공용 인터넷을 이용하면서도 암호화를 통해 안전하게 사설망처럼 사용할 수 있도록 하는 기술임.</p>
-  </li>
+  <li>목적지 IP를 확인한다.</li>
+  <li>ARP Broadcast를 전송한다.</li>
+  <li>목적지 장비가 자신의 MAC Address를 응답한다.</li>
+  <li>응답받은 MAC Address를 이용해 캡슐화를 수행한다.</li>
+  <li>데이터를 전송한다.</li>
 </ol>
 
-<blockquote>
-  <p>VPN 과 일반 네트워크의 속도 차이?</p>
+<p>비유하면,</p>
 
-  <p>VPN은 목적지의 주소를 알고 있기 때문에 최적의 라우팅 경로로 이동하게 됨
-암호화와 복호화를 진행하더라도 라우팅 속도가 빠르기 때문에 VPN의 통신 속도가 일반 네트워크 대비 우수함</p>
+<ul>
+  <li>IP 주소 → 집 주소</li>
+  <li>MAC 주소 → 집 안의 실제 수신인</li>
+  <li>ARP → “이 주소에 계신 분 누구인가요?”라고 네트워크 전체에 묻는 과정이다.</li>
+</ul>
+
+<hr />
+
+<h3 id="arp-table">ARP Table</h3>
+
+<p>매번 ARP Broadcast를 수행하면 네트워크 효율이 크게 떨어진다.</p>
+
+<p>이를 방지하기 위해 운영체제는 메모리에 ARP 정보를 저장한다.</p>
+
+<p>이를 <strong>ARP Table</strong>이라고 한다.</p>
+
+<p>ARP Table은 다음 명령으로 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>arp <span class="nt">-a</span>
+</code></pre></div></div>
+
+<p>ARP Table은 일정 시간 동안만 유지된다.</p>
+
+<p>논리 주소(IP)는 언제든 변경될 수 있으므로 일정 시간 통신이 없으면 해당 정보를 삭제한다.</p>
+
+<p>네트워크 장비는 CPU 부담을 줄이기 위해 일반 PC보다 ARP 정보를 더 오래 유지하거나 ARP 요청을 제한하는 경우가 많다.</p>
+
+<hr />
+
+<h3 id="gratuitous-arp-garp">Gratuitous ARP (GARP)</h3>
+
+<p>GARP(Gratuitous ARP)는 자신의 IP 주소를 대상 IP에도 넣어 ARP 요청을 보내는 방식이다.</p>
+
+<p>상대방의 MAC 주소를 알아내기 위한 것이 아니라 <strong>자신의 IP와 MAC 정보를 알리는 것</strong>이 목적이다.</p>
+
+<p>주요 사용 목적은 다음과 같다.</p>
+
+<ul>
+  <li>IP 주소 중복 확인</li>
+  <li>다른 장비의 ARP Table 갱신</li>
+  <li>HA(High Availability) 환경에서 장애 조치</li>
+</ul>
+
+<hr />
+
+<h3 id="reverse-arp-rarp">Reverse ARP (RARP)</h3>
+
+<p>RARP(Reverse ARP)는 자신의 MAC Address는 알고 있지만 IP Address를 모르는 장비가 IP 주소를 요청하는 프로토콜이다.</p>
+
+<p>과거에는 디스크가 없는 워크스테이션 등에서 사용되었지만 기능이 제한적이어서 현재는 대부분 BOOTP와 DHCP가 대신 사용한다.</p>
+
+<p>현재는 거의 사용되지 않는다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>ARP는 IP 주소를 MAC 주소로 변환하는 프로토콜이다.</li>
+    <li>ARP Broadcast를 줄이기 위해 ARP Table을 사용한다.</li>
+    <li>GARP는 자신의 정보를 알리기 위한 ARP이며, RARP는 과거 IP 주소 할당에 사용되었다.</li>
+  </ul>
 </blockquote>
 
-<h2 id="3--네트워크-구성-요소">3 ) 네트워크 구성 요소</h2>
 <hr />
-<h3 id="nic-network-interface-card">NIC (Network Interface Card)</h3>
+
+<h2 id="6-subnet--gateway">6. Subnet &amp; Gateway</h2>
+
+<h3 id="gateway">Gateway</h3>
+
+<p>Gateway는 서로 다른 네트워크를 연결하는 출입구 역할을 하는 장비이다.</p>
+
+<p>같은 네트워크 내부에서는 직접 통신이 가능하지만, 다른 네트워크와 통신하려면 반드시 Gateway를 거쳐야 한다.</p>
+
+<p>따라서 PC에는 목적지를 찾지 못했을 때 사용할 <strong>Default Gateway</strong>를 설정한다.</p>
+
+<blockquote>
+  <p>아파트 단지 안에서는 자유롭게 이동할 수 있지만, 다른 단지로 이동하려면 정문을 반드시 지나야 하는 것과 같은 개념이다.</p>
+</blockquote>
+
+<hr />
+
+<h3 id="proxy-arp">Proxy ARP</h3>
+
+<p>Proxy ARP는 Gateway가 대신 ARP 응답을 수행하는 기능이다.</p>
+
+<p>원격 네트워크에 있는 장비라도 Gateway가 자신의 MAC 주소를 응답하여 통신을 가능하게 만든다.</p>
+
+<p>Cisco Router에서는 기본적으로 활성화되어 있는 경우가 많으며, 사용자는 이를 인식하지 못한 채 사용하는 경우도 있다.</p>
+
+<hr />
+
+<h3 id="subnet">Subnet</h3>
+
+<p>Subnet은 목적지가 <strong>같은 네트워크인지, 다른 네트워크인지</strong>를 판단하기 위한 기준이다.</p>
+
+<p>호스트는 자신의 IP 주소와 Subnet Mask를 이용해 목적지가 같은 네트워크인지 계산한다.</p>
+
 <ul>
-  <li>컴퓨터를 네트워크에 연결하기 위한 하드웨어 장치</li>
-  <li>
-    <p>일반적으로 온보드 형태로 네트워크 인터페이스 카드가 장착되어 있어 실제 장착하는 경우 드뭄</p>
-  </li>
-  <li><strong>역할</strong>
-    <ul>
-      <li><strong>직렬화(Serialization)</strong>
-        <ul>
-          <li>전기적 신호 ←→ 데이터 신호 형태로 변화해주는 역할
-  =&gt; (강사님): 블랙박스를 예로 들자면, 항공기 또는 선박의 블랙박스에 기록된 항적은 해당 블랙박스 제조사가 가진 Class 파일들을 가지고 있어야 해독이 가능함 (조작 방지)</li>
-        </ul>
-      </li>
-      <li><strong>MAC Address</strong>
-        <ul>
-          <li>물리적인 고유 주소</li>
-        </ul>
-      </li>
-      <li><strong>Flow Control</strong>
-        <ul>
-          <li>흐름 제어</li>
-          <li>처리중인 데이터로 인해 새로운 데이터를 받지 못하는 상황을 방지
-            <ul>
-              <li>상황을 상대방에 알려 통신 중지를 요청함
-  =&gt; (강사님):  포트리스 게임에서 상대방이 통신이 느린 모뎀을 쓸 때 “너 느리니까 나가”라고 했었음
-                <h3 id="케이블--커넥터">케이블 &amp; 커넥터</h3>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li>케이블 규격
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">속도 채널 타입 / 속도 채널 타입</code></li>
-      <li><code class="language-plaintext highlighter-rouge">1000BASE-T / 10GBASE-T</code> 
-  → 속도는 1000Mbps, 트위스트 페어 케이블 사용하는 Ethernet 표준</li>
-      <li><code class="language-plaintext highlighter-rouge">1000BASE-SX / 10GBASE-SR</code> 
- → 속도는 1000Mbps, 광 케이블 사용하는 Ethernet 표준</li>
-    </ul>
-  </li>
+  <li>같은 네트워크이면 직접 통신한다.</li>
+  <li>다른 네트워크이면 Default Gateway로 패킷을 전송한다.</li>
 </ul>
 
-<h3 id="hub">Hub</h3>
-<ul>
-  <li>케이블과 동일한 1계층 장비</li>
-  <li>멀어질 수록 줄어드는 전기 신호를 재생성해줌</li>
-  <li>여러 대의 장비를 연결</li>
-  <li>허브는 들어온 신호를 단순히 모든 포트로 내보냄 (Broadcasting)
-    <ul>
-      <li>네트워크에 접속된 모든 노드가 경쟁하므로 전체 성능이 줄어드는 문제가 있음</li>
-      <li>패킷이 무한 순환하여 네트워크 전체를 마비시키는 루프와 같은 다양한 장애 원인이 될 수 있음</li>
-    </ul>
-  </li>
-</ul>
+<p>Subnet은 단순히 네트워크를 나누는 개념이 아니라 <strong>로컬 통신과 원격 통신을 구분하는 기준</strong>이 된다.</p>
 
-<h3 id="switch">Switch</h3>
-<ul>
-  <li>Hub와 동일하게 여러 장비를 연결</li>
-  <li>통신을 중재하는 2계층 장비</li>
-  <li>허브의 역할을 수행함</li>
-  <li>Switching Hub 라고도 함</li>
-  <li>MAC 을 이해할 수 있음 
-  → 한 번 데이터를 전송한 포트에 연결된 장비 주소를 학습 다음에 다른 포트에서 해당 장비에게 전달 시 Broadcasting이 아닌 Unicasting(1:1)을 수행</li>
-</ul>
+<blockquote>
+  <p><strong>정리</strong></p>
 
-<h3 id="router">Router</h3>
-<ul>
-  <li>내부 네트워크가 아닌 다른 네트워크와 통신 가능하도록 해줌</li>
-  <li>3계층 장비</li>
-  <li>Broadcast와 Multicast를 컨트롤함
-  → 원격지로 필요 없는 패킷이 전달되지 않도록</li>
-  <li>불분명한 주소로 통신 시도 시 데이터를 버림</li>
-  <li>정확한 방향으로 패킷이 전송되도록 경로를 지정, 최적의 경로로 패킷을 Fowarding</li>
-  <li>이와 유사한 L3 Switch나 공유기는 쉽게 찾아볼 수 있음</li>
-</ul>
-
-<h3 id="load-balancer">Load Balancer</h3>
-<ul>
-  <li>OSI 4계층에서 동작하는 장비</li>
-  <li>최근에는 7계층에서 동작하는 것도 있음</li>
-  <li>Application 형태의 LoadBalancer도 존재함 (7계층에서 동작)
-  → 원래 Application Delivery Controller 라고 함</li>
-  <li>4계층 포트 주소를 확인하는 동시에 IP 주소를 바꿀 수 있음
-  → 목적지의 IP 주소를 말함
-    <ul>
-      <li>패킷이 전달 되다가 다른 주소의 IP 주소로 전달 되게끔</li>
-    </ul>
-  </li>
-  <li>여러 대의 동일한 기능을 수행하는 서버들을 연결해 사용
-    <ul>
-      <li>요청 수신 시 IP 주소 변경을 통해 부하를 분산함</li>
-    </ul>
-  </li>
-  <li>Health Check와 대용량 세션 처리 기능을 수행하기도 함</li>
-</ul>
-
-<h3 id="보안-장비">보안 장비</h3>
-<ul>
-  <li>정보 전달 목적이 아닌 정보를 잘 제어하고 공격을 방어하는 데 초첨을 둠</li>
-  <li>방어의 목적, 설치 위치에 따라 다양하게 구분 됨</li>
-  <li>대표적으로 방화벽이 있음
-    <ul>
-      <li>OSI 7 계층의 4계층에서 동작</li>
-      <li>방화벽을 통과하는 패킷의 3, 4 계층 정보(IP와 Port)를 확인,</li>
-      <li>패킷을 보안 정책과 비교해 버리거나 Forwarding 함</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="공유기">공유기</h3>
-<ul>
-  <li>간단한 방화벽 기능을 한 곳에 모아둔 장비
-    <ul>
-      <li>2계층 스위치, 3계층 라우터, 4계층 NAT</li>
-    </ul>
-  </li>
-  <li>내부 구성
-    <ul>
-      <li>스위치</li>
-      <li>무선</li>
-      <li>라우터 회로</li>
-    </ul>
-  </li>
-  <li>내부적으로는 크게 Switch, Wireless AP, Router 부분으로 구성되는 복잡한 장비</li>
-</ul>
-
-<h3 id="모뎀">모뎀</h3>
-<ul>
-  <li>원거리 통신을 가능하도록 하는 장비</li>
-  <li>짧은 거리, 먼 거리를 통신할 수 있는 기술이 다르기에 이 기술들을 변환해주는 장비임</li>
-</ul>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[LAN/WAN/VPN 개념과 NIC, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리]]></summary></entry></feed>
+  <ul>
+    <li>Gateway는 서로 다른 네트워크를 연결하는 출입구 역할을 한다.</li>
+    <li>Proxy ARP는 Gateway가 대신 ARP 응답을 수행하는 기능이다.</li>
+    <li>Subnet은 로컬 통신과 원격 통신을 구분하는 기준이다.</li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[MAC 주소, IP 주소, TCP/UDP, ARP, 서브넷 등 OSI 7계층 기반 네트워크 통신 핵심 프로토콜 정리]]></summary></entry></feed>

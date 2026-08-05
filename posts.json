@@ -4,6 +4,21 @@
       
       
       {
+        "title": "float보다 double을 더 많이 사용하는 이유는 무엇일까?",
+        "url": "/03-memo-float-vs-double/",
+        "description": "float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유",
+        "thumbnail": null,
+        "tags": ["Notes","CS","DataType","Memory"],
+        "series_key": "technotes",
+        "series_title": null,
+        "date_label": "2026년 8월 6일",
+        "reading_time_label": "2분 읽기",
+        "search": "float보다 double을 더 많이 사용하는 이유는 무엇일까? float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유 notes cs datatype memory"
+      },
+    
+      
+      
+      {
         "title": "Network - Security",
         "url": "/09-network-security/",
         "description": "네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리",
@@ -34,6 +49,21 @@
       
       
       {
+        "title": "int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?",
+        "url": "/01-memo-int-vs-char/",
+        "description": "char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유",
+        "thumbnail": null,
+        "tags": ["Notes","CS","DataType"],
+        "series_key": "technotes",
+        "series_title": null,
+        "date_label": "2026년 8월 5일",
+        "reading_time_label": "2분 읽기",
+        "search": "int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유 notes cs datatype"
+      },
+    
+      
+      
+      {
         "title": "Network - Router & Switch Lab 1",
         "url": "/08-network-lab1/",
         "description": "GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리",
@@ -59,6 +89,21 @@
         "date_label": "2026년 8월 4일",
         "reading_time_label": "9분 읽기",
         "search": "network device 3 - l4 device l4 장비의 핵심 개념과 session 기반 동작, load balancer, firewall, scale up/out, 비대칭 경로 문제 및 해결 방법을 정리 network autoeversw"
+      },
+    
+      
+      
+      {
+        "title": "Ping을 막는 이유는 무엇일까",
+        "url": "/02-memo-pingban/",
+        "description": "CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 ICMP를 제한하는 사례 메모",
+        "thumbnail": null,
+        "tags": ["Notes","CS","Network"],
+        "series_key": "technotes",
+        "series_title": null,
+        "date_label": "2026년 8월 4일",
+        "reading_time_label": "2분 읽기",
+        "search": "ping을 막는 이유는 무엇일까 cmp의 실제 역할과 ping 차단의 이유, 운영 환경에서 icmp를 제한하는 사례 메모 notes cs network"
       },
     
       
@@ -117,7 +162,7 @@
         "series_key": "network",
         "series_title": null,
         "date_label": "2026년 7월 31일",
-        "reading_time_label": "11분 읽기",
+        "reading_time_label": "13분 읽기",
         "search": "network protocol mac 주소, ip 주소, tcp/udp, arp, 서브넷 등 osi 7계층 기반 네트워크 통신 핵심 프로토콜 정리 network autoeversw"
       },
     
@@ -132,7 +177,7 @@
         "series_key": "network",
         "series_title": null,
         "date_label": "2026년 7월 30일",
-        "reading_time_label": "4분 읽기",
+        "reading_time_label": "6분 읽기",
         "search": "network components lan/wan/vpn 개념과 nic, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리 network autoeversw"
       },
     
@@ -147,7 +192,7 @@
         "series_key": "network",
         "series_title": null,
         "date_label": "2026년 7월 30일",
-        "reading_time_label": "6분 읽기",
+        "reading_time_label": "8분 읽기",
         "search": "network osi 7계층 구조, tcp/ip 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리 network autoeversw"
       },
     
