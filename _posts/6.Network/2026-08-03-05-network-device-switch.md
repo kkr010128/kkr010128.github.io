@@ -9,7 +9,7 @@ tags:
 ---
 
 
-# Device 1 ) Switch
+## Device 1 ) Switch
 ---
 ### 장비 동작
 
