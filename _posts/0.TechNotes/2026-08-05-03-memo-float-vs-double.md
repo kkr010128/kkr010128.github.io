@@ -4,7 +4,7 @@ description: float와 double의 차이, 32비트에서 64비트 환경으로 변
 date: 2026-08-06
 series: TechNotes
 tags:
-  - Notes
+  - DeepDive
   - CS
   - DataType
 ---
@@ -12,11 +12,16 @@ tags:
 
 ### Q. `float`는 4Byte이고 `double`은 8Byte인데 왜 `double`을 더 많이 사용할까?
 
-강의 중 `float`는 4Byte, `double`은 8Byte라는 설명을 들었다.
+수업을 듣던 중, 강사님께서 평소 `float`와 `double` 중 어떤 자료형을 사용하는지 질문하셨다.
+
+평소 코딩테스트를 준비할 때나 전공 수업을 들을 때도 주로 float을 이용했다.
+
+`float`는 4Byte, `double`은 8Byte이다.
 
 그렇다면 메모리를 절약하려면 `float`를 사용하는 것이 더 좋은 선택 아닐까?
 
-또 대부분의 프로그램에서는 왜 `double`을 기본처럼 사용할까?
+하지만 대부분의 프로그램에서는 `double`을 기본으로 사용한다고 한다. 
+왜 `double`을 기본처럼 사용할까?
 
 ### A. 현대 컴퓨터에서는 메모리 절약보다 계산의 정확성이 더 중요하기 때문이다.
 
@@ -86,7 +91,7 @@ float로 저장
 
 대표적인 예시는 다음과 같다.
 
-- GPU(OpenGL, CUDA, DirectX)
+- GPU(OpenGL, **CUDA**, DirectX)
 - 머신러닝의 FP32 연산
 - 임베디드 시스템
 - 모바일 환경

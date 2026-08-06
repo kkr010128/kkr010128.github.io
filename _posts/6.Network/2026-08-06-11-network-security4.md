@@ -6,6 +6,7 @@ series: Network
 tags:
   - Network
   - AutoEverSW
+  - GNS3
 ---
 ## Firewall
 ---

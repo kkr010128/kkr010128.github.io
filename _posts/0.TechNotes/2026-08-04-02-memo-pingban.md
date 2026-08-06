@@ -4,20 +4,21 @@ description: CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 
 date: 2026-08-04
 series: TechNotes
 tags:
-  - Notes
+  - DeepDive
   - CS
   - Network
 ---
-
 ### Q. Ping을 막는 이유는 무엇일까? ICMP는 Ping만을 위한 프로토콜일까?
 
-네트워크를 공부하다 보면 일부 서버는 `ping`이 동작하지 않는 경우를 자주 볼 수 있다.
+모의 해킹을 공부했을 때, 일부 서버는 `ping` 또는 `nmap`이 동작하지 않는 경우를 자주 볼 수 있었다.
+
+예전에 봤던 [토스를 해킹하는 영상](https://youtu.be/tAqgvP07RnQ?si=ZiTz1qOpm80zY3KI) 에서도 비슷한 내용을 본 기억이 있다.
 
 그렇다면 Ping을 차단하는 이유는 무엇일까? 또한 ICMP는 Ping만을 위해 존재하는 프로토콜일까?
 
 ### A. ICMP는 Ping만을 위한 프로토콜이 아니다.
 
-많은 사람들이 ICMP를 Ping 프로토콜이라고 생각하지만, Ping은 **ICMP를 이용하는 하나의 기능**일 뿐이다.
+이전까지 ICMP를 Ping 프로토콜이라고 생각했지만, Ping은 **ICMP를 이용하는 하나의 기능**일 뿐이다.
 
 ICMP(Internet Control Message Protocol)는 네트워크 장비들이 **오류를 알리거나 네트워크 상태를 진단**하기 위해 사용하는 제어 프로토콜이다.
 

@@ -4,7 +4,7 @@ description: char와 int의 메모리 크기 차이만으로 자료형을 선택
 date: 2026-08-05
 series: TechNotes
 tags:
-  - Notes
+  - DeepDive
   - CS
   - DataType
 ---
