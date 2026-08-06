@@ -1,12 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-06T19:19:01+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">float보다 double을 더 많이 사용하는 이유는 무엇일까?</title><link href="https://kkr010128.github.io/03-memo-float-vs-double/" rel="alternate" type="text/html" title="float보다 double을 더 많이 사용하는 이유는 무엇일까?" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-memo-float-vs-double</id><content type="html" xml:base="https://kkr010128.github.io/03-memo-float-vs-double/"><![CDATA[<hr />
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-06T20:22:45+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">float보다 double을 더 많이 사용하는 이유는 무엇일까?</title><link href="https://kkr010128.github.io/03-memo-float-vs-double/" rel="alternate" type="text/html" title="float보다 double을 더 많이 사용하는 이유는 무엇일까?" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-memo-float-vs-double</id><content type="html" xml:base="https://kkr010128.github.io/03-memo-float-vs-double/"><![CDATA[<hr />
 
 <h3 id="q-float는-4byte이고-double은-8byte인데-왜-double을-더-많이-사용할까">Q. <code class="language-plaintext highlighter-rouge">float</code>는 4Byte이고 <code class="language-plaintext highlighter-rouge">double</code>은 8Byte인데 왜 <code class="language-plaintext highlighter-rouge">double</code>을 더 많이 사용할까?</h3>
 
-<p>강의 중 <code class="language-plaintext highlighter-rouge">float</code>는 4Byte, <code class="language-plaintext highlighter-rouge">double</code>은 8Byte라는 설명을 들었다.</p>
+<p>수업을 듣던 중, 강사님께서 평소 <code class="language-plaintext highlighter-rouge">float</code>와 <code class="language-plaintext highlighter-rouge">double</code> 중 어떤 자료형을 사용하는지 질문하셨다.</p>
+
+<p>평소 코딩테스트를 준비할 때나 전공 수업을 들을 때도 주로 float을 이용했다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">float</code>는 4Byte, <code class="language-plaintext highlighter-rouge">double</code>은 8Byte이다.</p>
 
 <p>그렇다면 메모리를 절약하려면 <code class="language-plaintext highlighter-rouge">float</code>를 사용하는 것이 더 좋은 선택 아닐까?</p>
 
-<p>또 대부분의 프로그램에서는 왜 <code class="language-plaintext highlighter-rouge">double</code>을 기본처럼 사용할까?</p>
+<p>하지만 대부분의 프로그램에서는 <code class="language-plaintext highlighter-rouge">double</code>을 기본으로 사용한다고 한다. 
+왜 <code class="language-plaintext highlighter-rouge">double</code>을 기본처럼 사용할까?</p>
 
 <h3 id="a-현대-컴퓨터에서는-메모리-절약보다-계산의-정확성이-더-중요하기-때문이다">A. 현대 컴퓨터에서는 메모리 절약보다 계산의 정확성이 더 중요하기 때문이다.</h3>
 
@@ -91,7 +96,7 @@ float로 저장
 <p>대표적인 예시는 다음과 같다.</p>
 
 <ul>
-  <li>GPU(OpenGL, CUDA, DirectX)</li>
+  <li>GPU(OpenGL, <strong>CUDA</strong>, DirectX)</li>
   <li>머신러닝의 FP32 연산</li>
   <li>임베디드 시스템</li>
   <li>모바일 환경</li>
@@ -128,7 +133,7 @@ float로 저장
   <li><code class="language-plaintext highlighter-rouge">double</code>은 <code class="language-plaintext highlighter-rouge">float</code>보다 약 두 배 이상의 정밀도를 제공해 계산 오차를 줄일 수 있다.</li>
   <li>일반적인 애플리케이션에서는 <code class="language-plaintext highlighter-rouge">double</code>을 사용하는 것이 더 적합하다.</li>
   <li>메모리 사용량이 중요한 환경에서는 <code class="language-plaintext highlighter-rouge">float</code>를 선택하는 것이 유리할 수 있다.</li>
-</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="DataType" /><summary type="html"><![CDATA[float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유]]></summary></entry><entry><title type="html">Network - Security 2</title><link href="https://kkr010128.github.io/10-network-security2/" rel="alternate" type="text/html" title="Network - Security 2" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/10-network-security2</id><content type="html" xml:base="https://kkr010128.github.io/10-network-security2/"><![CDATA[<h2 id="2-네트워크-위협">2) 네트워크 위협</h2>
+</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="DataType" /><summary type="html"><![CDATA[float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유]]></summary></entry><entry><title type="html">Network - Security 2</title><link href="https://kkr010128.github.io/10-network-security2/" rel="alternate" type="text/html" title="Network - Security 2" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/10-network-security2</id><content type="html" xml:base="https://kkr010128.github.io/10-network-security2/"><![CDATA[<h2 id="2-네트워크-위협">2) 네트워크 위협</h2>
 <hr />
 
 <h4 id="개요">개요</h4>
@@ -2326,7 +2331,7 @@ UUUUU
     <li>ACL은 위에서부터 순차적으로 검사하며 마지막에는 암묵적인 <code class="language-plaintext highlighter-rouge">deny ip any any</code> 규칙이 적용된다.</li>
     <li>GNS3 실습을 통해 ACL 정책 적용과 차단 결과를 직접 확인할 수 있다.</li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[방화벽과 연계 보안 솔루션 및 ACL 실습]]></summary></entry><entry><title type="html">int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?</title><link href="https://kkr010128.github.io/01-memo-int-vs-char/" rel="alternate" type="text/html" title="int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-memo-int-vs-char</id><content type="html" xml:base="https://kkr010128.github.io/01-memo-int-vs-char/"><![CDATA[<h3 id="q-char는-1byte이고-int는-4byte인데-숫자는-char로-저장하는-것이-더-효율적이지-않을까">Q. <code class="language-plaintext highlighter-rouge">char</code>는 1Byte이고 <code class="language-plaintext highlighter-rouge">int</code>는 4Byte인데, 숫자는 <code class="language-plaintext highlighter-rouge">char</code>로 저장하는 것이 더 효율적이지 않을까?</h3>
+</blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><category term="GNS3" /><summary type="html"><![CDATA[방화벽과 연계 보안 솔루션 및 ACL 실습]]></summary></entry><entry><title type="html">int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?</title><link href="https://kkr010128.github.io/01-memo-int-vs-char/" rel="alternate" type="text/html" title="int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-memo-int-vs-char</id><content type="html" xml:base="https://kkr010128.github.io/01-memo-int-vs-char/"><![CDATA[<h3 id="q-char는-1byte이고-int는-4byte인데-숫자는-char로-저장하는-것이-더-효율적이지-않을까">Q. <code class="language-plaintext highlighter-rouge">char</code>는 1Byte이고 <code class="language-plaintext highlighter-rouge">int</code>는 4Byte인데, 숫자는 <code class="language-plaintext highlighter-rouge">char</code>로 저장하는 것이 더 효율적이지 않을까?</h3>
 
 <p><code class="language-plaintext highlighter-rouge">char</code>는 1Byte, <code class="language-plaintext highlighter-rouge">int</code>는 4Byte이다.</p>
 
@@ -2432,7 +2437,7 @@ b        4Byte
   <li>CPU는 작은 자료형도 대부분 <code class="language-plaintext highlighter-rouge">int</code> 크기로 변환하여 연산한다.</li>
   <li>메모리 정렬 때문에 <code class="language-plaintext highlighter-rouge">char</code>를 사용해도 메모리가 절약되지 않는 경우가 있다.</li>
   <li>자료형은 메모리 크기보다 <strong>저장할 값의 범위와 CPU의 처리 방식</strong>을 기준으로 선택하는 것이 바람직하다.</li>
-</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="DataType" /><summary type="html"><![CDATA[char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유]]></summary></entry><entry><title type="html">Network - Router &amp;amp; Switch Lab 2</title><link href="https://kkr010128.github.io/08-network-lab2/" rel="alternate" type="text/html" title="Network - Router &amp;amp; Switch Lab 2" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/08-network-lab2</id><content type="html" xml:base="https://kkr010128.github.io/08-network-lab2/"><![CDATA[<h3 id="router-실습">Router 실습</h3>
+</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="DataType" /><summary type="html"><![CDATA[char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유]]></summary></entry><entry><title type="html">Network - Router &amp;amp; Switch Lab 2</title><link href="https://kkr010128.github.io/08-network-lab2/" rel="alternate" type="text/html" title="Network - Router &amp;amp; Switch Lab 2" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/08-network-lab2</id><content type="html" xml:base="https://kkr010128.github.io/08-network-lab2/"><![CDATA[<h3 id="router-실습">Router 실습</h3>
 
 <h4 id="실습-구성">실습 구성</h4>
 
@@ -3597,13 +3602,15 @@ area
   </ul>
 </blockquote>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[네트워크 보안의 5대 요소]]></summary></entry><entry><title type="html">Ping을 막는 이유는 무엇일까</title><link href="https://kkr010128.github.io/02-memo-pingban/" rel="alternate" type="text/html" title="Ping을 막는 이유는 무엇일까" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/02-memo-pingban</id><content type="html" xml:base="https://kkr010128.github.io/02-memo-pingban/"><![CDATA[<h3 id="q-ping을-막는-이유는-무엇일까-icmp는-ping만을-위한-프로토콜일까">Q. Ping을 막는 이유는 무엇일까? ICMP는 Ping만을 위한 프로토콜일까?</h3>
 
-<p>네트워크를 공부하다 보면 일부 서버는 <code class="language-plaintext highlighter-rouge">ping</code>이 동작하지 않는 경우를 자주 볼 수 있다.</p>
+<p>모의 해킹을 공부했을 때, 일부 서버는 <code class="language-plaintext highlighter-rouge">ping</code> 또는 <code class="language-plaintext highlighter-rouge">nmap</code>이 동작하지 않는 경우를 자주 볼 수 있었다.</p>
+
+<p>예전에 봤던 <a href="https://youtu.be/tAqgvP07RnQ?si=ZiTz1qOpm80zY3KI">토스를 해킹하는 영상</a> 에서도 비슷한 내용을 본 기억이 있다.</p>
 
 <p>그렇다면 Ping을 차단하는 이유는 무엇일까? 또한 ICMP는 Ping만을 위해 존재하는 프로토콜일까?</p>
 
 <h3 id="a-icmp는-ping만을-위한-프로토콜이-아니다">A. ICMP는 Ping만을 위한 프로토콜이 아니다.</h3>
 
-<p>많은 사람들이 ICMP를 Ping 프로토콜이라고 생각하지만, Ping은 <strong>ICMP를 이용하는 하나의 기능</strong>일 뿐이다.</p>
+<p>이전까지 ICMP를 Ping 프로토콜이라고 생각했지만, Ping은 <strong>ICMP를 이용하는 하나의 기능</strong>일 뿐이다.</p>
 
 <p>ICMP(Internet Control Message Protocol)는 네트워크 장비들이 <strong>오류를 알리거나 네트워크 상태를 진단</strong>하기 위해 사용하는 제어 프로토콜이다.</p>
 
@@ -3683,7 +3690,7 @@ TCP 443 (HTTPS): 정상
   <li>ICMP는 오류 보고와 네트워크 진단을 위한 다양한 메시지를 제공한다.</li>
   <li>운영 환경에서는 보안상의 이유로 ICMP Echo를 차단하는 경우가 많다.</li>
   <li>Ping이 실패하더라도 서비스 자체는 정상적으로 동작할 수 있다.</li>
-</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="Network" /><summary type="html"><![CDATA[CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 ICMP를 제한하는 사례 메모]]></summary></entry><entry><title type="html">Network Device 3 - L4 Device</title><link href="https://kkr010128.github.io/07-network-device-l4/" rel="alternate" type="text/html" title="Network Device 3 - L4 Device" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/07-network-device-l4</id><content type="html" xml:base="https://kkr010128.github.io/07-network-device-l4/"><![CDATA[<h2 id="device-3--l4-장비">Device 3 ) L4 장비</h2>
+</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="Network" /><summary type="html"><![CDATA[CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 ICMP를 제한하는 사례 메모]]></summary></entry><entry><title type="html">Network Device 3 - L4 Device</title><link href="https://kkr010128.github.io/07-network-device-l4/" rel="alternate" type="text/html" title="Network Device 3 - L4 Device" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/07-network-device-l4</id><content type="html" xml:base="https://kkr010128.github.io/07-network-device-l4/"><![CDATA[<h2 id="device-3--l4-장비">Device 3 ) L4 장비</h2>
 
 <h3 id="개요">개요</h3>
 

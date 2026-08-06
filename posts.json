@@ -8,12 +8,12 @@
         "url": "/11-network-security4/",
         "description": "방화벽과 연계 보안 솔루션 및 ACL 실습",
         "thumbnail": null,
-        "tags": ["Network","AutoEverSW"],
+        "tags": ["Network","AutoEverSW","GNS3"],
         "series_key": "network",
         "series_title": null,
         "date_label": "2026년 8월 6일",
         "reading_time_label": "5분 읽기",
-        "search": "network - security 4 방화벽과 연계 보안 솔루션 및 acl 실습 network autoeversw"
+        "search": "network - security 4 방화벽과 연계 보안 솔루션 및 acl 실습 network autoeversw gns3"
       },
     
       
@@ -53,12 +53,12 @@
         "url": "/03-memo-float-vs-double/",
         "description": "float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유",
         "thumbnail": null,
-        "tags": ["Notes","CS","DataType"],
+        "tags": ["DeepDive","CS","DataType"],
         "series_key": "technotes",
         "series_title": null,
         "date_label": "2026년 8월 6일",
-        "reading_time_label": "2분 읽기",
-        "search": "float보다 double을 더 많이 사용하는 이유는 무엇일까? float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유 notes cs datatype"
+        "reading_time_label": "3분 읽기",
+        "search": "float보다 double을 더 많이 사용하는 이유는 무엇일까? float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유 deepdive cs datatype"
       },
     
       
@@ -98,12 +98,12 @@
         "url": "/01-memo-int-vs-char/",
         "description": "char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유",
         "thumbnail": null,
-        "tags": ["Notes","CS","DataType"],
+        "tags": ["DeepDive","CS","DataType"],
         "series_key": "technotes",
         "series_title": null,
         "date_label": "2026년 8월 5일",
         "reading_time_label": "2분 읽기",
-        "search": "int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유 notes cs datatype"
+        "search": "int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유 deepdive cs datatype"
       },
     
       
@@ -143,12 +143,12 @@
         "url": "/02-memo-pingban/",
         "description": "CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 ICMP를 제한하는 사례 메모",
         "thumbnail": null,
-        "tags": ["Notes","CS","Network"],
+        "tags": ["DeepDive","CS","Network"],
         "series_key": "technotes",
         "series_title": null,
         "date_label": "2026년 8월 4일",
         "reading_time_label": "2분 읽기",
-        "search": "ping을 막는 이유는 무엇일까 cmp의 실제 역할과 ping 차단의 이유, 운영 환경에서 icmp를 제한하는 사례 메모 notes cs network"
+        "search": "ping을 막는 이유는 무엇일까 cmp의 실제 역할과 ping 차단의 이유, 운영 환경에서 icmp를 제한하는 사례 메모 deepdive cs network"
       },
     
       
@@ -788,12 +788,12 @@
         "url": "/01-knowledge-two-complement/",
         "description": "반가산기와 전가산기, Carry In, 2의 보수를 통해 CPU가 감산기 없이 뺄셈을 수행하는 원리",
         "thumbnail": null,
-        "tags": ["Notes","CS","LogicCircuit"],
+        "tags": ["DeepDive","CS","LogicCircuit"],
         "series_key": "technotes",
         "series_title": null,
         "date_label": "2026년 7월 11일",
         "reading_time_label": "4분 읽기",
-        "search": "cpu에 감산기가 없는 이유 반가산기와 전가산기, carry in, 2의 보수를 통해 cpu가 감산기 없이 뺄셈을 수행하는 원리 notes cs logiccircuit"
+        "search": "cpu에 감산기가 없는 이유 반가산기와 전가산기, carry in, 2의 보수를 통해 cpu가 감산기 없이 뺄셈을 수행하는 원리 deepdive cs logiccircuit"
       },
     
       
