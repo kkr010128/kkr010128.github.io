@@ -739,6 +739,21 @@
       
       
       {
+        "title": "CPU에 감산기가 없는 이유",
+        "url": "/01-knowledge-two-complement/",
+        "description": "반가산기와 전가산기, Carry In, 2의 보수를 통해 CPU가 감산기 없이 뺄셈을 수행하는 원리",
+        "thumbnail": null,
+        "tags": ["ComputerArchitecture","CPU","ALU","LogicCircuit","TwoComplement","CS"],
+        "series_key": "technotes",
+        "series_title": null,
+        "date_label": "2026년 7월 11일",
+        "reading_time_label": "4분 읽기",
+        "search": "cpu에 감산기가 없는 이유 반가산기와 전가산기, carry in, 2의 보수를 통해 cpu가 감산기 없이 뺄셈을 수행하는 원리 computerarchitecture cpu alu logiccircuit twocomplement cs"
+      },
+    
+      
+      
+      {
         "title": "SELECT",
         "url": "/02-select/",
         "description": "MariaDB SELECT 기본 문법, WHERE, ORDER BY, DISTINCT, LIMIT 정리",
