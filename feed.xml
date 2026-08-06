@@ -1,22 +1,26 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-06T08:52:37+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">float보다 double을 더 많이 사용하는 이유는 무엇일까?</title><link href="https://kkr010128.github.io/03-memo-float-vs-double/" rel="alternate" type="text/html" title="float보다 double을 더 많이 사용하는 이유는 무엇일까?" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-memo-float-vs-double</id><content type="html" xml:base="https://kkr010128.github.io/03-memo-float-vs-double/"><![CDATA[<h3 id="q-float는-4바이트이고-double은-8바이트인데-왜-double을-더-많이-사용할까">Q. float는 4바이트이고 double은 8바이트인데 왜 double을 더 많이 사용할까?</h3>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-06T10:24:47+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">float보다 double을 더 많이 사용하는 이유는 무엇일까?</title><link href="https://kkr010128.github.io/03-memo-float-vs-double/" rel="alternate" type="text/html" title="float보다 double을 더 많이 사용하는 이유는 무엇일까?" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-memo-float-vs-double</id><content type="html" xml:base="https://kkr010128.github.io/03-memo-float-vs-double/"><![CDATA[<hr />
 
-<p>강의 중 실수형 자료형을 설명하면서 <code class="language-plaintext highlighter-rouge">float</code>는 4바이트, <code class="language-plaintext highlighter-rouge">double</code>은 8바이트라고 배웠다.</p>
+<h3 id="q-float는-4byte이고-double은-8byte인데-왜-double을-더-많이-사용할까">Q. <code class="language-plaintext highlighter-rouge">float</code>는 4Byte이고 <code class="language-plaintext highlighter-rouge">double</code>은 8Byte인데 왜 <code class="language-plaintext highlighter-rouge">double</code>을 더 많이 사용할까?</h3>
 
-<p>메모리만 생각하면 <code class="language-plaintext highlighter-rouge">float</code>를 사용하는 것이 더 효율적일 것 같은데, 실제 코드에서는 오히려 <code class="language-plaintext highlighter-rouge">double</code>이 기본처럼 사용되는 경우가 많다.</p>
+<p>강의 중 <code class="language-plaintext highlighter-rouge">float</code>는 4Byte, <code class="language-plaintext highlighter-rouge">double</code>은 8Byte라는 설명을 들었다.</p>
 
-<p>왜 이런 차이가 생긴 것일까?</p>
+<p>그렇다면 메모리를 절약하려면 <code class="language-plaintext highlighter-rouge">float</code>를 사용하는 것이 더 좋은 선택 아닐까?</p>
 
-<h3 id="a-현대-컴퓨터에서는-메모리보다-정확도가-더-중요해졌기-때문이다">A. 현대 컴퓨터에서는 메모리보다 정확도가 더 중요해졌기 때문이다.</h3>
+<p>또 대부분의 프로그램에서는 왜 <code class="language-plaintext highlighter-rouge">double</code>을 기본처럼 사용할까?</p>
 
-<p>과거에는 메모리가 매우 부족했다.</p>
+<h3 id="a-현대-컴퓨터에서는-메모리-절약보다-계산의-정확성이-더-중요하기-때문이다">A. 현대 컴퓨터에서는 메모리 절약보다 계산의 정확성이 더 중요하기 때문이다.</h3>
 
-<p>16비트, 32비트 컴퓨터 시절에는 RAM이 수 MB 수준인 경우도 많았기 때문에 4바이트와 8바이트의 차이가 매우 컸다.</p>
+<p>과거에는 메모리 용량이 매우 제한적이었다.</p>
 
-<p>하지만 현재 대부분의 PC와 서버는 64비트 환경에서 수 GB에서 수십 GB 이상의 메모리를 사용한다.</p>
+<p>따라서 4Byte인 <code class="language-plaintext highlighter-rouge">float</code>를 사용하는 것만으로도 의미 있는 메모리 절약 효과를 얻을 수 있었다.</p>
 
-<p>이제는 실수 하나를 저장할 때 추가되는 4바이트보다 <strong>계산 정확성</strong>이 훨씬 중요한 요소가 되었다.</p>
+<p>하지만 현재는 대부분의 PC와 서버가 수 GB 이상의 메모리를 사용하며, 8Byte를 사용하는 부담이 과거보다 크게 줄어들었다.</p>
 
-<h3 id="float와-double의-차이">float와 double의 차이</h3>
+<p>이러한 환경에서는 메모리 절약보다 <strong>계산의 정확성과 안정성</strong>을 확보하는 것이 더 중요해졌고, 그 결과 <code class="language-plaintext highlighter-rouge">double</code>이 기본적으로 많이 사용된다.</p>
+
+<h3 id="double은-더-높은-정밀도를-제공한다"><code class="language-plaintext highlighter-rouge">double</code>은 더 높은 정밀도를 제공한다.</h3>
+
+<p><code class="language-plaintext highlighter-rouge">float</code>와 <code class="language-plaintext highlighter-rouge">double</code>의 가장 큰 차이는 표현 가능한 숫자의 정밀도이다.</p>
 
 <table>
   <thead>
@@ -24,106 +28,94 @@
       <th>자료형</th>
       <th>크기</th>
       <th>유효 자릿수</th>
-      <th>특징</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">float</code></td>
-      <td>4 Byte</td>
+      <td>4Byte</td>
       <td>약 7자리</td>
-      <td>메모리 사용량이 적음</td>
     </tr>
     <tr>
       <td><code class="language-plaintext highlighter-rouge">double</code></td>
-      <td>8 Byte</td>
+      <td>8Byte</td>
       <td>약 15~16자리</td>
-      <td>높은 정밀도</td>
     </tr>
   </tbody>
 </table>
 
-<p>예를 들어 다음과 같은 계산을 수행하면 차이를 쉽게 볼 수 있다.</p>
+<p>반복 계산이나 소수 연산이 많은 프로그램에서는 작은 오차가 계속 누적될 수 있다.</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">0.1</span><span class="n">f</span><span class="p">;</span>
-<span class="kt">double</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">;</span>
+<p><code class="language-plaintext highlighter-rouge">double</code>은 이러한 누적 오차를 크게 줄여주므로 과학 계산, 금융 프로그램, 게임 엔진 등 다양한 분야에서 기본적으로 사용된다.</p>
 
-<span class="n">printf</span><span class="p">(</span><span class="s">"%.20f</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">a</span><span class="p">);</span>
-<span class="n">printf</span><span class="p">(</span><span class="s">"%.20lf</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">b</span><span class="p">);</span>
+<h3 id="float가-항상-더-빠른-것은-아니다"><code class="language-plaintext highlighter-rouge">float</code>가 항상 더 빠른 것은 아니다.</h3>
+
+<p>많은 사람들이 메모리가 절반이므로 연산도 더 빠를 것이라고 생각한다.</p>
+
+<p>하지만 현대 CPU는 <code class="language-plaintext highlighter-rouge">float</code>와 <code class="language-plaintext highlighter-rouge">double</code> 모두를 하드웨어에서 처리한다.</p>
+
+<p>또한 C/C++에서는 실수 리터럴의 기본 타입도 <code class="language-plaintext highlighter-rouge">double</code>이다.</p>
+
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">double</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">3.14</span><span class="p">;</span>
+
+<span class="kt">float</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">3.14</span><span class="n">f</span><span class="p">;</span>
 </code></pre></div></div>
 
-<p>두 값 모두 내부적으로는 정확한 <code class="language-plaintext highlighter-rouge">0.1</code>을 표현하지 못하지만, <code class="language-plaintext highlighter-rouge">double</code>이 훨씬 작은 오차를 가진다.</p>
+<p>표준 수학 라이브러리(<code class="language-plaintext highlighter-rouge">sqrt</code>, <code class="language-plaintext highlighter-rouge">sin</code>, <code class="language-plaintext highlighter-rouge">cos</code>, <code class="language-plaintext highlighter-rouge">log</code> 등) 역시 대부분 <code class="language-plaintext highlighter-rouge">double</code>을 기준으로 제공된다.</p>
 
-<h3 id="32비트에서-64비트로-바뀌며-무엇이-달라졌을까">32비트에서 64비트로 바뀌며 무엇이 달라졌을까?</h3>
+<p>또한 <code class="language-plaintext highlighter-rouge">float</code>도 연산 과정에서 CPU 내부 연산 정밀도를 사용하여 계산한 뒤 다시 <code class="language-plaintext highlighter-rouge">float</code>에 저장될 수 있다.</p>
 
-<p>32비트 환경에서는 메모리 공간이 제한적이었다.</p>
+<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">1.2</span><span class="n">f</span><span class="p">;</span>
+<span class="kt">float</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">3.4</span><span class="n">f</span><span class="p">;</span>
 
-<p>따라서 가능한 작은 자료형을 사용하는 것이 중요한 최적화 방법이었다.</p>
-
-<p>하지만 64비트 환경에서는 다음과 같은 변화가 생겼다.</p>
-
-<ul>
-  <li>메모리 용량이 크게 증가</li>
-  <li>CPU의 연산 성능 향상</li>
-  <li>부동소수점 연산 장치(FPU)의 발전</li>
-  <li>대부분의 컴파일러와 라이브러리가 <code class="language-plaintext highlighter-rouge">double</code> 중심으로 최적화</li>
-</ul>
-
-<p>즉, <strong>메모리를 아끼는 것보다 계산 결과의 신뢰성을 확보하는 것이 더 중요한 시대가 된 것</strong>이다.</p>
-
-<h3 id="오히려-double이-더-자연스러운-경우도-있다">오히려 double이 더 자연스러운 경우도 있다.</h3>
-
-<p>C와 C++에서는 실수 리터럴의 기본 타입이 <code class="language-plaintext highlighter-rouge">double</code>이다.</p>
-
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">double</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">3.14</span><span class="p">;</span>   <span class="c1">// 기본</span>
-
-<span class="kt">float</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">3.14</span><span class="n">f</span><span class="p">;</span>   <span class="c1">// f를 붙여야 float</span>
+<span class="kt">float</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
 </code></pre></div></div>
 
-<p>또한 대부분의 수학 함수도 <code class="language-plaintext highlighter-rouge">double</code>을 기준으로 제공된다.</p>
+<p>개념적으로는 다음과 같은 과정을 거친다고 이해하면 된다.</p>
 
-<div class="language-cpp highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sqrt</span><span class="p">()</span>
-<span class="n">sin</span><span class="p">()</span>
-<span class="n">cos</span><span class="p">()</span>
-<span class="n">log</span><span class="p">()</span>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>float
+    ↓
+CPU 내부 연산 정밀도
+    ↓
+연산 수행
+    ↓
+float로 저장
 </code></pre></div></div>
 
-<p>이 함수들은 기본적으로 <code class="language-plaintext highlighter-rouge">double</code>을 사용하므로 <code class="language-plaintext highlighter-rouge">float</code>를 전달하면 내부에서 형 변환이 발생할 수 있다.</p>
+<p>실제 내부 구현은 CPU와 컴파일러에 따라 다르지만, 중요한 점은 <strong><code class="language-plaintext highlighter-rouge">float</code>를 사용한다고 해서 항상 더 빠른 것은 아니라는 것</strong>이다.</p>
 
-<h3 id="그렇다면-float는-언제-사용할까">그렇다면 float는 언제 사용할까?</h3>
+<h3 id="그렇다면-언제-float를-사용할까">그렇다면 언제 <code class="language-plaintext highlighter-rouge">float</code>를 사용할까?</h3>
 
-<p><code class="language-plaintext highlighter-rouge">float</code>가 사라진 것은 아니다.</p>
-
-<p>메모리 사용량이 매우 중요한 환경에서는 여전히 많이 사용된다.</p>
+<p>메모리 사용량이 성능에 직접적인 영향을 주는 환경에서는 <code class="language-plaintext highlighter-rouge">float</code>를 적극적으로 사용한다.</p>
 
 <p>대표적인 예시는 다음과 같다.</p>
 
 <ul>
-  <li>게임 엔진에서 수백만 개의 정점(Vertex) 저장</li>
-  <li>GPU 연산</li>
-  <li>머신러닝 모델의 FP16, FP32 연산</li>
-  <li>모바일 및 임베디드 시스템</li>
-  <li>센서 데이터 처리</li>
+  <li>GPU(OpenGL, CUDA, DirectX)</li>
+  <li>머신러닝의 FP32 연산</li>
+  <li>임베디드 시스템</li>
+  <li>모바일 환경</li>
+  <li>대용량 배열이나 이미지 처리</li>
 </ul>
 
-<p>이처럼 동일한 데이터를 매우 많이 저장해야 하는 환경에서는 4바이트 차이만으로도 수십~수백 MB 이상의 메모리를 절약할 수 있다.</p>
+<p>수백만 개 이상의 데이터를 저장하는 경우에는 4Byte 차이만으로도 상당한 메모리를 절약할 수 있기 때문이다.</p>
 
 <h3 id="자주-하는-오해">자주 하는 오해</h3>
 
 <ul>
-  <li><strong>64비트 운영체제에서는 float도 8바이트가 된다.</strong>
+  <li><strong>64비트 운영체제에서는 <code class="language-plaintext highlighter-rouge">float</code>도 8Byte가 된다.</strong>
     <ul>
-      <li>아니다. 운영체제와 관계없이 <code class="language-plaintext highlighter-rouge">float</code>는 일반적으로 4바이트, <code class="language-plaintext highlighter-rouge">double</code>은 8바이트이다.</li>
+      <li>아니다. 일반적으로 <code class="language-plaintext highlighter-rouge">float</code>는 4Byte, <code class="language-plaintext highlighter-rouge">double</code>은 8Byte이다.</li>
     </ul>
   </li>
-  <li><strong>double이 항상 더 빠르다.</strong>
+  <li><strong><code class="language-plaintext highlighter-rouge">double</code>을 많이 사용하는 이유는 64비트 운영체제이기 때문이다.</strong>
     <ul>
-      <li>반드시 그렇지는 않다. 하지만 현대 CPU에서는 <code class="language-plaintext highlighter-rouge">double</code>이 특별히 느리지 않으며, 대부분의 일반적인 프로그램에서는 성능 차이를 체감하기 어렵다.</li>
+      <li>아니다. 운영체제 때문이 아니라, 현대 컴퓨터의 메모리와 CPU 성능이 크게 향상되면서 <code class="language-plaintext highlighter-rouge">double</code>을 사용할 부담이 줄어들었기 때문이다.</li>
     </ul>
   </li>
-  <li><strong>메모리를 아끼려면 항상 float를 사용해야 한다.</strong>
+  <li><strong><code class="language-plaintext highlighter-rouge">float</code>가 메모리를 적게 사용하므로 항상 더 빠르다.</strong>
     <ul>
-      <li>아니다. 일반적인 애플리케이션에서는 메모리 절약보다 정밀도가 더 중요하다.</li>
+      <li>아니다. 현대 CPU에서는 두 자료형 모두 하드웨어에서 처리하며 일반적인 프로그램에서는 성능 차이가 크지 않다.</li>
     </ul>
   </li>
 </ul>
@@ -131,65 +123,30 @@
 <h3 id="정리">정리</h3>
 
 <ul>
-  <li><code class="language-plaintext highlighter-rouge">float</code>는 4바이트, <code class="language-plaintext highlighter-rouge">double</code>은 8바이트이다.</li>
-  <li>현대 컴퓨터에서는 메모리보다 계산 정확성이 더 중요해졌다.</li>
-  <li>대부분의 실수 연산과 라이브러리는 <code class="language-plaintext highlighter-rouge">double</code>을 기준으로 동작한다.</li>
-  <li>일반적인 애플리케이션에서는 <code class="language-plaintext highlighter-rouge">double</code>을 사용하는 경우가 많다.</li>
-  <li>메모리 사용량이 매우 중요한 환경에서만 <code class="language-plaintext highlighter-rouge">float</code>를 적극적으로 사용하는 것이 일반적이다.</li>
-</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="DataType" /><category term="Memory" /><summary type="html"><![CDATA[float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유]]></summary></entry><entry><title type="html">int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?</title><link href="https://kkr010128.github.io/01-memo-int-vs-char/" rel="alternate" type="text/html" title="int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-memo-int-vs-char</id><content type="html" xml:base="https://kkr010128.github.io/01-memo-int-vs-char/"><![CDATA[<h3 id="q-int는-4바이트이고-char는-1바이트인데-숫자는-char로-저장하는-것이-더-효율적인-것-아닐까">Q. int는 4바이트이고 char는 1바이트인데, 숫자는 char로 저장하는 것이 더 효율적인 것 아닐까?</h3>
+  <li><code class="language-plaintext highlighter-rouge">float</code>는 4Byte, <code class="language-plaintext highlighter-rouge">double</code>은 8Byte이다.</li>
+  <li><code class="language-plaintext highlighter-rouge">double</code>이 많이 사용되는 이유는 64비트 운영체제 때문이 아니라 현대 하드웨어 환경에서 메모리 부담이 크게 줄었기 때문이다.</li>
+  <li><code class="language-plaintext highlighter-rouge">double</code>은 <code class="language-plaintext highlighter-rouge">float</code>보다 약 두 배 이상의 정밀도를 제공해 계산 오차를 줄일 수 있다.</li>
+  <li>일반적인 애플리케이션에서는 <code class="language-plaintext highlighter-rouge">double</code>을 사용하는 것이 더 적합하다.</li>
+  <li>메모리 사용량이 중요한 환경에서는 <code class="language-plaintext highlighter-rouge">float</code>를 선택하는 것이 유리할 수 있다.</li>
+</ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="DataType" /><category term="Memory" /><summary type="html"><![CDATA[float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유]]></summary></entry><entry><title type="html">int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?</title><link href="https://kkr010128.github.io/01-memo-int-vs-char/" rel="alternate" type="text/html" title="int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-memo-int-vs-char</id><content type="html" xml:base="https://kkr010128.github.io/01-memo-int-vs-char/"><![CDATA[<h3 id="q-char는-1byte이고-int는-4byte인데-숫자는-char로-저장하는-것이-더-효율적이지-않을까">Q. <code class="language-plaintext highlighter-rouge">char</code>는 1Byte이고 <code class="language-plaintext highlighter-rouge">int</code>는 4Byte인데, 숫자는 <code class="language-plaintext highlighter-rouge">char</code>로 저장하는 것이 더 효율적이지 않을까?</h3>
 
-<p>강의 중 자료형의 크기를 설명하면서 <code class="language-plaintext highlighter-rouge">char</code>는 1바이트, <code class="language-plaintext highlighter-rouge">int</code>는 4바이트라고 배웠다.</p>
+<p><code class="language-plaintext highlighter-rouge">char</code>는 1Byte, <code class="language-plaintext highlighter-rouge">int</code>는 4Byte이다.</p>
 
-<p>그렇다면 숫자를 저장할 때도 <code class="language-plaintext highlighter-rouge">char</code>를 사용하면 메모리를 4배 절약할 수 있으므로 더 효율적인 것은 아닐까?</p>
+<p>그렇다면 메모리를 아끼기 위해 숫자도 <code class="language-plaintext highlighter-rouge">char</code>로 저장하는 것이 더 좋은 선택 아닐까?</p>
 
-<h3 id="a-저장할-수-있는-값의-범위와-cpu의-처리-방식을-함께-고려해야-한다">A. 저장할 수 있는 값의 범위와 CPU의 처리 방식을 함께 고려해야 한다.</h3>
+<h3 id="a-자료형은-메모리-크기보다-cpu의-처리-방식과-저장할-데이터의-범위를-고려해서-선택해야-한다">A. 자료형은 메모리 크기보다 CPU의 처리 방식과 저장할 데이터의 범위를 고려해서 선택해야 한다.</h3>
 
-<p>자료형은 단순히 메모리 크기만으로 선택하는 것이 아니다.</p>
+<p>직관적으로는 <code class="language-plaintext highlighter-rouge">char</code>가 메모리를 4배 적게 사용하므로 더 효율적으로 보인다.</p>
 
-<p>가장 먼저 고려해야 하는 것은 <strong>얼마나 큰 값을 저장해야 하는지</strong>이다.</p>
+<p>하지만 현대 컴퓨터에서는 대부분 그렇지 않다.</p>
 
-<p>대표적인 자료형의 크기와 표현 가능한 범위는 다음과 같다.</p>
+<h3 id="cpu는-작은-자료형도-그대로-계산하지-않는다">CPU는 작은 자료형도 그대로 계산하지 않는다.</h3>
 
-<table>
-  <thead>
-    <tr>
-      <th>자료형</th>
-      <th>크기</th>
-      <th>표현 범위(일반적인 Signed 기준)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">char</code></td>
-      <td>1 Byte</td>
-      <td>-128 ~ 127</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">short</code></td>
-      <td>2 Byte</td>
-      <td>-32,768 ~ 32,767</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">int</code></td>
-      <td>4 Byte</td>
-      <td>약 -21억 ~ 21억</td>
-    </tr>
-  </tbody>
-</table>
+<p>현대 CPU는 64비트(8Byte) 레지스터를 기준으로 연산한다.</p>
 
-<p>예를 들어 나이를 저장한다면 <code class="language-plaintext highlighter-rouge">char</code>만으로도 충분하다.</p>
+<p>따라서 <code class="language-plaintext highlighter-rouge">char</code>나 <code class="language-plaintext highlighter-rouge">short</code>와 같은 작은 자료형도 대부분 연산 전에 <code class="language-plaintext highlighter-rouge">int</code> 또는 CPU가 사용하는 내부 연산 크기로 자동 승격(Integer Promotion)된다.</p>
 
-<p>하지만 학생 수, 파일 크기, 금액, 배열의 인덱스처럼 범위가 커질 수 있는 데이터는 <code class="language-plaintext highlighter-rouge">int</code>가 필요하다.</p>
-
-<p>즉, <strong>메모리를 아끼기 위해 작은 자료형을 사용하는 것이 아니라, 저장해야 하는 값의 범위에 맞는 자료형을 선택하는 것이 원칙</strong>이다.</p>
-
-<h3 id="메모리만-작은-것이-항상-성능이-좋은-것은-아니다">메모리만 작은 것이 항상 성능이 좋은 것은 아니다.</h3>
-
-<p>현대 CPU는 보통 32비트 또는 64비트 단위로 데이터를 처리한다.</p>
-
-<p>따라서 <code class="language-plaintext highlighter-rouge">char</code>를 계산하더라도 내부적으로는 <code class="language-plaintext highlighter-rouge">int</code> 크기로 변환하여 연산하는 경우가 많다.</p>
-
-<p>예를 들어 다음 코드에서</p>
+<p>예를 들어</p>
 
 <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">char</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
 <span class="kt">char</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
@@ -197,60 +154,74 @@
 <span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
 </code></pre></div></div>
 
-<p>실제로는 <code class="language-plaintext highlighter-rouge">a</code>와 <code class="language-plaintext highlighter-rouge">b</code>가 연산 과정에서 <code class="language-plaintext highlighter-rouge">int</code>로 승격(Integer Promotion)된 뒤 계산된다.</p>
+<p>개념적으로는 다음과 같은 과정을 거친다.</p>
 
-<p>즉,</p>
-
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="n">temp</span> <span class="o">=</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="n">b</span><span class="p">;</span>
-<span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="kt">char</span><span class="p">)</span><span class="n">temp</span><span class="p">;</span>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>char → int(또는 CPU 내부 연산 크기)로 승격
+                ↓
+            연산 수행
+                ↓
+      결과를 다시 char에 저장
 </code></pre></div></div>
 
-<p>와 유사한 과정이 내부적으로 수행된다.</p>
+<p>즉, <code class="language-plaintext highlighter-rouge">char</code>를 사용한다고 해서 CPU의 연산량이 줄어드는 것은 아니다.</p>
 
-<p>따라서 단순히 <code class="language-plaintext highlighter-rouge">char</code>를 사용한다고 해서 연산이 더 빠르거나 CPU 사용량이 줄어드는 것은 아니다.</p>
+<h3 id="메모리도-항상-절약되는-것은-아니다">메모리도 항상 절약되는 것은 아니다.</h3>
+
+<p>CPU는 메모리에 빠르게 접근하기 위해 데이터를 일정한 단위로 정렬(Alignment)한다.</p>
+
+<p>예를 들어</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">Data</span> <span class="p">{</span>
+    <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
+    <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>메모리는 다음과 같이 배치될 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>a        1Byte
+padding  3Byte
+b        4Byte
+
+총 8Byte
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">char</code>는 1Byte이지만 <code class="language-plaintext highlighter-rouge">int</code>를 정렬하기 위해 중간에 Padding이 추가된다.</p>
+
+<p>따라서 <code class="language-plaintext highlighter-rouge">char</code>를 사용해도 기대만큼 메모리를 절약하지 못하는 경우가 많다.</p>
 
 <h3 id="그렇다면-언제-char를-사용할까">그렇다면 언제 char를 사용할까?</h3>
 
-<p><code class="language-plaintext highlighter-rouge">char</code>는 숫자를 저장하기 위해 만들어진 자료형이라기보다 <strong>1바이트 크기의 데이터를 표현하기 위한 자료형</strong>이다.</p>
+<p><code class="language-plaintext highlighter-rouge">char</code>는 단순히 메모리를 아끼기 위한 자료형이 아니다.</p>
 
-<p>대표적인 사용 예시는 다음과 같다.</p>
+<p>다음과 같은 경우에 적합하다.</p>
 
 <ul>
-  <li>문자 저장 (<code class="language-plaintext highlighter-rouge">'A'</code>, <code class="language-plaintext highlighter-rouge">'B'</code>)</li>
-  <li>ASCII 문자 표현</li>
-  <li>작은 범위의 정수</li>
+  <li>문자 저장</li>
+  <li>ASCII 코드 처리</li>
   <li>바이트 단위 데이터 처리</li>
-  <li>파일 및 네트워크 패킷 처리</li>
+  <li>네트워크 패킷 처리</li>
+  <li>파일 입출력</li>
 </ul>
 
-<p>특히 네트워크 프로그래밍이나 운영체제에서는 데이터를 바이트 단위로 다루기 때문에 <code class="language-plaintext highlighter-rouge">char</code> 또는 <code class="language-plaintext highlighter-rouge">unsigned char</code>를 자주 사용한다.</p>
-
-<h3 id="메모리가-중요한-경우도-있다">메모리가 중요한 경우도 있다.</h3>
-
-<p>임베디드 시스템처럼 메모리가 매우 제한적인 환경에서는 자료형 선택이 중요하다.</p>
-
-<p>예를 들어 센서 값이 항상 <code class="language-plaintext highlighter-rouge">0~100</code>이라면 <code class="language-plaintext highlighter-rouge">int</code> 대신 <code class="language-plaintext highlighter-rouge">uint8_t</code>를 사용하여 메모리를 절약할 수 있다.</p>
-
-<p>반대로 일반적인 애플리케이션에서는 유지보수성과 연산 효율을 고려해 <code class="language-plaintext highlighter-rouge">int</code>를 사용하는 경우가 많다.</p>
-
-<p>즉, 메모리 절약보다 코드의 안정성과 범용성을 우선하는 경우가 대부분이다.</p>
+<p>반대로 일반적인 정수 계산은 대부분 <code class="language-plaintext highlighter-rouge">int</code>를 사용하는 것이 자연스럽다.</p>
 
 <h3 id="자주-하는-오해">자주 하는 오해</h3>
 
 <ul>
-  <li><strong>char가 1바이트이므로 항상 int보다 효율적이다.</strong>
+  <li><strong>char가 1Byte이므로 항상 int보다 효율적이다.</strong>
     <ul>
-      <li>아니다. 저장 가능한 값의 범위가 매우 작으며 연산 시에는 대부분 <code class="language-plaintext highlighter-rouge">int</code>로 변환된다.</li>
+      <li>아니다. 연산 시 대부분 <code class="language-plaintext highlighter-rouge">int</code> 크기로 승격된다.</li>
     </ul>
   </li>
-  <li><strong>숫자는 모두 char로 저장하면 메모리를 절약할 수 있다.</strong>
+  <li><strong>char를 사용하면 연산도 더 빨라진다.</strong>
     <ul>
-      <li>저장 가능한 범위를 초과하면 오버플로우가 발생하므로 적절한 자료형을 선택해야 한다.</li>
+      <li>아니다. 현대 CPU에서는 성능 차이가 거의 없으며 오히려 형 변환이 발생할 수 있다.</li>
     </ul>
   </li>
-  <li><strong>char는 문자만 저장하는 자료형이다.</strong>
+  <li><strong>자료형은 크기만 보고 선택하면 된다.</strong>
     <ul>
-      <li>아니다. 1바이트 정수형이며 문자 역시 숫자로 저장된다.</li>
+      <li>아니다. 저장할 값의 범위와 CPU의 처리 방식을 함께 고려해야 한다.</li>
     </ul>
   </li>
 </ul>
@@ -258,11 +229,11 @@
 <h3 id="정리">정리</h3>
 
 <ul>
-  <li><code class="language-plaintext highlighter-rouge">char</code>는 1바이트, <code class="language-plaintext highlighter-rouge">int</code>는 일반적으로 4바이트이다.</li>
-  <li>자료형은 메모리 크기보다 저장해야 하는 값의 범위를 기준으로 선택한다.</li>
-  <li><code class="language-plaintext highlighter-rouge">char</code>는 연산 과정에서 대부분 <code class="language-plaintext highlighter-rouge">int</code>로 자동 승격된다.</li>
-  <li>따라서 <code class="language-plaintext highlighter-rouge">char</code>가 항상 더 빠르거나 효율적인 것은 아니다.</li>
-  <li>일반적인 프로그램에서는 <code class="language-plaintext highlighter-rouge">int</code>를, 메모리가 중요한 환경에서는 필요한 범위에 맞는 작은 자료형을 사용하는 것이 바람직하다.</li>
+  <li><code class="language-plaintext highlighter-rouge">char</code>는 1Byte, <code class="language-plaintext highlighter-rouge">int</code>는 일반적으로 4Byte이다.</li>
+  <li>작은 자료형이 항상 성능상 유리한 것은 아니다.</li>
+  <li>CPU는 작은 자료형도 대부분 <code class="language-plaintext highlighter-rouge">int</code> 크기로 변환하여 연산한다.</li>
+  <li>메모리 정렬 때문에 <code class="language-plaintext highlighter-rouge">char</code>를 사용해도 메모리가 절약되지 않는 경우가 있다.</li>
+  <li>자료형은 메모리 크기보다 <strong>저장할 값의 범위와 CPU의 처리 방식</strong>을 기준으로 선택하는 것이 바람직하다.</li>
 </ul>]]></content><author><name></name></author><category term="Notes" /><category term="CS" /><category term="DataType" /><summary type="html"><![CDATA[char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유]]></summary></entry><entry><title type="html">Network - Router &amp;amp; Switch Lab 2</title><link href="https://kkr010128.github.io/08-network-lab2/" rel="alternate" type="text/html" title="Network - Router &amp;amp; Switch Lab 2" /><published>2026-08-05T00:00:00+09:00</published><updated>2026-08-05T00:00:00+09:00</updated><id>https://kkr010128.github.io/08-network-lab2</id><content type="html" xml:base="https://kkr010128.github.io/08-network-lab2/"><![CDATA[<h3 id="router-실습">Router 실습</h3>
 
 <h4 id="실습-구성">실습 구성</h4>
