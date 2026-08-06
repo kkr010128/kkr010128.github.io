@@ -7,7 +7,6 @@ tags:
   - Notes
   - CS
   - DataType
-  - Memory
 ---
 ---
 

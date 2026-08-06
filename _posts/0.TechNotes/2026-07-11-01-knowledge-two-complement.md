@@ -4,12 +4,9 @@ description: 반가산기와 전가산기, Carry In, 2의 보수를 통해 CPU�
 date: 2026-07-11
 series: TechNotes
 tags:
-  - ComputerArchitecture
-  - CPU
-  - ALU
-  - LogicCircuit
-  - TwoComplement
+  - Notes
   - CS
+  - LogicCircuit
 ---
 
 
