@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Network - Security 1 | hyeon.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="네트워크 보안의 5대 요소">
+<link rel="canonical" href="https://kkr010128.github.io/09-network-security1/">
+<meta property="og:title" content="Network - Security 1 | hyeon.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="네트워크 보안의 5대 요소">
+<meta property="og:url" content="https://kkr010128.github.io/09-network-security1/">
+<meta property="og:site_name" content="hyeon.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Network - Security 1 | hyeon.log">
+<meta name="twitter:description" content="네트워크 보안의 5대 요소">
+
+  <meta property="article:published_time" content="2026-08-05T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1786011541" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786011541" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786011541">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786011541" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1786011541">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "hyeon.log",
+    "headline": "Network - Security 1 | hyeon.log",
+    "description": "네트워크 보안의 5대 요소",
+    "url": "https://kkr010128.github.io/09-network-security1/",
+    "datePublished": "2026-08-05T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="hyeon.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">hyeon.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">Network - Security 1</h1>
+    
+      <p class="post-head__description">네트워크 보안의 5대 요소</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 5일 · 3분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Network">Network</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--네트워크-보안의-5대-요소">1 ) 네트워크 보안의 5대 요소</h2>
+<hr />
+
+<h4 id="개요">개요</h4>
+
+<p>네트워크 보안은 정보 자산을 안전하게 보호하기 위한 기본 원칙으로 다음 다섯 가지 요소로 구성된다.</p>
+
+<ul>
+  <li>기밀성(Confidentiality)</li>
+  <li>무결성(Integrity)</li>
+  <li>가용성(Availability)</li>
+</ul>
+
+<p>위 세 가지를 <strong>CIA 3대 요소</strong>라고 하며, 여기에 다음 두 가지 인증 요소를 추가한다.</p>
+
+<ul>
+  <li>서버 인증(Server Authentication)</li>
+  <li>클라이언트 인증(Client Authentication)</li>
+</ul>
+
+<hr />
+
+<h3 id="기밀성-confidentiality">기밀성 (Confidentiality)</h3>
+
+<h4 id="개요-1">개요</h4>
+
+<p>기밀성은 인가되지 않은 사용자나 객체가 정보의 내용을 볼 수 없도록 보호하는 것이다.</p>
+
+<h4 id="기밀성을-위한-인증-요소">기밀성을 위한 인증 요소</h4>
+
+<p>사용자의 신원을 확인하기 위해 다음과 같은 인증 요소를 사용할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>설명</th>
+      <th>예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>소유 기반(Possession)</td>
+      <td>사용자가 가지고 있는 것</td>
+      <td>OTP, 보안 토큰</td>
+    </tr>
+    <tr>
+      <td>지식 기반(Knowledge)</td>
+      <td>사용자가 알고 있는 것</td>
+      <td>ID, Password</td>
+    </tr>
+    <tr>
+      <td>생체 기반(Inherence)</td>
+      <td>사용자의 신체적 특징</td>
+      <td>지문, 홍채, 얼굴 인식</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="기밀성의-예">기밀성의 예</h4>
+
+<p>기밀성을 보장하기 위한 대표적인 예는 다음과 같다.</p>
+
+<ul>
+  <li>보안 관련 시스템 및 소프트웨어</li>
+  <li>방화벽(Firewall)</li>
+  <li>암호화</li>
+  <li>Password</li>
+</ul>
+
+<p>방화벽은 대표적으로 MAC Address나 IP Address 등을 확인하여 허가되지 않은 접근을 제한한다.</p>
+
+<h4 id="네트워크-보안에서의-기밀성">네트워크 보안에서의 기밀성</h4>
+
+<p>다음과 같은 통신에서 허가되지 않은 사용자나 객체가 정보의 내용을 알 수 없도록 보호하는 것을 의미한다.</p>
+
+<ul>
+  <li>서버 ↔ 클라이언트</li>
+  <li>서버 ↔ 서버</li>
+  <li>클라이언트 ↔ 클라이언트</li>
+</ul>
+
+<h4 id="기밀성을-해치는-공격">기밀성을 해치는 공격</h4>
+
+<p>대표적인 공격은 Sniffing이다.</p>
+
+<ul>
+  <li>Cookie Sniffing</li>
+  <li>Traffic Sniffing</li>
+  <li>Ethernet Sniffing</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>기밀성은 허가되지 않은 사용자의 정보 열람을 방지하는 것이다.</li>
+    <li>인증 요소는 소유, 지식, 생체 기반으로 구분할 수 있다.</li>
+    <li>네트워크에서 기밀성을 해치는 대표적인 공격은 Sniffing이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="무결성-integrity">무결성 (Integrity)</h3>
+
+<h4 id="개요-2">개요</h4>
+
+<p>무결성은 인가된 사용자만 데이터에 접근하고 수정할 수 있으며, 데이터가 임의로 변경되지 않았음을 보장하는 것이다.</p>
+
+<h4 id="예시">예시</h4>
+
+<p>위조지폐는 원본의 내용이 변경된 것으로 무결성이 훼손된 대표적인 사례이다.</p>
+
+<h4 id="네트워크-보안에서의-무결성">네트워크 보안에서의 무결성</h4>
+
+<p>클라이언트와 서버 사이에서 전송되는 데이터가 중간에서 변조되지 않고 그대로 전달되는 것을 의미한다.</p>
+
+<h4 id="무결성을-해치는-공격">무결성을 해치는 공격</h4>
+
+<p>대표적인 공격은 Session Hijacking이다.</p>
+
+<p>Session Hijacking은 정상 사용자의 세션을 탈취하여 해당 사용자의 권한으로 서비스를 이용하는 공격이다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>무결성은 데이터가 변경되지 않았음을 보장한다.</li>
+    <li>위조지폐는 무결성이 훼손된 대표적인 예이다.</li>
+    <li>네트워크에서 무결성을 해치는 대표적인 공격은 Session Hijacking이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="가용성-availability">가용성 (Availability)</h3>
+
+<h4 id="개요-3">개요</h4>
+
+<p>가용성은 필요한 순간에 정보 자산에 접근하여 서비스를 정상적으로 사용할 수 있도록 보장하는 것이다.</p>
+
+<h4 id="예시-1">예시</h4>
+
+<p>24시간 운영되는 편의점은 사용자가 필요한 시간에 언제든지 이용할 수 있다는 점에서 가용성의 대표적인 예이다.</p>
+
+<h4 id="네트워크-보안에서의-가용성">네트워크 보안에서의 가용성</h4>
+
+<p>허가된 사용자나 객체가 네트워크를 통해 정보나 서비스에 접근하려고 할 때 방해받지 않도록 하는 것을 의미한다.</p>
+
+<h4 id="가용성을-해치는-공격">가용성을 해치는 공격</h4>
+
+<p>대표적인 공격은 DoS(Denial of Service)이다.</p>
+
+<p>DoS는 서비스 거부 공격으로, 정상 사용자가 서비스를 이용하지 못하도록 만드는 공격이다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>가용성은 필요한 시점에 정보와 서비스를 사용할 수 있도록 보장하는 것이다.</li>
+    <li>24시간 편의점은 가용성의 대표적인 예이다.</li>
+    <li>네트워크에서 가용성을 해치는 대표적인 공격은 DoS이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="서버-인증-server-authentication">서버 인증 (Server Authentication)</h3>
+
+<h4 id="개요-4">개요</h4>
+
+<p>서버 인증은 클라이언트가 접속한 서버가 올바른 서버인지 확인하는 과정이다.</p>
+
+<p>즉, 클라이언트가 서버에 접근할 때 서버의 신원을 확인하기 위한 인증이다.</p>
+
+<h4 id="특징">특징</h4>
+
+<ul>
+  <li>HTTPS(SSL/TLS), SSH 등에서 서버 인증을 수행한다.</li>
+  <li>인증서를 이용하여 서버의 신뢰성을 확인한다.</li>
+  <li>인증서에 문제가 있으면 브라우저는 경고를 표시하고 사용자에게 접속 여부를 선택하도록 한다.</li>
+  <li>현재는 강제적인 서버 인증보다 사용자의 선택에 맡기는 방식이 일반적이다.</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>서버 인증은 클라이언트가 올바른 서버에 접속했는지 확인하는 과정이다.</li>
+    <li>HTTPS와 SSH에서 대표적으로 사용된다.</li>
+    <li>인증서에 문제가 있으면 사용자에게 경고를 표시한다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="클라이언트-인증-client-authentication">클라이언트 인증 (Client Authentication)</h3>
+
+<h4 id="개요-5">개요</h4>
+
+<p>클라이언트 인증은 서버가 접속을 시도하는 사용자가 정상적인 클라이언트인지 확인하는 과정이다.</p>
+
+<h4 id="대표적인-인증-방법">대표적인 인증 방법</h4>
+
+<ul>
+  <li>ID / Password</li>
+  <li>OTP</li>
+  <li>인증서</li>
+  <li>생체 인증</li>
+</ul>
+
+<p>웹 사이트에 로그인할 때 사용하는 ID와 Password가 가장 대표적인 클라이언트 인증 방법이다.</p>
+
+<h4 id="클라이언트-인증과-관련된-공격">클라이언트 인증과 관련된 공격</h4>
+
+<ul>
+  <li>Spoofing</li>
+  <li>Session Hijacking</li>
+  <li>Phishing</li>
+</ul>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>클라이언트 인증은 서버가 사용자의 신원을 확인하는 과정이다.</li>
+    <li>ID와 Password가 가장 대표적인 인증 방법이다.</li>
+    <li>대표적인 관련 공격은 Spoofing, Session Hijacking, Phishing이다.</li>
+  </ul>
+</blockquote>
+
+<hr />
+
+<h3 id="최종-정리">최종 정리</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>요소</th>
+      <th>목적</th>
+      <th>대표적인 위협</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>기밀성</td>
+      <td>정보의 노출 방지</td>
+      <td>Sniffing</td>
+    </tr>
+    <tr>
+      <td>무결성</td>
+      <td>데이터 변조 방지</td>
+      <td>Session Hijacking</td>
+    </tr>
+    <tr>
+      <td>가용성</td>
+      <td>서비스의 지속적인 제공</td>
+      <td>DoS</td>
+    </tr>
+    <tr>
+      <td>서버 인증</td>
+      <td>서버의 신원 확인</td>
+      <td>위조 서버</td>
+    </tr>
+    <tr>
+      <td>클라이언트 인증</td>
+      <td>사용자의 신원 확인</td>
+      <td>Spoofing, Session Hijacking, Phishing</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>네트워크 보안은 CIA 3대 요소와 서버·클라이언트 인증으로 구성된다.</li>
+    <li>기밀성은 정보 노출, 무결성은 데이터 변조, 가용성은 서비스 중단과 관련된다.</li>
+    <li>서버 인증은 서버의 신원을, 클라이언트 인증은 사용자의 신원을 확인하기 위한 과정이다.</li>
+  </ul>
+</blockquote>
+
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/08-network-lab2/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Network - Router & Switch Lab 2</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/03-memo-float-vs-double/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">float보다 double을 더 많이 사용하는 이유는 무엇일까?</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 hyeon.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1786011541"></script>
+  </body>
+</html>

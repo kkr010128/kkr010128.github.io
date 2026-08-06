@@ -32,30 +32,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ffffff" data-theme-color>
 <meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
-<title>Network - Security | hyeon.log</title>
+<title>Network - Security 2 | hyeon.log</title>
 <meta name="generator" content="Jekyll v4.3.3">
-<meta name="description" content="네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리">
-<link rel="canonical" href="https://kkr010128.github.io/09-network-security/">
-<meta property="og:title" content="Network - Security | hyeon.log">
+<meta name="description" content="네트워크 위협 및 공격 기법의 원리, 특징 정리">
+<link rel="canonical" href="https://kkr010128.github.io/10-network-security2/">
+<meta property="og:title" content="Network - Security 2 | hyeon.log">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:description" content="네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리">
-<meta property="og:url" content="https://kkr010128.github.io/09-network-security/">
+<meta property="og:description" content="네트워크 위협 및 공격 기법의 원리, 특징 정리">
+<meta property="og:url" content="https://kkr010128.github.io/10-network-security2/">
 <meta property="og:site_name" content="hyeon.log">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Network - Security | hyeon.log">
-<meta name="twitter:description" content="네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리">
+<meta name="twitter:title" content="Network - Security 2 | hyeon.log">
+<meta name="twitter:description" content="네트워크 위협 및 공격 기법의 원리, 특징 정리">
 
-  <meta property="article:published_time" content="2026-08-05T00:00:00+09:00">
+  <meta property="article:published_time" content="2026-08-06T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1785990253" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1785990253" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1785990253">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1785990253" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1786011541" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786011541" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786011541">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786011541" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="hyeon.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1785990253">
+<link rel="stylesheet" href="/assets/css/main.css?v=1786011541">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -96,10 +96,10 @@
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "name": "hyeon.log",
-    "headline": "Network - Security | hyeon.log",
-    "description": "네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리",
-    "url": "https://kkr010128.github.io/09-network-security/",
-    "datePublished": "2026-08-05T00:00:00+09:00"
+    "headline": "Network - Security 2 | hyeon.log",
+    "description": "네트워크 위협 및 공격 기법의 원리, 특징 정리",
+    "url": "https://kkr010128.github.io/10-network-security2/",
+    "datePublished": "2026-08-06T00:00:00+09:00"
   }
 </script>
 
@@ -208,9 +208,9 @@
 
   <header class="post-head">
     
-    <h1 class="post-head__title">Network - Security</h1>
+    <h1 class="post-head__title">Network - Security 2</h1>
     
-      <p class="post-head__description">네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리</p>
+      <p class="post-head__description">네트워크 위협 및 공격 기법의 원리, 특징 정리</p>
     
 
     <div class="post-head__author">
@@ -226,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 5일 · 13분 읽기
+          2026년 8월 6일 · 15분 읽기
         </span>
       </div>
     </div>
@@ -245,291 +245,10 @@
   </header>
 
   <section class="prose">
-    <h2 id="1--네트워크-보안의-5대-요소">1 ) 네트워크 보안의 5대 요소</h2>
+    <h2 id="2-네트워크-위협">2) 네트워크 위협</h2>
+<hr />
 
 <h4 id="개요">개요</h4>
-
-<p>네트워크 보안은 정보 자산을 안전하게 보호하기 위한 기본 원칙으로 다음 다섯 가지 요소로 구성된다.</p>
-
-<ul>
-  <li>기밀성(Confidentiality)</li>
-  <li>무결성(Integrity)</li>
-  <li>가용성(Availability)</li>
-</ul>
-
-<p>위 세 가지를 <strong>CIA 3대 요소</strong>라고 하며, 여기에 다음 두 가지 인증 요소를 추가한다.</p>
-
-<ul>
-  <li>서버 인증(Server Authentication)</li>
-  <li>클라이언트 인증(Client Authentication)</li>
-</ul>
-
-<hr />
-
-<h3 id="기밀성-confidentiality">기밀성 (Confidentiality)</h3>
-
-<h4 id="개요-1">개요</h4>
-
-<p>기밀성은 인가되지 않은 사용자나 객체가 정보의 내용을 볼 수 없도록 보호하는 것이다.</p>
-
-<h4 id="기밀성을-위한-인증-요소">기밀성을 위한 인증 요소</h4>
-
-<p>사용자의 신원을 확인하기 위해 다음과 같은 인증 요소를 사용할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>설명</th>
-      <th>예시</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>소유 기반(Possession)</td>
-      <td>사용자가 가지고 있는 것</td>
-      <td>OTP, 보안 토큰</td>
-    </tr>
-    <tr>
-      <td>지식 기반(Knowledge)</td>
-      <td>사용자가 알고 있는 것</td>
-      <td>ID, Password</td>
-    </tr>
-    <tr>
-      <td>생체 기반(Inherence)</td>
-      <td>사용자의 신체적 특징</td>
-      <td>지문, 홍채, 얼굴 인식</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="기밀성의-예">기밀성의 예</h4>
-
-<p>기밀성을 보장하기 위한 대표적인 예는 다음과 같다.</p>
-
-<ul>
-  <li>보안 관련 시스템 및 소프트웨어</li>
-  <li>방화벽(Firewall)</li>
-  <li>암호화</li>
-  <li>Password</li>
-</ul>
-
-<p>방화벽은 대표적으로 MAC Address나 IP Address 등을 확인하여 허가되지 않은 접근을 제한한다.</p>
-
-<h4 id="네트워크-보안에서의-기밀성">네트워크 보안에서의 기밀성</h4>
-
-<p>다음과 같은 통신에서 허가되지 않은 사용자나 객체가 정보의 내용을 알 수 없도록 보호하는 것을 의미한다.</p>
-
-<ul>
-  <li>서버 ↔ 클라이언트</li>
-  <li>서버 ↔ 서버</li>
-  <li>클라이언트 ↔ 클라이언트</li>
-</ul>
-
-<h4 id="기밀성을-해치는-공격">기밀성을 해치는 공격</h4>
-
-<p>대표적인 공격은 Sniffing이다.</p>
-
-<ul>
-  <li>Cookie Sniffing</li>
-  <li>Traffic Sniffing</li>
-  <li>Ethernet Sniffing</li>
-</ul>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>기밀성은 허가되지 않은 사용자의 정보 열람을 방지하는 것이다.</li>
-    <li>인증 요소는 소유, 지식, 생체 기반으로 구분할 수 있다.</li>
-    <li>네트워크에서 기밀성을 해치는 대표적인 공격은 Sniffing이다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="무결성-integrity">무결성 (Integrity)</h3>
-
-<h4 id="개요-2">개요</h4>
-
-<p>무결성은 인가된 사용자만 데이터에 접근하고 수정할 수 있으며, 데이터가 임의로 변경되지 않았음을 보장하는 것이다.</p>
-
-<h4 id="예시">예시</h4>
-
-<p>위조지폐는 원본의 내용이 변경된 것으로 무결성이 훼손된 대표적인 사례이다.</p>
-
-<h4 id="네트워크-보안에서의-무결성">네트워크 보안에서의 무결성</h4>
-
-<p>클라이언트와 서버 사이에서 전송되는 데이터가 중간에서 변조되지 않고 그대로 전달되는 것을 의미한다.</p>
-
-<h4 id="무결성을-해치는-공격">무결성을 해치는 공격</h4>
-
-<p>대표적인 공격은 Session Hijacking이다.</p>
-
-<p>Session Hijacking은 정상 사용자의 세션을 탈취하여 해당 사용자의 권한으로 서비스를 이용하는 공격이다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>무결성은 데이터가 변경되지 않았음을 보장한다.</li>
-    <li>위조지폐는 무결성이 훼손된 대표적인 예이다.</li>
-    <li>네트워크에서 무결성을 해치는 대표적인 공격은 Session Hijacking이다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="가용성-availability">가용성 (Availability)</h3>
-
-<h4 id="개요-3">개요</h4>
-
-<p>가용성은 필요한 순간에 정보 자산에 접근하여 서비스를 정상적으로 사용할 수 있도록 보장하는 것이다.</p>
-
-<h4 id="예시-1">예시</h4>
-
-<p>24시간 운영되는 편의점은 사용자가 필요한 시간에 언제든지 이용할 수 있다는 점에서 가용성의 대표적인 예이다.</p>
-
-<h4 id="네트워크-보안에서의-가용성">네트워크 보안에서의 가용성</h4>
-
-<p>허가된 사용자나 객체가 네트워크를 통해 정보나 서비스에 접근하려고 할 때 방해받지 않도록 하는 것을 의미한다.</p>
-
-<h4 id="가용성을-해치는-공격">가용성을 해치는 공격</h4>
-
-<p>대표적인 공격은 DoS(Denial of Service)이다.</p>
-
-<p>DoS는 서비스 거부 공격으로, 정상 사용자가 서비스를 이용하지 못하도록 만드는 공격이다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>가용성은 필요한 시점에 정보와 서비스를 사용할 수 있도록 보장하는 것이다.</li>
-    <li>24시간 편의점은 가용성의 대표적인 예이다.</li>
-    <li>네트워크에서 가용성을 해치는 대표적인 공격은 DoS이다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="서버-인증-server-authentication">서버 인증 (Server Authentication)</h3>
-
-<h4 id="개요-4">개요</h4>
-
-<p>서버 인증은 클라이언트가 접속한 서버가 올바른 서버인지 확인하는 과정이다.</p>
-
-<p>즉, 클라이언트가 서버에 접근할 때 서버의 신원을 확인하기 위한 인증이다.</p>
-
-<h4 id="특징">특징</h4>
-
-<ul>
-  <li>HTTPS(SSL/TLS), SSH 등에서 서버 인증을 수행한다.</li>
-  <li>인증서를 이용하여 서버의 신뢰성을 확인한다.</li>
-  <li>인증서에 문제가 있으면 브라우저는 경고를 표시하고 사용자에게 접속 여부를 선택하도록 한다.</li>
-  <li>현재는 강제적인 서버 인증보다 사용자의 선택에 맡기는 방식이 일반적이다.</li>
-</ul>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>서버 인증은 클라이언트가 올바른 서버에 접속했는지 확인하는 과정이다.</li>
-    <li>HTTPS와 SSH에서 대표적으로 사용된다.</li>
-    <li>인증서에 문제가 있으면 사용자에게 경고를 표시한다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="클라이언트-인증-client-authentication">클라이언트 인증 (Client Authentication)</h3>
-
-<h4 id="개요-5">개요</h4>
-
-<p>클라이언트 인증은 서버가 접속을 시도하는 사용자가 정상적인 클라이언트인지 확인하는 과정이다.</p>
-
-<h4 id="대표적인-인증-방법">대표적인 인증 방법</h4>
-
-<ul>
-  <li>ID / Password</li>
-  <li>OTP</li>
-  <li>인증서</li>
-  <li>생체 인증</li>
-</ul>
-
-<p>웹 사이트에 로그인할 때 사용하는 ID와 Password가 가장 대표적인 클라이언트 인증 방법이다.</p>
-
-<h4 id="클라이언트-인증과-관련된-공격">클라이언트 인증과 관련된 공격</h4>
-
-<ul>
-  <li>Spoofing</li>
-  <li>Session Hijacking</li>
-  <li>Phishing</li>
-</ul>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>클라이언트 인증은 서버가 사용자의 신원을 확인하는 과정이다.</li>
-    <li>ID와 Password가 가장 대표적인 인증 방법이다.</li>
-    <li>대표적인 관련 공격은 Spoofing, Session Hijacking, Phishing이다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="최종-정리">최종 정리</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>요소</th>
-      <th>목적</th>
-      <th>대표적인 위협</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>기밀성</td>
-      <td>정보의 노출 방지</td>
-      <td>Sniffing</td>
-    </tr>
-    <tr>
-      <td>무결성</td>
-      <td>데이터 변조 방지</td>
-      <td>Session Hijacking</td>
-    </tr>
-    <tr>
-      <td>가용성</td>
-      <td>서비스의 지속적인 제공</td>
-      <td>DoS</td>
-    </tr>
-    <tr>
-      <td>서버 인증</td>
-      <td>서버의 신원 확인</td>
-      <td>위조 서버</td>
-    </tr>
-    <tr>
-      <td>클라이언트 인증</td>
-      <td>사용자의 신원 확인</td>
-      <td>Spoofing, Session Hijacking, Phishing</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>네트워크 보안은 CIA 3대 요소와 서버·클라이언트 인증으로 구성된다.</li>
-    <li>기밀성은 정보 노출, 무결성은 데이터 변조, 가용성은 서비스 중단과 관련된다.</li>
-    <li>서버 인증은 서버의 신원을, 클라이언트 인증은 사용자의 신원을 확인하기 위한 과정이다.</li>
-  </ul>
-</blockquote>
-
-<h2 id="2-네트워크-위협">2) 네트워크 위협</h2>
-
-<h4 id="개요-6">개요</h4>
 
 <p>네트워크는 서비스 거부 공격, 악성 코드, 서버 해킹, 사회공학적 피싱, 생성형 AI 악용 등 다양한 위협에 노출된다.</p>
 
@@ -568,7 +287,7 @@
 
 <h3 id="악성-코드">악성 코드</h3>
 
-<h4 id="개요-7">개요</h4>
+<h4 id="개요-1">개요</h4>
 
 <p>악성 코드(Malware)는 시스템에 피해를 주거나 공격자의 목적을 수행하기 위해 제작된 프로그램이다.</p>
 
@@ -691,7 +410,7 @@
 
 <h3 id="주요-네트워크-공격-기법">주요 네트워크 공격 기법</h3>
 
-<h4 id="개요-8">개요</h4>
+<h4 id="개요-2">개요</h4>
 
 <p>네트워크 공격은 대상 정보 수집, 패킷 가로채기, 주소 위조, 서비스 자원 고갈 등의 방식으로 수행된다.</p>
 
@@ -776,7 +495,7 @@
 
 <h3 id="서비스-거부-공격">서비스 거부 공격</h3>
 
-<h4 id="개요-9">개요</h4>
+<h4 id="개요-3">개요</h4>
 
 <p>서비스 거부 공격(DoS, Denial of Service)은 합법적인 사용자가 특정 네트워크나 웹 자원에 접근하지 못하도록 방해하는 공격이다.</p>
 
@@ -809,7 +528,7 @@
 
 <h3 id="취약점-공격형-dos">취약점 공격형 DoS</h3>
 
-<h4 id="개요-10">개요</h4>
+<h4 id="개요-4">개요</h4>
 
 <p>취약점 공격형은 특정 형태의 네트워크 패킷을 처리하는 로직의 오류를 이용하여 대상 시스템의 오작동을 유발한다.</p>
 
@@ -931,7 +650,7 @@
 
 <h3 id="ddos-공격">DDoS 공격</h3>
 
-<h4 id="개요-11">개요</h4>
+<h4 id="개요-5">개요</h4>
 
 <p>DDoS(Distributed Denial of Service)는 다수의 시스템을 이용하여 하나의 대상을 동시에 공격하는 분산 서비스 거부 공격이다.</p>
 
@@ -994,7 +713,7 @@
   <li>공격자의 명령이나 미리 설정된 일정에 따라 모든 좀비 PC가 동시에 공격을 수행한다.</li>
 </ol>
 
-<h4 id="특징-1">특징</h4>
+<h4 id="특징">특징</h4>
 
 <ul>
   <li>여러 대의 시스템이 동시에 공격을 수행한다.</li>
@@ -1018,7 +737,7 @@
 
 <h3 id="sniffing-공격">Sniffing 공격</h3>
 
-<h4 id="개요-12">개요</h4>
+<h4 id="개요-6">개요</h4>
 
 <p>스니핑(Sniffing)은 다른 사람의 통신 내용을 몰래 엿듣거나 도청하는 공격이다.</p>
 
@@ -1038,9 +757,9 @@
 
 <p>프러미스큐어스 모드는 데이터 링크 계층의 주소 필터링을 해제하여 네트워크를 지나는 모든 패킷을 수신할 수 있는 랜카드 동작 모드이다.</p>
 
-<h4 id="공격의-종류">공격의 종류</h4>
+<h3 id="공격의-종류">공격의 종류</h3>
 
-<h5 id="스위치-재밍-공격">스위치 재밍 공격</h5>
+<p><strong>1. 스위치 재밍 공격</strong></p>
 
 <p>스위치 재밍(Switch Jamming)은 스위치의 MAC Address Table을 가득 채워 정상적인 스위칭 기능을 마비시키는 공격이다.</p>
 
@@ -1050,7 +769,7 @@
 
 <p>강의에서는 고가의 스위치는 MAC 테이블과 관리용 캐시가 분리되어 있어 이러한 공격이 잘 통하지 않는다고 설명하였다.</p>
 
-<h5 id="span-포트-태핑-공격">SPAN 포트 태핑 공격</h5>
+<p><strong>2. SPAN 포트 태핑 공격</strong></p>
 
 <p>SPAN 포트 태핑은 스위치의 <strong>포트 미러링(Port Mirroring)</strong> 기능을 이용하는 방법이다.</p>
 
@@ -1058,11 +777,11 @@
 
 <p>원래는 침입 탐지 시스템(IDS), 네트워크 모니터링, 로그 분석 등을 위해 사용하는 기능이지만, 공격자가 이를 악용하면 통신 내용을 모두 수집할 수 있다.</p>
 
-<h4 id="스니핑-공격의-탐지">스니핑 공격의 탐지</h4>
+<p><strong>3. 스니핑 공격의 탐지</strong></p>
 
 <p>스니퍼를 설치한 이후에는 네트워크에 특별한 이상 현상이 나타나지 않기 때문에 사용자가 직접 알아차리기 어렵다.</p>
 
-<p>대표적인 탐지 방법은 다음과 같다.</p>
+<p><strong>대표적인 탐지 방법</strong></p>
 
 <ul>
   <li>존재하지 않는 MAC 주소로 Ping을 전송하여 ICMP Echo Reply가 오는지 확인한다.</li>
@@ -1091,7 +810,7 @@
 
 <h3 id="spoofing-공격">Spoofing 공격</h3>
 
-<h4 id="개요-13">개요</h4>
+<h4 id="개요-7">개요</h4>
 
 <p>스푸핑(Spoofing)은 자신을 다른 사용자나 시스템으로 속이거나 위장하는 공격이다.</p>
 
@@ -1176,12 +895,280 @@
   </ul>
 </blockquote>
 
+<h3 id="session">Session</h3>
+
+<p>세션(Session)은 사용자가 웹이나 프로그램에 접속한 후 활동을 마치고 종료할 때까지의 하나의 연속된 연결 단위를 의미한다.</p>
+
+<h4 id="웹-개발에서의-세션">웹 개발에서의 세션</h4>
+
+<p>웹 애플리케이션에서 세션은 <strong>사용자의 상태를 유지하기 위한 기술</strong>이다.</p>
+
+<p>HTTP와 HTTPS는 기본적으로 <strong>Stateless(무상태)</strong> 프로토콜이다.</p>
+
+<ul>
+  <li>요청(Request)을 보내면 응답(Response)을 받은 뒤 연결이 종료된다.</li>
+  <li>이전 요청의 내용을 기억하지 않는다.</li>
+  <li>따라서 로그인 상태나 장바구니와 같은 작업의 연속성을 보장할 수 없다.</li>
+</ul>
+
+<p>이를 해결하기 위해 서버는 사용자별 정보를 저장하고 관리하는 <strong>세션(Session)</strong> 을 사용한다.</p>
+
+<h4 id="세션-동작-방식">세션 동작 방식</h4>
+
+<p>일반적인 세션의 동작 과정은 다음과 같다.</p>
+
+<ol>
+  <li>사용자가 로그인에 성공한다.</li>
+  <li>서버는 고유한 <strong>Session ID</strong>를 생성한다.</li>
+  <li>생성한 Session ID와 사용자 정보를 서버 메모리(일반적인 방식) 또는 데이터베이스에 저장한다.
+    <ul>
+      <li>최근에는 <strong>Redis</strong>와 같은 인메모리 데이터베이스를 사용하는 경우가 많다.</li>
+    </ul>
+  </li>
+  <li>서버는 생성한 Session ID를 클라이언트에게 전달한다.</li>
+  <li>클라이언트는 전달받은 Session ID를 <strong>Cookie</strong>에 저장한다.</li>
+  <li>이후 서버에 요청을 보낼 때마다 Cookie에 저장된 Session ID를 함께 전송한다.</li>
+  <li>서버는 전달받은 Session ID를 조회하여 사용자를 식별하고 요청을 처리한다.</li>
+</ol>
+
+<p><img src="../../assets/post/2026-08-06-10-network-security2/90.webp" alt="" /></p>
+
+<blockquote>
+  <p><strong>Cookie</strong></p>
+
+  <p>브라우저에 저장되는 작은 데이터 공간이다.
+서버가 전달한 Session ID를 저장하며, 이후 동일한 서버로 요청을 보낼 때 자동으로 함께 전송된다.</p>
+</blockquote>
+
+<h4 id="stateful">Stateful</h4>
+
+<p>세션을 이용하면 원래 Stateless인 HTTP에서도 사용자의 로그인 상태와 활동 정보를 유지할 수 있다.</p>
+
+<p>이처럼 현재 통신 상태를 기억하며 동작하는 방식을 <strong>Stateful</strong>이라고 한다.</p>
+
+<p>대표적으로 <strong>Stateful Firewall</strong>은 세션 정보를 추적하여 정상적인 연결인지 확인한 뒤 패킷을 허용하거나 차단한다.</p>
+
+<h4 id="데이터-분석에서의-세션">데이터 분석에서의 세션</h4>
+
+<p>데이터 분석이나 AI 분야에서 세션은 조금 다른 의미로 사용된다.</p>
+
+<p>한 사용자가 웹 사이트에 방문하여 일정 시간 동안 수행한 모든 활동의 집합을 하나의 세션(Session)으로 간주한다.</p>
+
+<p>예를 들어 페이지 조회, 검색, 상품 조회, 결제 등의 일련의 행동을 하나의 세션으로 분석하여 사용자 행동 패턴을 파악하는 데 활용한다.</p>
+
+<h3 id="session-hijacking">Session Hijacking</h3>
+
+<p>세션 하이재킹(Session Hijacking)은 <strong>이미 인증된 사용자의 세션을 탈취하여 정상 사용자처럼 동작하는 공격 기법</strong>이다.</p>
+
+<p>즉, 두 시스템 간에 활성화되어 있는 연결 상태나 로그인 상태를 공격자가 가로채는 것을 의미한다.</p>
+
+<p>대표적인 사례로 1995년 해커 <strong>케빈 미트닉(Kevin Mitnick)</strong> 이 시스템 관리자 <strong>시모무라 쓰토무(Tsutomu Shimomura)</strong> 의 시스템을 공격할 때 세션 하이재킹 기법을 활용한 사건이 널리 알려져 있다.</p>
+
+<p>사용자의 ID나 Password를 직접 알아내지 못하더라도, 이미 인증이 완료된 세션을 탈취하면 정상 사용자의 권한으로 시스템에 접근할 수 있다.</p>
+
+<h3 id="tcp-session-hijacking">TCP Session Hijacking</h3>
+
+<p>TCP 세션 하이재킹은 클라이언트와 서버 사이에서 진행 중인 <strong>TCP 세션</strong>을 탈취하는 공격이다.</p>
+
+<p>공격자가 원하는 대상과의 TCP 연결이 생성되면 네트워크 공격을 통해 해당 세션을 가로채 정상 사용자 대신 통신을 이어갈 수 있다.</p>
+
+<h4 id="종류">종류</h4>
+
+<p>TCP 세션 하이재킹은 공격 위치에 따라 다음과 같이 구분할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>로컬 세션 하이재킹</td>
+      <td>동일하거나 가까운 네트워크에서 통신을 관찰하여 세션을 탈취하는 방식</td>
+    </tr>
+    <tr>
+      <td>원격 세션 하이재킹</td>
+      <td>원격 환경에서 세션을 탈취하는 방식으로 공격자를 탐지하기 어려움</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>로컬 세션 하이재킹은 공격 대상을 비교적 탐지할 수 있지만, 원격 세션 하이재킹은 공격자의 위치를 확인하기 어렵다.</p>
+
+<h4 id="공격-대상">공격 대상</h4>
+
+<p>공격자는 클라이언트와 서버 간의 통신을 관찰하여 다양한 TCP 기반 서비스를 대상으로 세션을 탈취할 수 있다.</p>
+
+<p>대표적인 대상은 다음과 같다.</p>
+
+<ul>
+  <li>Trust Relationship을 이용한 세션</li>
+  <li>Telnet</li>
+  <li>FTP</li>
+  <li>그 외 TCP 기반의 대부분의 서비스</li>
+</ul>
+
+<h4 id="인증만으로는-충분하지-않은-이유">인증만으로는 충분하지 않은 이유</h4>
+
+<p>일회용 비밀번호(OTP)나 토큰(Token) 기반 인증은 사용자 인증을 강화하기 위한 기술이다.</p>
+
+<p>하지만 인증이 완료된 이후 생성된 <strong>세션 자체가 탈취</strong>된다면 공격자는 정상 사용자의 권한을 그대로 사용할 수 있다.</p>
+
+<p>즉, 강력한 인증 방식을 사용하더라도 세션 보호가 함께 이루어지지 않으면 세션 하이재킹 공격에 노출될 수 있다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>세션 하이재킹은 이미 인증된 사용자의 세션을 탈취하는 공격이다.</li>
+    <li>대표적인 사례로 케빈 미트닉 사건이 알려져 있다.</li>
+    <li>TCP 기반의 다양한 서비스(Telnet, FTP 등)가 공격 대상이 될 수 있다.</li>
+    <li>공격 위치에 따라 로컬 세션 하이재킹과 원격 세션 하이재킹으로 구분된다.</li>
+    <li>OTP나 토큰 기반 인증을 사용하더라도 세션이 탈취되면 공격이 가능하다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="무선-네트워크-공격과-보안">무선 네트워크 공격과 보안</h3>
+
+<h4 id="무선-lan-wireless-lan">무선 LAN (Wireless LAN)</h4>
+
+<p>무선 LAN(Wireless LAN)은 기존 <strong>유선 LAN을 무선으로 확장</strong>하기 위한 기술이다.</p>
+
+<p>무선 네트워크를 사용하기 위해서는 내부 유선 네트워크에 <strong>AP(Access Point)</strong> 를 설치해야 하며, AP를 중심으로 무선 통신 영역이 형성된다.</p>
+
+<p>무선 네트워크의 통신 범위는 AP의 설치 위치와 안테나의 특성에 따라 결정된다.</p>
+
+<p>보안이 제대로 설정되어 있지 않다면 공격자는 통신 가능 영역 안에서 내부 사용자와 동일한 권한으로 네트워크에 접근할 수 있다.</p>
+
+<p>무선 LAN의 통신 가능 거리는 안테나의 종류에 따라 달라지며, 일반적으로 수십 m에서 최대 1~2km까지도 가능하다.</p>
+
+<h4 id="안테나-종류">안테나 종류</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>무지향성 안테나 (Omnidirectional Antenna)</td>
+      <td>모든 방향으로 전파를 송수신한다. 일반적으로 막대(봉) 형태이며 AP에서 가장 많이 사용된다.</td>
+    </tr>
+    <tr>
+      <td>지향성 안테나 (Directional Antenna)</td>
+      <td>특정 방향으로만 전파를 집중하여 송수신한다. 접시(Parabolic) 형태가 많으며 통신 거리가 길다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="ap-보안">AP 보안</h3>
+
+<p>무선 네트워크는 전파를 이용하므로 유선 네트워크보다 물리적인 보안이 더욱 중요하다.</p>
+
+<h4 id="물리적-보안">물리적 보안</h4>
+
+<ul>
+  <li>전파가 건물 밖까지 불필요하게 전달되지 않도록 AP의 출력 세기를 적절히 조정한다.</li>
+  <li>창가나 외벽이 아닌 건물 내부 중심부에 설치한다.</li>
+  <li>쉽게 발견되지 않는 위치에 설치한다.</li>
+  <li>설치 후 기본 관리자 계정과 비밀번호를 반드시 변경한다.</li>
+</ul>
+
+<h4 id="ssid-브로드캐스팅-차단">SSID 브로드캐스팅 차단</h4>
+
+<p><strong>SSID(Service Set Identifier)</strong> 는 무선 네트워크의 이름이다.</p>
+
+<p>일반적으로 무선 네트워크를 검색하면 AP의 SSID 목록이 표시된다.</p>
+
+<p>보안을 강화하려면 SSID 브로드캐스팅을 비활성화하여 AP가 검색되지 않도록 설정할 수 있다.</p>
+
+<p>이 경우 사용자는 직접 SSID를 입력해야만 네트워크에 연결할 수 있다.</p>
+
+<p>높은 수준의 보안이 필요한 무선 네트워크에서는 SSID 브로드캐스팅을 차단하는 경우가 많다.</p>
+
+<blockquote>
+  <p><strong>SSID</strong></p>
+
+  <p>무선 네트워크를 구분하기 위한 식별자(네트워크 이름)이다.</p>
+</blockquote>
+
+<h3 id="무선-lan-통신-암호화">무선 LAN 통신 암호화</h3>
+
+<p>무선 네트워크에서는 데이터를 암호화하여 통신 내용을 보호할 뿐만 아니라, 사용자 인증에도 암호화를 활용한다.</p>
+
+<p>사용자가 암호화된 무선 네트워크에 접속하려고 하면 일반적으로 <strong>네트워크 보안 키(Network Security Key)</strong> 를 입력하게 된다.</p>
+
+<h3 id="wep-wired-equivalent-privacy">WEP (Wired Equivalent Privacy)</h3>
+
+<p>WEP는 IEEE 802.11b부터 사용된 초기 무선 LAN 암호화 방식이다.</p>
+
+<ul>
+  <li>RC4 암호화 알고리즘 사용</li>
+  <li>공유 키(Shared Key) 기반 인증 방식</li>
+</ul>
+
+<h4 id="wep-인증-과정">WEP 인증 과정</h4>
+
+<p>WEP 기반의 인증 과정은 다음과 같다.</p>
+
+<ol>
+  <li>사용자가 AP의 SSID를 확인하고 연결 요청을 보낸다.</li>
+  <li>AP는 임의의 문자열(Challenge Text)을 생성하여 원본을 저장한다.</li>
+  <li>AP는 암호화되지 않은 Challenge Text를 사용자에게 전달한다.</li>
+  <li>사용자는 공유 키(Shared Key)로 Challenge Text를 암호화하여 AP에 전송한다.</li>
+  <li>AP는 동일한 공유 키로 복호화한 뒤 원본과 비교한다.</li>
+  <li>두 값이 일치하면 정상 사용자로 판단하여 연결을 허용한다.</li>
+</ol>
+
+<p><img src="../../assets/post/2026-08-06-10-network-security2/92.webp" alt="" /></p>
+
+<h3 id="wep의-문제점">WEP의 문제점</h3>
+
+<p>WEP는 암호화 과정에서 <strong>공유 키(Shared Key)</strong> 와 <strong>24비트 IV(Initialization Vector)</strong> 를 함께 사용한다.</p>
+
+<p>IV는 매 통신마다 랜덤하게 생성되어 암호화를 강화하는 역할을 한다.</p>
+
+<p>하지만 IV의 길이가 <strong>24비트</strong>로 매우 짧아 일정 시간이 지나면 동일한 IV가 반복 사용된다.</p>
+
+<p>공격자는 무선 네트워크를 모니터링하며 충분한 양의 패킷을 수집하면 반복되는 IV를 이용하여 WEP 키를 복구할 수 있다.</p>
+
+<p>이 때문에 WEP는 매우 취약한 암호화 방식으로 평가되며, 충분한 패킷이 수집되면 짧은 시간 안에 키를 크래킹할 수 있다.</p>
+
+<h3 id="wpa의-등장">WPA의 등장</h3>
+
+<p>WEP의 취약점을 해결하기 위해 <strong>WPA(Wi-Fi Protected Access)</strong> 가 등장하였다.</p>
+
+<p>대표적인 방식은 다음과 같다.</p>
+
+<ul>
+  <li>WPA-PSK (Pre-Shared Key)</li>
+  <li>WPA-EAP (Enterprise Authentication)</li>
+</ul>
+
+<p>이후에는 WPA2와 WPA3가 등장하면서 보다 강력한 암호화와 인증 방식을 제공하고 있다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>무선 LAN은 유선 네트워크를 무선으로 확장하기 위한 기술이다.</li>
+    <li>AP의 설치 위치와 보안 설정은 무선 네트워크 보안에 큰 영향을 준다.</li>
+    <li>SSID 브로드캐스팅 차단은 AP의 존재를 쉽게 노출하지 않는 방법이다.</li>
+    <li>WEP는 RC4와 24비트 IV를 사용하지만 IV 재사용 문제로 매우 취약하다.</li>
+    <li>이러한 문제를 해결하기 위해 WPA 계열의 암호화 방식이 등장하였다.</li>
+  </ul>
+</blockquote>
+
   </section>
 
   
     <nav class="post-navigation" aria-label="이전 다음 글">
       
-        <a class="post-navigation__item" href="/08-network-lab2/">
+        <a class="post-navigation__item" href="/03-memo-float-vs-double/">
           <span class="post-navigation__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
@@ -1189,15 +1176,15 @@
           </span>
           <span class="post-navigation__content">
             <span class="post-navigation__label">이전 포스트</span>
-            <strong class="post-navigation__title">Network - Router & Switch Lab 2</strong>
+            <strong class="post-navigation__title">float보다 double을 더 많이 사용하는 이유는 무엇일까?</strong>
           </span>
         </a>
       
       
-        <a class="post-navigation__item post-navigation__item--next" href="/03-memo-float-vs-double/">
+        <a class="post-navigation__item post-navigation__item--next" href="/11-network-security3/">
           <span class="post-navigation__content">
             <span class="post-navigation__label">다음 포스트</span>
-            <strong class="post-navigation__title">float보다 double을 더 많이 사용하는 이유는 무엇일까?</strong>
+            <strong class="post-navigation__title">Network - Security 3</strong>
           </span>
           <span class="post-navigation__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
@@ -1279,6 +1266,6 @@
 </footer>
 
     
-    <script src="/assets/js/site.js?v=1785990253"></script>
+    <script src="/assets/js/site.js?v=1786011541"></script>
   </body>
 </html>

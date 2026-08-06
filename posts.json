@@ -4,31 +4,76 @@
       
       
       {
-        "title": "float보다 double을 더 많이 사용하는 이유는 무엇일까?",
-        "url": "/03-memo-float-vs-double/",
-        "description": "float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유",
+        "title": "Network - Security 4",
+        "url": "/11-network-security4/",
+        "description": "방화벽과 연계 보안 솔루션 및 ACL 실습",
         "thumbnail": null,
-        "tags": ["Notes","CS","DataType","Memory"],
-        "series_key": "technotes",
+        "tags": ["Network","AutoEverSW"],
+        "series_key": "network",
         "series_title": null,
         "date_label": "2026년 8월 6일",
-        "reading_time_label": "2분 읽기",
-        "search": "float보다 double을 더 많이 사용하는 이유는 무엇일까? float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유 notes cs datatype memory"
+        "reading_time_label": "5분 읽기",
+        "search": "network - security 4 방화벽과 연계 보안 솔루션 및 acl 실습 network autoeversw"
       },
     
       
       
       {
-        "title": "Network - Security",
-        "url": "/09-network-security/",
-        "description": "네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리",
+        "title": "Network - Security 3",
+        "url": "/11-network-security3/",
+        "description": "네트워크 보안 솔루션과 통제 및 감시 장비의 종류",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 6일",
+        "reading_time_label": "11분 읽기",
+        "search": "network - security 3 네트워크 보안 솔루션과 통제 및 감시 장비의 종류 network autoeversw"
+      },
+    
+      
+      
+      {
+        "title": "Network - Security 2",
+        "url": "/10-network-security2/",
+        "description": "네트워크 위협 및 공격 기법의 원리, 특징 정리",
+        "thumbnail": null,
+        "tags": ["Network","AutoEverSW"],
+        "series_key": "network",
+        "series_title": null,
+        "date_label": "2026년 8월 6일",
+        "reading_time_label": "15분 읽기",
+        "search": "network - security 2 네트워크 위협 및 공격 기법의 원리, 특징 정리 network autoeversw"
+      },
+    
+      
+      
+      {
+        "title": "float보다 double을 더 많이 사용하는 이유는 무엇일까?",
+        "url": "/03-memo-float-vs-double/",
+        "description": "float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유",
+        "thumbnail": null,
+        "tags": ["Notes","CS","DataType"],
+        "series_key": "technotes",
+        "series_title": null,
+        "date_label": "2026년 8월 6일",
+        "reading_time_label": "2분 읽기",
+        "search": "float보다 double을 더 많이 사용하는 이유는 무엇일까? float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유 notes cs datatype"
+      },
+    
+      
+      
+      {
+        "title": "Network - Security 1",
+        "url": "/09-network-security1/",
+        "description": "네트워크 보안의 5대 요소",
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
         "series_title": null,
         "date_label": "2026년 8월 5일",
-        "reading_time_label": "13분 읽기",
-        "search": "network - security 네트워크 보안의 5대 요소와 주요 네트워크 위협 및 공격 기법의 원리, 특징 정리 network autoeversw"
+        "reading_time_label": "3분 읽기",
+        "search": "network - security 1 네트워크 보안의 5대 요소 network autoeversw"
       },
     
       
@@ -743,12 +788,12 @@
         "url": "/01-knowledge-two-complement/",
         "description": "반가산기와 전가산기, Carry In, 2의 보수를 통해 CPU가 감산기 없이 뺄셈을 수행하는 원리",
         "thumbnail": null,
-        "tags": ["ComputerArchitecture","CPU","ALU","LogicCircuit","TwoComplement","CS"],
+        "tags": ["Notes","CS","LogicCircuit"],
         "series_key": "technotes",
         "series_title": null,
         "date_label": "2026년 7월 11일",
         "reading_time_label": "4분 읽기",
-        "search": "cpu에 감산기가 없는 이유 반가산기와 전가산기, carry in, 2의 보수를 통해 cpu가 감산기 없이 뺄셈을 수행하는 원리 computerarchitecture cpu alu logiccircuit twocomplement cs"
+        "search": "cpu에 감산기가 없는 이유 반가산기와 전가산기, carry in, 2의 보수를 통해 cpu가 감산기 없이 뺄셈을 수행하는 원리 notes cs logiccircuit"
       },
     
       
