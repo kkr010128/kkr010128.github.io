@@ -11,6 +11,8 @@ tags:
   - TwoComplement
   - CS
 ---
+
+
 컴퓨터는 수많은 덧셈과 뺄셈을 수행한다.
 
 그렇다면 CPU 내부에는 덧셈을 위한 **가산기(Adder)** 와 뺄셈을 위한 **감산기(Subtractor)** 가 각각 존재할까?
@@ -69,6 +71,7 @@ Carry Out은 다음 비트의 Carry In으로 전달된다.
 
 ```text
 Carry → Carry → Carry
+
 
 ┌────────┐   ┌────────┐   ┌────────┐
 │ Full   │──▶│ Full   │──▶│ Full   │
