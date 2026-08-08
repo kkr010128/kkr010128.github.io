@@ -1,25 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-09T00:01:38+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Type 1 Hypervisor가 Type 2보다 빠른 이유</title><link href="https://kkr010128.github.io/04-memo-virtualize/" rel="alternate" type="text/html" title="Type 1 Hypervisor가 Type 2보다 빠른 이유" /><published>2026-08-08T00:00:00+09:00</published><updated>2026-08-08T00:00:00+09:00</updated><id>https://kkr010128.github.io/04-memo-virtualize</id><content type="html" xml:base="https://kkr010128.github.io/04-memo-virtualize/"><![CDATA[<h3 id="q-type-1-hypervisor가-type-2보다-빠른-이유는-무엇일까">Q. Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까?</h3>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-09T00:02:49+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Type 1 Hypervisor가 Type 2보다 빠른 이유</title><link href="https://kkr010128.github.io/04-memo-virtualize/" rel="alternate" type="text/html" title="Type 1 Hypervisor가 Type 2보다 빠른 이유" /><published>2026-08-08T00:00:00+09:00</published><updated>2026-08-08T00:00:00+09:00</updated><id>https://kkr010128.github.io/04-memo-virtualize</id><content type="html" xml:base="https://kkr010128.github.io/04-memo-virtualize/"><![CDATA[<h3 id="q-type-1-hypervisor가-type-2보다-빠른-이유는-무엇일까">Q. Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까?</h3>
 <p>Type 1과 Type 2 Hypervisor는 모두 하나의 물리 서버에서 여러 가상 머신(Virtual Machine)을 실행하기 위한 기술이다.
 그런데 Type 1은 서버와 데이터센터에서 주로 사용하고, Type 2는 개인 PC의 개발·테스트 환경에서 많이 사용한다.
 이 차이는 어디에서 발생할까?</p>
 <h3 id="a-가장-큰-차이는-host-os를-거치는지-여부이다">A. 가장 큰 차이는 Host OS를 거치는지 여부이다.</h3>
-<p>Type 1 Hypervisor는 물리 하드웨어 위에서 직접 실행된다.
-```text
-Virtual Machine
+<p>Type 1 Hypervisor는 물리 하드웨어 위에서 직접 실행된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
       ↓
 Hypervisor
       ↓
-Hardware</p>
+Hardware
+</code></pre></div></div>
 
 <p>반면 Type 2 Hypervisor는 기존 Host OS 위에서 실행된다.</p>
 
-<p>Virtual Machine
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
       ↓
 Hypervisor
       ↓
 Host OS
       ↓
-Hardware</p>
+Hardware
+</code></pre></div></div>
 
 <p>Type 2에서는 Host OS 자체도 CPU, Memory, Disk 등의 자원을 사용한다.</p>
 
