@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-08T15:26:34+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">클라우드의 이해</title><link href="https://kkr010128.github.io/01-cloud/" rel="alternate" type="text/html" title="클라우드의 이해" /><published>2026-08-07T00:00:00+09:00</published><updated>2026-08-07T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-cloud</id><content type="html" xml:base="https://kkr010128.github.io/01-cloud/"><![CDATA[<h2 id="1--on-premise와-cloud-computing">1 ) On-Premise와 Cloud Computing</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-08T23:57:34+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">클라우드의 이해</title><link href="https://kkr010128.github.io/01-cloud/" rel="alternate" type="text/html" title="클라우드의 이해" /><published>2026-08-07T00:00:00+09:00</published><updated>2026-08-07T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-cloud</id><content type="html" xml:base="https://kkr010128.github.io/01-cloud/"><![CDATA[<h2 id="1--on-premise와-cloud-computing">1 ) On-Premise와 Cloud Computing</h2>
 <hr />
 <p>클라우드 컴퓨팅이 등장하기 이전에는 대부분의 기업이 자체 데이터센터를 구축하여 IT 서비스를 운영하였다. 이러한 방식을 <strong>온프레미스(On-Premise)</strong> 라고 하며, 이후 인터넷을 통해 필요한 만큼 컴퓨팅 자원을 제공받는 <strong>클라우드 컴퓨팅(Cloud Computing)</strong> 이 등장하면서 인프라 구축 방식에 큰 변화가 발생하였다.</p>
 
@@ -96,7 +96,7 @@
 
 <p>등이 모두 필요하므로 시간적·인적 비용이 함께 증가한다.</p>
 
-<h3 id="실제-사례">실제 사례</h3>
+<h3 id="강사님-사례-예시">강사님 사례 예시</h3>
 <p>게임 서비스는 출시 전까지 실제 이용자 수를 예측하기 어렵다.
 과거에는 오픈 베타 서비스를 통해 예상 수요를 확인한 뒤 서버를 구매하는 방식이 일반적이었다.
 예를 들어 오픈 베타에서 약 200만 명이 접속하면 이를 근거로 투자금을 확보하고, 이후 필요한 서버를 대량 구매하여 데이터센터에 구축하였다.
@@ -1841,7 +1841,7 @@ Archive Storage
     <li>Cloud Storage는 Object, Block, File Storage로 구분하며 사용 목적과 접근 방식에 따라 적절한 Storage를 선택해야 한다.</li>
     <li>Lifecycle Management를 이용하면 데이터의 접근 빈도와 보관 기간에 따라 저장 위치와 삭제 시점을 자동으로 관리할 수 있다.</li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="Cloud" /><category term="AutoEverSW" /><summary type="html"><![CDATA[가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조를 정리]]></summary></entry><entry><title type="html">float보다 double을 더 많이 사용하는 이유는 무엇일까?</title><link href="https://kkr010128.github.io/03-memo-float-vs-double/" rel="alternate" type="text/html" title="float보다 double을 더 많이 사용하는 이유는 무엇일까?" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-memo-float-vs-double</id><content type="html" xml:base="https://kkr010128.github.io/03-memo-float-vs-double/"><![CDATA[<hr />
+</blockquote>]]></content><author><name></name></author><category term="Cloud" /><category term="AutoEverSW" /><summary type="html"><![CDATA[가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조 정리]]></summary></entry><entry><title type="html">float보다 double을 더 많이 사용하는 이유는 무엇일까?</title><link href="https://kkr010128.github.io/03-memo-float-vs-double/" rel="alternate" type="text/html" title="float보다 double을 더 많이 사용하는 이유는 무엇일까?" /><published>2026-08-06T00:00:00+09:00</published><updated>2026-08-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/03-memo-float-vs-double</id><content type="html" xml:base="https://kkr010128.github.io/03-memo-float-vs-double/"><![CDATA[<hr />
 
 <h3 id="q-float는-4byte이고-double은-8byte인데-왜-double을-더-많이-사용할까">Q. <code class="language-plaintext highlighter-rouge">float</code>는 4Byte이고 <code class="language-plaintext highlighter-rouge">double</code>은 8Byte인데 왜 <code class="language-plaintext highlighter-rouge">double</code>을 더 많이 사용할까?</h3>
 
