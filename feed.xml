@@ -1,4 +1,80 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-08T23:57:34+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">클라우드의 이해</title><link href="https://kkr010128.github.io/01-cloud/" rel="alternate" type="text/html" title="클라우드의 이해" /><published>2026-08-07T00:00:00+09:00</published><updated>2026-08-07T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-cloud</id><content type="html" xml:base="https://kkr010128.github.io/01-cloud/"><![CDATA[<h2 id="1--on-premise와-cloud-computing">1 ) On-Premise와 Cloud Computing</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-09T00:00:24+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">hyeon.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까</title><link href="https://kkr010128.github.io/04-memo-virtualize/" rel="alternate" type="text/html" title="Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까" /><published>2026-08-08T00:00:00+09:00</published><updated>2026-08-08T00:00:00+09:00</updated><id>https://kkr010128.github.io/04-memo-virtualize</id><content type="html" xml:base="https://kkr010128.github.io/04-memo-virtualize/"><![CDATA[<h3 id="q-type-1-hypervisor가-type-2보다-빠른-이유는-무엇일까">Q. Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까?</h3>
+<p>Type 1과 Type 2 Hypervisor는 모두 하나의 물리 서버에서 여러 가상 머신(Virtual Machine)을 실행하기 위한 기술이다.
+그런데 Type 1은 서버와 데이터센터에서 주로 사용하고, Type 2는 개인 PC의 개발·테스트 환경에서 많이 사용한다.
+이 차이는 어디에서 발생할까?</p>
+<h3 id="a-가장-큰-차이는-host-os를-거치는지-여부이다">A. 가장 큰 차이는 Host OS를 거치는지 여부이다.</h3>
+<p>Type 1 Hypervisor는 물리 하드웨어 위에서 직접 실행된다.
+```text
+Virtual Machine
+      ↓
+Hypervisor
+      ↓
+Hardware</p>
+
+<p>반면 Type 2 Hypervisor는 기존 Host OS 위에서 실행된다.</p>
+
+<p>Virtual Machine
+      ↓
+Hypervisor
+      ↓
+Host OS
+      ↓
+Hardware</p>
+
+<p>Type 2에서는 Host OS 자체도 CPU, Memory, Disk 등의 자원을 사용한다.</p>
+
+<p>또한 가상화 소프트웨어가 Host OS 위에서 동작하기 때문에 Type 1보다 추가적인 처리 과정과 자원 소비가 발생할 수 있다.</p>
+
+<p>Bare-Metal 구조</p>
+
+<p>Type 1은 물리 하드웨어에 직접 Hypervisor가 실행되기 때문에 Bare-Metal Hypervisor라고도 한다.</p>
+
+<p>Hypervisor가 물리 자원을 직접 관리하여 각 VM에 할당한다.</p>
+
+<ul>
+  <li>Physical CPU → vCPU</li>
+  <li>Physical Memory → Virtual Memory</li>
+  <li>Physical Disk → Virtual Disk</li>
+  <li>Physical NIC → Virtual Network Adapter</li>
+</ul>
+
+<p>일반적인 Host OS가 따로 자원을 소비하지 않으므로 많은 VM을 운영해야 하는 서버 환경에서 자원 활용에 유리하다.</p>
+
+<p>그렇다면 Type 1은 항상 더 빠를까?</p>
+
+<p>반드시 압도적으로 빠른 것은 아니다.</p>
+
+<p>현대 CPU는 Intel VT-x, AMD-V와 같은 하드웨어 가상화 기능을 제공하므로 Type 2도 많은 작업을 하드웨어에서 직접 처리할 수 있다.</p>
+
+<p>따라서 단순한 개발이나 실습 환경에서는 성능 차이를 크게 느끼지 못할 수도 있다.</p>
+
+<p>핵심은 다음과 같다.</p>
+
+<p>Type 1은 가상화 전용 환경에서 하드웨어 자원을 직접 관리하고, 일반적인 Host OS에 사용되는 자원을 줄일 수 있기 때문에 서버 환경에서 더 유리하다.</p>
+
+<p>서버와 개인 실습 환경의 차이</p>
+
+<p>구분	Type 1	Type 2
+구조	Hardware 위에서 직접 실행	Host OS 위에서 실행
+다른 이름	Bare-Metal	Hosted
+오버헤드	상대적으로 적음	상대적으로 큼
+주요 환경	서버, 데이터센터	개발, 테스트, 개인 실습
+대표 예시	VMware ESXi, Xen	VMware Workstation, VirtualBox</p>
+
+<p>Type 1은 여러 VM을 장기간 안정적으로 실행해야 하는 서버 환경에 적합하다.</p>
+
+<p>반면 Type 2는 기존 Windows나 macOS를 그대로 사용하면서 필요할 때 VM을 실행할 수 있어 개인 실습 환경에서 편리하다.</p>
+
+<p>정리</p>
+
+<ul>
+  <li>Type 1은 하드웨어 위에서 Hypervisor가 직접 실행된다.</li>
+  <li>Type 2는 Host OS 위에서 Hypervisor가 실행된다.</li>
+  <li>Type 2는 Host OS가 자원을 함께 사용하므로 추가적인 오버헤드가 발생할 수 있다.</li>
+  <li>Type 1은 서버와 데이터센터 환경에 적합하다.</li>
+  <li>Type 2는 설치와 사용이 편리하여 개발 및 개인 실습에 적합하다.</li>
+  <li>성능 차이를 단순히 계층 수만으로 판단하기보다 자원 관리 구조의 차이로 이해하는 것이 좋다.</li>
+</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="Virtualization" /><category term="Hypervisor" /><summary type="html"><![CDATA[Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리]]></summary></entry><entry><title type="html">클라우드의 이해</title><link href="https://kkr010128.github.io/01-cloud/" rel="alternate" type="text/html" title="클라우드의 이해" /><published>2026-08-07T00:00:00+09:00</published><updated>2026-08-07T00:00:00+09:00</updated><id>https://kkr010128.github.io/01-cloud</id><content type="html" xml:base="https://kkr010128.github.io/01-cloud/"><![CDATA[<h2 id="1--on-premise와-cloud-computing">1 ) On-Premise와 Cloud Computing</h2>
 <hr />
 <p>클라우드 컴퓨팅이 등장하기 이전에는 대부분의 기업이 자체 데이터센터를 구축하여 IT 서비스를 운영하였다. 이러한 방식을 <strong>온프레미스(On-Premise)</strong> 라고 하며, 이후 인터넷을 통해 필요한 만큼 컴퓨팅 자원을 제공받는 <strong>클라우드 컴퓨팅(Cloud Computing)</strong> 이 등장하면서 인프라 구축 방식에 큰 변화가 발생하였다.</p>
 
@@ -5533,730 +5609,4 @@ TCP 443 (HTTPS): 정상
   <li>ICMP는 오류 보고와 네트워크 진단을 위한 다양한 메시지를 제공한다.</li>
   <li>운영 환경에서는 보안상의 이유로 ICMP Echo를 차단하는 경우가 많다.</li>
   <li>Ping이 실패하더라도 서비스 자체는 정상적으로 동작할 수 있다.</li>
-</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="Network" /><summary type="html"><![CDATA[CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 ICMP를 제한하는 사례 메모]]></summary></entry><entry><title type="html">Network Device 3 - L4 Device</title><link href="https://kkr010128.github.io/07-network-device-l4/" rel="alternate" type="text/html" title="Network Device 3 - L4 Device" /><published>2026-08-04T00:00:00+09:00</published><updated>2026-08-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/07-network-device-l4</id><content type="html" xml:base="https://kkr010128.github.io/07-network-device-l4/"><![CDATA[<h2 id="device-3--l4-장비">Device 3 ) L4 장비</h2>
-
-<h3 id="개요">개요</h3>
-
-<p>초기의 네트워크 장비는 L2 Switch, Router와 같이 OSI 계층을 기준으로 구분되었다.</p>
-
-<p>이후 NAT, Firewall, Load Balancer, Proxy 등 <strong>4계층 이상의 정보를 활용하는 장비</strong>가 등장하면서 이러한 장비들도 네트워크 장비의 한 종류로 분류하게 되었다.</p>
-
-<p>L4 장비는 <strong>TCP/UDP의 포트 번호, Sequence Number, ACK Number</strong> 등의 정보를 이해하고 이를 기반으로 동작한다.</p>
-
-<p>또한 하나의 패킷만 처리하는 것이 아니라 <strong>통신의 연결 상태(Session)</strong> 를 관리해야 하므로, 세션 정보를 저장하는 <strong>Session Table</strong>을 유지한다.</p>
-
-<hr />
-
-<h3 id="특징">특징</h3>
-
-<ul>
-  <li>L4(Transport Layer) 헤더 정보를 기반으로 동작한다.</li>
-  <li>TCP/UDP의 포트 번호를 이용하여 트래픽을 제어한다.</li>
-  <li>연결 상태(Session)를 추적하며 통신을 관리한다.</li>
-  <li>대표적인 장비로 Load Balancer, Firewall 등이 있다.</li>
-</ul>
-
-<p>이처럼 세션을 기반으로 동작하는 장비를 <strong>Session Device</strong>라고도 한다.</p>
-
-<hr />
-
-<h3 id="session-device의-특징">Session Device의 특징</h3>
-
-<h4 id="1-session-table">1. Session Table</h4>
-
-<p>Session Device는 <strong>Session Table</strong>을 기반으로 동작한다.</p>
-
-<p>Session Table에는 통신에 필요한 상태 정보가 저장되며, 패킷이 들어올 때마다 해당 정보를 조회하여 정상적인 연결인지 확인한다.</p>
-
-<p>또한 Session 정보는 일정 시간이 지나면 삭제되는 <strong>Lifetime(Session Timeout)</strong> 을 가진다.</p>
-
-<hr />
-
-<h4 id="2-symmetric-routing-대칭-경로">2. Symmetric Routing (대칭 경로)</h4>
-
-<p>Session Device는 일반적으로 <strong>대칭 경로(Symmetric Routing)</strong> 를 요구한다.</p>
-
-<p>즉,</p>
-
-<ul>
-  <li>Request 패킷이 지나간 장비와</li>
-  <li>Response 패킷이 지나가는 장비가</li>
-</ul>
-
-<p>동일해야 한다.</p>
-
-<p>경로가 달라지면 Session Table에 연결 정보가 존재하지 않아 정상적인 통신이 이루어지지 않을 수 있다.</p>
-
-<hr />
-
-<h4 id="3-정보-변경">3. 정보 변경</h4>
-
-<p>L4 이상의 장비는 필요에 따라 패킷의 정보를 변경할 수 있다.</p>
-
-<ul>
-  <li>NAT : IP 주소와 포트 번호 변경</li>
-  <li>L7 Load Balancer : HTTP Header, Cookie 등 애플리케이션 계층 정보 변경</li>
-</ul>
-
-<hr />
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>L4 장비는 TCP/UDP 정보를 이해하고 동작한다.</li>
-    <li>Session Table을 이용하여 연결 상태를 관리한다.</li>
-    <li>대칭 경로(Symmetric Routing)가 유지되어야 한다.</li>
-    <li>NAT, Firewall, Load Balancer는 대표적인 Session Device이다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="1-load-balancer">1. Load Balancer</h3>
-
-<h4 id="개요-1">개요</h4>
-
-<p>Load Balancer는 여러 대의 서버나 네트워크 장비에 <strong>트래픽을 분산하여 부하를 균등하게 처리</strong>하기 위한 장비이다.</p>
-
-<p>주로 <strong>L4 또는 L7 계층</strong>에서 동작하며 IP 주소, 포트 번호, 애플리케이션 정보를 기반으로 적절한 서버로 요청을 전달한다.</p>
-
-<p>가장 대표적인 역할은 여러 서버에 트래픽을 분산하여 <strong>성능과 가용성을 향상시키는 것</strong>이다.</p>
-
-<hr />
-
-<h4 id="load-balancer가-필요한-이유">Load Balancer가 필요한 이유</h4>
-
-<p>대규모 서비스를 운영할 때는 성능이 매우 높은 서버 한 대를 사용하는 것보다 상대적으로 성능이 낮은 서버 여러 대를 사용하는 것이 비용과 확장성 측면에서 효율적인 경우가 많다.</p>
-
-<p>이처럼 서버 수를 늘려 처리 성능을 향상시키는 방식을 <strong>Scale Out</strong>이라고 한다.</p>
-
-<p>하지만 사용자는 서버가 여러 대인지 알 필요 없이 하나의 서비스처럼 이용해야 한다.</p>
-
-<p>이를 위해 Load Balancer는 <strong>Virtual IP(VIP)</strong> 를 제공하고 클라이언트의 요청을 실제 서버(Real Server)로 분산하여 전달한다.</p>
-
-<hr />
-
-<h4 id="종류">종류</h4>
-
-<h4 id="l4-load-balancer">L4 Load Balancer</h4>
-
-<ul>
-  <li>TCP/UDP 등 4계층 정보를 기반으로 부하 분산</li>
-  <li>IP 주소와 Port 번호를 이용하여 서버 선택</li>
-  <li>일반적으로 Network Load Balancer(NLB)라고도 한다.</li>
-</ul>
-
-<h4 id="l7-load-balancer">L7 Load Balancer</h4>
-
-<ul>
-  <li>HTTP, HTTPS, FTP, SMTP 등 애플리케이션 프로토콜 기반으로 부하 분산</li>
-  <li>URI, Header, Cookie 등을 기준으로 분산 가능</li>
-  <li>Reverse Proxy 형태로 동작</li>
-  <li>ADC(Application Delivery Controller)라고도 부른다.</li>
-</ul>
-
-<blockquote>
-  <p>대부분의 상용 Load Balancer는 L4와 L7 기능을 모두 지원하며, 어떤 기준으로 분산하는지에 따라 L4 / L7 Load Balancer로 구분한다.</p>
-</blockquote>
-
-<hr />
-
-<h4 id="l4-switch">L4 Switch</h4>
-
-<p>L4 Switch는 내부적으로는 L4 Load Balancer와 동일한 기능을 수행하지만, 스위치 형태의 하드웨어 장비이다.</p>
-
-<ul>
-  <li>부하 분산</li>
-  <li>Redirect</li>
-  <li>성능 최적화</li>
-  <li>다수의 네트워크 포트 제공</li>
-</ul>
-
-<p>현재는 HAProxy, Nginx와 같은 소프트웨어 Load Balancer도 많이 사용되지만 전용 장비 형태의 L4 Switch도 여전히 널리 사용된다.</p>
-
-<hr />
-
-<h4 id="서비스-구성">서비스 구성</h4>
-
-<p>Load Balancer는 다음과 같은 요소를 이용하여 서비스를 구성한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성 요소</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Virtual Server</td>
-      <td>사용자가 접속하는 논리적인 서비스</td>
-    </tr>
-    <tr>
-      <td>Virtual IP(VIP)</td>
-      <td>사용자가 접속하는 대표 IP</td>
-    </tr>
-    <tr>
-      <td>Real Server</td>
-      <td>실제 서비스를 수행하는 서버</td>
-    </tr>
-    <tr>
-      <td>Real IP(RIP)</td>
-      <td>실제 서버의 IP 주소</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Load Balancer는 VIP로 들어온 요청을 적절한 Real Server의 RIP로 전달한다.</p>
-
-<p>또한 필요에 따라 포트도 변경할 수 있다.</p>
-
-<p>예시)</p>
-
-<ul>
-  <li>VIP : 80</li>
-  <li>Real Server : 8080</li>
-</ul>
-
-<hr />
-
-<h4 id="부하-분산-알고리즘">부하 분산 알고리즘</h4>
-
-<ol>
-  <li><strong>Round Robin</strong></li>
-</ol>
-
-<ul>
-  <li>서버에 순차적으로 요청을 분산</li>
-  <li>가장 단순한 방식</li>
-  <li>작업 시간이 긴 요청이 많으면 부하가 불균형해질 수 있다.</li>
-</ul>
-
-<p><strong>2. Least Connection</strong></p>
-
-<ul>
-  <li>현재 연결(Session)이 가장 적은 서버로 요청 전달</li>
-  <li>Session Table을 이용하여 현재 연결 수를 확인</li>
-  <li>작업 시간이 서로 다른 서비스에서 많이 사용</li>
-</ul>
-
-<ol>
-  <li><strong>Hash</strong></li>
-</ol>
-
-<ul>
-  <li>IP, Port 등의 값을 Hash하여 동일 사용자가 지속적으로 같은 서버를 이용하도록 하는 방식</li>
-  <li>Session Persistence(Sticky Session)를 구현할 때 많이 사용</li>
-  <li>일반적인 환경에서는 비교적 균등하게 분산된다.</li>
-</ul>
-
-<blockquote>
-  <p><strong>강사님 설명</strong></p>
-
-  <p>Hash를 사용하는 대표적인 이유는 Session 유지이다.</p>
-
-  <p>예를 들어 장바구니 정보를 서버 메모리에 저장하는 경우 사용자가 다른 서버로 연결되면 기존 장바구니 정보를 찾지 못할 수 있다.</p>
-
-  <p>따라서 동일한 사용자가 항상 같은 서버로 연결되도록 Hash 기반 부하 분산을 사용하는 경우가 많다.</p>
-
-  <p>최근에는 Cookie, Web Storage, IndexedDB 등을 활용하여 클라이언트에서 상태를 관리하는 방식도 많이 사용된다.</p>
-</blockquote>
-
-<hr />
-
-<h3 id="adc-application-delivery-controller">ADC (Application Delivery Controller)</h3>
-
-<p>ADC는 <strong>L7(Application Layer)</strong> 에서 동작하는 Load Balancer이다.</p>
-
-<p>L4 장비와 달리 애플리케이션 프로토콜을 이해하고 처리할 수 있으므로 더욱 다양한 기능을 제공한다.</p>
-
-<h4 id="특징-1">특징</h4>
-
-<ul>
-  <li>HTTP Header와 Body를 분석</li>
-  <li>URI 기반 분산</li>
-  <li>Reverse Proxy 방식으로 동작</li>
-  <li>대부분 L4 기능도 함께 제공</li>
-</ul>
-
-<h4 id="주요-기능">주요 기능</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>기능</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Load Balancing</td>
-      <td>부하 분산</td>
-    </tr>
-    <tr>
-      <td>Failover</td>
-      <td>장애 발생 시 정상 서버로 자동 전환</td>
-    </tr>
-    <tr>
-      <td>Redirection</td>
-      <td>요청 재전송</td>
-    </tr>
-    <tr>
-      <td>Caching</td>
-      <td>콘텐츠 캐싱</td>
-    </tr>
-    <tr>
-      <td>Compression</td>
-      <td>데이터 압축</td>
-    </tr>
-    <tr>
-      <td>Content Rewrite</td>
-      <td>콘텐츠 수정 및 재작성</td>
-    </tr>
-    <tr>
-      <td>Encoding Conversion</td>
-      <td>인코딩 변환</td>
-    </tr>
-    <tr>
-      <td>Application Optimization</td>
-      <td>애플리케이션 최적화</td>
-    </tr>
-    <tr>
-      <td>WAF</td>
-      <td>Web Application Firewall</td>
-    </tr>
-    <tr>
-      <td>HTML/XML Validation</td>
-      <td>콘텐츠 검증</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>또한 L4 장비에서도 DoS 방어, TCP Session 재사용(Connection Pool) 등의 성능 향상 기능을 제공하기도 한다.</p>
-
-<h4 id="ssl-offloading">SSL Offloading</h4>
-
-<p>최근에는 HTTPS 사용이 증가하면서 SSL 암호화/복호화 작업이 웹 서버의 부담이 되고 있다.</p>
-
-<p>ADC는 SSL의 Endpoint 역할을 수행하여 다음과 같이 구성할 수 있다.</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client  &lt;-- HTTPS --&gt;  ADC  &lt;-- HTTP --&gt;  Web Server
-</code></pre></div></div>
-
-<p>이를 <strong>SSL Offloading</strong>이라고 한다.</p>
-
-<p>전용 ADC는 SSL 가속 카드를 탑재하여 다수의 HTTPS 연결을 효율적으로 처리할 수 있다.</p>
-
-<hr />
-
-<h3 id="health-check">Health Check</h3>
-
-<p>Load Balancer는 Real Server의 상태를 지속적으로 확인하여 정상 서버로만 요청을 전달한다.</p>
-
-<p>장애가 발생한 서버는 서비스 그룹에서 제외하고, 정상으로 복구되면 자동으로 다시 포함한다.</p>
-
-<h4 id="health-check-방식">Health Check 방식</h4>
-
-<h5 id="icmpping">ICMP(Ping)</h5>
-
-<ul>
-  <li>서버의 생존 여부만 확인</li>
-</ul>
-
-<p><strong>TCP Port Check</strong></p>
-
-<ul>
-  <li>서비스 포트가 정상적으로 열려 있는지 확인</li>
-  <li>TCP Half Open 방식을 사용하기도 한다.</li>
-</ul>
-
-<p><strong>HTTP Status Check</strong></p>
-
-<ul>
-  <li>HTTP 응답 코드(200 등)를 확인</li>
-</ul>
-
-<p><strong>Content Check</strong></p>
-
-<ul>
-  <li>실제 콘텐츠를 요청하여 응답 내용까지 검사</li>
-</ul>
-
-<h4 id="주요-설정">주요 설정</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Interval</td>
-      <td>헬스 체크 주기</td>
-    </tr>
-    <tr>
-      <td>Response Time</td>
-      <td>응답 대기 시간</td>
-    </tr>
-    <tr>
-      <td>Retries</td>
-      <td>재시도 횟수</td>
-    </tr>
-    <tr>
-      <td>Timeout</td>
-      <td>최대 대기 시간</td>
-    </tr>
-    <tr>
-      <td>Dead Interval</td>
-      <td>장애 상태에서의 체크 주기</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>강사님 설명</strong></p>
-
-  <p>Nginx는 장애 서버를 제외하는 기능은 제공하지만 전용 Load Balancer 수준의 다양한 기능을 모두 제공하는 것은 아니다.
-따라서 일반적으로 Reverse Proxy로 분류한다.</p>
-</blockquote>
-
-<hr />
-
-<h3 id="fault-tolerant-system-고장-허용-시스템">Fault-Tolerant System (고장 허용 시스템)</h3>
-
-<p>고장 허용 시스템은 일부 장비나 구성 요소에 장애가 발생하더라도 서비스가 중단되지 않고 계속 동작하도록 설계된 시스템이다.</p>
-
-<p>이를 위해 서버, 네트워크, 스토리지 등을 이중화(Redundancy)하거나 다중화하여 SPoF를 제거한다.</p>
-
-<p>대표적인 구현 방법은 다음과 같다.</p>
-
-<ul>
-  <li>Active-Active</li>
-  <li>Active-Standby</li>
-  <li>Load Balancer를 이용한 서버 이중화</li>
-  <li>RAID</li>
-  <li>Database Replication</li>
-  <li>STP/RSTP를 이용한 네트워크 이중화</li>
-</ul>
-
-<hr />
-
-<h4 id="활용-분야">활용 분야</h4>
-
-<ul>
-  <li>Web Load Balancer</li>
-  <li>Firewall Load Balancer</li>
-  <li>VPN Load Balancer</li>
-</ul>
-
-<p>웹 서비스뿐 아니라 다양한 네트워크 서비스에서도 사용된다.</p>
-
-<hr />
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>여러 서버에 트래픽을 분산한다.</li>
-    <li>Scale Out 환경에서 핵심 장비이다.</li>
-    <li>VIP를 통해 하나의 서비스처럼 제공한다.</li>
-    <li>L4와 L7 방식으로 구분된다.</li>
-    <li>Health Check를 이용하여 정상 서버만 서비스한다.</li>
-    <li>Fault-Tolerant System 구현의 핵심 요소 중 하나이다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="시스템-확장-방법">시스템 확장 방법</h3>
-
-<p>서비스의 성능이나 처리 용량이 부족해지면 시스템을 확장해야 한다.</p>
-
-<p>대표적인 확장 방식은 <strong>Scale Up</strong>과 <strong>Scale Out</strong> 두 가지이다.</p>
-
-<hr />
-
-<h4 id="1-scale-up-수직-확장">(1) Scale Up (수직 확장)</h4>
-
-<p>기존 시스템의 성능을 높이는 방식이다.</p>
-
-<p>CPU, 메모리, 디스크 등의 하드웨어를 증설하거나, 더 높은 성능의 서버로 교체하여 서비스를 이전한다.</p>
-
-<h4 id="특징-2">특징</h4>
-
-<ul>
-  <li>기존 서버의 성능을 향상시키는 방식</li>
-  <li>애플리케이션 구조 변경이 거의 필요 없다.</li>
-  <li>일부 자원(디스크 등)은 비교적 쉽게 확장할 수 있지만 CPU나 메모리는 확장에 제약이 있을 수 있다.</li>
-  <li>일정 규모 이상에서는 성능 향상 대비 비용이 급격히 증가한다.</li>
-</ul>
-
-<h4 id="장점">장점</h4>
-
-<ul>
-  <li>시스템 구조를 크게 변경하지 않아도 된다.</li>
-  <li>애플리케이션 수정이 거의 필요 없다.</li>
-  <li>관리 대상 서버 수가 적다.</li>
-</ul>
-
-<h4 id="단점">단점</h4>
-
-<ul>
-  <li>성능이 높은 장비일수록 비용이 급격히 증가한다.</li>
-  <li>장비의 최대 사양에 도달하면 더 이상 확장하기 어렵다.</li>
-  <li>서버 교체 시 서비스 이전(Migration)이 필요할 수 있다.</li>
-  <li>단일 서버에 의존하므로 SPoF가 발생하기 쉽다.</li>
-</ul>
-
-<hr />
-
-<h4 id="2-scale-out-수평-확장">(2) Scale Out (수평 확장)</h4>
-
-<p>동일하거나 비슷한 성능의 서버를 여러 대 추가하여 병렬로 서비스를 제공하는 방식이다.</p>
-
-<h4 id="특징-3">특징</h4>
-
-<ul>
-  <li>서버 수를 늘려 전체 처리량을 증가시킨다.</li>
-  <li>Load Balancer 등을 이용하여 요청을 여러 서버로 분산한다.</li>
-  <li>분산 처리를 위한 시스템 설계가 필요하다.</li>
-</ul>
-
-<h4 id="장점-1">장점</h4>
-
-<ul>
-  <li>Scale Up보다 비용 효율적으로 확장할 수 있다.</li>
-  <li>서버를 필요한 만큼 단계적으로 추가할 수 있다.</li>
-  <li>서버 일부에 장애가 발생해도 서비스 전체에는 영향이 적어 고장 허용(Fault Tolerance)을 구현하기 쉽다.</li>
-</ul>
-
-<h4 id="단점-1">단점</h4>
-
-<ul>
-  <li>시스템 구조가 복잡해진다.</li>
-  <li>Load Balancer, 분산 저장소 등 추가 인프라가 필요할 수 있다.</li>
-  <li>세션 관리, 데이터 동기화 등 고려해야 할 요소가 많다.</li>
-</ul>
-
-<hr />
-
-<h3 id="scale-up-vs-scale-out">Scale Up vs Scale Out</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>Scale Up</th>
-      <th>Scale Out</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>확장 방식</td>
-      <td>기존 서버의 성능 향상</td>
-      <td>서버 수 증가</td>
-    </tr>
-    <tr>
-      <td>비용</td>
-      <td>고성능 장비일수록 급격히 증가</td>
-      <td>단계적으로 확장 가능</td>
-    </tr>
-    <tr>
-      <td>구조</td>
-      <td>단순</td>
-      <td>상대적으로 복잡</td>
-    </tr>
-    <tr>
-      <td>장애 대응</td>
-      <td>단일 장애점(SPoF) 발생 가능</td>
-      <td>장애 허용(Fault Tolerance) 구현 용이</td>
-    </tr>
-    <tr>
-      <td>확장 한계</td>
-      <td>하드웨어 성능 한계 존재</td>
-      <td>서버를 계속 추가하여 확장 가능</td>
-    </tr>
-    <tr>
-      <td>대표 기술</td>
-      <td>CPU, RAM, Storage 증설</td>
-      <td>Load Balancer, Cluster, Distributed System</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr />
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li><strong>Scale Up</strong>은 기존 서버의 성능을 높이는 방식이다.</li>
-    <li><strong>Scale Out</strong>은 서버 수를 늘려 병렬로 처리하는 방식이다.</li>
-    <li>대규모 서비스에서는 비용 효율성과 가용성 때문에 Scale Out을 주로 사용한다.</li>
-    <li>Scale Out 환경에서는 일반적으로 Load Balancer를 함께 사용하여 트래픽을 분산한다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="2-firewall">2. Firewall</h3>
-
-<h4 id="개요-2">개요</h4>
-
-<p>Firewall은 네트워크 중간에 위치하여 <strong>미리 정의된 보안 정책(Policy)</strong> 에 따라 트래픽을 허용하거나 차단하는 장비이다.</p>
-
-<p>초기에는 네트워크 보안 장비 전반을 방화벽이라고 부르기도 했지만, 일반적으로는 <strong>L3/L4 계층에서 동작하며 SPI(Stateful Packet Inspection) 기반으로 세션을 추적하는 장비</strong>를 의미한다.</p>
-
-<p>Firewall은 단순히 패킷 하나만 검사하는 것이 아니라 <strong>Session Table</strong>을 유지하며 통신의 상태를 관리한다.</p>
-
-<p>대표적으로 다음과 같은 정보를 저장한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>예시</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>출발지 IP</td>
-      <td>1.1.1.10</td>
-    </tr>
-    <tr>
-      <td>목적지 IP</td>
-      <td>10.10.10.11</td>
-    </tr>
-    <tr>
-      <td>출발지 Port</td>
-      <td>30513</td>
-    </tr>
-    <tr>
-      <td>목적지 Port</td>
-      <td>80</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Firewall은 NAT와 유사하게 세션 정보를 저장한 후, 패킷이 들어오거나 나갈 때 먼저 Session Table을 조회한다.</p>
-
-<p>이를 통해 해당 패킷이 <strong>내부에서 시작된 정상적인 연결인지</strong>, 또는 <strong>외부에서 임의로 들어온 연결인지</strong>를 판단한다.</p>
-
-<hr />
-
-<h3 id="session-관리">Session 관리</h3>
-
-<h4 id="session-table">Session Table</h4>
-
-<p>종단 장비가 통신을 시작하면 Firewall은 Session Table에 연결 정보를 기록한다.</p>
-
-<p>세션이 정상적으로 종료되면 해당 정보를 삭제하지만, 종료 패킷이 오지 않는 경우를 대비하여 일정 시간 동안 세션 정보를 유지한다.</p>
-
-<p>Session 정보는 메모리에 저장되므로 메모리 사용량을 고려하여 <strong>Session Timeout</strong>이 설정된다.</p>
-
-<hr />
-
-<h4 id="session-timeout">Session Timeout</h4>
-
-<p>Session Timeout은 세션 정보를 유지하는 시간이다.</p>
-
-<p>Timeout이 너무 길면 메모리를 많이 사용하고,</p>
-
-<p>너무 짧으면 아직 통신 중인 세션이 삭제되어 정상적인 통신이 끊길 수 있다.</p>
-
-<p>일부 애플리케이션은 오랜 시간 연결을 유지하므로 장비의 Timeout 값보다 애플리케이션의 세션 유지 시간이 길면 문제가 발생할 수 있다.</p>
-
-<hr />
-
-<h3 id="session-동기화-문제">Session 동기화 문제</h3>
-
-<p>세션 장비의 Timeout이 먼저 만료되어 Session Table의 정보가 삭제되었지만,</p>
-
-<p>양쪽 단말은 아직 연결이 유지되고 있다고 판단하는 경우가 있다.</p>
-
-<p>이 상태에서 다시 데이터를 전송하면 Firewall은 해당 세션을 알지 못한다.</p>
-
-<p>특히 Session Table에 없는 상태에서 <strong>SYN이 아닌 ACK 패킷</strong>이 들어오면 정상적인 연결 과정이 아니라고 판단하여 패킷을 폐기한다.</p>
-
-<p>이로 인해 사용자는 연결이 갑자기 끊긴 것처럼 느낄 수 있다.</p>
-
-<hr />
-
-<h3 id="해결-방법">해결 방법</h3>
-
-<h4 id="네트워크-장비-측">네트워크 장비 측</h4>
-
-<ul>
-  <li>Session Timeout을 증가시킨다.</li>
-  <li>중간 패킷(ACK 등)을 허용하도록 방화벽 정책을 조정한다.</li>
-  <li>Session Timeout 시 양쪽 단말에 세션 종료를 통보한다.</li>
-</ul>
-
-<h4 id="애플리케이션-측">애플리케이션 측</h4>
-
-<ul>
-  <li>Keep Alive 기능을 추가하여 일정 주기로 패킷을 전송한다.</li>
-  <li>이를 통해 Session Timeout 이전에 세션을 갱신하여 연결이 유지되도록 한다.</li>
-</ul>
-
-<hr />
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>Firewall은 SPI 기반으로 Session Table을 유지한다.</li>
-    <li>Session Timeout은 메모리 사용량과 안정성을 고려하여 설정한다.</li>
-    <li>Timeout이 서로 맞지 않으면 Session 동기화 문제가 발생할 수 있다.</li>
-    <li>Keep Alive 또는 Timeout 조정을 통해 문제를 해결할 수 있다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="비대칭-경로asymmetric-routing">비대칭 경로(Asymmetric Routing)</h3>
-
-<p>네트워크의 가용성을 높이기 위해 회선과 장비를 이중화하면 패킷이 이동할 수 있는 경로가 두 개 이상 존재하게 된다.</p>
-
-<p>이때 요청(Request)과 응답(Response)이 동일한 장비를 통과하는 경우를 <strong>대칭 경로(Symmetric Routing)</strong>, 서로 다른 장비를 통과하는 경우를 <strong>비대칭 경로(Asymmetric Routing)</strong> 라고 한다.</p>
-
-<ul>
-  <li><strong>대칭 경로</strong> : 요청과 응답이 동일한 세션 장비를 통과</li>
-  <li><strong>비대칭 경로</strong> : 요청과 응답이 서로 다른 세션 장비를 통과</li>
-</ul>
-
-<p>대칭 경로에서는 하나의 세션 장비가 요청과 응답을 모두 확인하므로 세션 정보를 정상적으로 관리할 수 있다.</p>
-
-<p>반면 비대칭 경로에서는 요청을 처리한 장비와 응답을 처리하는 장비가 다르므로, 응답을 받은 장비의 Session Table에 해당 세션 정보가 존재하지 않을 수 있다.</p>
-
-<p>이 경우 방화벽이나 L4 Load Balancer와 같은 Session Device는 이를 <strong>비정상적인 패킷</strong>으로 판단하여 폐기(Drop)할 수 있다.</p>
-
-<hr />
-
-<h4 id="비대칭-경로가-발생하는-이유">비대칭 경로가 발생하는 이유</h4>
-
-<p>네트워크를 설계할 때 경로의 효율성과 이중화만 고려하고, Session Device의 동작 특성을 고려하지 않으면 비대칭 경로가 발생할 수 있다.</p>
-
-<p>즉, 네트워크 관점에서는 정상적인 경로라도 세션 관점에서는 문제가 될 수 있다.</p>
-
-<hr />
-
-<h4 id="해결-방법-1">해결 방법</h4>
-
-<ol>
-  <li><strong>대칭 경로가 되도록 네트워크를 설계</strong>
-    <ul>
-      <li>가장 근본적인 해결 방법</li>
-      <li>요청과 응답이 동일한 Session Device를 통과하도록 구성</li>
-    </ul>
-  </li>
-  <li><strong>Session Table 동기화</strong>
-    <ul>
-      <li>여러 Session Device가 서로 Session Table을 공유</li>
-      <li>어느 장비로 패킷이 들어와도 동일한 세션 정보를 확인 가능</li>
-    </ul>
-  </li>
-  <li><strong>Session Device에서 경로 보정</strong>
-    <ul>
-      <li>세션 정보가 없는 패킷을 수신하면 해당 세션을 관리하는 다른 장비로 전달하여 처리</li>
-      <li>일부 상용 방화벽이나 Load Balancer에서 제공하는 기능</li>
-    </ul>
-  </li>
-</ol>]]></content><author><name></name></author><category term="Network" /><category term="AutoEverSW" /><summary type="html"><![CDATA[L4 장비의 핵심 개념과 Session 기반 동작, Load Balancer, Firewall, Scale Up/Out, 비대칭 경로 문제 및 해결 방법을 정리]]></summary></entry></feed>
+</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="Network" /><summary type="html"><![CDATA[CMP의 실제 역할과 Ping 차단의 이유, 운영 환경에서 ICMP를 제한하는 사례 메모]]></summary></entry></feed>

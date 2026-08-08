@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까",
+        "url": "/04-memo-virtualize/",
+        "description": "Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리",
+        "thumbnail": null,
+        "tags": ["DeepDive","CS","Virtualization","Hypervisor"],
+        "series_key": "technotes",
+        "series_title": null,
+        "date_label": "2026년 8월 8일",
+        "reading_time_label": "2분 읽기",
+        "search": "type 1 hypervisor가 type 2보다 빠른 이유는 무엇일까 bare-metal 구조와 host os 경유 여부를 통해 hypervisor의 성능 차이를 정리 deepdive cs virtualization hypervisor"
+      },
+    
+      
+      
+      {
         "title": "클라우드의 이해",
         "url": "/01-cloud/",
         "description": "가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조 정리",

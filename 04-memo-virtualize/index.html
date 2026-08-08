@@ -32,21 +32,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ffffff" data-theme-color>
 <meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
-<title>Redis 개요 | hyeon.log</title>
+<title>Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까 | hyeon.log</title>
 <meta name="generator" content="Jekyll v4.3.3">
-<meta name="description" content="Redis 특징, 자료구조, 아키텍처, 사용 사례 정리">
-<link rel="canonical" href="https://kkr010128.github.io/01-redis-overview/">
-<meta property="og:title" content="Redis 개요 | hyeon.log">
+<meta name="description" content="Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리">
+<link rel="canonical" href="https://kkr010128.github.io/04-memo-virtualize/">
+<meta property="og:title" content="Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까 | hyeon.log">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:description" content="Redis 특징, 자료구조, 아키텍처, 사용 사례 정리">
-<meta property="og:url" content="https://kkr010128.github.io/01-redis-overview/">
+<meta property="og:description" content="Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리">
+<meta property="og:url" content="https://kkr010128.github.io/04-memo-virtualize/">
 <meta property="og:site_name" content="hyeon.log">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Redis 개요 | hyeon.log">
-<meta name="twitter:description" content="Redis 특징, 자료구조, 아키텍처, 사용 사례 정리">
+<meta name="twitter:title" content="Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까 | hyeon.log">
+<meta name="twitter:description" content="Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리">
 
-  <meta property="article:published_time" content="2026-07-16T00:00:00+09:00">
+  <meta property="article:published_time" content="2026-08-08T00:00:00+09:00">
 
 
 <link rel="icon" href="/assets/images/favicon.png?v=1786201224" type="image/png" sizes="256x256">
@@ -96,10 +96,10 @@
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "name": "hyeon.log",
-    "headline": "Redis 개요 | hyeon.log",
-    "description": "Redis 특징, 자료구조, 아키텍처, 사용 사례 정리",
-    "url": "https://kkr010128.github.io/01-redis-overview/",
-    "datePublished": "2026-07-16T00:00:00+09:00"
+    "headline": "Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까 | hyeon.log",
+    "description": "Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리",
+    "url": "https://kkr010128.github.io/04-memo-virtualize/",
+    "datePublished": "2026-08-08T00:00:00+09:00"
   }
 </script>
 
@@ -208,11 +208,9 @@
 
   <header class="post-head">
     
-      <p class="post-head__series">Redis</p>
+    <h1 class="post-head__title">Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까</h1>
     
-    <h1 class="post-head__title">Redis 개요</h1>
-    
-      <p class="post-head__description">Redis 특징, 자료구조, 아키텍처, 사용 사례 정리</p>
+      <p class="post-head__description">Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리</p>
     
 
     <div class="post-head__author">
@@ -228,7 +226,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 7월 16일 · 3분 읽기
+          2026년 8월 8일 · 2분 읽기
         </span>
       </div>
     </div>
@@ -236,9 +234,13 @@
     
       <div class="post-head__tags">
         
-          <a class="tag-chip" href="/?tag=Redis">Redis</a>
+          <a class="tag-chip" href="/?tag=DeepDive">DeepDive</a>
         
-          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+          <a class="tag-chip" href="/?tag=CS">CS</a>
+        
+          <a class="tag-chip" href="/?tag=Virtualization">Virtualization</a>
+        
+          <a class="tag-chip" href="/?tag=Hypervisor">Hypervisor</a>
         
       </div>
     
@@ -247,180 +249,82 @@
   </header>
 
   <section class="prose">
-    <h2 id="1-특징">1) 특징</h2>
-<hr />
+    <h3 id="q-type-1-hypervisor가-type-2보다-빠른-이유는-무엇일까">Q. Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까?</h3>
+<p>Type 1과 Type 2 Hypervisor는 모두 하나의 물리 서버에서 여러 가상 머신(Virtual Machine)을 실행하기 위한 기술이다.
+그런데 Type 1은 서버와 데이터센터에서 주로 사용하고, Type 2는 개인 PC의 개발·테스트 환경에서 많이 사용한다.
+이 차이는 어디에서 발생할까?</p>
+<h3 id="a-가장-큰-차이는-host-os를-거치는지-여부이다">A. 가장 큰 차이는 Host OS를 거치는지 여부이다.</h3>
+<p>Type 1 Hypervisor는 물리 하드웨어 위에서 직접 실행된다.
+```text
+Virtual Machine
+      ↓
+Hypervisor
+      ↓
+Hardware</p>
+
+<p>반면 Type 2 Hypervisor는 기존 Host OS 위에서 실행된다.</p>
+
+<p>Virtual Machine
+      ↓
+Hypervisor
+      ↓
+Host OS
+      ↓
+Hardware</p>
+
+<p>Type 2에서는 Host OS 자체도 CPU, Memory, Disk 등의 자원을 사용한다.</p>
+
+<p>또한 가상화 소프트웨어가 Host OS 위에서 동작하기 때문에 Type 1보다 추가적인 처리 과정과 자원 소비가 발생할 수 있다.</p>
+
+<p>Bare-Metal 구조</p>
+
+<p>Type 1은 물리 하드웨어에 직접 Hypervisor가 실행되기 때문에 Bare-Metal Hypervisor라고도 한다.</p>
+
+<p>Hypervisor가 물리 자원을 직접 관리하여 각 VM에 할당한다.</p>
+
 <ul>
-  <li>Key - Value Data Store</li>
-  <li>싱글 스레드로 동장</li>
-  <li>In Memory Database 방식이라 속도가 매우 빠름</li>
-  <li>MariaDB와 MongoDB는 On Disk Database</li>
+  <li>Physical CPU → vCPU</li>
+  <li>Physical Memory → Virtual Memory</li>
+  <li>Physical Disk → Virtual Disk</li>
+  <li>Physical NIC → Virtual Network Adapter</li>
 </ul>
 
-<ol>
-  <li><strong>고가용성</strong>
-    <ul>
-      <li>언제든지 사용할 수 있어야 함</li>
-      <li>자체적으로 HA(High Availability) 기능 제공</li>
-      <li>복제를 통해 여러 서버에 분산시킬 수 있음</li>
-      <li>Sentinel은 장애 상황을 자동 탐지해서 자동 <strong>fail-over</strong>를 수행
-        <ul>
-          <li>fail-over
- → 시스템에 장애가 발생했을 때 예비 시스템으로 업무를 즉시 전환
- → 서비스 중단 없이 운영을 유지하는 기술</li>
-        </ul>
-      </li>
-      <li>Sentinel을 이용해 데이터를 받아옴
-        <ul>
-          <li>노드에 직접 접속해 데이터를 받아오지 않음</li>
-          <li>마스터 노드에 장애가 발생해도 엔드포인트 변경 필요 없음</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-  <li><strong>확장성</strong>
-    <ul>
-      <li>Redis를 Cluster 모드로 구성하면 손쉬운 수평 확장이 가능</li>
-      <li>데이터는 Redis Cluster 내에서 자동으로 샤딩된 후 저장되며 여러 개의 복제본을 저장</li>
-      <li>애플리케이션에서는 실제 데이터가 어떤 노드에 있는지 몰라도 사용 가능
-        <ul>
-          <li>→ 위치 투명성</li>
-        </ul>
-      </li>
-      <li>Cluster 구조에서 모든 Redis Instance는 Cluster Bus라는 Protocol로 상호 감시함
-        <ul>
-          <li>Cluster의 Master node에 문제가 발생하면 자동으로 fail-over를 이용</li>
-          <li>→ 고가용성 유지</li>
-        </ul>
-      </li>
-      <li>대다수의 클라우드 벤더들이 서비스를 제공
-        <ul>
-          <li>AWS: Amazon ElastiChe for Redis</li>
-          <li>GCP: Cloud Memory store for Redis</li>
-          <li>Azure, NHN, Naver Cloud • • •</li>
-        </ul>
-      </li>
-    </ul>
-  </li>
-</ol>
+<p>일반적인 Host OS가 따로 자원을 소비하지 않으므로 많은 VM을 운영해야 하는 서버 환경에서 자원 활용에 유리하다.</p>
 
-<h2 id="2-microservice와-redis">2) MicroService와 Redis</h2>
-<hr />
-<h3 id="데이터-저장소로서의-redis">데이터 저장소로서의 Redis</h3>
+<p>그렇다면 Type 1은 항상 더 빠를까?</p>
+
+<p>반드시 압도적으로 빠른 것은 아니다.</p>
+
+<p>현대 CPU는 Intel VT-x, AMD-V와 같은 하드웨어 가상화 기능을 제공하므로 Type 2도 많은 작업을 하드웨어에서 직접 처리할 수 있다.</p>
+
+<p>따라서 단순한 개발이나 실습 환경에서는 성능 차이를 크게 느끼지 못할 수도 있다.</p>
+
+<p>핵심은 다음과 같다.</p>
+
+<p>Type 1은 가상화 전용 환경에서 하드웨어 자원을 직접 관리하고, 일반적인 Host OS에 사용되는 자원을 줄일 수 있기 때문에 서버 환경에서 더 유리하다.</p>
+
+<p>서버와 개인 실습 환경의 차이</p>
+
+<p>구분	Type 1	Type 2
+구조	Hardware 위에서 직접 실행	Host OS 위에서 실행
+다른 이름	Bare-Metal	Hosted
+오버헤드	상대적으로 적음	상대적으로 큼
+주요 환경	서버, 데이터센터	개발, 테스트, 개인 실습
+대표 예시	VMware ESXi, Xen	VMware Workstation, VirtualBox</p>
+
+<p>Type 1은 여러 VM을 장기간 안정적으로 실행해야 하는 서버 환경에 적합하다.</p>
+
+<p>반면 Type 2는 기존 Windows나 macOS를 그대로 사용하면서 필요할 때 VM을 실행할 수 있어 개인 실습 환경에서 편리하다.</p>
+
+<p>정리</p>
+
 <ul>
-  <li>서비스 별 개별 저장소로 사용하기에 적합</li>
-  <li>설치가 간편</li>
-  <li>다양한 자료구조를 제공하고 사용이 간단</li>
-  <li>고가용성을 위해 로드밸런서• 프록시 등 추가적인 서비스를 설치할 필요 없음</li>
-  <li>AOF(Append Only File)과 RDB(Redis DataBase) 형식으로 디스크에 저장 가능</li>
-</ul>
-
-<h3 id="message-broker로서의-redis">Message Broker로서의 Redis</h3>
-<ul>
-  <li>MSA에서는 특별한 경우 아니면 Message Broker가 필요함</li>
-  <li>Message Broker는 서비스들 간의 비동기 데이터 전달을 수행</li>
-  <li>publish / subscribe 기능을 이용</li>
-  <li>모든 데이터는 전달된 뒤 삭제
-    <ul>
-      <li>fire-and-forget 패턴이 필요한 간단한 알림 서비스에서 유용</li>
-    </ul>
-  </li>
-  <li>stream과 list 자료구조를 이용한 구현이 가능
-    <ul>
-      <li>stream의 경우 Apache Kafka에서 영감을 얻어서 추가됨</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="3-반영구적-저장">3) 반영구적 저장</h2>
-<hr />
-
-<h3 id="rdbredis-database">RDB(Redis DataBase)</h3>
-<ul>
-  <li>현재 메모리에 있는 데이터 전체에 대한 스냅샷을 작성, 디스크에 저장하는 방식</li>
-  <li>
-    <p>간단한 사용 가능</p>
-  </li>
-  <li><em>하지만</em> 스냅샷 이후 변경된 데이터는 복구 안 됨
-    <h3 id="aofappend-only-file">AOF(Append Only File)</h3>
-  </li>
-  <li>Redis에 데이터가 변경되는 이벤트가 발생하면 이를 모두 저장하는 방식</li>
-  <li>
-    <p>데이터 복구 시 RDB 대비 유실량이 적음</p>
-  </li>
-  <li><em>하지만</em> 속도가 느림</li>
-  <li>로그의 크기가 커짐</li>
-</ul>
-
-<h2 id="4-event-loop">4) Event Loop</h2>
-<hr />
-<ul>
-  <li>Client가 실행한 명령어들을 Event Queue에 저장 후 단일 스레드로 하나씩 처리</li>
-</ul>
-
-<p><strong>멀티 스레드 방식의 문제점</strong></p>
-<ul>
-  <li>Context-Switching이 발생</li>
-  <li>Dead Lock 발생할 수 있음</li>
-</ul>
-
-<h2 id="5-장점">5) 장점</h2>
-<hr />
-<ol>
-  <li>In-Memory 구조 → 빠른 성능 (일반적으로 1ms 미만)</li>
-  <li>다양성과 사용 편의성(자료구조)</li>
-  <li>대다수의 개발 언어 지원</li>
-  <li>복제 및 지속성</li>
-</ol>
-
-<h2 id="6-사용사례">6) 사용사례</h2>
-<hr />
-<ol>
-  <li>주 데이터 저장소</li>
-  <li>Caching
-    <ul>
-      <li>Access 시간을 줄임
-  → 자주 사용하는 데이터를 저장할 용도로 다른 DB 앞에 배치</li>
-    </ul>
-  </li>
-  <li>Session 관리 
- →  session: 서버의 메모리에 저장하는 정보
-    <ul>
-      <li>게임, 전자상거래, 소셜 미디어 플랫폼에서 주로 이용</li>
-    </ul>
-  </li>
-  <li>실시간 순위표</li>
-  <li>분산 락
-    <ul>
-      <li>다수의 컴퓨터가 공유 자원을 사용할 때 실제 사용 중인지 여부를 판단하기 위한 Lock</li>
-    </ul>
-  </li>
-  <li>Message Broker</li>
-  <li>채팅 및 메시징</li>
-</ol>
-
-<h2 id="7-architecture">7) Architecture</h2>
-<hr />
-<ul>
-  <li>Redis는 Sentinel, Master, Replica로 구성</li>
-  <li>Sentinel이 Master와 Replica를 관리</li>
-  <li>Sentinel이 주기적으로 서버들을 모니터링
-    <ul>
-      <li>Master가 서비스할 수 없는 상태일 시 Replica중 하나를 Master로 변경</li>
-    </ul>
-  </li>
-  <li>Redis Sentinel도 장애가 발생할 수 있으므로 여러대의 서버로 구성</li>
-  <li>클러스터 아키텍처
-    <ul>
-      <li>클러스터를 구성하면 클러스터에 포함된 모든 노드들이 서로 통신하며 고가용성을 유지</li>
-      <li>샤딩 기능이 기본 기능</li>
-      <li>클러스터 구조를 이용하면 Sentinel을 설정할 필요가 없음</li>
-      <li>클러스터 내부의 모든 노드들이 Mesh형으로 연결</li>
-      <li>샤딩을 할 때 해시 함수를 이용해 데이터를 분배하기 때문에 데이터가 균등하게 저장됨</li>
-      <li>노드를 추가하거나 삭제하면 자동으로 재분배(리밸런싱, 리샤딩)</li>
-      <li>Application Client는 Redis Cluster의 노드 중 하나라도 연결되면 Cluster의 전체 상태 정보를 확인할 수 있음(cluster 내부의 노드는 전체 )</li>
-    </ul>
-  </li>
-  <li>클러스터에 한 번 접속한 클라이언트는 장애가 발생한 노드나 확장을 위해 추가한 노드 정보들도 모두 업데이트 받기 때문에 실제 Production환경에서 운영 중 증설을 하더라도 애플리케이션의 설정을 바꿀 필요 없음</li>
+  <li>Type 1은 하드웨어 위에서 Hypervisor가 직접 실행된다.</li>
+  <li>Type 2는 Host OS 위에서 Hypervisor가 실행된다.</li>
+  <li>Type 2는 Host OS가 자원을 함께 사용하므로 추가적인 오버헤드가 발생할 수 있다.</li>
+  <li>Type 1은 서버와 데이터센터 환경에 적합하다.</li>
+  <li>Type 2는 설치와 사용이 편리하여 개발 및 개인 실습에 적합하다.</li>
+  <li>성능 차이를 단순히 계층 수만으로 판단하기보다 자원 관리 구조의 차이로 이해하는 것이 좋다.</li>
 </ul>
 
 
@@ -429,7 +333,7 @@
   
     <nav class="post-navigation" aria-label="이전 다음 글">
       
-        <a class="post-navigation__item" href="/02-mongodb-crud/">
+        <a class="post-navigation__item" href="/01-cloud/">
           <span class="post-navigation__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
@@ -437,22 +341,10 @@
           </span>
           <span class="post-navigation__content">
             <span class="post-navigation__label">이전 포스트</span>
-            <strong class="post-navigation__title">MongoDB CRUD</strong>
+            <strong class="post-navigation__title">클라우드의 이해</strong>
           </span>
         </a>
       
-      
-        <a class="post-navigation__item post-navigation__item--next" href="/11-database-programming/">
-          <span class="post-navigation__content">
-            <span class="post-navigation__label">다음 포스트</span>
-            <strong class="post-navigation__title">데이터베이스 프로그래밍</strong>
-          </span>
-          <span class="post-navigation__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
-            </svg>
-          </span>
-        </a>
       
     </nav>
   
