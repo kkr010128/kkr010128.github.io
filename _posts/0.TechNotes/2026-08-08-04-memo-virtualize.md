@@ -1,6 +1,6 @@
 ---
-title: Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까
-description: Bare-Metal 구조와 Host OS 경유 여부를 통해 Hypervisor의 성능 차이를 정리
+title: Type 1 Hypervisor가 Type 2보다 빠른 이유
+description: Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이
 date: 2026-08-08
 series: TechNotes
 tags:
