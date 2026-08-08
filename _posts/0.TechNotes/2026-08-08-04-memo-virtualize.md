@@ -9,21 +9,26 @@ tags:
   - Virtualization
   - Hypervisor
 ---
+
 ### Q. Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까?
 Type 1과 Type 2 Hypervisor는 모두 하나의 물리 서버에서 여러 가상 머신(Virtual Machine)을 실행하기 위한 기술이다.
 그런데 Type 1은 서버와 데이터센터에서 주로 사용하고, Type 2는 개인 PC의 개발·테스트 환경에서 많이 사용한다.
 이 차이는 어디에서 발생할까?
 ### A. 가장 큰 차이는 Host OS를 거치는지 여부이다.
 Type 1 Hypervisor는 물리 하드웨어 위에서 직접 실행된다.
+
 ```text
 Virtual Machine
       ↓
 Hypervisor
       ↓
 Hardware
+```
+
 
 반면 Type 2 Hypervisor는 기존 Host OS 위에서 실행된다.
 
+```
 Virtual Machine
       ↓
 Hypervisor
@@ -31,6 +36,7 @@ Hypervisor
 Host OS
       ↓
 Hardware
+```
 
 Type 2에서는 Host OS 자체도 CPU, Memory, Disk 등의 자원을 사용한다.
 
