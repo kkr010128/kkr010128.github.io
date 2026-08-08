@@ -4,6 +4,21 @@
       
       
       {
+        "title": "클라우드의 이해",
+        "url": "/01-cloud/",
+        "description": "가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조를 정리",
+        "thumbnail": null,
+        "tags": ["Cloud","AutoEverSW"],
+        "series_key": "cloud",
+        "series_title": null,
+        "date_label": "2026년 8월 7일",
+        "reading_time_label": "27분 읽기",
+        "search": "클라우드의 이해 가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조를 정리 cloud autoeversw"
+      },
+    
+      
+      
+      {
         "title": "Network - Security 4",
         "url": "/11-network-security4/",
         "description": "방화벽과 연계 보안 솔루션 및 ACL 실습",
