@@ -1,0 +1,563 @@
+**MariaDB
+5.DDL
+1)Foreign Key
+=>Foreign Key를 설정하지 않은 경우 문제점: 무결성이 침해됨(직원이 프로젝트를 수행하는 정보를 저장)
+- 직원 테이블
+
+CREATE TABLE Employee(
+	name CHAR(10) PRIMARY KEY,
+	salary INT NOT NULL,
+	address VARCHAR(30) NOT NULL);
+
+INSERT INTO Employee VALUES('배수지', 5000, '광주시');
+INSERT INTO Employee VALUES('아이린', 3000, '대구시');
+
+
+- 프로젝트 테이블
+CREATE TABLE Project(
+	projectid INT PRIMARY KEY,
+	employee CHAR(10) NOT NULL,
+	project VARCHAR(30) NOT NULL,
+	cost INT);
+
+- Project 테이블에 데이터 삽입
+INSERT INTO Project VALUES(1, '배수지', 'SKC&C', 1000);
+INSERT INTO Project VALUES(2, '아이린', 'LGCNS', 2000);
+-- Employee 테이블에 없는 제니도 삽입이 되는 문제가 발생
+INSERT INTO Project VALUES(3, '제니', 'LGCNS', 2000);
+
+- 기존의 테이블을 삭제
+DROP TABLE Employee;
+DROP TABLE Project;
+
+=>Foreign Key를 옵션없이 생성했을 때 문제점: 상위 테이블의 데이터를 삭제하거나 수정할 수 없음
+- 직원 테이블
+
+CREATE TABLE Employee(
+	name CHAR(10) PRIMARY KEY,
+	salary INT NOT NULL,
+	address VARCHAR(30) NOT NULL);
+
+INSERT INTO Employee VALUES('배수지', 5000, '광주시');
+INSERT INTO Employee VALUES('아이린', 3000, '대구시');
+
+CREATE TABLE Project(
+	projectid INT PRIMARY KEY,
+	employee CHAR(10) NOT NULL,
+	project VARCHAR(30) NOT NULL,
+	cost INT,
+	CONSTRAINT FK_employee FOREIGN KEY(employee) REFERENCES Employee(name)
+); 
+
+
+-- Project 테이블에 데이터 삽입
+INSERT INTO Project VALUES(1, '배수지', 'SKC&C', 1000);
+INSERT INTO Project VALUES(2, '아이린', 'LGCNS', 2000);
+
+-- Employee 테이블에 없는 제니도 삽입이 되는 문제가 해결됨
+INSERT INTO Project VALUES(3, '제니', 'LGCNS', 2000);
+
+-- 부모 테이블의 데이터를 삭제하거나 수정하는것에 제한이 가해짐
+DELETE FROM Employee WHERE name='배수지';
+
+UPDATE Employee SET name='수지' WHERE name='배수지';
+
+DROP TABLE Employee;
+
+-- 테이블 삭제
+DROP TABLE Project;
+
+DROP TABLE Employee;
+
+=>옵션 설정을 통해서 위의 문제 해결
+- 직원 테이블
+CREATE TABLE Employee(
+	name CHAR(10) PRIMARY KEY,
+	salary INT NOT NULL,
+	address VARCHAR(30) NOT NULL);
+
+INSERT INTO Employee VALUES('배수지', 5000, '광주시');
+INSERT INTO Employee VALUES('아이린', 3000, '대구시');
+
+CREATE TABLE Project(
+	projectid INT PRIMARY KEY,
+	employee CHAR(10) NOT NULL,
+	project VARCHAR(30) NOT NULL,
+	cost INT,
+	CONSTRAINT FK_employee FOREIGN KEY(employee) REFERENCES Employee(name) ON DELETE CASCADE ON UPDATE CASCADE
+); 
+
+
+-- Project 테이블에 데이터 삽입
+INSERT INTO Project VALUES(1, '배수지', 'SKC&C', 1000);
+INSERT INTO Project VALUES(2, '아이린', 'LGCNS', 2000);
+
+-- Employee 테이블에 없는 제니도 삽입이 되는 문제가 해결됨
+INSERT INTO Project VALUES(3, '제니', 'LGCNS', 2000);
+
+-- 부모 테이블의 데이터를 삭제하거나 수정하는것에 제한이 없어짐
+DELETE FROM Employee WHERE name='배수지';
+
+UPDATE Employee SET name='수지' WHERE name='배수지';
+
+6.Sub Query & Join
+1)SET 연산
+=>개요
+- 2개 이상의 테이블에서 데이터를 추출하는 방법 중 하나
+- 동일한 구조의 테이블 간의 연산
+- 2개 이상의 SELECT 구문이 사용되는데 SELECT 절에 나오는 컬럼이나 연산식의 자료형 과 개수가 일치해야 함
+- 출력이 될 때 HEADING(컬럼 이름)은 첫번째 SELECT 구문의 것을 적용
+- ORDER BY는 마지막에 한 번만 기술 가능
+- BLOB, CLOB, BFILE, LONG 형 컬럼은 사용 불가
+
+=>종류
+- UNION: 합집합으로 중복되는 값은 1번만 출력
+- UNION ALL: 합집합으로 중복되는 값 모두 출력
+- INTERSECT: 교집합
+- EXCEPT: 차집합
+
+=>실습
+- EMP 테이블에는 DEPTNO가 10, 20, 30이 존재하고 DEPT 테이블에는 DEPTNO가 10, 20, 30, 40이 존재
+
+- UNION: 10, 20, 30, 40
+SELECT DEPTNO
+FROM EMP
+UNION
+SELECT DEPTNO
+FROM DEPT;
+
+- UNION ALL: 중복된 데이터 모두 출력
+SELECT DEPTNO
+FROM EMP
+UNION ALL
+SELECT DEPTNO
+FROM DEPT;
+
+- INTERSECT: 10, 20, 30
+SELECT DEPTNO
+FROM EMP
+INTERSECT
+SELECT DEPTNO
+FROM DEPT;
+
+- EXCEPT: 40
+SELECT DEPTNO
+FROM DEPT
+EXCEPT
+SELECT DEPTNO
+FROM EMP;
+
+2)SubQuery
+=>개요
+- 하나의 SQL 문장의 절 안에 포함된 SQL
+- 포함하고 있는 쿼리를 Main Query라고 하고 포함된 쿼리를 Sub Query 라고 합니다.
+- Sub Query는 연산자 오른쪽에 기술해야 하고 반드시 괄호로 감싸야 합니다.
+- Sub Query는 Main Query가 수행되기 전에 한 번만 실행됨
+- 위치에 따른 분류
+WHERE 절에 사용되면 Sub Query
+FROM 절에 사용되면 Inline View
+- 반환되는 행의 개수에 따른 분류
+반드시 1개 이하로 리턴되면 단일행 서브 쿼리
+0개 이상으로 리턴되면 다중행 서브 쿼리
+
+=>단일행 서브쿼리
+- 수행 결과가 하나의 데이터 만을 반환하는 Sub Query
+- =, <>, >, >=, <, <= 연산자 사용 가능
+- tCity 테이블에서 인구수(POPU)가 최대인 도시 이름(NAME)을 조회
+-- 에러: 그룹 함수는 GROUP BY 다음 절에 사용
+SELECT NAME
+FROM tCity
+WHERE POPU = MAX(POPU);
+
+-- 에러: HAVING은 GROUP BY 없이 사용할 수 없음
+SELECT NAME
+FROM tCity
+HAVING POPU = MAX(POPU);
+
+-- Sub Query로 해결
+SELECT NAME
+FROM tCity
+WHERE POPU = (SELECT MAX(POPU) FROM tCity);
+
+-- 연습문제 
+- EMP 테이블에서 ENAME이 MILLER인 사원과 같은 부서(DEPTNO가 같아야 함)에서 근무하는 사원의 ENAME과 DEPTNO를 조회
+SELECT DEPTNO, ENAME
+FROM EMP
+WHERE DEPTNO = (SELECT DEPTNO FROM EMP WHERE ENAME='MILLER') AND ENAME <> 'MILLER';
+
+- EMP 테이블에서 ENAME이 MILLER인 사원과 같은 JOB을 가진 직원의 모든 컬럼을 출력
+SELECT *
+FROM EMP
+WHERE JOB= (SELECT JOB FROM EMP WHERE ENAME='MILLER') AND ENAME <> 'MILLER';
+
+- EMP 테이블에서 평균 급여보다 많은 급여(SAL)를 받는 사원의 ENAME 과 SALARY를 출력
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL >(SELECT AVG(SAL) FROM EMP);
+
+- DEPT 테이블의 LOC가 DALLAS 인 사원의 EMP 테이블의 ENAME 과 DEPTNO를 조회
+EMP 테이블 과 DEPT 테이블에는 DEPTNO가 같이 존재
+SELECT ENAME, DEPTNO
+FROM EMP
+WHERE DEPTNO = (SELECT DEPTNO FROM DEPT WHERE LOC='DALLAS');
+
+=>다중 열 서브 쿼리
+- 서브 쿼리의 결과가 여러 개의 열로 구성된 경우
+- 하나의 열로 보면 AND 조건
+- tStaff 테이블에서 NAME이 안중근과 DEPART 와 GENDER 가 동일한 직원의 모든 정보를 조회
+SELECT *
+FROM tStaff
+WHERE DEPART = (SELECT DEPART FROM tStaff WHERE NAME='안중근') AND  
+GENDER = (SELECT GENDER FROM tStaff WHERE NAME='안중근');
+
+SELECT *
+FROM tStaff
+WHERE (DEPART, GENDER) = (SELECT DEPART, GENDER FROM tStaff WHERE NAME='안중근');
+
+=>다중 행 서브 쿼리
+- 서브 쿼리의 결과가 2개 이상일 수도 있는 서브 쿼리
+- 2개 이상 리턴되는 경우 단일 행 연산자(=, <>, >, >=, <, <=)를 사용할 수 없음
+- 이런 경우는 다중 행 연산자를 사용
+IN: 목록 중 하나 이상과 일치
+
+ANY: 조건 중 하나 이상만 만족
+
+ALL: 조건 모두를 만족
+
+EXIST: 만족하는 값이 하나라도 있으면 참
+
+- IN 사용
+-- EMP 테이블에서 DEPTNO 별로 그룹해서 가장 급여(SAL)가 많은 데이터와 일치하는 급여를 가진 EMPNO, ENAME, SAL을 조회
+
+-- 이 구문은 에러: 서브쿼리 3개의 데이터를 리턴했는데 = 연산자를 사용했기 때문
+SELECT EMPNO, ENAME, SAL
+FROM EMP
+WHERE SAL = (SELECT MAX(SAL) FROM EMP GROUP BY DEPTNO);
+
+-- 이런 경우는 3개의 데이터 중 하나만 일치하면 조회하도록 수정
+SELECT EMPNO, ENAME, SAL
+FROM EMP
+WHERE SAL IN (SELECT MAX(SAL) FROM EMP GROUP BY DEPTNO);
+
+- 크기 비교를 하는 >, >=, <, <= 연산자는 단일 행 연산자 이므로 다중 행이 리턴될 때는 ANY 나 ALL 과 같이 사용
+해석하기에 따라서 ANY 나 ALL  대신에 MAX 나 MIN 함수로 대체 가능
+
+-- EMP 테이블에서 DEPTNO가 30인 사원의 모든 SAL 보다 더 큰 SAL을 가진 사원의 ENAME 과 SAL을 조회
+-- 이 구문은 에러: 여러 개의 행이 리턴되므로 다중 행 연산자를 사용해야 함
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL > (SELECT SAL FROM EMP WHERE DEPTNO=30);
+
+-- 해결책
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL > ALL(SELECT SAL FROM EMP WHERE DEPTNO=30);
+
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL > (SELECT MAX(SAL) FROM EMP WHERE DEPTNO=30);
+
+- EXISTS 연산자
+데이터가 존재하면 TRUE 그렇지 않으면 FALSE를 리턴하는 연산자
+
+--EMP 테이블에서 SAL이 3000이 넘는 데이터가 있으면 ENAME 과 SAL을 조회
+SELECT ENAME, SAL
+FROM EMP
+WHERE EXISTS (SELECT 1 FROM EMP WHERE SAL > 3000);
+
+- 연습문제
+-- EMP 테이블에서 JOB이 MANAGER인 사원과 동일한 DEPTNO를 갖는 사원의 ENAME 과 JOB 그리고 DEPTNO를 조회
+SELECT ENAME, JOB, DEPTNO
+FROM EMP
+WHERE DEPTNO IN (SELECT DEPTNO FROM EMP WHERE JOB='MANAGER');
+
+SELECT ENAME, SAL
+FROM EMP
+WHERE SAL < (SELECT MIN(SAL) FROM EMP WHERE DEPTNO = 30);
+
+3)JOIN
+=>JOIN이 필요한 상황
+- 1개 이상의 테이블로 부터 서로 다른 정보를 한번에 조회하고자 할 때 필요
+- SELECT 절의 컬럼들을 서로 다른 테이블에서 가져와야 하는 경우
+- EMP 테이블에 존재하는 ENAME 과 DEPT 테이블에 존재하는 LOC를 같이 조회하고자 하는 경우
+
+=>JOIN의 종류
+- CROSS JOIN(Cartesian Product): 양쪽 테이블의 모든 조합을 만들어 내는 것
+- EQUI JOIN: 가장 일반적인 조인으로 조인 조건의 연산자가 = 인 경우
+- NON-EQUI JOIN: 조인 조건의 연산자가 =가 아닌 경우
+- OUTER JOIN: 어느 한쪽에만 존재하는 데이터도 연산에 참여
+- SELF JOIN: 동일한 테이블을 가지고 조인
+- SEMI JOIN: 서브 쿼리를 이용해서 조인
+
+=> EMP 테이블은 8개의 컬럼과 14개의 행이 존재하고 DEPT 테이블에는 3개의 컬럼과 4개의 행이 존재
+EMP 테이블 과 DEPT 테이블은 DEPTNO라는 컬럼이 같이 존재
+
+=>CROSS JOIN
+- 양쪽 테이블의 데이터 일치여부를 판단하지 않고 각 데이터를 전부 결합해서 리턴
+- EMP 테이블 과 DEPT 테이블을 CROSS JOIN 하면 11개의 컬럼 과 56개의 행이 리턴됩니다.
+- 이를 Cartesian Product 라고도 합니다.
+- FROM 절에 테이블 이름만 나열하면 수행
+- EMP 테이블 과 DEPT 테이블의 CROSS JOIN
+SELECT *
+FROM EMP, DEPT;
+
+=>EQUI JOIN
+- 양쪽 테이블에 동일한 의미를 갖는 컬럼(어느 한쪽에서는 FOREIGN KEY 인 경우가 대부분)의 일치 여부를 가지고 결합하는 것
+- 양쪽 테이블에 동일한 컬럼 이름이 있는 경우는 앞에 테이블 이름을 명시해야 합니다.
+
+- EMP 테이블 과 DEPT 테이블에 공통으로 존재하는 DEPTNO를 가지고 EQUI JOIN
+SELECT *
+FROM EMP, DEPT
+WHERE EMP.DEPTNO = DEPT.DEPTNO;
+
+- EMP 테이블의 ENAME이 MILLER 인 사원의 ENAME 과 DEPT 테이블의 DNAME을 조회
+SELECT ENAME, DNAME
+FROM EMP, DEPT
+WHERE EMP.DEPTNO = DEPT.DEPTNO AND ENAME='MILLER';
+
+
+- DEPT 테이블의 DNAME이 DALLAS 인 사원의 EMP 테이블의 ENAME 과 SAL을 조회(조회하려는 컬럼이 하나의 테이블에 존재하면 서브 쿼리로 가능)
+SELECT ENAME, SAL
+FROM EMP, DEPT
+WHERE EMP.DEPTNO = DEPT.DEPTNO AND LOC='DALLAS';
+
+SELECT ENAME, SAL
+FROM EMP
+WHERE DEPTNO IN (SELECT DEPTNO FROM DEPT WHERE LOC='DALLAS');
+
+- 양쪽 테이블에 모두 존재하는 컬럼 이름은 반드시 테이블 이름을 명시해야 합니다.
+
+- FROM 절에서 테이블 이름 뒤에 새로운 이름을 부여하는 것이 가능
+이렇게 하면 기존의 테이블 이름이 뒤에 기재한 이름으로 수정이 됩니다.
+테이블 이름이 긴 경우 줄여서 사용하거나 SELF JOIN을 할 때는 테이블이 서로 구분되어야 하므로 사용
+
+SELECT ENAME, d.DEPTNO, DNAME
+FROM EMP e, DEPT d
+WHERE e.DEPTNO = d.DEPTNO AND ENAME='MILLER';
+
+- 연습문제
+--DEPT 테이블의 LOC가 'NEW YORK' 인 사원의 EMP 테이블의 ENAME 과 SAL 그리고 DEPT 테이블의 LOC를 조회
+SELECT    ENAME, SAL, LOC
+FROM	EMP e, DEPT d
+WHERE   e.DEPTNO = d.deptno AND LOC='NEW YORK';
+
+
+-- EMP 테이블의 JOB이 'MANAGER' 인 사원의 EMP 테이블의 ENAME 과  DEPT 테이블의 DNAME을 조회
+SELECT    ENAME, DNAME
+FROM	EMP e, DEPT d
+WHERE   e.DEPTNO = d.deptno AND JOB='MANAGER';
+
+=>NON EQUI-JOIN
+- JOIN  할 때 연산자가 =가 아닌 경우
+
+- SALGRADE 테이블 조회
+SELECT *
+FROM SALGRADE;
+
+- EMP 테이블의 SAL 과 SALGRADE 테이블의 LOSAL 과 HISAL을 비교해서 각 사원의 ENAME, SAL, GRADE를 조회
+SAL은 LOSAL 이나 HISAL 과 일치하는 것이 아니고 범위 내에 존재해야 하는 경우 입니다.
+이 경우는 이 항목 들을 = 로 비교할 수 없습니다.
+
+SELECT    e.ENAME, e.SAL, s.GRADE
+FROM	EMP e, SALGRADE s
+WHERE   e.SAL >= s.LOSAL AND e.SAL <= s.HISAL; 
+
+=>SELF JOIN
+- 하나의 테이블을 가지고 조인을 수행하는 것
+- 하나의 테이블에 동일한 의미를 갖는 컬럼이 2개 이상 존재하는 경우 사용
+- EMP 테이블 구조
+EMPNO - 사원번호로 기본키
+ENAME - 사원이름
+SAL - 급여
+COMM - 상여금
+DEPTNO - 부서번호
+JOB - 직무
+MGR - 관리자 사원번호
+HIREDATE - 입사일
+
+이 테이블에서는 EMPNO 와 MGR이 사원번호로 동일한 의미를 갖는 컬럼
+
+- EMP 테이블에서 각 사원의 ENAME 과 관리자의 ENAME을 조회
+SELECT   e1.ename 사원이름, e2.ename 관리자사원이름
+FROM	EMP e1, EMP e2
+WHERE    e1.mgr = e2.empno
+
+- EMP 테이블에서 자신의 관리자의 이름(ENAME)이 KING  사원의 ENAME 과 JOB을 조회(SELF JOIN 이용 - SUBQUERY도 가능)
+SELECT   e1.ename 사원이름, e1.JOB
+FROM	EMP e1, EMP e2
+WHERE    e1.mgr = e2.empno AND e2.ename='KING';
+
+SELECT  ENAME, JOB
+FROM	EMP
+WHERE   MGR = (SELECT EMPNO FROM EMP WHERE ENAME='KING');
+
+=>ANSI CROSS JOIN
+- Cartesian Product를 CROSS JOIN 이라는 예약어를 이용해서 수행
+SELECT *
+FROM EMP, DEPT;
+
+SELECT *
+FROM EMP CROSS JOIN DEPT;
+
+=>ANSI INNER JOIN
+- EQUI JOIN을 ANSI 문법으로 수행
+- JOIN 조건은 ON 절에 기재
+
+--DEPT 테이블의 LOC가 'NEW YORK' 인 사원의 EMP 테이블의 ENAME 과 SAL 그리고 DEPT 테이블의 LOC를 조회
+SELECT ENAME, SAL, LOC
+FROM EMP INNER JOIN DEPT
+ON EMP.DEPTNO = DEPT.DEPTNO
+WHERE  LOC='NEW YORK';
+
+- 조인 조건에 사용되는 컬럼의 이름이 동일한 경우 ON 절 대신에 USING을 추가해서 컬럼 이름만 기재해도 가능
+SELECT ENAME, SAL, LOC
+FROM EMP INNER JOIN DEPT
+USING (DEPTNO)
+WHERE  LOC='NEW YORK';
+
+=>NATURAL JOIN
+- 조인에 사용되는 컬럼의 이름이 동일한 경우 FROM 절에 테이블 사이에 NATURAL JOIN 이라고 입력하면 조인 조건을 기술하지 않아도 됩니다.
+- 중복된 컬럼은 한번만 출력
+SELECT *
+FROM EMP NATURAL JOIN DEPT;
+
+=>OUTER JOIN
+- 어느 한쪽 테이블에만 존재하는 데이터도 조인에 참여
+- LEFT | RIGHT | FULL Outer JOIN 이 있는데 FULL OUTER JOIN을 지원하지 않는 경우는 LEFT OUTER JOIN 과 RIGHT OUTER JOIN을 합집합을 구하면 됩니다.
+
+- LEFT OUTER JOIN
+-- DEPT 테이블에 있는 DEPTNO가 40인 데이터는 조인에 참여하지 않음
+SELECT *
+FROM DEPT INNER JOIN EMP
+USING (DEPTNO);
+
+-- DEPT 테이블에 있는 DEPTNO가 40인 데이터도 조인에 참여(일치하는 데이터가 없어서 EMP 테이블의 컬럼의 값은 전부 NULL)
+SELECT *
+FROM DEPT LEFT OUTER JOIN EMP
+USING (DEPTNO);
+
+=>다중 조인
+- FROM 절에서 JOIN 한 결과를 가지고 다른 테이블 과 조인 가능
+
+=>연습문제
+EMP 테이블 과 DEPT 테이블은 DEPTNO가 공통으로 존재
+
+- EMP 테이블에서 모든 사원에 대한 ENAME, DEPTNO 그리고 DEPT 테이블의 DNAME을 조회
+SELECT ENAME, EMP.DEPTNO, DNAME
+FROM EMP INNER JOIN DEPT
+ON EMP.DEPTNO = DEPT.DEPTNO; 
+
+SELECT ENAME, EMP.DEPTNO, DNAME
+FROM EMP INNER JOIN DEPT
+USING (DEPTNO); 
+
+SELECT ENAME, DEPTNO, DNAME
+FROM EMP NATURAL JOIN DEPT; 
+
+SELECT ENAME, EMP.DEPTNO, DNAME
+FROM EMP, DEPT
+WHERE EMP.DEPTNO = DEPT.DEPTNO; 
+
+
+- DEPT 테이블의 LOC가 NEW YORK에서 근무하고 있는 사원의 EMP 테이블의 ENAME, JOB, SAL 그리고 DEPT 테이블의 DNAME을 조회
+SELECT ENAME, JOB, SAL, DNAME
+FROM EMP NATURAL JOIN DEPT
+WHERE LOC='NEW YORK'; 
+
+- EMP 테이블에서 COMM이 NULL이 아닌 사원의 ENAME 과 DEPT 테이블의 DNAME, LOC를 조회
+SELECT ENAME, DNAME, LOC
+FROM EMP NATURAL JOIN DEPT
+WHERE COMM IS NOT NULL; 
+
+- EMP 테이블에서 ENAME 중 L 자가 포함된 사원에 대하여 ENAME, JOB 그리고 DEPT 테이블의 DNAME, LOC를 조회
+SELECT ENAME, JOB, DNAME, LOC
+FROM EMP NATURAL JOIN DEPT
+WHERE ENAME LIKE '%L%'; 
+
+- EMP 테이블에서 자신의 관리자보다 먼저 입사(HIREDATE)한 사원의 ENAME, HIREDATE, 관리자 이름, 관리자의 입사일을 조회 
+SELECT e1.ENAME AS "사원 이름", e1.HIREDATE AS "사원 입사일", e2.ENAME AS "관리자 이름", e2.HIREDATE  AS "관리자 입사일"
+FROM EMP e1, EMP e2
+WHERE e1.MGR = e2.EMPNO AND e1.HIREDATE < e2.HIREDATE
+
+7.DML(데이터 조작 언어)
+1)데이터 삽입
+=>기본 형식
+INSERT INTO 테이블이름(컬럼 이름 나열) VALUES(값을 나열);
+- 테이블의 모든 컬럼에 순서대로 값을 대입하는 경우 컬럼 이름은 생략이 가능
+- 여러 개의 데이터를 한꺼번에 삽입할 때는 VALUES 다음에 데이터를 여러 개 설정
+- 데이터를 조회해서 삽입하는 것도 가능한데 이 때는 VALUES 대신에 SELECT 구문을 설정
+- 비슷한 형태로 INSERT INTO 대신에 CREATE TABLE 테이블이름 AS 다음에 SELECT를 설정하면 테이블이 생성됨
+
+=>실습
+- DEPT 테이블의 구조를 복사해서 테이블을 생성
+CREATE TABLE DEPTCOPY AS
+SELECT *
+FROM DEPT
+WHERE 0=1;
+
+- DEPTCOPY 테이블에 데이터를 삽입
+INSERT INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(50, '영업', '서울');
+
+INSERT INTO DEPTCOPY VALUES(60, '비서', '제주');
+
+INSERT INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(70, '광고', '서울'), (80, '총무', '수원');
+
+INSERT INTO DEPTCOPY(DEPTNO, DNAME, LOC) 
+SELECT * FROM DEPT;
+
+=>조건부 삽입
+- 여러 개의 데이터를 삽입하는 스크립트를 만들어서 실행하는 경우 중간에 에러가 발생하면 이후의 모든 내용을 수행하지 않음
+- INSERT 와 INTO 사이에 IGNORE를 추가하면 삽입에 실패하더라도 다음 명령을 수행합니다.
+- IGNORE 없이 중간에 에러가 발생하는 경우
+INSERT INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(11, '영업', '서울');
+INSERT INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(12, '12345678901234567890', '서울');
+INSERT INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(13, '영업', '서울');
+
+데이터를 확인해보면 11번 데이터는 삽입이되고 에러가 발생해서 중지
+
+- IGNORE 사용
+INSERT IGNORE INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(21, '영업', '서울');
+INSERT IGNORE INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(22, '12345678901234567890', '서울');
+INSERT IGNORE INTO DEPTCOPY(DEPTNO, DNAME, LOC) VALUES(23, '영업', '서울');
+에러를 무시하고 수행 - 권장하지는 않음, 데이터의 길이 에러 같은 경우는 데이터를 잘라서 삽입함
+
+2)데이터 삭제
+=>기본 형식
+DELETE FROM 테이블이름
+[WHERE 조건];
+
+- 조건이 없으면 테이블의 데이터를 전부 삭제
+
+=>DEPTCOPY 테이블에서 DEPTNO가 23인 데이터를 삭제
+DELETE FROM DEPTCOPY
+WHERE DEPTNO = 23;
+
+=>DEPTCOPY 테이블의 모든 데이터를 삭제(접속 툴에 따라서는 조건이 없는 경우 경고 창을 출력)
+DELETE FROM DEPTCOPY;
+
+3)데이터 수정
+=>기본 형식
+UPDATE 테이블이름
+SET 컬럼이름 = 수정할내용[,...]
+[WHERE 조건];
+- 조건이 없으면 모든 데이터를 수정
+
+=>DEPTCOPY 테이블에 데이터를 삽입하고 수정
+INSERT INTO DEPTCOPY SELECT * FROM DEPT;
+
+-- DEPTNO가 10인 데이터의 DNAME을 영업으로 수정
+UPDATE DEPTCOPY
+SET DNAME = '영업'
+WHERE DEPTNO = 10;
+
+
+
+
+
+
+
+
+
+
+
+

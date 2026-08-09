@@ -1,0 +1,394 @@
+**Maria DB
+8.TCL(Transaction Control Language - 트랜잭션 제어 언어)
+1)개요
+=>예전에는 DCL에 속한 것으로 했는데 최근에는 TCL로 분리
+
+=>Transaction
+- 논리적으로 한 번에 수행되어야 하는 명령어의 집합
+- 물리적으로 SQL 문장 하나가 한 번에 수행되어야 하지만 실제 애플리케이션에서는 여러 개의 SQL 문장이 다 성공해야만 하나의 작업이 완료된 것으로 간주
+- 하나의 트랜잭션은 All or Nothing의 형태로 수행: 여러 개의 명령어 집합이 정상적으로 처리되면 정상 종료하도록 하고 여러 개의 명령어 중에서 하나의 명령어라도 잘못되었다면 전체를 취소
+- 데이터베이스에서 작업의 단위로 트랜잭션을 도입한 이유는 데이터의 일관성을 유지하면서 안정적으로 데이터를 복구시키기 위해서
+- 트랜잭션의 4가지 성질(ACID)
+Atomicity(원자성): 트랜잭션과 관련된 작업들이 부분적으로 실행되다가 중단되지 않는 것을 보장하는 것 - All or Nothing
+
+Consistency(일관성): 트랜잭션이 성공적으로 완료하면 일관성있는 데이터베이스 상태로 유지하는 것을 의미
+
+Isolation(독립성, 격리성): 트랜잭션을 수행 시 다른 트랜잭션의 연산 작업이 끼어들지 못하도록 보장하는 것을 의미
+
+Durability(영속성, 지속성): 한 번 완료된 트랜잭션은 영원히 반영되어야 한다.
+
+- 최근에는 2단계 커밋을 이용하는 경우도 있어서 4가지 성질이 모두 적용되지 않는 경우도 있습니다.
+
+=>트랜잭션을 사용하기 위해서 관계형 데이터베이스들은 임시 작업 영역을 이용
+- 원본 데이터를 복제해서 생성
+- 원본 데이터를 수정하면서 작업 내역을 저장
+- 필요에 따라 수정한 내용을 원본 데이터에 다시 복제를 하는데 이 경우를 Commit 이라고 하고 작업 내역을 되돌려서 이전으로 돌아가는 것을 Rollback 이라고 합니다.
+
+2)TCL
+=>명령어
+- commit
+- rollback
+	rollback: 트랜잭션이 시작한 지점으로 롤백
+	rollback to savepoint이름: savepoint가 만들어진 지점으로 롤백
+- savepoint
+	savepoint 이름
+
+=>Auto Commit 과 Manual Commit
+- Auto Commit은 SQL 문장이 성공하면 자동으로 Commit 되는 모드
+- Manual Commit은 데이터베이스 사용자가 명시적으로 Commit 과 Rollback을 수행하는 모드
+- 확인 방법: SELECT @@autocommit;
+- 변경 방법
+	현재 세션에만 적용: SET autocommit = 값;
+	전체를 변경: SET GLOBAL autocommit = 값; (서버 전체를 변경하는 경우는 현재 접속된 세션에는 영향을 주지 못함)
+	영구적으로 변경: 설정 파일에 autocommit=0 을 작성하고 서버를 재시작하면 됩니다.
+- autocommit을 유지하면서 트랜잭션을 사용
+	START TRANSATION;
+	명령문 사용..
+	COMMIT 또는 ROLLBACK
+
+=>자동으로 Commit 되거나 Rollback 되는 경우
+- 접속 도구를 정상적으로 종료하면 COMMIT
+- DDL(Create, Alter, Drop, Truncate) 이나 DCL(Grant, Revoke) 문장을 성공적으로 수행하면 COMMIT
+- 비정상적인 종료는 ROLLBACK
+
+=>실습
+- DEPT 테이블을 복제해서 DEPTCOPY 테이블을 생성
+CREATE TABLE DEPTCOPY AS
+SELECT * FROM DEPT;
+
+- 데이터 1개 삽입
+INSERT INTO DEPTCOPY VALUES('50', '영업', '제주');
+
+- 현재 상태를 확인: 현재 데이터가 5개
+SELECT *
+FROM DEPTCOPY;
+
+- 작업 취소 
+ROLLBACK;
+
+- 현재 상태를 확인: 현재 데이터가 4개(삽입 작업 한 내역이 사라짐)
+SELECT *
+FROM DEPTCOPY;
+
+- 데이터 1개 삭제
+DELETE FROM DEPTCOPY WHERE DEPTNO = 10;
+
+- 현재 상태를 확인: 현재 데이터가 3개
+SELECT *
+FROM DEPTCOPY;
+
+- 작업 내용을 원본에 반영
+COMMIT;
+
+- 작업 취소 
+ROLLBACK;
+
+- 현재 상태를 확인: 현재 데이터가 3개(COMMIT을 하게되면 작업 내용은 원본에 반영되서 복제를 다시 해옵니다.)
+- COMMIT을 수행하게 되면 기존 작업 내역을 삭제합니다.
+SELECT *
+FROM DEPTCOPY;
+
+- 데이터 1개 삭제
+DELETE FROM DEPTCOPY WHERE DEPTNO = 20;
+
+- 테이블 복제를 수행
+CREATE TABLE DEPTSNAPSHOT AS
+SELECT * FROM DEPTCOPY;
+
+- 롤백을 수행
+ROLLBACK;
+
+- 데이터 조회
+SELECT *
+FROM DEPTCOPY;
+
+
+- 데이터 1개 삭제
+DELETE FROM DEPTCOPY WHERE DEPTNO = 30;
+
+- 저장점 생성
+SAVEPOINT s;
+
+- 데이터 1개 삭제
+DELETE FROM DEPTCOPY WHERE DEPTNO = 40;
+
+- 데이터 조회: 데이터 0개
+SELECT *
+FROM DEPTCOPY;
+
+- 롤백을 수행 - SAVEPOINT는 접속도구에 따라 지원하지 않는 것이 있습니다.
+ROLLBACK to s;
+
+3)격리 수준
+=>트랜잭션 작업 도중 어느 정도까지 작업을 허용할 것인가 하는 것
+=>트랜잭션 작업 도중인 데이터는 외부에서는 기본적으로 읽기와 쓰기가 되지 않음: SERIALIZABLE
+=>커밋되지 않은 데이터를 읽도록 할 수 있는데 이 격리 수준: READ UNCOMMITTED
+=>커밋된 데이터만 읽도록 하기: READ COMMITTED
+=>읽기가 종료되도 공유락을 풀지 않는 읽기: REPETEABLE READ
+
+9.VIEW
+1)INLINE VIEW
+=>FROM 절에 사용된 서브쿼리
+=>SELECT 구문의 결과를 테이블의 구조를 가짐
+=>FROM에는 테이블의 이름을 기술하는데 이 절에 SELECT 구문을 작성해서 테이블 처럼 사용하는 것이 가능
+=>이 테이블은 SQL 문이 수행되는 동안만 존재하는 임시적인 테이블이라서 INLINE VIEW 라고 합니다.
+=>다른 절에서 이 테이블을 이용하고자 하면 이름을 만들어 주어야 합니다.
+SELECT * FROM (SELECT * FROM tCity) A
+- SELECT * FROM tCity의 결과가 A라는 테이블 이름으로 만들어 집니다.
+
+=> tStaff 테이블에서 grade 가 과장이거나 부장이고 score는 70이상 인 데이터를 조회
+SELECT * 
+FROM tStaff 
+WHERE (grade = '과장' or grade='부장') AND score >= 70; 
+
+
+SELECT * 
+FROM  (SELECT * FROM tStaff WHERE grade = '과장' or grade='부장') A
+WHERE  A.score >= 70; 
+
+2)VIEW
+=>개요
+- 물리적인 테이블에 근거한 논리적인 가상 테이블
+- 가상이라고 하는 이유는 실제 물리적으로 테이블을 생성하지 않기 때문
+- 테이블이나 뷰를 가지고 SELECT 구문을 활용해서 메모리에 저장한 후 테이블 처럼 사용하는 것
+
+=>실습을 위한 테이블을 생성
+- EMP 테이블을 복제한 EMP_COPY 테이블을 생성
+CREATE TABLE EMP_COPY
+AS
+SELECT * FROM EMP;
+
+- DEPT 테이블을 복제한 DEPT_COPY 테이블을 생성
+CREATE TABLE DEPT_COPY
+AS
+SELECT * FROM DEPT;
+
+=>뷰를 생성하는 방법
+CREATE [OR REPLACE] VIEW 뷰이름 [별명...]
+AS
+SELECT 구문
+[WITH CHECK OPTION]
+[WITH READ ONLY]
+
+- 뷰는 실제 물리적인 구조가 만들어지지 않으므로 ALTER로 수정할 수 없어서 수정하고자 하는 경우는 OR REPLACE 옵션 사용
+- WITH CHECK OPTION은 뷰를 통해서 DML 작업을 할 때 조건에 뷰의 데이터를 가지고 하는지 확인
+- WITH READ ONLY는 뷰를 통해서 DML 작업을 수행할 수 없도록 하는 옵션
+
+=>뷰를 생성하고 사용하기
+- EMP_COPY 테이블에서 DEPTNO가 30인 데이터의 EMPNO, ENAME, DEPTNO를 가진 뷰를 생성
+
+CREATE OR REPLACE VIEW EMP_VIEW30
+AS
+SELECT EMPNO, ENAME, DEPTNO
+FROM EMP_COPY
+WHERE DEPTNO = 30;
+
+- 뷰를 사용: 테이블처럼 사용
+SELECT *
+FROM EMP_VIEW30;
+
+=>뷰는 실제로는 테이블처럼 존재하지 않고 SQL 구문을 메모리에 저장
+- 호출할 때 SQL 구문을 수행해서 테이블처럼 만드는 방식
+
+=>뷰를 사용하는 이유
+- 자주 사용하는 SELECT 구문을 메모리에 저장해서 빠르게 실행할 수 있음
+- 사용자 별로 테이블에서 사용하는 데이터가 다른 경우 테이블 보다는 필요한 데이터만 제공할 수 있어서 보안이 우수
+
+=>뷰의 종류
+- 단순 뷰: 하나의 테이블로부터 생성된 것으로 그룹 함수 사용이 불가능하고 DISTINCT도 사용이 불가능하지만 DML 사용이 가능
+- 복합 뷰: 2개 이상의 테이블로부터 생성된 것으로 그룹 함수 나 DISTINCT 사용이 가능하지만 DML은 제한적으로 사용 가능
+
+=>뷰에 DML 작업을 하게되면 원본 테이블의 데이터가 수정됩니다.
+- EMP_VIEW30에 데이터를 삽입
+INSERT INTO EMP_VIEW30
+VALUES(8000, '아담', 30);
+
+- EMP_VIEW30 확인
+SELECT *
+FROM EMP_VIEW30;
+
+- 원본 테이블 확인
+SELECT *
+FROM EMP_COPY;
+
+=>읽기 전용 뷰
+- EMP_COPY 테이블에서 DEPTNO가 30인 데이터의 EMPNO, ENAME, DEPTNO를 가진 뷰를 생성(이 구문은 표준인데 Maria DB에서는 안됨)
+CREATE OR REPLACE VIEW EMP_VIEW_30
+AS
+SELECT EMPNO, ENAME, DEPTNO
+FROM EMP_COPY
+WHERE DEPTNO = 30
+WITH READ ONLY;
+
+- EMP_VIEW30에 데이터를 삽입
+INSERT INTO EMP_VIEW_30
+VALUES(8001, '아담', 30);
+
+- Maria DB에서는 읽기 전용을 만들고자 하는 경우
+사용자에게 뷰를 조회할 수 있는 권한만 부여해서 읽기 전용을 만들어 줍니다.
+뷰에 대한 권한을 전부 준 후 삽입, 삭제, 수정 권한을 회수하는 방식으로 설정
+
+GRANT SELECT ON 데이터베이스이름.뷰이름 TO '사용자계정'@'접속위치';
+
+REVOKE INSERT, UPDATE, DELETE
+ON 데이터베이스이름.뷰이름 TO '사용자계정'@'접속위치';
+
+3)임시 테이블
+=>개요
+- 테이블과 동일하게 사용되는데 현재 세션이 닫히면 자동으로 삭제되는 테이블
+- 기존 테이블 과 동일한 이름으로 생성이 가능한데 기존 테이블 과 동일한 이름으로 생성하면 무조건 임시 테이블이 호출됩니다.
+- 임시 테이블은 메모리에 생성됩니다.
+- 만들 때는 TABLE 앞에 TEMPORARY만 추가하면 됩니다.
+
+4)CTE
+=>개요
+- 중간 과정의 결과셋을 여러 번 사용할 때 임시 테이블이나 뷰를 사용할 수 있는다 둘 다 임시적이지만 DB에 실제 저장되는 객체여서 이미 존재하면 먼저 삭제해야 하며 사용 후 정리해야 한다는 면에서 번거롭고 객체를 생성하고 저장 공간을 차지하기 때문에 속도도 그다지 빠르지 않음
+- CTE(Common Table Expressions)는 쿼리 실행 중에 메모리에 존재하는 테이블
+- 쿼리 내부에서 임시 테이블을 정의한느 일종의 매크로 기능이고 ANSI SQL99의 표준 기능이라서 모든 DBMS에서 제공
+
+=>형식
+WITH 테이블이름(컬럼이름 나열) AS (쿼리문)
+
+=>사용
+tStaff 테이블에 DEPART 가 영업부이고 GENDER가 남 인 데이터에서 SALARY가 평균 이상인 데이터의 NAME, SALARY, SCORE를 조회
+
+WITH TEMP AS (SELECT NAME, SALARY, SCORE FROM tStaff WHERE DEPART='영업부' AND GENDER = '남')
+SELECT * FROM TEMP WHERE SALARY >= (SELECT AVG(SALARY) FROM TEMP);
+
+기존 테이블의 컬럼 이름을 변경해서 가독성을 높이기도 합니다.
+
+=>여러 개 생성 가능
+
+=>대부분의 경우는 VIEW로 동일한 문제를 해결
+
+CREATE VIEW TEMP AS (SELECT NAME, SALARY, SCORE FROM tStaff WHERE DEPART='영업부' AND GENDER = '남');
+
+SELECT * FROM TEMP WHERE SALARY >= (SELECT AVG(SALARY) FROM TEMP);
+
+=>VIEW와 CTE 차이
+- VIEW는 한 번 만들어지면 삭제할 때 까지 데이터베이스에 남아있습니다.
+- CTE는 한 번 사용하고나면 자동으로 삭제가 됩니다.
+- VIEW는 SQL 구문을 메모리에 저장하지만 CTE는 데이터를 메모리에 저장합니다.
+VIEW 보다는 CTE가 조회속도가 빠릅니다.
+
+10.Procedure 와 Trigger
+1)Procedure
+=>SQL에서 절차적 프로그래밍을 위한 개체
+=>함수처럼 호출하면 프로시저 내의 코드가 수행됩니다.
+=>사용 목적
+- 속도: 프로시저도 뷰처럼 메모리에 존재
+- 보안: SQL문을 사용하지 않고 Procedure를 사용하게 되면 실제 어떤 동작을 수행하는지 외부에서는 알 수가 없음
+=>관계형 데이터베이스마다 작성하는 방법이 다름
+- Oracle에서의 문법은 PL-SQL
+- MS-SQL Server에서의 문법은 T-SQL
+
+2)Trigger
+=>DML 수행 전 후에 수행할 동작을 정의
+=>Procedure 작성 문법으로 작성
+
+**Mongo DB
+1.개요
+1)특징
+=>크로스 플랫폼 도큐먼트 지향 NoSQL 데이터베이스 시스템
+=>스키마 생성없이 데이터 저장 가능
+=>내부적으로 C++ 언어로 동작
+=>저장 프로시저 대신에 자바스크립트 함수 와 유사한 형태의 함수를 만들어서 사용
+=>작업의 가장 큰 단위가 Collection 인데 하나의 Collection은 하나의 파일에 저장됩니다.
+=>JSON 문자열을 BSON으로 변환해서 저장
+=>JSON(JavaScript Object Notation) 표현
+{ }: 객체 -> {"name":"adam", "age":34}
+[ ]: 배열 -> [{"name":"adam", "age":34}, {"name":"rusia", "age":27}...}
+=>복제(replica) 와 샤딩을 이용해서 쉽고 빠른 분산 컴퓨팅 환경 구성
+- 샤딩: 데이터를 여러 조각으로 분할해서 저장하는 것
+- 샤드: 데이터를 수평 분할한 조각
+- 애플리케이션은 어떤 샤드에 데이터가 저장되어 있는지 알 필요가 없습니다.
+- Mongo DB 내부에 Router(Mongos)가 만들어져서 데이터를 조회해서 리턴
+
+2)적합한 서비스
+=>스키마가 자주 변경되는 환경: 개발 초기 단계
+
+=>비정형 데이터 저장
+정형 데이터: 테이블 구조
+반정형 데이터: XML, JSON, YAML 처럼 문자열이지만 해석하기에 따라서 정형의 형태를 만들 수 있는 것
+비정형 데이터: 모양이 일정하지 않은 데이터로 문자열, 음성 등
+
+=>분산 컴퓨팅 환경: 데이터를 여러 곳에 나누어두고 접근하는 환경
+
+=>읽기 전용 애플리케이션의 저장소
+
+3)RDBMS 와 용어 비교
+=>Database -> Database
+=>Table -> Collection
+=>Row(Tuple) -> Document
+=>Column -> Field
+=>Index -> Index(데이터를 빠르게 접근하기 위한 포인터)
+=>Join -> Embedding & Linking
+=>조회결과를 Table의 구조 -> Cursor 리턴(데이터를 순차적으로 접근하기 위한 포인터: Iterator)
+
+
+4)설치
+=>Server: https://www.mongodb.com/try/download/community
+
+=>Client(접속 도구)
+- Mongo Shell을 다운로드 받아서 사용
+- Compass 같은 GUI 도구 사용
+
+=>Import 와 Export를 하고자 하는 경우에는 MongoDB Database Tools를 다운로드 받아서 설치
+
+5)Manual
+=>https://docs.mongodb.com/manual
+
+6)서버 실행
+=>mongod 라는 실행 파일을 실행
+서비스로 등록된 경우는 서비스를 실행
+
+=>mongod 는 인수없이 실행하면 /data/db를 데이터 디렉토리로 사용
+데이터를 저장할 디렉토리를 지정할 거면 미리 만들어두고 쓰기 권한을 부여해 두어야 합니다.
+
+=>기본적인 포트는 27017
+
+=>시작하면 서버의 버전과 시스템 정보를 출력하고 클라이언트의 접속을 대기
+
+7)외부 접속 허용
+=>설정 파일 이용: mongod.conf 파일이나 mongod.cfg 에서 수정
+net:
+  port: 27017
+  bindIp: 127.0.0.1 이 부분을 0.0.0.0 으로 수정
+
+=>windows에서 명령어로 서버 실행
+mongod --dbpath 데이터베이스경로 --bind_ip 0.0.0.0
+
+IP 중에서 127.0.0.1 은 localhost라고도 하는데 현재 컴퓨터 자신을 의미
+0.0.0.0은 anywhere 또는 any라고도 하는데 모든 컴퓨터의 IP를 의미
+
+8)서버에 접속
+=>Mongo Shell에서 접속
+- mongo: 로컬에 있는 MongoDB에 접속
+- 외부 서버에 접속: mongo 호스트이름:포트번호/데이터베이스이름
+- 이미 접속된 상태에서 접속
+conn = new Mongo("호스트이름:포트이름")
+db = conn.getDB("데이터베이스 이름)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

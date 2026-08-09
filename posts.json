@@ -10,10 +10,10 @@
         "thumbnail": null,
         "tags": ["DeepDive","CS","Virtualization","Hypervisor"],
         "series_key": "technotes",
-        "series_title": null,
+        "series_title": "TechNotes",
         "date_label": "2026년 8월 8일",
         "reading_time_label": "2분 읽기",
-        "search": "type 1 hypervisor가 type 2보다 빠른 이유 bare-metal 구조와 host os 경유 여부에 따른 hypervisor의 성능 차이 deepdive cs virtualization hypervisor"
+        "search": "type 1 hypervisor가 type 2보다 빠른 이유 bare-metal 구조와 host os 경유 여부에 따른 hypervisor의 성능 차이 deepdive cs virtualization hypervisor technotes"
       },
     
       
@@ -25,10 +25,10 @@
         "thumbnail": null,
         "tags": ["Cloud","AutoEverSW"],
         "series_key": "cloud",
-        "series_title": null,
+        "series_title": "Cloud",
         "date_label": "2026년 8월 7일",
         "reading_time_label": "27분 읽기",
-        "search": "클라우드의 이해 가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조 정리 cloud autoeversw"
+        "search": "클라우드의 이해 가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조 정리 cloud autoeversw cloud"
       },
     
       
@@ -40,10 +40,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW","GNS3"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 6일",
         "reading_time_label": "5분 읽기",
-        "search": "network - security 4 방화벽과 연계 보안 솔루션 및 acl 실습 network autoeversw gns3"
+        "search": "network - security 4 방화벽과 연계 보안 솔루션 및 acl 실습 network autoeversw gns3 network"
       },
     
       
@@ -55,10 +55,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 6일",
         "reading_time_label": "11분 읽기",
-        "search": "network - security 3 네트워크 보안 솔루션과 통제 및 감시 장비의 종류 network autoeversw"
+        "search": "network - security 3 네트워크 보안 솔루션과 통제 및 감시 장비의 종류 network autoeversw network"
       },
     
       
@@ -70,10 +70,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 6일",
         "reading_time_label": "15분 읽기",
-        "search": "network - security 2 네트워크 위협 및 공격 기법의 원리, 특징 정리 network autoeversw"
+        "search": "network - security 2 네트워크 위협 및 공격 기법의 원리, 특징 정리 network autoeversw network"
       },
     
       
@@ -85,10 +85,10 @@
         "thumbnail": null,
         "tags": ["DeepDive","CS","DataType"],
         "series_key": "technotes",
-        "series_title": null,
+        "series_title": "TechNotes",
         "date_label": "2026년 8월 6일",
         "reading_time_label": "3분 읽기",
-        "search": "float보다 double을 더 많이 사용하는 이유는 무엇일까? float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유 deepdive cs datatype"
+        "search": "float보다 double을 더 많이 사용하는 이유는 무엇일까? float와 double의 차이, 32비트에서 64비트 환경으로 변화하면서 double이 기본 선택이 된 이유 deepdive cs datatype technotes"
       },
     
       
@@ -100,10 +100,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 5일",
         "reading_time_label": "3분 읽기",
-        "search": "network - security 1 네트워크 보안의 5대 요소 network autoeversw"
+        "search": "network - security 1 네트워크 보안의 5대 요소 network autoeversw network"
       },
     
       
@@ -115,10 +115,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW","Cisco","GNS3"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 5일",
         "reading_time_label": "8분 읽기",
-        "search": "network - router & switch lab 2 gns3 환경의 cisco router 구성 중 ip 설정, 라우팅 테이블, 정적 라우팅, rip, ospf 등 라우팅의 기본 개념과 ios 명령어 실습 내용 정리 network autoeversw cisco gns3"
+        "search": "network - router & switch lab 2 gns3 환경의 cisco router 구성 중 ip 설정, 라우팅 테이블, 정적 라우팅, rip, ospf 등 라우팅의 기본 개념과 ios 명령어 실습 내용 정리 network autoeversw cisco gns3 network"
       },
     
       
@@ -130,10 +130,10 @@
         "thumbnail": null,
         "tags": ["DeepDive","CS","DataType"],
         "series_key": "technotes",
-        "series_title": null,
+        "series_title": "TechNotes",
         "date_label": "2026년 8월 5일",
         "reading_time_label": "2분 읽기",
-        "search": "int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유 deepdive cs datatype"
+        "search": "int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유 deepdive cs datatype technotes"
       },
     
       
@@ -145,10 +145,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW","Cisco","GNS3"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 4일",
         "reading_time_label": "3분 읽기",
-        "search": "network - router & switch lab 1 gns3를 이용한 router·switch 실습과 cisco ios 명령어 정리 network autoeversw cisco gns3"
+        "search": "network - router & switch lab 1 gns3를 이용한 router·switch 실습과 cisco ios 명령어 정리 network autoeversw cisco gns3 network"
       },
     
       
@@ -160,10 +160,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 4일",
         "reading_time_label": "9분 읽기",
-        "search": "network device 3 - l4 device l4 장비의 핵심 개념과 session 기반 동작, load balancer, firewall, scale up/out, 비대칭 경로 문제 및 해결 방법을 정리 network autoeversw"
+        "search": "network device 3 - l4 device l4 장비의 핵심 개념과 session 기반 동작, load balancer, firewall, scale up/out, 비대칭 경로 문제 및 해결 방법을 정리 network autoeversw network"
       },
     
       
@@ -175,10 +175,10 @@
         "thumbnail": null,
         "tags": ["DeepDive","CS","Network"],
         "series_key": "technotes",
-        "series_title": null,
+        "series_title": "TechNotes",
         "date_label": "2026년 8월 4일",
         "reading_time_label": "2분 읽기",
-        "search": "ping을 막는 이유는 무엇일까 cmp의 실제 역할과 ping 차단의 이유, 운영 환경에서 icmp를 제한하는 사례 메모 deepdive cs network"
+        "search": "ping을 막는 이유는 무엇일까 cmp의 실제 역할과 ping 차단의 이유, 운영 환경에서 icmp를 제한하는 사례 메모 deepdive cs network technotes"
       },
     
       
@@ -190,10 +190,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 3일",
         "reading_time_label": "4분 읽기",
-        "search": "network device 2 - router l3 라우팅 핵심 - 라우팅 테이블, next hop, ttl, static / dynamic routing network autoeversw"
+        "search": "network device 2 - router l3 라우팅 핵심 - 라우팅 테이블, next hop, ttl, static / dynamic routing network autoeversw network"
       },
     
       
@@ -205,10 +205,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 8월 3일",
         "reading_time_label": "12분 읽기",
-        "search": "network device 1 - switch l2 switch의 핵심 개념 - mac 학습, vlan 분리, stp 루프 방지 network autoeversw"
+        "search": "network device 1 - switch l2 switch의 핵심 개념 - mac 학습, vlan 분리, stp 루프 방지 network autoeversw network"
       },
     
       
@@ -220,10 +220,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 7월 31일",
         "reading_time_label": "12분 읽기",
-        "search": "network technology nat/pat를 이용한 주소 변환, dns/dhcp를 통한 주소 관리, 주요 네트워크 진단 명령어 정리 network autoeversw"
+        "search": "network technology nat/pat를 이용한 주소 변환, dns/dhcp를 통한 주소 관리, 주요 네트워크 진단 명령어 정리 network autoeversw network"
       },
     
       
@@ -235,10 +235,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 7월 31일",
         "reading_time_label": "13분 읽기",
-        "search": "network protocol mac 주소, ip 주소, tcp/udp, arp, 서브넷 등 osi 7계층 기반 네트워크 통신 핵심 프로토콜 정리 network autoeversw"
+        "search": "network protocol mac 주소, ip 주소, tcp/udp, arp, 서브넷 등 osi 7계층 기반 네트워크 통신 핵심 프로토콜 정리 network autoeversw network"
       },
     
       
@@ -250,10 +250,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 7월 30일",
         "reading_time_label": "6분 읽기",
-        "search": "network components lan/wan/vpn 개념과 nic, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리 network autoeversw"
+        "search": "network components lan/wan/vpn 개념과 nic, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리 network autoeversw network"
       },
     
       
@@ -265,10 +265,10 @@
         "thumbnail": null,
         "tags": ["Network","AutoEverSW"],
         "series_key": "network",
-        "series_title": null,
+        "series_title": "Network",
         "date_label": "2026년 7월 30일",
         "reading_time_label": "8분 읽기",
-        "search": "network osi 7계층 구조, tcp/ip 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리 network autoeversw"
+        "search": "network osi 7계층 구조, tcp/ip 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리 network autoeversw network"
       },
     
       
@@ -550,10 +550,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 17일",
         "reading_time_label": "1분 읽기",
-        "search": "redis db api python에서 redis 라이브러리를 이용한 redis 연결, pool, 키 관리 정리 python autoeversw"
+        "search": "redis db api python에서 redis 라이브러리를 이용한 redis 연결, pool, 키 관리 정리 python autoeversw python"
       },
     
       
@@ -565,10 +565,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 17일",
         "reading_time_label": "2분 읽기",
-        "search": "python db api python에서 pymongo를 이용한 mongodb 연결 및 crud 연동 정리 python autoeversw"
+        "search": "python db api python에서 pymongo를 이용한 mongodb 연결 및 crud 연동 정리 python autoeversw python"
       },
     
       
@@ -610,10 +610,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 17일",
         "reading_time_label": "1분 읽기",
-        "search": "데이터베이스 프로그래밍 python db api를 이용한 관계형 db와 nosql 연동 개요 정리 python autoeversw"
+        "search": "데이터베이스 프로그래밍 python db api를 이용한 관계형 db와 nosql 연동 개요 정리 python autoeversw python"
       },
     
       
@@ -640,10 +640,10 @@
         "thumbnail": null,
         "tags": ["MongoDB","AutoEverSW"],
         "series_key": "mongodb",
-        "series_title": "Network",
+        "series_title": "MongoDB",
         "date_label": "2026년 7월 16일",
         "reading_time_label": "5분 읽기",
-        "search": "mongodb crud mongodb 데이터 삽입, 조회, 수정, 삭제 및 다양한 쿼리 연산자 정리 mongodb autoeversw network"
+        "search": "mongodb crud mongodb 데이터 삽입, 조회, 수정, 삭제 및 다양한 쿼리 연산자 정리 mongodb autoeversw mongodb"
       },
     
       
@@ -655,10 +655,10 @@
         "thumbnail": null,
         "tags": ["MongoDB","AutoEverSW"],
         "series_key": "mongodb",
-        "series_title": "Network",
+        "series_title": "MongoDB",
         "date_label": "2026년 7월 15일",
         "reading_time_label": "3분 읽기",
-        "search": "mongodb 개요 mongodb 특징, rdbms와 용어 비교, 설치 및 서버 실행 정리 mongodb autoeversw network"
+        "search": "mongodb 개요 mongodb 특징, rdbms와 용어 비교, 설치 및 서버 실행 정리 mongodb autoeversw mongodb"
       },
     
       
@@ -820,10 +820,10 @@
         "thumbnail": null,
         "tags": ["DeepDive","CS","LogicCircuit"],
         "series_key": "technotes",
-        "series_title": null,
+        "series_title": "TechNotes",
         "date_label": "2026년 7월 11일",
         "reading_time_label": "4분 읽기",
-        "search": "cpu에 감산기가 없는 이유 반가산기와 전가산기, carry in, 2의 보수를 통해 cpu가 감산기 없이 뺄셈을 수행하는 원리 deepdive cs logiccircuit"
+        "search": "cpu에 감산기가 없는 이유 반가산기와 전가산기, carry in, 2의 보수를 통해 cpu가 감산기 없이 뺄셈을 수행하는 원리 deepdive cs logiccircuit technotes"
       },
     
       
@@ -865,10 +865,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 9일",
         "reading_time_label": "1분 읽기",
-        "search": "크롤링 python 웹 크롤링, html/xml 파싱, json 처리, selenium 자동화 정리 python autoeversw"
+        "search": "크롤링 python 웹 크롤링, html/xml 파싱, json 처리, selenium 자동화 정리 python autoeversw python"
       },
     
       
@@ -880,10 +880,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 9일",
         "reading_time_label": "1분 읽기",
-        "search": "파일 입출력 python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리 python autoeversw"
+        "search": "파일 입출력 python의 파일 열기, 읽기, 쓰기, with 구문 등 파일 처리 정리 python autoeversw python"
       },
     
       
@@ -895,10 +895,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 9일",
         "reading_time_label": "1분 읽기",
-        "search": "모듈과 패키지 python 모듈, 패키지, collections, itertools 등 내장 모듈 정리 python autoeversw"
+        "search": "모듈과 패키지 python 모듈, 패키지, collections, itertools 등 내장 모듈 정리 python autoeversw python"
       },
     
       
@@ -910,10 +910,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 9일",
         "reading_time_label": "1분 읽기",
-        "search": "예외 처리 python의 오류 종류, try-except, 예외 처리 구문 정리 python autoeversw"
+        "search": "예외 처리 python의 오류 종류, try-except, 예외 처리 구문 정리 python autoeversw python"
       },
     
       
@@ -925,10 +925,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 9일",
         "reading_time_label": "1분 읽기",
-        "search": "자료형 python의 sequence, str, list, dict, comprehension, set 정리 python autoeversw"
+        "search": "자료형 python의 sequence, str, list, dict, comprehension, set 정리 python autoeversw python"
       },
     
       
@@ -940,10 +940,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 8일",
         "reading_time_label": "3분 읽기",
-        "search": "객체지향 프로그래밍 python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리 python autoeversw"
+        "search": "객체지향 프로그래밍 python의 클래스, 상속, 프로퍼티, 연산자 오버로딩, 추상 클래스, 코루틴 정리 python autoeversw python"
       },
     
       
@@ -955,10 +955,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 7일",
         "reading_time_label": "1분 읽기",
-        "search": "제어문과 자료구조 python 메모리 구조, 제어문, 자료구조 심화 정리 python autoeversw"
+        "search": "제어문과 자료구조 python 메모리 구조, 제어문, 자료구조 심화 정리 python autoeversw python"
       },
     
       
@@ -970,10 +970,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 7일",
         "reading_time_label": "3분 읽기",
-        "search": "함수 python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리 python autoeversw"
+        "search": "함수 python 함수 정의, 매개변수, lambda, map/filter/reduce, closure, decorator 정리 python autoeversw python"
       },
     
       
@@ -985,10 +985,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 7일",
         "reading_time_label": "2분 읽기",
-        "search": "제어문 python의 조건문(if, match-case)과 반복문(while, for) 및 break/continue 정리 python autoeversw"
+        "search": "제어문 python의 조건문(if, match-case)과 반복문(while, for) 및 break/continue 정리 python autoeversw python"
       },
     
       
@@ -1000,10 +1000,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 6일",
         "reading_time_label": "3분 읽기",
-        "search": "변수와 연산자 python의 기본 문법, 변수, 연산자, 데이터 타입, 입출력 정리 python autoeversw"
+        "search": "변수와 연산자 python의 기본 문법, 변수, 연산자, 데이터 타입, 입출력 정리 python autoeversw python"
       },
     
       
@@ -1015,10 +1015,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 6일",
         "reading_time_label": "3분 읽기",
-        "search": "python 소개 및 개발 환경 python의 특징, 인터프리터/컴파일러 개념, ide 종류, 가상환경 설정까지 정리 python autoeversw"
+        "search": "python 소개 및 개발 환경 python의 특징, 인터프리터/컴파일러 개념, ide 종류, 가상환경 설정까지 정리 python autoeversw python"
       },
     
       
@@ -1030,10 +1030,10 @@
         "thumbnail": null,
         "tags": ["Python","AutoEverSW"],
         "series_key": "python",
-        "series_title": null,
+        "series_title": "Python",
         "date_label": "2026년 7월 6일",
         "reading_time_label": "2분 읽기",
-        "search": "python 기초 python 가상환경, 기본 문법 요약 정리 python autoeversw"
+        "search": "python 기초 python 가상환경, 기본 문법 요약 정리 python autoeversw python"
       }
     
   ]

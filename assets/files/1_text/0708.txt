@@ -1,0 +1,541 @@
+**Python
+4.Function
+1)Decorator
+=>개요
+- 다른 함수를 인수로 받아서 어떤 처리를 수행하고 함수를 리턴하거나 함수를 다른 함수나 객체로 대체하는 것
+- 함수를 수정하지 않은 상태에서 추가 기능을 구현할 때 사용
+
+=>기본 구현
+import time
+#decorator로 사용되면 func가 호출하는 함수가 됩니다.
+def deco(func):
+    n = 0
+    def inner():
+        nonlocal n
+        n = n + 1
+        print(time.time())
+        print(n)
+        func()
+    return inner
+
+#target을 호출할 때 deco라는 함수가 리턴하는 함수를 호출
+@deco
+def target():
+    print("running target")
+
+target()
+target()
+
+=>로깅을 수행하는 데코레이터
+
+#비니지스 로직을 가진 함수 - 팩토리얼 구하는 함수를 재귀(함수 내부에서 자기 자신을 다시 호출하는 것 - 코드는 단순해져서 읽기 쉽지만 메모리를 많이 사용)를 이용해서 구현
+
+import time
+#데코레이터를 위한 함수
+def logging(func):
+    def logged(*args):
+        start = time.time()
+
+        #실제 함수를 호출
+        result = func(*args)
+        print("함수 호출 결과:", result)
+
+        end = time.time()
+        elapsed = end - start
+        print("함수가 작업에 걸린 시간:", elapsed)
+        return result
+    return logged
+
+
+#팩토리얼 구하는 함수를 재귀를 이용해서 구현
+@logging
+def factorial(n):
+    return 1 if n < 2 else n * factorial(n-1)
+
+print(factorial(5))
+
+2)메모이제이션
+=>함수의 수행 결과를 캐싱을 해서 재사용하는 기술
+=>파이썬에서는 functools.lru_cache()를 이용해서 메모이제이션을 구현하는데 이 때 사용되는 알고리즘(교체 알고리즘)이 LRU 알고리즘인데 오랫동안 사용하지 않은 데이터를 삭제하는 방식
+=>재귀함수에서 사용하면 유용합니다. 
+
+5.OOP(Object Oriented Programming - 객체 지향 프로그래밍)
+1)OOP 의 특징
+=>Encapsulation: 클래스 와 인스턴스 생성
+
+=>Inheritance(상속): 하위 클래스가 상위 클래스의 모든 것을 물려받는 것
+
+=>Polymorphism(다형성): 동일한 메시지에 대하여 다르게 반응하는 것(동일한 코드가 상황에 따라 다르게 동작하는 것)
+
+2)Class
+=>Class의 구성
+- Attribute: 속성, 데이터
+- Method: 함수
+
+=>Class 와 Instance
+- Class는 사용자 정의 자료형
+- Instance는 Class를 자료형으로 하는 객체
+- 인스턴스 생성
+클래스이름(데이터)
+
+=>클래스 선언
+class 이름:
+  데이터 선언
+  함수(Method) 선언
+
+- 클래스나 인스턴스를 이용해서 멤버에 접근할 때는 클래스 내부에서는 이름만 사용하면 되지만 외부에서는 클래스 이름이나 인스턴스 이름 뒤에 .을 이용해서 호출
+
+=>Method
+- 인스턴스로 호출하는 메서드
+파이썬에서는 인스턴스로 호출할 수 있는 메서드의 첫번째 매개변수는 인스턴스 자신으로 반드시 필요
+관습적으로 self 라고 함
+
+=>인스턴스가 호출할 수 있는 메서드를 만들어서 호출
+class Student:
+    #인스턴스가 호출할 수 있는 메서드
+    #첫번재 매개변수는 인스턴스 자신
+    def display(self):
+        print("OOP")
+
+#인스턴스 생성 - 인스턴스의 참조를 다른 곳에 저장하지 않았으므로 여기서 만들어진 인스턴스는 바로 소멸
+Student().display()
+
+#인스턴스의 참조를 s에 저장하고 호출: 인스턴스는 s가 소멸될 때 까지 메모리에 남아있음
+s = Student()
+s.display()
+
+#파이썬은 인스턴스가 호출할 수있는 메서드를 클래스가 호출 가능: 언바운드 호출
+#첫번째 매개변수로 인스턴스를 대입해서 호출이 가능
+Student.display(s) 
+
+=>Attribute
+- 클래스나 인스턴스 안에 만들어지는 데이터
+- Class Attribute: 클래스 안에 만들어서 클래스 와 인스턴스 모두 사용하는 데이터로 클래스 안에 1개만 만들어 집니다.
+인스턴스끼리 공유를 위해서 만드는데 이를 통해서 통신을 수행
+
+- Instance Attribute: 인스턴스가 각각 소유하는 데이터로 만들 때는 메서드 안에서 self.데이터 를 이용하면 없으면 생성하고 있으면 사용을 합니다.
+
+- 인스턴스가 속성을 읽을 때는 자신이 소유하지 않은 경우에는 클래스의 데이터를 읽어오는데 수정을 할 때는 무조건 자신에게서만 수정을 하므로 없으면 생성하고 있으면 사용을 합니다. 
+
+=>is 와 ==
+- == 
+== 연산자는 데이터를 비교하기 위한 연산자
+__eq__ 메서드를 이용해서 객체를 비교
+오버라이딩이 가능하기 때문에 실제로 저장된 데이터가 같은지 비교하지 않을 수 있습니다.
+
+- is
+id 값을 비교하는 연산자
+오버라이딩이나 오버로딩 할 수 없습니다.
+
+=>인스턴스 속성 생성
+- 클래스 외부에서 인스턴스를 만든 후 인스턴스이름.속성이름에 값을 대입하면 됩니다.(비추천)
+- 클래스 내부의 메서드 안에서 self.속성이름 을 이용하면 인스턴스 속성을 만들 수 있습니다.
+
+=>인스턴스 속성에 접근하는 메서드 - Accessor
+- getter
+속성의 값을 리턴해주는 메서드
+이름은 get속성명으로 만드는데 속성명은 첫글자를 대문자로 하며 self 이외의 매개변수는 없음
+속성의 자료형이 bool 인 경우는 get 대신에 is를 사용하는 경우도 있습니다.
+속성을 리턴하는 코드만 존재
+
+- setter
+속성의 값을 수정하는 메서드
+이름은 set속성명으로 만드는데 속성명은 첫글자를 대문자로 하고 self 와 1개의 매개변수를 가짐
+매개변수의 값을 속성에 대입하는 코드로 작성
+
+- 파이썬은 대문자로 만드는 대신에 앞에 _를 붙이는 경우도 있습니다.
+
+- 속성이 데이터의 모임인 경우는 인덱스를 추가로 받아서 인덱스에 해당하는 데이터만 리턴하거나 설정하는 메서드를 만들기도 합니다.
+
+#인스턴스 별로 번호 와 이름을 속성으로 갖는 클래스
+class Student:
+    def getNum(self):
+        return self.num
+
+    def setNum(self, num):
+        self.num = num
+
+    def getName(self):
+        return self.name
+
+    def setName(self, name):
+        self.name = name
+
+s = Student()
+s.setNum(1)
+s.setName("adam")
+print(s.getNum())
+print(s.getName())
+
+=>init 과 del
+- __init__
+인스턴스를 생성하기 위해 호출하는 메서드
+
+초기화를 의미하는 initialize의 약자
+
+만들지 않으면 매개변수가 self 만 있는 메서드가 자동으로 생성됨
+
+직접 만들면 자동으로 생성되는 메서드는 만들어지지 않음
+
+매개변수를 추가해서 생성하는 것이 가능한데 추가해서 생성하면 인스턴스를 만들 때 매개변수를 대입해 주어야 하므로 매개변수를 추가할 때는 기본값을 설정하는 경우가 많음
+
+데이터를 받아서 속성을 초기화하는 목적으로 많이 사용합니다.
+
+- __del__
+인스턴스가 소멸될 때 호출되는 메서드
+
+self 이외의 매개변수가 없음
+
+외부와의 연결을 끊는데 사용합니다.
+외부 네트워크 와의 연결이나 내부 파일 등 과의 연결 해제에 사용
+
+=>garbage collection
+- 파이썬은 인스턴스를 관리할 때 reference count 라는 개념을 도입해서 참조를 할 때 마다 1씩 증가시키고 참조가 없어질 때 마다 1씩 감소 시킵니다.
+- 참조 카운트가 0이되면 garbage collection이 호출되서 메모리 정리를 합니다.
+- garbage collection은 우선순위가 낮아서 실제로는 언제 호출될 지 알 수 없습니다.
+
+#인스턴스 별로 번호 와 이름을 속성으로 갖는 클래스
+class Student:
+    def __init__(self, num=0, name="noname"):
+        print("인스턴스가 생성됩니다.")
+        self.num = num
+        self.name = name
+
+    def getNum(self):
+        return self.num
+
+    def setNum(self, num):
+        self.num = num
+
+    def getName(self):
+        return self.name
+
+    def setName(self, name):
+        self.name = name
+
+    def __del__(self):
+        print("인스턴스가 소멸되었습니다.")
+
+s1 = Student() #참조 카운트가 1
+s2 = s1 #다른 변수가 참조를 복사합니다 참조카운트가 2
+del s1 #s1을 삭제하면 참조카운트가 1이 되서 소멸되지 않습니다.
+print("프로그램 종료")
+
+=>static method
+- 인스턴스를 생성하지 않고 Class를 가지고 직접 호출하는 메서드
+- 이 메서드 내에서는 self를 사용할 수 없습니다.
+- Class에서 만든 변수는 호출이 가능합니다.
+- @staticmethod 라는 데코레이터를 이용해서 생성
+- 인스턴스를 통해서도 호출 가능
+
+=>class method
+- 인스턴스를 생성하지 않고 Class를 가지고 직접 호출하는 메서드
+- 이 메서드 내에서는 첫번째 매개변수는 클래스 자신이 되는데 일반적으로 cls 라는 이름을 사용합니다.
+- Class에서 만든 변수는 호출이 가능합니다.
+- @classmethod 라는 데코레이터를 이용해서 생성
+- 인스턴스를 통해서도 호출 가능
+
+=>private 멤버 생성
+- public: 클래스 외부에서 인스턴스를 이용해서 호출 가능한 경우
+- private: 클래스 내부에서만 사용 가능한 경우
+- python에서는 private을 만들고자 할 때 이름 앞에 __를 추가해주면 됩니다.
+
+#인스턴스 별로 번호 와 이름을 속성으로 갖는 클래스
+class Student:
+    def __init__(self, name, age):
+        self.name = name
+        self.__age = age #앞에 __가 붙으면 속성이 private 이 됩니다. 클래스 외부에서 사용 불가
+
+
+s = Student("adam", 1)
+s.name = "rusia"
+s.__age = s.__age + 1 # 이 구문이 에러
+
+=>property
+- 변수를 호출하는 것처럼 getter 와 setter 메서드를 호출하는 것
+- 객체 지향 프로그래밍에서는 인스턴스 변수를 만들 때 private 으로 만들고 getter 와 setter 메서드를 public으로 만들어서 접근하는 것을 권장
+- 메서드를 호출하는 코드는 get 과 set이 구분되는데 property를 이용하면 get 과 set을 구분하지 않고 사용하는 것이 가능
+- 생성
+프로퍼티이름 = property(fget=None, fset=None, fdel=None, doc=None)
+fget에 getter 메서드를 fset에 setter 메서드를 fdel에 삭제될 때 호출될 메서드를 doc에 도움말을 가진 메서드를 설정
+
+#인스턴스 별로 번호 와 이름을 속성으로 갖는 클래스
+class Student:
+    def __init__(self, name, age):
+        self.__name = name
+        self.__age = age #앞에 __가 붙으면 속성이 private 이 됩니다. 클래스 외부에서 사용 불가
+
+    def getName(self):
+        return self.__name
+    def setName(self, name):
+        print("name의 setter 호출")
+        self.__name = name
+
+    def getAge(self):
+        return self.__age
+    def setAge(self, age):
+        self.__age = age
+
+    name = property(fget=getName, fset=setName)
+    age = property(fget=getAge, fset=setAge)
+
+s = Student("noname", 0)
+s.name = "adam" #속성을 직접 호출한 것처럼 보이지만 실제로는 setter를 호출한 것임
+print(s.name)
+
+- Decorator를 이용한 생성
+getter 메서드 위에 @property을 setter 메서드 위에는 프로퍼티이름.setter라고 추가해주어도 됩니다.
+getter와 setter를 만들 때는 프로퍼티 이름으로 만들어 줍니다.
+
+#인스턴스 별로 번호 와 이름을 속성으로 갖는 클래스
+class Student:
+    def __init__(self, name, age):
+        self.__name = name
+        self.__age = age #앞에 __가 붙으면 속성이 private 이 됩니다. 클래스 외부에서 사용 불가
+
+    @property
+    def name(self):
+        return self.__name
+    @name.setter
+    def name(self, name):
+        print("name의 setter 호출")
+        self.__name = name
+
+    @property
+    def age(self):
+        return self.__age
+    @age.setter
+    def age(self, age):
+        self.__age = age
+
+
+s = Student("noname", 0)
+s.name = "adam" #속성을 직접 호출한 것처럼 보이지만 실제로는 setter를 호출한 것임
+print(s.name)
+
+=>Operator Overloading(연산자 오버로딩)
+- 연산자의 기능을 변경해서 사용하는 것
+- 예를 들면 +는 숫자 데이터끼리의 연산에 사용되는 것인데 str 클래스에서는 문자열을 결합하는 기능을 수행합니다.
+- 연산자에 해당하는 __메소드이름__ 메서드를 클래스에서 다시 정의하면 연산자가 정의한 기능을 수행합니다.
+==은 __eq__ 메서드의 결과를 리턴합니다.
+인스턴스 이름을 print에 대입했을 때 나오는 문자열은 __str__ 메서드를 다시 정의한 것입니다.
+
+#인스턴스 별로 번호 와 이름을 속성으로 갖는 클래스
+class Student:
+    def __init__(self, name, age):
+        self.__name = name
+        self.__age = age #앞에 __가 붙으면 속성이 private 이 됩니다. 클래스 외부에서 사용 불가
+
+    @property
+    def name(self):
+        return self.__name
+    @name.setter
+    def name(self, name):
+        print("name의 setter 호출")
+        self.__name = name
+
+    @property
+    def age(self):
+        return self.__age
+    @age.setter
+    def age(self, age):
+        self.__age = age
+
+    #+ 연산자의 기능을 overloading: __name을 결합
+    def __add__(self, other):
+        return self.__name + "," + other.__name
+
+    #== 연산자의 기능을 overloading
+    def __eq__(self, other):
+        return len(self.__name) == len(other.__name)
+
+    #인스턴스 이름만 기재했을 때 리턴되는 문자열을 만들어주는 함수
+    def __str__(self):
+        return self.__name
+        
+s1 = Student("adam", 30)
+s2 = Student("rusia", 27)
+s3 = Student("adam", 27)
+print(s1 + s2) #연산자 오버로딩 때문에 name을 결합한 결과
+print(s1)
+
+2)Inheritance(상속)
+=>개요
+- 상속이란 하위 클래스가 상위 클래스의 모든 것을 물려받는 것
+- 상위 클래스를 Based Class, Super Class 라고 하고 하위 클래스를 Derived Class, Sub Class 라고 합니다.
+- 하나의 클래스로부터 상속받는 것을 단일 상속이라고 하고 여러 클래스로부터 상속받는 것을 다중 상속이라고 합니다.
+
+=>상속의 목적
+- 여러 클래스에 공통으로 존재하는 코드를 상위 클래스에 묶어서 중복을 제거하기 위해서
+- 제공되는 클래스의 기능이 부족해서 기능을 확장하거나 추가하기 위해서
+
+=>상속 방법
+class 클래스이름(상위 클래스 이름):
+
+=>상위 클래스의 메서드 호출
+class Person:
+    def superMethod(self):
+        print("상위 클래스의 메서드")
+
+#Person 클래스가 상위 클래스가 되도록 설정
+class Student(Person):
+    def subMethod(self):
+        print("하위 클래스의 메서드")
+
+s = Student()
+s.subMethod()
+s.superMethod() #상위 클래스의 메서드 호출
+
+=>상위 클래스에서 만든 인스턴스 변수 호출
+- 상위 클래스에서 만든 인스턴스 변수를 하위 클래스의 인스턴스가 사용하고자 할 때는 __init__ 함수를 만들어서 상위 클래스의 __init__를 호출해야 합니다.
+호출할 때는 super().__init__()로 호출합니다.
+
+class Person:
+    def __init__(self, num):
+        self.num = num
+
+    def superMethod(self):
+        print("상위 클래스의 메서드")
+
+#Person 클래스가 상위 클래스가 되도록 설정
+class Student(Person):
+    #상위 클래스에 매개변수가 있는 __init__이 있는 경우는 직접 호출해주어야 합니다.
+    def __init__(self):
+        super().__init__(1)
+
+    def subMethod(self):
+        print("하위 클래스의 메서드")
+
+s = Student()
+s.subMethod()
+s.superMethod() #상위 클래스의 메서드 호출
+print(s.num) #상위 클래스의 __init__ 에 매개변수가 있고 초기값이 없으면 이 구문은 에러
+#이런 경우에는 하위 클래스에 __init__를 만들어서 super().__init__()를 호출해 주어야 합니다.
+
+=>Method Overriding(메서드 재정의)
+- 상위 클래스에 존재하는 메서드와 동일한 모양의 메서드를 하위 클래스에 만드는 것
+- 동일한 메서드가 존재하는 경우에는 하위 클래스의 메서드가 호출됩니다.
+- 기능 확장이 목적
+- 기능 확장이 목적이므로 상위 클래스의 메서드를 호출하는 것이 일반적입니다.(특정한 프레임워크에서는 상위 클래스의 메서드를 호출하지 않으면 에러가 발생)
+- 상위 클래스의 메서드 호출 구문은 정리나 파괴를 할 때는 뒤에서 호출하고 그 이외의 경우는 먼저 호출합니다.
+하위 클래스의 인스턴스를 생성할 때 상위 클래스의 인스턴스를 먼저 생성하고 하위 클래스의 인스턴스를 생성하기 때문입니다.
+
+class Person:
+    def method(self):
+        print("상위 클래스의 메서드")
+
+#Person 클래스가 상위 클래스가 되도록 설정
+class Student(Person):
+    #메서드 오버라이딩: 기능 확장이 목적이므로 상위 클래스의 메서드를 호출해야 합니다.
+    def method(self):
+        super().method()
+        print("하위 클래스의 메서드")
+s = Student()
+s.method()
+
+=>다중 상속
+- 여러 개의 클래스로부터 상속받는 것
+- 파이썬은 다중 상속을 지원
+- 상속받는 부분에 여러 개의 클래스를 나열하면 여러 클래스로부터 상속을 받습니다.
+- 여러 상위 클래스에 동일한 메서드나 속성이 존재하는 경우는 왼쪽의 클래스부터 탐색을 해서 수행
+
+=>Abstract(추상)
+- Abstract Method
+내용이 없는 Method로 하위 클래스에서 구현해서 사용하는 메서드로 Abstract Class에 존재해야 함
+
+만들 때는 @abc.abstractmethod를 추가하면 되고 내용은 pass
+
+- Abstract Class
+인스턴스를 만들 수 없는 클래스
+상속을 통해서만 사용하는 클래스
+클래스 () 안에 meta=ABCMeta를 추가하면 됩니다.
+이 클래스에는 반드시 추상 메서드가 존재해야 하고 이 클래스를 상속받은 클래스는 추상 메서드를 반드시 오버라이딩 해야 합니다.
+
+- 사용하는 이유
+Polymorphism을 구현하기 위해서
+
+Template Method Pattern을 구현하기 위해서 - Interface, Protocol 이라고 부르는 경우가 많습니다.
+
+=>Abstract(추상)
+- Abstract Method
+내용이 없는 Method로 하위 클래스에서 구현해서 사용하는 메서드로 Abstract Class에 존재해야 함
+
+만들 때는 @abc.abstractmethod를 추가하면 되고 내용은 pass
+
+
+import abc
+#추상 클래스 - 인스턴스를 생성할 수 없습니다.
+class Sample(metaclass = abc.ABCMeta):
+    #추상 메서드
+    @abc.abstractmethod
+    def method(self):
+        pass
+
+#추상 클래스를 상속받으면 반드시 추상 메서드를 구현해야 합니다.
+class Sub(Sample):
+    #추상 메서드 구현
+    def method(self):
+        print("추상 메서드 구현")
+
+#obj = Sample() #추상 클래스는 인스턴스를 만들 수 없기 때문에 에러
+obj = Sub()
+
+=>Template Method Pattern
+- 틀을 먼저 만들고 구현
+- 틀을 Interface 나 Protocol 이라고 합니다.
+
+
+=>Polymorphism 구현
+
+import abc
+class Starcraft(metaclass = abc.ABCMeta):
+    #추상 메서드
+    @abc.abstractmethod
+    def attack(self):
+        pass
+
+class Terran(Starcraft):
+    def attack(self):
+        print("테란의 공격")
+
+class Zerg(Starcraft):
+    def attack(self):
+        print("저그의 공격")
+
+class Protoss(Starcraft):
+    def attack(self):
+        print("프로토스의 공격")
+
+menu = int(input("종족을 선택하세요:(1.테란 2.저그 3.프로토스)"))
+s = None
+
+if menu == 1:
+    s = Terran()
+elif menu == 2:
+    s = Zerg()
+elif menu == 3:
+    s = Protoss()
+    
+s.attack()        
+
+3)coroutine
+=>개요
+- cooperative routine의 의미하는데 서로 협력하는 루틴
+- 서로 대등한 관계로 특정 시점에 상대방의 코드를 실행
+- 함수는 다른 함수를 호출하면 현재 함수의 제어권을 저장한 상태에서 다른 함수로 이동하고 다른 함수가 종료되면 호출한 곳으로 돌아옵니다.
+- 코루틴은 종료되지 않고 나중에 다시 가서 작업을 수행할 수 있습니다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
