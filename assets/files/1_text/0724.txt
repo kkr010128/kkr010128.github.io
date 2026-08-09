@@ -1,0 +1,550 @@
+**Linux
+9.유저 관리
+1)사용자 계정 관리 파일
+=>/etc/passwd
+- 사용자 계정 정보가 저장된 기본 파일
+- 초창기 유닉스에서는 비밀번호도 이 파일에 저장했으나 해킹 위험이 증가하면서 암호는 /etc/shadow 파일에 별도로 저장
+- root 계정으로 수정이 가능한데 직접 수정보다는 명령어로 수정하는 것을 권장
+- 구조
+adam:x:1000:1000:Ubuntu:/home/adam:/bin/bash
+맨 앞은 계정
+두번째 항목 x는 이전에 비밀번호인데 지금은 x
+세번째 항목 1000은 UID로 사용자를 구분하기 위한 번호로 0~999, 65534는 시스템이 사용하고 1000부터 할당
+네번째 항목 1000은 GID로 그룹을 구분하기 위한 번호
+다섯번째 항목 Ubuntu 는 설명
+여섯번째 항목 /home/adam은 홈 디렉토리
+일곱번째 항목 /bin/bash는 로그인 할 때 사용하는 쉘
+
+- 그룹에 대한 정보는 /etc/group 파일에 저장되어 있음
+
+=>/etc/shadow
+- 비밀번호 관리를 위한 파일
+- 해시를 이용해서 저장
+- 이전에는 SHA-512 방식을 사용했는데 지금은 yescrypt 방식으로 보안성을 강화함
+- 단방향 해시: 원래 데이터와 비교해서 일치 여부는 판단할 수 있지만 원래 데이터를 복원할 수 는 없는 방식
+- 내용
+adam:$6$dkurchK.eMh9gtq2$8KXF7KW1mM/3M5g1Wb75TbPBllZG9AsT9Q0mReUzSsa1j2k96JoJBQSJpNSODDpH/XrL2e1R6yPcNm202otC9.:20654:0:99999:7:::
+
+첫번째 항목은 로그인 아이디
+두번째 항목이 비밀번호
+세번째 항목 20654는 최종 변경일(1970년 1월 1일로부터 지나온 시간)
+네번째 항목 0은 암호를 사용할 수 있는 최소 기간으로 3이면 암호 변경 후 최소한 3일은 그 암호를 사용해야 합니다.
+다섯번째 항목 99999는 암호를 사용할 수 있는 최대 기간으로 이 기간이 지나기 전에 암호를 변경해야 합니다.
+여섯번째 항목 7은 만료가 되기 7일전부터 경고 메시지를 보냄
+일곱번째 항목은 만료가 되고 며칠 동안 로그인 가능하도록 할 지 설정
+여덟번째 항목은 만료가 이 날짜가 지나면 로그인을 할 수 없도록 하는데 1970년 1월 1일을 기준으로 한 날 수로 표시
+아홉번째 항목은 미래를 위한 값
+
+네번째 항목부터 여덟번재 항목까지를 aging 정보라고 합니다. 
+
+=>/etc/login.defs
+- 사용자 계정의 설정과 관련된 기본값을 정의한 파일
+
+=>/etc/group
+- 그룹에 대한 정보
+adm:x:4:syslog,adam
+
+adm은 그룹이름이고 x는 그룹 비밀번호이고 4는 그룹아이디이고 syslog 와 adam은 그룹의 멤버
+
+- 그룹의 비밀번호는 /etc/gshadow 파일에 존재합니다.
+
+2)계정 관리 명령
+=>useradd
+- 사용자 생성
+
+- 기본 형식
+useradd [옵션][로그인ID]
+
+- 옵션
+u uid
+o: uid 중복 가능
+g gid
+G gid: 2차그룹
+d 디렉토리이름: 홈 디렉토리 이름 변경
+s 셸: 로그인 쉘 변경
+c 설명
+D: 기본값을 설정하거나 출력
+e 유효기간: EXPIRE 항목을 설정(YYYY-MM-DD)
+f 비활성일수
+k 디렉토리: 계정 생성 시 복사할 초기 파일이나 디렉토리를 설정해 놓은 디렉토리를 설정
+
+- 옵션없이 계정 생성
+sudo useradd user2
+비밀번호를 설정: sudo passwd user2
+
+- 옵션을 이용해서 생성
+sudo useradd -d /home/user3 -u 2000 -g 1000 -G 3 user3
+
+=>adduser
+- 사용자 계정 생성 명령
+- 기본 형식
+adduser [옵션] 로그인ID
+- 옵션
+uid UID
+gid GID
+home 홈디렉토리
+shell 쉘
+gecos 설명
+- 암호를 계정 생성할 때 입력하라고 함
+
+=>usermod
+- 계정 정보 수정
+- 기본 형식
+usermod [옵션] [로그인ID]
+- 옵션
+u UID
+g GID
+o
+G GID
+d 디렉토리이름
+s 쉘
+c 설명
+f inactive
+e expire
+l: 계정 이름 변경
+
+=>패스워드 에이징
+- useradd, usermod, passwd, chage 명령으로 설정
+- chage 명령이 패스워드 에이징을 관리하는 별도의 명령
+항목			useradd, usermod, passwd명령		chage 명령
+MIN			passwd -n 날수					chage -m
+MAX			passwd -x 날수					chage -M
+WARNING		passwd -w 날수					chage -W
+INACTIVE		useradd -f 날수					chage -U
+			usermod -f 날수
+EXPIRE		useradd -e 날짜(YYYY-MM-DD)		chage -E
+			usermod -e 날짜
+- passwd 명령으로 기본값을 설정
+sudo passwd -n 3 -x 100 -w 5 user3
+
+- chage 명령으로 설정
+sudo chage -m 3 -M 100 -W 5 -E 2026-08-01 user5
+
+3)그룹 관리 명령
+=>groupadd: 그룹 생성
+
+=>addgroup: 그룹 생성
+
+=>groupmod: 그룹 정보 수정
+
+=>groupdel: 그룹 삭제
+
+=>gpasswd: 그룹 암호 설정
+
+4)사용자 정보 관리
+=>UID 와 EUID
+- UID는 RUID라고도 하며 EUID는 유효 사용자 ID
+- RUID는 사용자가 로그인 할 때 사용하는 ID이고 EUID는 현재 명령을 수행하는 주체의 UID
+- UID 와 EUID가 달라지는 경우
+실행 파일에 setuid가 설정된 경우: 해당 파일을 실행한 프로세스의 UID는 사용자 계정의 UID가 아니라 실행 파일 소유자의 UID가 됩니다.
+
+su 명령을 사용해서 다른 계정으로 전환한 경우
+
+=>사용자 확인 명령
+- 로그인 정보 확인: who
+- w [사용자 계정]
+사용자 정보 이외에 현재 실행 중인 작업에 대한 정보를 같이 알려줌
+- last
+사용자 계정과 로그인 한 시간, 로그아웃한 시간, 터미널 번호 그리고 IP 주소를 출력
+- UID 와 EUID 확인: whoami, who am i, id
+
+=>root 권한 사용
+- 사용하는 방법
+su 명령을 이용해서 root로 계정을 전환: 보안상 매우 위험
+
+일반 사용자에게 시스템 관리 작업 중 특정 작업만 수행할 수 있는 권한을 주는 방식으로 sudo 명령으로 제한적인 권한 부여가 가능
+
+- sudo 권한 설정
+일반 사용자가 sudo 명령으로 root 권한을 사용할려면 특정 권한을 부여받아야 함
+권한은 /etc/usdoers 파일에 설정해야 하는데 이 파일은 root 계정으로만 수정이 가능
+텍스트 편집기로 수정해도 되지만 일반적으로 visudo 명령으로 수정하는 것을 권장
+visudo 명령은 문법에 맞는지 확인하고 저장
+
+- 현재 설정 내용
+root ALL=(ALL) ALL
+
+- 권한 부여
+유저 ALL=명령 나열
+
+명령은 절대 경로로 설정해야 하고 여러 개 일 때는 쉼표로 구분
+user2 ALL=/usr/sbin/useradd, /usr/sbin/usermod
+
+=>sudo 명령 사용
+- 명령 형식: sudo 명령
+- 일반 사용자에게 모든 권한을 부여하는 것은 매우 위험
+
+=>파일 및 디렉토리의 소유자와 소유 그룹 변경
+- chown 명령: 소유자 변경
+형식: chown [옵션] [사용자 계정] [파일이나 디렉토리 경로]
+
+사용하는 경우는 인터넷에서 다운로드 한 파일의 소유자를 변경해서 사용
+다운로드 파일의 경우는 접근 권한을 우리가 설정하지 않아서 원하는 접근 권한을 가지도록 변경할 때 chmod를 이용하는 방법이 있고 다른 하나는 소유자를 변경해서 사용하기도 합니다.
+
+실습
+디렉토리 생성: mkdir linux_ex
+생성한 디렉토리로 이동: cd linux_ex
+디렉토리 생성: mkdir usermanagement
+생성한 디렉토리로 이동: cd usermanagement
+파일 복사: cp /etc/hosts .
+
+- chgrp: 소유 그룹 변경
+
+3)디스크 사용량 설정
+=>개요
+- 리눅스는 여러 사용자가 함께 사용하는 시스템이므로 특정 사용자가 과도하게 디스크를 사용하지 않도록 제한할 필요가 있음
+- 사용자가 사용할 수 있는 디스크 크기를 제한하는 방법이 있고 파일의 개수를 제한하는 방법이 있음
+- 제한을 설정할 때는 hard limit 와 soft limit 가 있는데 hard limit는 절대로 넘어설 수 없는 최대치를 명시하는 것이고 soft limit는 일정 시간내에서는 넘을 수 있는 한계치를 설정하는 것
+- 할당된 디스크 쿼터를 초과할 경우 사용자는 파일을 지워서 한계치 아래로 디스크 사용량을 줄이거나 관리자에게 용량 추가를 요청
+- 우분투에서는 quota 패키지를 이용
+
+=>쿼터 설정 준비
+- 쿼터 속성 설정: /etc/fstab 
+파티션	마운트된디렉토리		파일시스템		defaults,usrquota	1 1
+/dev/sdb1	/mnt				ext4			defaults,usrquota	1 1
+
+- 쿼터 속성 적용
+sudo mount -o remount /mnt
+sudo systemctl daemon-reload
+mount
+
+- 데이터베이스를 생성: sudo quotacheck -ugvm /mnt
+
+- 쿼터 사용 활성화: sudo quotaon -uv /mnt
+
+=>쿼터 설정
+edquota [옵션] [사용자 계정]
+sudo edquota -u user1
+
+=>클라우드 서비스 중 메일이나 디스크 관련 서비스에서는 이 기능을  많이 사용합니다.
+
+10. Programming
+1)C Programming
+=>GCC 컴파일러 제공
+=>컴파일러가 없으면 설치: sudo apt install gcc
+=>vim helloc.c 명령으로 파일 생성 후 작성
+#include <stdio.h>
+int main(){
+	printf("Hello C Programming\n");
+	return 0;
+} 
+
+=>컴파일과 실행
+- 컴파일: gcc -o helloc helloc.c
+
+2)make
+=>실제패키지는 많은 파일로 복잡하게 구성되기 때문에 gcc로 일일이 컴파일해서 하나의 실행 파일로 만드는 것은 매우 번거로운 작업인데 이를 간단하게 해결할 수 있도록 해주는 것이 make
+=>make는 makefile에 설정된 정보를 읽어서 여러 소스 파일을 컴파일하고 링크해서 최종 실행 파일을 생성
+=>소스로 배포되는 많은 오픈 소스 소프트웨어는 소스 코드 와 함께 makefile 파일을 같이 배포
+=>make가 있는지 확인해보고 없으면 설치
+=>실습
+- one.c 파일 작성
+#include <stdio.h>
+extern int two();
+int main(){
+	printf("Go to Module Two--\n");
+	two();
+	printf("End of Module One--\n");
+	return 0;
+}
+
+- two.c 파일 작성
+#include <stdio.h>
+int two(){
+	printf("In Module Two--\n");
+	printf("This is a Module Two--\n");
+	printf("End of Module Two\n");
+}
+
+- makefile 작성
+TARGET=one
+OBJECTS=one.o two.o
+${TARGET} : ${OBJECTS}
+	gcc -o ${TARGET} ${OBJECTS}
+one.o : one.c
+	gcc -c one.c
+two.o : two.c
+	gcc -c two.c
+
+- make 명령 수행
+
+- 실행: ./one
+
+3)java
+=>설치 확인
+- 개발도구 확인: javac -version
+- 실행환경 확인: java -version
+
+=>설치
+sudo apt install openjdk-21-jdk
+
+=>코드 작성 및 실행
+- 코드 작성: vim HelloJava.java
+public class HelloJava{
+	public static void main(String [] args){
+		System.out.prinltn("Hello Java");
+	}
+}
+
+- 컴파일을 해서 클래스를 생성: javac HelloJava.java
+
+- 실행: java HelloJava
+
+- 아카이브: jar cf app.jar *.class
+자바는 배포를 할 때 jar 파일을 배포합니다.
+
+- java는 실행을 할 때 java가 설치되어 있어야 합니다.
+도커 이미지 만들 때 베이스 이미지에 자바가 설치되어 있어야 합니다.
+리눅스에 자바를 설치해서 베이스 이미지를 만들어도 되고 자바가 이미 설치된 베이스 이미지를 이용해도 됩니다.
+
+4)python
+=>이미 설치되어 있음: python3 --version
+=>업그레이드: sudo apt upgrade python3
+=>가상환경 프로그램 설치: sudo apt install python3-venv
+
+=>가상환경을 생성해서 실행 및 라이브러리 내보내기
+- 디렉토리 생성: mkdir pythontest
+- 디렉토리 이동: cd pythontest
+- 가상환경 생성: python3 -m venv myvenv
+- 가상환경 활성화: source myvenv/bin/activate
+- 소스 코드 작성: vim main.py
+print("Hello Python")
+- 실행: python3 main.py
+
+- 배포를 위한 준비 및 실행
+사용한 패키지를 텍스트 파일로 내보내기: pip freeze > requirements.txt
+
+텍스트 파일과 소스 파일을 배포할 곳으로 복사
+
+패키지 설치: pip3 install requirements.txt
+
+실행: python3 main.py
+
+5)Node 설치
+=>node 설치
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+source ~/.bashrc
+
+nvm install --lts
+
+=>설치 확인
+node -v
+npm -v
+
+=>프로젝트 생성 및 실행
+- 디렉토리 생성: mkdir hello-node
+
+- 디렉토리 이동: cd hello-node
+
+- 프로젝트 생성: npm init -y
+
+- 코드 작성: app.js
+const http = require('http');
+const hostname = '127.0.0.1';
+const port = 3000;
+
+const server = http.createServer((req, res) => {
+	res.statusCode = 200;
+	res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+	res.end('Ubuntu Node.js Web Server\n');
+});
+
+server.listen(port, hostname, () => {
+	console.log('linstening server ');
+});
+
+- 실행
+node app.js
+
+- 배포
+package.json 과 소스 파일을 배포
+
+라이브러리 설치: npm install
+
+실행
+
+- 파이썬 과 노드가 배포 방법이 유사
+리눅스에 파이썬이나 노드가 설치된 이미지를 베이스 이미지로 선택
+
+패키지 정보 파일과 소스 파일을 복사
+
+패키지를 설치
+
+실행
+
+6)Go(golang)
+=>설치
+- 기존에 설치된 버전이 있으면 삭제
+sudo rm -rf /usr/local/go
+
+- go를 다운로드
+curl -OL https://golang.org/dl/go1.22.0.linux-amd64.tar.gz
+
+- 압축 해제: /usr/local 디렉토리에 압축 해제
+sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
+
+- go가 설치된 디렉토리를 PATH에 추가
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
+echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.profile
+
+- 설정 파일을 변경했을 때 바로 적용
+source ~/.profile
+
+- 설치 확인
+go version
+
+=>코드 작성 및 실행
+- 작업 디렉토리 생성 및 이동: mkdir hello-go && cd hello-go
+- 모듈을 시작: go mod init hello-go
+- 소스 코드 작성: main.go
+package main
+
+import "fmt"
+
+func main(){
+	fmt.Println("Hello GO")
+}
+- 실행: go run main.go
+
+11.네트워크 관리
+1)네트워크 기본 개념
+=>TCP/IP 프로토콜
+- 프로토콜: 통신을 하기 위한 규칙 또는 규약
+- TCP/IP: 인터넷이라는 통신망의 프로토콜
+
+=>주소
+- MAC Address
+Media Access Control의 약자로 MAC 주소는 하드웨어를 위한 주소인데 이더넷 주소, 하드웨어 주소, 물리 주소라고도 불리움
+NIC(Network Interface Card - 네트워크를 사용하기 위한 하드웨어)에 저장된 주소
+MAC Address는 하드웨어 제조 과정에서 부여되며 원칙적으로는 수정할 수 없지만 운영체제에 따라 수정하는 것이 가능
+: 이나 -로 구분되는 여섯개의 16진수로 구성되는데 총 48bit
+00:50:56:3e:3c:fe 의 형태로 작성되는데 앞의 3개는 제조사 번호이고 뒤의 3개는 일련번호
+
+- IP Address
+인터넷 주소 체계
+주소의 종류는 여러가지인데 지금은 IPv4 와 IPv6 만 사용
+IPv4
+	32비트 주소 체계로 8비트씩 끊어서 10진수로 표현하며 구분은 .
+	0~255까지의 숫자 4개로 표현
+	현재는 주소가 고갈이 되서 IPv6를 사용
+IPv6
+	128비트 주소 체계
+	16진수 2개씩 묶어서 표현
+	구분은 ::
+
+- NetMask
+IP 주소에서 네트워크 부분을 알려주는 역할을 하는 것
+동일한 네트워크를 나타내기 위해서 사용하는 것인데 내부 통신이 가능한 영역을 표현하기 위한 것
+표현 방식은 IP 처럼 10진수 네자리로 표현하기도 하고 1의 개수를 표현하기도 함
+192.168.0.2 255.255.255.0 또는 192.168.0.2/24 형태로 표현
+
+192.168.0.2 는 IP 주소이고 255.255.255.0 은 11111111.11111111.11111111.00000000 입니다.
+1의 개수가 24개라서 /24 표현하기도 합니다.
+1의 개수 24자리까지가 동일하면 동일한 네트워크로 간주하겠다는 의미
+192.168.0 까지가 동일하면 동일한 네트워크로 간주
+이 부분이 같은 경우는 통신을 요청하는 경우 외부 라우터로 가지 않고 내부에서 처리
+
+- Boradcast Address
+동일한 네트워크에 있는 모든 컴퓨터에 메시지를 보낼 때 사용하는 주소
+일반적으로 네트워크 대역에서 가장 마지막 주소를 이용
+192.168.0.2 255.255.255.0  의 경우는 192.168.0.255
+
+- 호스트 이름
+IP 주소 대신에 사용할 수 있는 컴퓨터에 붙이는 이름
+도메인은 인터넷에서 사용하는 호스트 이름
+www.naver.com 이라고 작성을 하는데 naver.com 이 네트워크 부분이고 www는 호스트 부분
+
+- DNS(Domain Name Service)
+도메인을 해석해서 IP로 변환해주는 시스템
+도메인을 입력하면 DNS가 해석해서 IP로 변환해주고 이 IP를 가지고 컴퓨터를 찾아가게 됩니다.
+IP를 이용하면 도메인을 이용하는 것보다 속도가 빠름
+
+- DHCP(Dynamic Host Configuration Protocol)
+IP 주소 관리를 자동화하기 위해 사용되는 네트워크 프로토콜
+네트워크에 연결되는 모든 장비를 기본적으로 IP주소, 넷마스크, 기본 게이트웨이, DNS Server 주소를 설정해야만 인터넷을 사용할 수 있는데 DHCP 서버를 만들면 장비들은 DHCP 서버에게 할당할 내용을 요청하고 DHCP 서버는 할당 가능한 주소를 찾아서 대여를 해주게 됩니다.
+
+- Gateway
+로컬 네트워크에서는 내부 컴퓨터에 대한 정보만 알 수 있기 때문에 외부 네트워크로 나가고자 하면 다른 장비의 도움이 필요
+외부 네트워크로 나가기 위해서 거쳐야 하는 장비(라우터)
+인터넷을 할 때는 Gateway를 이용해서 요청을 하게 됩니다.
+인터넷을 할려면 게이트웨이를 설정해 주어야 합니다.
+보통 게이트웨이는 사용 가능한 네트워크 주소 대역에서 첫번째 주소를 많이 사용합니다.
+192.168.0.2/24 이면 192.168.0.1 이 되는 경우가 많고 마지막 주소를 사용하기도 합니다.
+192.168.0.254 를 사용하기도 합니다.
+
+ - 포트 번호
+컴퓨터 내부에서 통신이 가능한 애플리케이션을 구분하기 위한 번호
+0~65535까지 가능
+0-1023번은 국제 표준으로 합의해서 사용하고 있는데 할당을 해도 됩니다.
+확인하고자 하면 cat /etc/services 에 작성되어 있습니다.
+
+=>인터넷이 가능하도록 하기 위해서 설정할 주소
+- IP Address
+- Subnet Mask
+- Gateway Address
+- DNS Address
+
+2)네트워크 설정
+=>ip 명령으로 주소 관리
+- 형식
+ip [옵션] 객체 [서브 명령]
+
+- 옵션
+V: 버전을 출력
+s: 자세한 정보 출력
+
+- 객체 와 서브 명령
+address [add | del | show | help]: IP 주소 관리
+route [add | del | help]: 라우팅 테이블 관리
+link [set]: 네트워크 인터페이스를 활성화 또는 비활성화
+
+- 전체 장치에 대한 상세 정보 출력: ip addr show
+
+- 하나의 인터페이스에 대한 정보 출력: ip addr show enp0s3
+
+- ip 추가 설정: sudo ip addr add 192.168.1.20/24 dev enp0s3
+
+- 이 명령은 재부팅하면 사라지므로 별도의 설정 파일에 저장을 해야 재부팅 후에도 사용이 가능합니다.
+
+- 라우팅 테이블 과 게이트웨이 주소 관리: ip route
+라우팅: 최적의 경로를 찾아가는 것
+라우팅 테이블: 어떤 경로를 찾아갈 때 어떻게 갈 것인지를 저장해 놓은 테이블
+라우팅 테이블에 기록되지 않은 곳은 직접 찾아가는 것이 안되고 이 경우에는 게이트웨이를 통해서 찾아가야 합니다.
+기본 게이트웨이 설정: sudo ip route add default via IP주소 dev 인터페이스주소
+
+=>net-tools 패키지
+- 네트워크 명령을 가진 패키지: sudo apt install net-tools
+
+- ifconfig 명령
+형식: ifconfig [인터페이스이름][옵션][값]
+옵션
+	a: 시스템의 전체 인터페이스에 대한 정보를 출력
+	up/down: 활성화 및 비활성화
+	netmask: 넷마스크 주소 설정
+	broadcast: 브로드캐스트 설정
+
+=>DNS 설정
+- 리눅스는 DNS 정보를 /etc/resolv.conf 파일에 저장
+nameserver 자리에 127.0.0.53이 지정되어 있는데 이 주소는 실제 DNS의 주소가 아니고 로컬 스터브 주소를 가리키는 심볼릭 링크
+- DNS 정보 확인: resolvectl status
+- nmcli 명령으로 설정: nmcli con mod 커넥션이름 ipv4.dns DNS주소
+- DNS 서버에 질의를 해서 도메인에 해당하는 IP 확인하는 명령: nslookup
+
+=>netplan
+- 우분투에서 네트워크 구성을 관리하는 도구
+- netplan 설정 파일은 YAML 형식으로 작성되며 /etc/netplan/  디렉토리에 존재하면 되고 파일의 이름은 의미가 없음
+- 파일을 수정하고 적용할 때는 sudo netplan apply 또는 재부팅
+- 설정 파일들은 권한을 변경하는 경우가 있음
+sudo chmod 600
+- 파일을 작성하고 적용
+
+
+
+
+
+
+
+
+
+
+

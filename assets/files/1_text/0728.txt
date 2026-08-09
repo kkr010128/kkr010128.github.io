@@ -1,0 +1,430 @@
+**Linux
+13.DNS
+1)개요
+=>문자로 된 주소를 컴퓨터가 이해할 수 있는 IP 주소로 변환해주는 시스템
+=>문자로 된 주소를 컴퓨터가 이해할 수 있는 IP 주소로 변환해주는 컴퓨터를 Name Server 또는 DNS Server 라고 하며 이 과정을 resolution 이라고 합니다.
+=>문자로 된 주소를 이용하지 않고 IP 주소를 직접 사용하면 변환 과정이 생략되므로 인터넷 속도가 빨라질 수 있음
+
+2)hosts 파일
+=>도메인 이름을 IP 주소 직접 매핑하는 로컬 DNS 파일
+
+=>역할
+- 도메인을 IP 주소로 로컬에서 강제로 지정
+127.0.0.1 localhost 로 작성하면 localhost라고 입력하면 127.0.0.1로 해석하며 이 경우는 DNS 조회를 하지 않음 
+
+=>파일 위치
+- Linux/Mac OS: /etc/hosts
+- Windows: c:\Windows\System32\drivers\etc\hosts
+
+=>특정 사이트 차단
+- 0.0.0.0 은 접속할 수 있는 IP가 아니므로 연결이 즉시 끊김
+
+=>hosts 파일을 수정한 경우 체크
+- DNS 캐시 삭제: 권장
+Linux: sudo systemctl restart systemd-resolved
+Windows: ipconfig/flushdns
+
+=>hosts 와 Name Server 우선 순위
+- hosts 파일
+- DNS Cache
+- DNS Server
+
+=>운영 서버에서는 hosts 사용을 피해야 함
+- DNS 변경이 반영되지 않을 수 있음
+DNS에서 서버 IP 변경하는 경우 발생
+/etc/hosts 파일에 내용이 작성되어 있다면 변경을 해도 적용되지 않음
+서버 간 통신 장애나 특정 서버에서만 장애가 발생
+
+- 서버마다 설정이 달라짐
+최근에는 동일한 애플리케이션을 여러 대의 컴퓨터에 배포하는데 특정 컴퓨터에만 hosts 내용을 적용하게 되면 일관성 붕괴
+
+- 장애가 발생했을 때 원인 추적이 극도로 어려움
+SSH/API/DB 등이 간헐적으로 실패하는 경우가 있는데 로그 상 네트워크 문제처럼 보임
+네트워크/방화벽/서버 문제로 오인
+
+- 서버 교체 또는 오토스케일링과 충돌
+클라우드 환경
+	Auto Scaling
+	Immutable Infrastructure
+	Blue/Green 배포
+문제
+	새로 추가되는 서버에는 hosts가 없음
+	기존 서버만 제대로 동작
+	배포 직후 일부 서버만 장애
+
+- 보안 사고 위험
+인증 서버를 가짜 서버로 유도 가능
+이 경우는 내부자 공격이 대부분
+
+- 운영 자동화 도구와 충돌
+충돌 대상
+	Ansible
+	Terraform
+	Kubernetes
+	CI/CD 파이프라인
+문제
+	인프라는 DNS 기준
+	hosts는 로컬 수동 설정
+
+- IPv4/IPv6 우선 순위 문제
+SSH가 IPv6 먼저 시도
+서버는 IPv4만 리슨
+timeout/hang 발생
+
+=>허용 하는 경우
+- 로컬 개발 PC
+- 개인 테스트 서버
+- 단기 장애 우회(장애가 해결되면 즉시 원래대로 복구)
+
+3)DNS의 주요 구성 요소
+=>DNS Recursive Resolver: 사용자로부터 쿼리를 받는 첫번째 지점으로 요청을 받아서 실제 주소를 찾음
+=>Root NameServer: 호스트 이름을 IP 주소로 변환하는 첫번째 단계로 .com, .net 과 같은 TLB 서버의 위치를 알려줌
+=>TLD Nameserver(최상위 네임 서버): .com, .org, .kr 등 도메인의 확장자를 관리하며 구체적인 도메인 정보를 가진 네임서버로 안내
+=>Authoritative Nameserver: 실제 IP 주소가 저장된 최종 목적지로 갈 수 있도록 정확한 IP 주소를 알려줌
+
+4)DNS 레코드 종류
+=>A Record: 도메인을 IPv4 주소와 연결(가장 기본)
+=>AAAA Record: 도메인을 IPv6 와 연결
+=>CNAME: 한 도메인을 다른 도메인으로 연결
+=>MX Record: 해당 도메인의 이메일을 수신할 메일 서버를 지정
+=>TXT Record: 도메인에 대한 텍스트 정보를 담고 보안 인증에 사용
+
+5)DNS Caching
+=>매번 동일한 조회 과정을 거치면 속도가 느려지기 때문에 한 번 찾은 주소는 일정 기간 저장
+=>다음에 접속할 때는 DNS Server에 문의하지 않고 컴퓨터 내부에 저장된 기록(브라우저/OS 캐싱)을 가지고 접속
+=>TTL(Time To Live): DNS 레코드가 캐시에 저장되는 유효 기간
+
+6)DNS 서버 설정
+=>설정 방법
+- /etc/netplan 디렉토리의 yaml 파일
+- /etc/resolv.conf 파일
+
+=>IP 주소를 찾아가는 흐름
+URL 입력 ->/etc/host.conf 조회 -> /etc/hosts(있으면 IP 주소를 획득해서 접속) -> 없으면 /etc/resolv.conf ->네임서버 설정이 존재하면 네임서버에게 질의하고 응답을 받는데 네임서버 설정이 없으면 호스트 이름을 알 수 없다고 에러를 발생
+
+7)도메인 이름 체계
+=>트리 구조
+=>ROOT Name Server는 com, net, org, edu 등의 네임서버 와 국가 도메인인 kr, fr, uk, sp 등을 관리하는 네임서버
+=>com Name Server가 다시 naver, google 등 2단계 도메인을 관리하는 네임 서버 
+
+8)Name Server 설치 및 설정
+=>설치
+sudo apt update
+sudo apt install bind9 bind9-utils bind9-doc -y
+sudo systemctl status bind9
+
+=>설정 파일 수정: sudo vi /etc/bind/named.conf.options
+options {
+        directory "/var/cache/bind";
+        dnssec-validation no;
+        recursion yes;
+        allow-query { any; };
+        listen-on-v6 { any; };
+};
+
+=>서비스를 재시작: sudo systemctl restart named
+
+=> 부팅 시 자동 시작하도록 설정: sudo systemctl enable named
+
+=>서비스 확인: sudo systemctl status named
+
+=>방화벽 해제: sudo ufw allow 53
+
+=>네임 서버 가능 여부 확인: dig @네임서버IP URL
+
+=>다른 컴퓨터의 /etc/resolv.conf 파일의 nameserver란의 현재 컴퓨터로 수정
+
+9)텍스트 기반의 브라우저: elinks
+
+13.Database Server
+1)Maria DB 
+=>설치
+- 패키지 이름: mariadb-server
+- 서비스 활성화(mariadb)
+sudo systemctl start mariadb
+sudo systemctl enable maribdb
+- 서비스 확인
+sudo systemctl status mariadb
+
+=>사용
+- sudo mysql
+
+=>관리자 계정 변경
+- 관리자 비밀번호 변경: sudo mysqladmin -u root password '비밀번호';
+- 관리자로 접속: sudo mysql -u root -p
+
+=>외부 접속 허용
+- 외부에서 접속할 계정 생성
+CREATE USER '계정이름'@'접속위치 또는 %' IDENTIFIED BY '비밀번호';
+
+GRANT ALL PRIVILEGES ON 데이터베이스.테이블 TO '계정'@'접속위치';
+
+FLUSH PRIVILEGES;
+
+- 계정을 이용해서 접속: sudo mysql -u 계정 -p
+
+- 설정 파일에서 바인딩 부분을 수정: sudo nano /etc/mysql/mariadb.conf.d/50-server.cnf
+bind-address = 접속할IP(0.0.0.0 이면 모든 곳에서 127.0.0.1 이면 로컬 컴퓨터에서만 특정 IP를 설정하면 그 컴퓨터에서만 접속 가능)
+설정 파일은 시스템이 시작할 때 한 번 만 읽습니다.
+
+- 서비스 재시작: sudo systemctl restart mariadb
+
+- 방화벽에서 mariadb를 제외: sudo ufw allow 3306/tcp
+
+- 클라이언트에서 접속
+mysql 클라이언트 설치: sudo apt install -y mysql-client
+
+접속: mysql -h <원격서버IP> -P <포트번호> -u 사용자이름 -p
+
+15.Web Server
+1)Apache Web Server
+=>개요
+- 가장 오래되고 검증된 웹 서버
+- 프로세스/스레드 기반 구조를 사용하며 htaccess 파일을 이용해서 디렉토리 별로 설정을 세밀하게 제어할 수 있음
+- PHP 기반 웹 사이트 나 복잡한 모듈 설정이 필요한 환경에 적합
+- 수 많은 모듈이 존재하여 확장성이 뛰어나고 관련 자료가 매우 풍부
+ 
+=>설치
+- sudo install -y apache2
+- 서비스 확인: sudo systemctl status apache2
+
+=>접속: http://localhost
+
+=>Apache Web Server의 기본 디렉토리: /var/www/html
+
+=>사용자 계정에 웹을 설정
+- 일반 사용자 계정에 웹 사이트를 배포하기 위해서 설정을 수정: /etc/apache2/mods-available/userdir.conf 파일
+#UserDir disabled root
+
+- 심볼릭 링크 설정
+sudo ln -s /etc/apache2/mods-available/userdir.conf /etc/apache2/mods-enabled/userdir.conf
+
+sudo ln -s /etc/apache2/mods-available/userdir.load /etc/apache2/mods-enabled/userdir.load
+
+- 서비스 재시작
+sudo systemctl stop apache2
+
+sudo systemctl start apache2
+
+- 사용자의 홈 디렉토리에 public_html 디렉토리 생성: mkdir ~/public_html
+
+- 디렉토리의 접근 권한 변경
+chmod 701 .
+chmod 701 public_html
+
+- public_html 디렉토리에 index.html 파일을 생성하고 작성
+
+=>웹 서버 설정 파일: /etc/apache2/apache2.conf
+
+2)nginx
+=>개요
+- 가볍고 빨라서 동시에 많은 접속자를 처리하는데 특화된 도구
+- 주요 역할
+정적 웹 서버: 메모리 사용량이 적어서 apache web server 보다 많이 사용
+
+리버스 프록시: 클라이언트와 백엔드 서버 사이에 중개자 역할을 할 수 있는데 실제 서버의 IP 주소를 숨길 수 있어서 보안이 우수하며 자주 요청되는 데이터를 미리 저장해서 서버 부하를 줄임
+
+로드밸런서: 한대의 서버에 트래픽이 몰리지 않도록 여러 대의 서버에 요청을 분산시켜주는 역할을 수행
+
+=>Apache 와 차이점
+			Apache				Nginx
+작동 방식		스레드/프로세스 기반		비동기 이벤트 기반
+성능			대규모 동시 접속 시 부담	대규모 동시 접속에 매우 강함
+유연성		다양한 모듈 제공			가볍고 성능 중심적
+
+=>nginx 설치
+sudo apt install -y nginx
+
+sudo systemctl status nginx
+
+=>80번 포트를 기본 포트로 사용하므로 브라우저 나 curl 확인
+curl http://localhost
+
+=>정적 웹 사이트 게시
+- 디렉토리 생성: sudo mkdir -p /var/www/example.com/html
+
+- 디렉토리의 소유권 변경: sudo chown -R $USER:$USER /var/www/example.com/html
+
+- 생성한 디렉토리에 html 파일을 작성(설정을 변경하지 않으려면 index.html로 작성)
+
+- 설정 파일을 수정: /etc/nginx/sites-available/default
+server{
+	listen 80;
+	listen [::]:80;
+
+	root /var/www/example.com/html; #이 부분을 수정
+	index index.html; #앞에서 welcome file의 이름을 변경했으면 여기도 수정
+
+	server_name	 example.com www.example.com
+
+	location / {
+		try_files $uri $uri/ = 404;
+	}
+}
+
+- 설정 오류 확인: sudo nginx -t
+
+- 설정을 다시 읽어오기: sudo systemctl reload nginx
+
+=>리버스 프록시(Reverse Proxy) 설정
+- 리버스 프록시: 클라이언트의 요청을 대시 받아서 내부 서버로 전달하고 서버의 응답을 다시 클라이언트에게 전달하는 프록시 서버
+
+- 목적
+Load Balancing
+보안 강화: 실제 서버를 외부로 노출하지 않음, DDoS, WAF(Web Application Firewall) 와 함께 사용
+캐싱
+압축 및 최적화
+URL 라우팅: URL을 받아서 각기 다른 서버로 요청을 전송
+
+- 설정 파일을 수정: api.example.com 이라는 요청이 오면 내부 서버의 3000번 포트로 전송
+server{
+	listen: 80;
+	server_name api.examle.com
+
+	location /{
+		proxy_pass http://localhost:3000
+
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwareded-For $proxy_add_x_forwarded_for;
+		proxy_set_header X-Forwareded-Proto $scheme;
+	}
+
+}
+
+=>LoadBalancing 
+- 설정 파일을 수정: example.com 이라는 요청이 오면 3개의 요청을 로드밸런싱
+
+upstream backend_servers{
+	server 192.168.0.101:5000;
+	server 192.168.0.102:5000;
+	server 192.168.0.103:5000;
+}
+
+server{
+	listen: 80;
+	server_name examle.com
+
+	location /{
+		proxy_pass http://backend_servers
+
+		proxy_set_header Host $host;
+		proxy_set_header X-Real-IP $remote_addr;
+	}
+
+}
+
+16.File Sharing
+1)FTP
+=>개요
+- File Transfer Protocol은 네트워크를 통해 컴퓨터간에 파일을 전송하기 위한 가장 기본적인 표준 통신 규약
+- 다른 프로토콜 과 달리 2개의 포트를 동시에 사용
+
+=>핵심 작동 원리: 2개의 채널
+- Control Channel(21): 사용자의 아이디 비밀번호 확인 및 명령어를 전달
+- Data Channel(20): 실제 데이터가 오가는 통로로 제어 채널에서 명령이 전달되면 실제 파일 전송이 이루어 짐
+
+=>접속 방식
+- 능동 모드(Active): 서버가 클라이언트에게 접속을 시도하는 방식
+- 수동 모드(Passive): 클라이언트가 서버에게 접속을 시도하는 방식, 대부분의 웹 브라우저나 공유기가 사용하는 방식
+
+=>종류
+- 기본 FTP: 아이디와 비밀번호가 암호화되지 않은 채로 전송되는 방식인데 해킹에 취약
+- SFTP(Secure FTP): SSH 기술을 이용해서 전송 과정 전체를 암호화하는 방식으로 현재 가장 많이 사용되는 방식
+- FTPS(FTP over SSL/TLS): 웹 사이트 주소 앞에 https를 붙이는 것처럼 SSL 인증서를 사용하여 암호화하는 방식
+
+=>장점: 대용량 파일을 일괄 전송하기에 매우 효율적이고 전송 속도가 빠름
+=>단점: 보안 설정을 하지 않으면 정보 유출 위험이 크고 설정이 복잡해질 수 있음
+
+2)vsftpd
+=>개요
+- 우분투에서 기본적으로 제공하는 보안성과 성능이 우수한 FTP 서버
+- 설치 및 운영이 쉬움
+
+=>설치: sudo apt -y install vsftpd
+
+=>설정 파일: /etc/vsftpd.conf
+anonymous_enable: 익명 사용자의 접속 허용 여부(로그인을 하지 않아도 됨)
+local_enable: 로컬 컴퓨터에서의 접속
+max_clients: 동시 최대 접속자 수
+max_per_ip: 하나의 PC에서 접속할 수 있는 접속자 수
+
+=>실습
+- 설정 변경
+anonymous_enable=YES
+wirte_enable=YES
+anon_upload_enable=YES
+anon_mkdir_write_enable=YES
+
+- 디렉토리 생성
+cd /srv/ftp
+
+sudo mkdir pub
+sudo chmod 777 pub
+cd pub
+sudo touch file 
+ls -l
+
+- vsftpd 재시작: sudo systemctl restart vsftpd
+
+3)SSH를 이용한 파일 전송
+=>사용하는 이유
+- 별도의 서버 설치 불필요
+- 데이터 무결성 검증
+- 인증 방식의 다양성
+
+=>SCP(Secure Copy): 가장 빠르고 간단하게 파일을 복사할 때 사용하는데 명령어 한 줄로 전송이 끝나는 방식
+- 로컬에서 원격지로 파일 보내기
+scp [파일 경로] [계정]@[IP주소]:[저장경로]
+
+- 원격지에서 로컬로 파일 보내기
+scp [계정]@[IP주소]:[파일경로] [로컬경로]
+
+=>pem 파일을 이용한 인증
+- pem 파일을 생성: ssh-keygen -t rsa -b 4096 -m PEM -f 파일경로
+- 파일 소유자에게만 읽기 권한 부여: chmod 400 파일경로
+
+- 로컬에서 원격지로 파일 보내기
+scp -i pem파일경로 [파일 경로] [계정]@[IP주소]:[저장경로]
+
+- 원격지에서 로컬로 파일 보내기
+scp -i pem파일경로 [계정]@[IP주소]:[파일경로] [로컬경로]
+
+4)NFS
+=>개요
+- NFS(Network File System)는 네트워크 상의 다른 컴퓨터의 파일 시스템을 마치 자신의 로컬 디스크에 있는 것 처럼 사용할 수 있게 해주는 클라이언트/서버 프로토콜
+- 현재는 유닉스 와 리눅스 환경에서 표준 파일 공유 프로토콜로 사용됨
+
+=>주요 특징
+- Transparency(투명성): 사용자는 파일이 원격 서버에 있는지 로컬 디스크에 있는지 구분하지 않고 동일한 명령어로 파일을 읽고 쓸 수 있음
+- 중앙 집중 관리: 데이터를 서버 한 곳에 모아 관리하므로 백업이나 보안 정책 적용이 효율적
+- 플랫폼 독립성: RPC(Remote Procedure Call - 원격 프로시저 호출, 다른 컴퓨터의 메서드를 호출) 메커니즘을 사용하여 서로 다른 운영체제 간에도 파일 공유가 가능
+
+=>장점
+- 비용 절감
+- 편의성: 사용자 홈 디렉토리를 NFS로 설정하면 어떤 컴퓨터에서 로그인 하든 동일한 작업 환경을 유지할 수 있음
+
+=>단점
+- 네트워크 의존성
+- 보안이 취약: 초창기 버전은 호스트 IP 기반의 인증 방식을 주로 사용해서 보안에 취약할 수 가 있음
+
+=>활용 사례
+- 클러스터 서버: 여러 대의 웹 서버나 애플리케이션 서버가 동일한 데이터를 공유해야 할 때 사용
+- 데이터 백업: 여러 호스트의 데이터를 중앙 스토리지 서버로 모으는 용도로 활용
+- kubernetes: 컨테이너 환경에서 영구 볼륨(Persistent Volume)으로 NFS를 연결해서 데이터의 휘발성을 방지
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

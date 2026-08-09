@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>ContentFilters</key>
+	<dict/>
+	<key>auto_connect</key>
+	<true/>
+	<key>data</key>
+	<dict>
+		<key>connection</key>
+		<dict>
+			<key>allowDataLocalInfile</key>
+			<integer>0</integer>
+			<key>database</key>
+			<string>practice</string>
+			<key>enableClearTextPlugin</key>
+			<integer>0</integer>
+			<key>host</key>
+			<string>localhost</string>
+			<key>kcid</key>
+			<string>6972335119068738975</string>
+			<key>name</key>
+			<string>autoever</string>
+			<key>port</key>
+			<integer>3197</integer>
+			<key>rdbms_type</key>
+			<string>mysql</string>
+			<key>sslCACertFileLocation</key>
+			<string></string>
+			<key>sslCACertFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslCertificateFileLocation</key>
+			<string></string>
+			<key>sslCertificateFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>sslKeyFileLocation</key>
+			<string></string>
+			<key>sslKeyFileLocationEnabled</key>
+			<integer>0</integer>
+			<key>type</key>
+			<string>SPTCPIPConnection</string>
+			<key>useSSL</key>
+			<integer>0</integer>
+			<key>user</key>
+			<string>root</string>
+		</dict>
+		<key>session</key>
+		<dict>
+			<key>connectionEncoding</key>
+			<string>utf8mb4</string>
+			<key>contentFilterV2</key>
+			<dict>
+				<key>children</key>
+				<array/>
+				<key>filterClass</key>
+				<string>groupNode</string>
+				<key>isConjunction</key>
+				<true/>
+			</dict>
+			<key>contentPageNumber</key>
+			<integer>1</integer>
+			<key>contentSelection</key>
+			<data>
+			YnBsaXN0MDDUAQIDBAUGBwpYJHZlcnNpb25ZJGFyY2hpdmVyVCR0
+			b3BYJG9iamVjdHMSAAGGoF8QD05TS2V5ZWRBcmNoaXZlctEICVRk
+			YXRhgAGtCwwZGhscHSEoLDA0OFUkbnVsbNMNDg8QFBhXTlMua2V5
+			c1pOUy5vYmplY3RzViRjbGFzc6MREhOAAoADgASjFRYXgAWABoAI
+			gAxUdHlwZVRyb3dzVGtleXNfECZTZWxlY3Rpb25EZXRhaWxUeXBl
+			UHJpbWFyeUtleWVkRGV0YWlsc9MNDg8eHyCgoIAH0iIjJCVaJGNs
+			YXNzbmFtZVgkY2xhc3Nlc18QE05TTXV0YWJsZURpY3Rpb25hcnmj
+			JCYnXE5TRGljdGlvbmFyeVhOU09iamVjdNIODykroSqACYAL0g8t
+			Li9ZTlMuc3RyaW5ngApTbnVt0iIjMTJfEA9OU011dGFibGVTdHJp
+			bmejMTMnWE5TU3RyaW5n0iIjNTZeTlNNdXRhYmxlQXJyYXmjNTcn
+			V05TQXJyYXnSIiMmOaImJwAIABEAGgAkACkAMgA3AEkATABRAFMA
+			YQBnAG4AdgCBAIgAjACOAJAAkgCWAJgAmgCcAJ4AowCoAK0A1gDd
+			AN4A3wDhAOYA8QD6ARABFAEhASoBLwExATMBNQE6AUQBRgFKAU8B
+			YQFlAW4BcwGCAYYBjgGTAAAAAAAAAgEAAAAAAAAAOgAAAAAAAAAA
+			AAAAAAAAAZY=
+			</data>
+			<key>contentSortColIsAsc</key>
+			<true/>
+			<key>contentViewport</key>
+			<string>{{0, -28}, {707, 1007}}</string>
+			<key>isToolbarVisible</key>
+			<true/>
+			<key>queries</key>
+			<string>생년월일은 날짜
+이 테이블은 트랜잭션 처리보다는 조회를 더 많이 수행
+일련번호는 1부터 시작 이모티콘을 저장할 거 같음
+
+CREATE TABLE ADDRESSBOOK(
+	num INTEGER AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(20),
+	address CHAR(100),
+	tel VARCHAR(11),
+	email CHAR(100),
+	birthday date
+) ENGINE=MyISAM auto_increment=1 DEFAULT CHARSET=utf8mb4;
+
+테이블 구조 확인
+DESC ADDRESSBOOK;
+
+테이블 수정
+컬럼 추가
+ALTER TABLE 테이블이름 ADD 컬럼이름 컬럼타입 [first 또는 after 컬럼이름];
+
+컬럼 삭제
+ALTER TABLE 테이블이름 DROP 컬럼이름
+
+컬럼 수정
+ALTER TABLE 테이블이름 CHANGE 이전컬럼이름 새로운컬럼이름 자료형;
+
+자료형만 변경할 때는 ALTER TABLE 테이블이름 MODIFY 이전컬럼이름 자료형;
+
+제약조건 중 NOT NULL 을 NULL이 가능하도록 변경하거나 NULL 가능을 NOT NULL로 변경하는 것은 제약조건의 변경이지만 컬럼의 자료형 변경으로 처리합니다.
+데이터베이스에서 NULL을 컬럼에 직접 NULL을 삽입하는 것이 아니고 NULL 여부를 표시하는 공간을 추가해서 생성한 후 이 공간의 값을 가지고 판단하기 때문에 NULL 가능과 NOT NULL 의 차이는 메모리 공간의 차이로 간주하기 때문에 수정할 때 공간의 크기를 변경하는 형태의 명령어를 사용
+
+tel이라는 컬럼의 자료형을 정수로 변경하고 이름도 phone으로 수정
+ALTER TABLE ADDRESSBOOK CHANGE tel phone INTEGER;
+
+컬럼 순서 조정
+ALTER TABLE 테이블이름 MODIFY COLUMN 컬럼이름 자료형 FIRST;
+ALTER TABLE 테이블이름 MODIFY COLUMN 컬럼이름 자료형 AFTER 다른컬럼;
+
+테이블 이름 수정
+ALTER TABLE 테이블이름 rename 새로운이름;
+ALTER TABLE ADDRESSBOOK rename ADDRESS;
+
+테이블 삭제 -- 테이블 데이터를 삭제
+TRUNCATE TABLE 테이블이름;
+
+테이블 삭제 -- 테이블을 삭제
+DROP TABLE 테이블이름;
+
+컬럼 제약 조건으로 설정할 때는 REFERENCES 다른테이블이름(참조될 컬럼이름)의 형태로 만들고 테이블 제약조건으로 설정할 때는 FOREIGN KEY(외래키 컬럼 이름) REFERENCES 다른테이블이름(참조될 컬럼 이름)
+
+외래키를 설정하면 참조되는 테이블에서 데이터를 수정하거나 삭제할 수 없음
+외래키를 설정할 때 참조되는 테이블에서 데이터를 수정하거나 삭제하려면 외래키를 만들 때 옵션을 추가해야 함
+ON DELETE {NO ACTION | CASCADE | SET NULL | SET DEFAULT}
+ON UPDATE {NO ACTION | CASCADE | SET NULL | SET DEFAULT}
+
+CASCADE → 삭제되거나 변경될 때 같이 삭제되거나 변경이 됨
+SET NULL → 삭제되거나 변경될 때 NULL로 변경
+SET DEFAULT → 데이터베이스의 기본 설정을 따라감
+
+</string>
+			<key>table</key>
+			<string>ADDRESSBOOK</string>
+			<key>view</key>
+			<string>SP_VIEW_CUSTOMQUERY</string>
+			<key>windowVerticalDividerPosition</key>
+			<real>214</real>
+		</dict>
+	</dict>
+	<key>encrypted</key>
+	<false/>
+	<key>format</key>
+	<string>connection</string>
+	<key>queryFavorites</key>
+	<array/>
+	<key>rdbms_type</key>
+	<string>mysql</string>
+	<key>rdbms_version</key>
+	<string>12.3.2-MariaDB-ubu2404</string>
+	<key>version</key>
+	<integer>1</integer>
+</dict>
+</plist>

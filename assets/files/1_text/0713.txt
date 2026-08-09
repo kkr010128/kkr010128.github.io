@@ -1,0 +1,575 @@
+수업 자료: ggangpae1.tistory.com
+
+EMP, DEPT, SALGRADE 테이블
+
+**Maria DB
+3.Function
+1)개요
+=> 입력 데이터를 이용해서 연산을 수행한 후 출력 값을 만들어내는 개체
+=> 함수에 입력하는 데이터를 Argument 또는 Parameter 라고 하며 돌려주는 데이터를 Return Data라고 합니다.
+
+2)함수의 종류
+=> Scala 함수: 값 하나를 가지고 연산을 수행하는 함수
+=> Group 함수: 그룹 별로 연산을 해서 그룹 별로 하나의 데이터를 리턴하는 함수
+
+3)문자 함수
+=>길이 관련 함수: BIT_LENGTH, CHAR_LENGTH, LENGTH 등
+- 길이 관련 함수가 다양한 이유는 실제 글자 수를 세는 함수도 있고 메모리 사이즈를 구하는 함수도 존재
+
+=>문자 또는 문자열의 위치를 찾아주는 함수: ELT, FINT_IN_SET, INSTR, LOCATE 등
+- 맨 앞에서부터 찾는지 아니면 뒤에서 찾는지 
+- 데이터의 위치를 찾는 함수는 못찾으면 -1을 리턴
+
+=>문자열을 잘라주는 함수: LEFT, RIGHT, LTRIM, RTEM, TRIM
+- LEFT 와 RIGHT는 글자를 제거
+- TRIM은 공백을 제거
+- 특정 위치부터 반환하는 함수
+
+=>문자열 함수는 기본적으로 Scala 함수
+
+=>usertbl 테이블에서 name 과 name의 길이를 조회
+SELECT name, LENGTH
+FROM usertbl;
+
+=>SUBSTRING 함수 예제
+SUBSTRING(문자열, 시작위치, 길이)를 주면 문자열에서 시작위치부터 길이만틈 리턴합니다.
+
+- EMP 테이블에서 ENAME 과 HIREDATE에서 입사년도를 조회
+SUBSTRING을 이용해서 작업
+
+SELECT ENAME, SUBSTRING(HIREDATE, 1, 4)
+FROM EMP; 
+
+- 아래 SQL 구문은 에러
+SELECT ENAME, SUBSTRING(HIREDATE, 1, 4) as '입사년도'
+FROM EMP
+where 입사년도 = 1981;
+
+- 이 구문은 성공
+SELECT t.ENAME, t.입사년도
+FROM (SELECT ENAME, SUBSTRING(HIREDATE, 1, 4) as '입사년도' from emp) t
+where t.입사년도 = 1981;
+
+4)수치 함수
+=>삼각 함수 관련 함수 나 반올림 관련 함수가 존재
+=>반올림 관련 함수
+- CEILING: 올림
+- FLOOR: 내림
+- ROUND: 반올림
+- TRUNCATE: 버리는 함수
+자릿 수 와 함께 사용하는데 자릿수를 설정할 때는 음수이면 소수점 앞 자릿수를 의미하고 양수이면 소숫점 자릿수
+
+5)날짜 함수
+=>현재 날짜 및 시간
+- CURRENT_DATE(), CUR_DATE(): 현재 날짜를 년-월-일 형태로 리턴
+- CURRENT_TIME(), CURTIME(), LOCALTIME(): 현재 시간을 시:분:초 형태로 리턴
+- NOW(), LOCALTIME(), LOCLTIMESTAMP(), SYSDATE(), CURRENT_TIMESTAMP(): 날짜 및 시간
+
+=>시간을 더하거나 빼주는 함수
+- ADDTIME(날짜 및 시간, 시:분:초)
+- SUBTIME(날짜 및 시간, 시:분:초)
+
+=>날짜 및 시간을 리턴해주는 함수
+
+=>특정 날짜 생성
+- STR_TO_DATE(날짜 문자열, 서식 문자열)
+1986년 5월 5일 11시를 생성
+STR_TO_DATE('1986-05-05 11:00:00', '%Y-%m-%d %H:%i:%S')
+
+MySQL 과 MariaDB는 날짜 및 시간을 문자열로 삽입하면 날짜 나 시간으로 자동으로 변경해서 삽입합니다.
+
+=>날짜 연산
+- 날짜 사이의 차이
+DATEDIFF, TIMEDIFF 와 같은 함수 이용
+
+- 날짜에 정수 데이터 연산
+날짜 + INTERVAL 정수 단위
+
+- EMP 테이블에서 ENAME 과 현재 날짜에서 HIREDATE를 뺀 값을 조회
+SELECT ENAME, DATEDIFF(CURRENT_DATE(), HIREDATE)
+FROM EMP;
+
+6)NULL 관련 함수
+=>NULL은 아직 알려지지 않은 값
+=>NULL 과의 연산은 무조건 NULL
+
+=>IFNULL(인자1, 인자2): 인자1의 값이 NULL이면 인자2의 값을 리턴하고 NULL이 아니면 인자1의 값을 리턴
+다른 곳에서는 NVL 함수
+=>NVL2(인자1, 인자2, 인자3): 인자1의 값이 NULL이면 인자3의 값을 리턴하고 NULL이 아니면 인자2의 값을 리턴
+다른 곳에서는 NVL 함수
+
+=>EMP 테이블에서 ENAME 과 COMM을 조회
+SELECT ename, comm
+FROM emp;
+
+=>EMP 테이블에서 ENAME 과 COMM에 100을 더한 값을 조회
+SELECT ename, ifnull(comm, 0) + 100
+FROM emp;
+
+4.GROUPING
+1)집계 함수
+=>데이터를 그룹화해서 통계를 계산해주는 함수로 숫자 나 날짜 데이터에 이용
+=>GROUP BY 이후에 그룹화가 이루어지므로 HAVING 이나 SELECT 절에서만 사용 가능
+=>문자열은 합계나 평균은 구할 수 없지만 최대값과 최소값은 구할 수 있음
+=>종류
+SUM()
+AVG()
+MIN()
+MAX()
+COUNT()
+
+STDEV()
+VAR_SAMP()
+=>집계 함수는 NULL인 데이터는 제외하고 연산을 수행
+
+=>COUNT 함수
+- 개수를 세주는 함수
+- 컬럼이름을 기재하면 컬럼에서 NULL 이 아닌 값의 개수를 리턴하고 *을 이용하면 모든 컬럼의 값이 NULL이 아닌 개수를 리턴
+- 대부분의 경우 *을 이용
+
+- emp 테이블에서 COMM의 값이 NULL 아닌 데이터의 개수
+SELECT COUNT(COMM)
+FROM emp;
+
+- EMP 테이블의 행의 개수를 조회
+SELECT COUNT(*)
+FROM EMP;
+
+- EMP 테이블에서 DEPTNO의 중복을 제외한 개수
+SELECT COUNT(DISTINCT DEPTNO)
+FROM EMP;
+
+- 연습문제
+tStaff 테이블에서 score가 80이상인 직원은 몇 명인지 확인
+SELECT   COUNT(*)
+FROM	tStaff
+WHERE	score >= 80;
+
+tStaff 테이블에서 score가 없는 직원은 몇 명인지 확인
+SELECT   COUNT(*)
+FROM	tStaff
+WHERE	score IS NULL;
+
+=>다른 집계 함수
+- 다른 집계 함수는 COLUMN 이름이나 연산식을 이용해서 작성
+- WHERE 절을 사용할 때 조건에 일치하는 데이터가 없으면 COUNT는 0을 리턴하지만 나머지 집계 함수들은 NULL을 리터
+SELECT   COUNT(*)
+FROM	tStaff
+WHERE	score > 100;
+
+2)GROUP BY
+=>그룹화 해주는 절
+=>컬럼이름이나 연산식을 나열하면 컬럼이나 연산식으로 그룹화를 수행
+=>집계 함수는 GROUP BY 다음에 사용할 수 있는 함수입니다.
+=>WHERE 절에서는 집계 함수를 사용할 수 없습니다.
+=>GROUP BY를 수행한 후 집계 함수를 조회하는 경우 특별한 경우가 아니면 그룹화 한 항목을 같이 출력합니다.
+=>GROUP BY를 수행한 경우 SELECT 절에는 그룹화 한 항목 과 집계 함수만 출력하는 것이 일반적입니다.
+- 그룹화 한 항목이 아닌 컬럼을 조회하는 경우
+ORACLE: 에러
+MySQL, Maria DB: 그룹화 한 항목 중 첫번째 데이터를 조회
+
+=>EMP 테이블에서 DEPTNO 별로 SAL의 평균을 조회
+SELECT		ROUND(AVG(SAL)) as "평균 급여"
+FROM		EMP
+GROUP BY	DEPTNO;
+
+=>되도록이면 그룹화 한 항목을 같이 조회
+SELECT		DEPTNO, ROUND(AVG(SAL)) AS "평균 급여"
+FROM		EMP
+GROUP BY	DEPTNO;
+
+=>GROUP BY 이후에 집계 함수가 만들어지므로 WHERE 절에 집계 함수를 사용하면 에러
+SELECT		DEPTNO, ROUND(AVG(SAL)) AS "평균 급여"
+FROM		EMP
+WHERE		ROUND(AVG(SAL)) > 2000
+GROUP BY	DEPTNO;
+
+=>Maria DB에서는 GROUP BY 절에서 묶은 속성이외의 속성을 조회하면 첫번째 데이터가 조회
+SELECT		DEPTNO, ENAME, ROUND(AVG(SAL)) AS "평균 급여"
+FROM		EMP
+GROUP BY	DEPTNO;
+
+3)HAVING
+=>GROUP BY 다음에 나오는 출력할 그룹의 조건을 지정하는 절
+=>집계 함수에 대한 조건은 이 절에 작성
+=>EMP 테이블에서 DEPTNO 별로 SAL의 평균을 조회하는데 평균이 2000이 넘는 경우만 조회
+SELECT		DEPTNO, ROUND(AVG(SAL)) AS "평균 급여"
+FROM		EMP
+GROUP BY	DEPTNO
+HAVING		ROUND(AVG(SAL)) > 2000;
+
+=>연습문제
+- EMP 테이블에서 JOB별로 최대 급여와 최소 급여를 조회
+SELECT		JOB, MAX(SAL) AS "최대 급여", MIN(SAL) AS "최소 급여"
+FROM		EMP
+GROUP BY	JOB;
+
+- EMP 테이블에서 JOB 별 인원이 4명 이상인 데이터를 조회하는데 JOB 과 인원 수를 조회
+SELECT		JOB, COUNT(*) AS "인원 수"
+FROM		EMP
+GROUP BY	JOB
+HAVING 		COUNT(*) >= 4;
+
+4)윈도우 함수
+=>개요
+- 행과 행 사이의 관계를 쉽게 정의하기 위한 함수
+- 이 함수를 이용하면 복잡한 SQL을 쉽게 활용할 수 있음
+- OVER 절이 포함된 함수
+- 집계 함수 와 비 집계 함수(CUME_DIST, DENSE_RANK, FIRST_VALUE 등) 를 이용
+
+=>순위 함수
+- RANK(동일한 값은 동일한 순위를 매기는 것으로 다음 순위를 건너뜀), NTILE(그룹화할 개수를 설정해서 그룹 별 순위를 리턴), DENSE_RANK(동일한 값은 동일한 순위를 매기는 함수로 다음 순위를 건너뛰지 않음), ROU_NUMBER(중복 허용 하지 않음), PERCENT_RANK(백분율로 리턴)
+
+- 기본 형식
+함수이름() OVER([PARTITION BY 그룹화할 항목이름]) ORDER BY 정렬할 컬럼이름이나 연산식
+
+- usertbl 테이블에서 name 과 birthyear와 birthyear가 작은 것부터 순위를 매개서 같이 출력(중복 없이 출력)
+SELECT name, birthyear, ROW_NUMBER() over(ORDER BY birthyear ASC) '순위'
+FROM usertbl;
+
+- birthyear 가 같은 경우 name으로 오름차순으로 순위 설정
+SELECT name, birthyear, ROW_NUMBER() over(ORDER BY birthyear ASC, name ASC) '순위'
+FROM usertbl;
+
+- birthyear 가 같은 경우 addr 별로 그룹화 해서 name으로 오름차순으로 순위 설정
+SELECT name, birthyear, addr, ROW_NUMBER() over(PARTITION BY addr ORDER BY birthyear ASC, name ASC) '순위'
+FROM usertbl;
+
+- usertbl 테이블에서 name 과 birthyear와 birthyear가 작은 것부터 순위를 매개서 같이 출력(동일한 값을 동일한 순위를 부여하고 다음 순위는 생략)
+SELECT name, birthyear, RANK() over(ORDER BY birthyear ASC) '순위'
+FROM usertbl;
+
+- NTILE은 일정한 등분을 해서 순위를 부여
+SELECT name, birthyear, NTILE(5) over(ORDER BY birthyear ASC) '순위'
+FROM usertbl;
+
+=>분석 관련 함수
+- CUME_DIST(): 누적 합계
+- FIRST_VALUE(): 첫번째 데이터
+- LAST_VALUE(): 마지막 데이터(현재까지의 마지막 데이터)
+- LEAD(): 다음 행 데이터
+- LAG(): 이전 행 데이터
+
+- 첫번째 행과의 차이를 출력
+SELECT name, birthyear, birthyear - (FIRST_VALUE(birthyear) OVER(ORDER BY birthyear)) AS "나이차이"
+FROM usertbl;
+
+- 이전 행 과의 차이
+SELECT name, birthyear, birthyear - (LAG(birthyear, 1) OVER(ORDER BY birthyear)) AS "나이차이"
+FROM usertbl;
+
+=>WITH ROLLUP
+- GROUP BY 절의 마지막에 작성하는데 이 명령어가 포함되면 그룹별 합계와 총 합계를 출력
+- order_d 테이블에서 goodscd 별로 qty의 합계를 조회하는데 총 합계도 출력
+SELECT goodscd, SUM(qty)
+FROM order_d
+GROUP BY goodscd WITH ROLLUP;
+
+5.DDL(Data Definition Language)
+1)무결성 제약 조건
+=>개체 무결성: 기본키는 NULL 일 수 없다.
+=>참조 무결성: 외래키는 참조 할 수 없는 값을 가질 수 없다. NULL을 가지는 것은 가능
+
+2)데이터 중복으로 인한 이상 현상
+=>삽입 이상: 삽입하고자 하는 데이터가 있는 삽입하지 못하는 현상
+=>삭제 이상: 데이터를 삭제할 때 필요한 정보도 같이 삭제되는 현상 
+=>변경 이상: 변경하고자 하는 사실은 하나인데 여러 번 변경해야 하는 현상
+
+3)함수적 종속
+=>어떤 속성 또는 속성의 집합이 다른 속성의 값을 하나로 결정할 때 이를 함수적으로 종속했다고 하고 X -> Y로 표현
+X가 결정을 하고 결정자이고 Y가 결정이 되는 종속자입니다.
+예를 들면 주민등록번호를 알면 이름 1개를 결정지을 수 있습니다.
+이런 경우 주민등록번호가 이름을 함수적으로 종속했다고 하고 주민등록번호 -> 이름 으로 표현합니다.
+=>함수적 종속 종류
+- 완전 함수적 종속: 기본키가 2개 이상의 속성으로 구성된 경우 2개 전체를 알아야만 하나의 값을 알게되는 경우
+- 부분 함수적 종속: 기본키가 2개 이상의 속성으로 구성된 경우 1개 속성의 값만 알아도 하나의 값을 알게되는 경우
+- 이행적 함수적 종속: A->B 이고 B->C 인 경우 A->C 인 경우
+
+4)Normalization(정규화)
+=>데이터의 일관성, 최소한의 데이터의 중복, 최대한의 데이터 유연성을 확보하기 위한 방법으로 데이터를 분해하는 과정
+
+=>장점
+- 중복값이 줄어듬
+- NULL이 줄어듬
+- 데이터 구조의 안정성을 최대화
+
+=>정규화의 종류
+- 1정규화: 모든 관계형 데이터베이스가 만족하는 정규형으로 모든 속성의 값은 원자값(분해되지 않는 값)이어야 한다.
+- 2정규화: 제 1정규형을 만족하면서 테이블에 존재하는 모든 부분 함수적 종속을 제거
+- 3정규화: 제 2정규형을 만족하면서 테이블에 존재하는 이행적 함수적 종속을 제거
+- BCNF(Boyce-Codd 정규화 - 강한 3정규화): 제 3정규형을 만족하면서 모든 결정자가 후보키이어야 한다.
+- 4정규화: BCNF를 만족하면서 MVD(Multi Value Dependency - 다치 종속)를 제거한 정규화
+- 5정규화: 후보키를 통하지 않은 JD(Join Dependency - 조인 종속)을 제거한 정규화
+
+=>정규화의 문제점
+- 빈번한 JOIN 연산의 증가: 시스템 성능 저하
+- 부자연스러운 DB Semantic 초래
+- 조회/검색 위주의 응용 시스템에 부적합
+
+=>정규화의 문제점 해결 방안 과 업계 동향
+- 정규화 완료 후 업무 특성 과 성능 향상을 위해 De-Normalization 수행
+
+- 업무 특성 별 정규화 수준
+온라인 처리: 소규모 정규화
+단순 조회용 데이터: 비정규화
+배치 처리: 비정규화
+
+- 응답 시간이 빠르게 요구되는 온라인 실시간 시스템에서는 제한적인 정규화
+
+- 기억 장치가 대용량화되고 저렴해지면서 정규화의 중요성이 저하되고 성능이 우선시 됨
+
+=>반정규화
+- 테이블 추가
+중복 테이블 추가
+통계 테이블 추가
+이력 테이블 추가
+부분 테이블 추가
+
+- 테이블 병합
+
+- 테이블 분할(파티셔닝)
+수직 분할: 테이블의 컬럼 분할, 컬럼 수가 많을 때 
+
+수평 분할: 테이블의 행을 분할, 행의 개수가 많을 때
+	범위 분할: 일정한 범위 단위로 분할, 우편번호
+	목록 분할: 값을 가지고 분할(숫자가 아닌 문자열인 경우)
+	해시 분할: 해시 함수를 이용해서 분할
+	합성 분할
+
+- 컬럼 반정규화
+중복 컬럼 추가
+파생 컬럼 추가
+이력 테이블 컬럼 추가
+
+5)테이블 생성
+=>생성 구문
+CREATE [TEMPORARY] TABLE [IF NOT EXISTS] 테이블이름(
+	컬럼이름 자료형 [CONSTRAINT 제약조건이름 제약조건],
+	....
+	[CONSTRAINT 제약조건이름 제약조건]) ENGINE=엔진명;
+
+=>자료형
+- 숫자
+BIT
+TINYINT
+SMALLINT
+MEDIUMINT
+INT(INTEGER) - 정수(4byte: 21억 정도의 음과 양수)
+BIGINT
+FLOAT
+DOUBLE: 실수
+DECIMAL(m, [d]): 실수인데 소수 자릿수를 설정
+
+- 문자
+CHAR(n): 255자까지, 고정길이 문자열
+
+VARCHAR(n): 65535자까지, 가변길이 문자열
+
+TEXT: LONGTEXT는 4294967000 자 정도, INDEX 설정이 안됨
+
+BLOB: 파일의 내용을 저장할 때 사용, INDEX 설정이 안됨
+
+- 날짜
+DATE
+
+DATETIME
+
+TIMESTAMP
+
+TIME
+
+YEAR
+
+- 기타
+BOOL
+JSON: JavaScript Object Notation
+GEOMETRY: 공간 데이터 형식
+
+=>ENGINE
+- MyISAM: 조회에 유리, INDEX를 이용해서 빠르게 검색하도록 만든 엔진
+
+- InnoDB: 트랜잭션 처리에 유리, INDEX를 이용한 검색에는 취약
+
+=>AUTO_INCREMENT=초기값
+- 일련번호의 초기값 설정을 테이블을 만들 때 수행 할 수 있음
+
+=>DEFAULT CHARSET으로 인코딩 방식 설정
+utf8
+utf8mb4
+
+=>collation: 문자를 어떻게 정렬할 것인지
+
+=>테이블을 생성
+일련번호
+이름은 변경이 거의 없고 영문 20자 이내
+주소인데 변경이 아주 자주 발생하고 영문 100자 이내
+전화번호는 변경이 거의 없고 숫자 11자
+이메일은 변경이 아주 자주 발생하고 영문 100자 이내
+생년월일은 날짜
+
+이 테이블은 트랜잭션 처리보다는 조회를 많이 수행
+일련번호는 1부터 시작
+이모티콘을 저장할 것 같음
+
+CREATE TABLE ADDRESSBOOK(
+	num INTEGER AUTO_INCREMENT PRIMARY KEY,
+	name VARCHAR(20),
+	address CHAR(100),
+	tel VARCHAR(11),
+	email CHAR(100),
+	birthday date
+)ENGINE=MyISAM auto_increment=1 DEFAULT CHARSET=utf8mb4;
+
+6)테이블 수정
+=>컬럼 추가
+ALTER TABLE 테이블이름 ADD 컬럼이름 컬럼타입 [first 또는 after 컬럼이름];
+
+이전에 만든 컬럼에 age 라는 정수를 저장하는 컬럼을 맨 뒤에 추가
+ALTER TABLE ADDRESSBOOK ADD age INTEGER;
+
+테이블 구조 확인
+DESC ADDRESSBOOK;
+
+=>컬럼 삭제
+ALTER TABLE 테이블이름 DROP 컬럼이름;
+
+age 라는 컬럼 삭제
+ALTER TABLE ADDRESSBOOK DROP age;
+
+테이블 구조 확인
+DESC ADDRESSBOOK;
+
+=>컬럼 수정
+ALTER TABLE 테이블이름 CHANGE 이전컬럼이름 새로운컬럼이름 자료형;
+
+자료형만 변경할 때는 ALTER TABLE 테이블이름 MODIFY 이전컬럼이름 자료형;
+
+제약조건 중 NOT NULL을 NULL이 가능하도록 변경하거나 NULL 가능을 NOT NULL로 변경하는 것은 제약조건의 변경이지만 컬럼의 자료형 변경으로 처리합니다.
+데이터베이스에서 NULL을 컬럼에 직접 NULL을 삽입하는 것이 아니고 NULL 여부를 표시하는 공간을 추가해서 생성한 후 이 공간의 값을 가지고 판단하기 때문에 NULL 가능과 NOT NULL의 차이는 메모리 공간의 크기 차이로 간주하기 때문에 수정할 때 공간의 크기를 변경하는 형태의 명령어를 사용
+
+tel 이라는 컬럼의 자료형을 정수로 변경하고 이름도 phone으로 수정
+ALTER TABLE ADDRESSBOOK CHANGE tel phone INTEGER;
+
+=>컬럼 순서 조정
+ALTER TABLE 테이블이름 MODIFY COLUMN 컬럼이름 자료형 FIRST;
+ALTER TABLE 테이블이름 MODIFY COLUMN 컬럼이름 자료형 AFTER 다른컬럼;
+
+=>테이블 이름 수정
+ALTER TABLE 테이블이름 rename 새로운이름;
+ALTER TABLE ADDRESSBOOK rename ADDRESS; 
+
+7)테이블 삭제
+=>모든 데이터 삭제
+TRUNCATE TABLE 테이블이름;
+
+=>테이블 삭제
+DROP TABLE 테이블이름
+
+=>생성한 테이블 삭제
+DROP TABLE ADDRESS;
+
+8)제약 조건(CONSTRAINT)
+=>INTEGRITY(무결성)
+- 데이터의 정확성과 일관성을 유지하고 보증하는 것
+- 종류
+Entity Integrity(개체 무결성): 기본키는 NULL일 수 없다. 구별하기 위한 키이므로 중복될 수 없습니다.
+
+Referential Integrity(참조 무결성): 외래키는 NULL 이거나 참조할 수 있는 값만을 가져야 한다.
+
+Domain Integrity(도메인 무결성): 컬럼의 값은 원자값이어야 하고 제약조건을 만족해야 한다.
+
+=>NULL 허용 여부
+- 기본은 NULL을 허용하는 것이고 NULL을 허용하지 않을 때는 NOT NULL 제약조건을 설정하면 됩니다.
+- NOT NULL은 컬럼의 크기와 관련된 제약조건이라서 컬럼 제약조건으로 작성해야 합니다.
+- 자료형 뒤에 CONSTRAINT 제약조건이름(생략 가능) 뒤에 NOT NULL을 추가
+
+=>CHECK
+- 필드의 값을 제한하는 제약조건
+- 컬럼 제약 조건으로 가능하고 테이블 제약 조건으로도 가능
+- 작성을 할 때는 CHECK(컬럼이 가져야 하는 조건 기술)
+성별은 남이나 여만 가져야 한다.  GENDER CHAR(4) CHECK(GENDER IN ('남', '여'))
+점수는 0에서 100 사이의 정수이어야 한다. SCORE INTEGER CHECK(SCORE >= 0 AND SCORE <= 100)
+
+=>UNIQUE
+- 중복될 수 없음
+- NULL은 가능
+- 컬럼 제약 조건 과 테이블 제약 조건 모두 가능한데 2개 이상의 컬럼을 조합해서 적용할 때는 반드시 테이블 제약 조건으로 설정해야 합니다.
+
+=>PRIMARY KEY
+- 기본키 설정
+- 테이블에서 1번만 설정 가능
+- NOT NULL이고 UNIQUE
+- 컬럼 제약 조건 과 테이블 제약 조건 모두 가능한데 2개 이상의 컬럼을 조합해서 적용할 때는 반드시 테이블 제약 조건으로 설정해야 합니다.
+
+=>FOREIGN KEY
+- 외래키(참조키) 설정
+
+- 다른 테이블에서 기본키나 UNIQUE 제약조건을 설정한 속성에만 가능
+
+- 컬럼 제약 조건으로 설정할 때는 REFERENCES 다른테이블이름(참조될 컬럼 이름) 의 형태로 만들고 테이블 제약조건으로 설정할 때는 FOREIGN KEY(외래키 컬럼 이름) REFERENCES 다른테이블이름(참조될 컬럼 이름)
+ 
+- 외래키를 설정하면 참조되는 테이블에서 데이터를 수정하거나 삭제할 수 없음
+
+- 외래키를 설정할 때 참조되는 테이블에서 데이터를 수정하거나 삭제 할려면 외래키를 만들 때 옵션을 추가해야 함
+ON DELETE {NO ACTION | CASCADE | SET NULL | SET DEFAULT} 
+
+ON UPDATE {NO ACTION | CASCADE | SET NULL | SET DEFAULT} 
+
+CASCADE를 삭제되거나 변경될 때 같이 삭제되거나 변경이 됩니다.
+SET NULL은 삭제되거나 변경될 때 NULL로 변경됩니다.
+SET DEFAULT는 데이터베이스의 기본 설정을 따라 갑니다.
+
+- 설정하는 방식: 양쪽 테이블 사이의 Cardinality(하나의 데이터에 매칭되는 데이터의 개수)를 파악한 후 설정
+1:1: 양쪽 테이블의 기본키를 상대방 테이블의 외래키로 설정
+
+1:N: 1쪽의 기본키를 N쪽 테이블에 외래키로 설정
+
+N:N: 양쪽의 기본키를 외래키로 갖는 별도의 테이블을 생성
+
+=>제약 조건 수정
+- 제약 조건 확인: information_schema.table_constaraints 라는 테이블을 조회
+
+- 제약 조건 수정
+ALTER TABLE 테이블이름 MODIFY 컬럼이름 자료형 제약조건;
+
+- 제약 조건 추가
+ALTER TABLE 테이블이름 ADD 제약조건(컬럼이름);
+
+- 제약 조건 삭제
+ALTER TABLE 테이블이름 DROP CONSTRAINT 제약조건이름;
+제약조건을 만들 때 이름을 기재하지 않아도 되지만 삭제를 할 때 이름을 모르면 이름을 찾아서 삭제해야 합니다. 
+
+9)기본값
+=>데이터를 삽입하지 않을 때 자동으로 삽입되는 값
+=>자료형 뒤에 DEFAULT 값을 추가해주면 됩니다.
+
+10)AUTO_INCREMENT
+=>Maria DB에서 일련번호를 만들어주는 기능
+=>이 속성은 정수이고 이 속성을 설정한 컬럼은 PRIMARY KEY 이거나 UNIQUE 해야 합니다.
+=>하나의 테이블에 한 번만 적용 가능
+=>테이블을 만들 때 시작값을 설정하는 것이 가능
+=>중간에 번호를 수정하는 것이 가능
+ALTER TABLE 테이블이름 AUTO_INCREMENT=값;
+=>기본키를 설정하기 어려울 때 이 속성을 많이 사용
+대체할 만한 다른 속성이 있으면 다른 속성이 별도의 코드를 만들어 사용하는 것을 권장
+=>기본키는 자동으로 인덱스가 생성됨
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
