@@ -8,3 +8,4 @@ vendor/bundle/
 .playwright-cli/
 _data/github_contributions_cache.json
 _data/github_profile_cache.json
+/assets/files/0_job/private
