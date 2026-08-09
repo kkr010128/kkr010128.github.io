@@ -1,19 +1,31 @@
-python:
+Python:
   title: Python
-  description: Python
+  description: Python 문법과 활용
+
 MariaDB:
   title: MariaDB
-  description: MariaDB
+  description: MariaDB와 관계형 데이터베이스
+
 MongoDB:
   title: MongoDB
-  description: MongoDB
+  description: MongoDB와 NoSQL 데이터베이스
+
 Redis:
   title: Redis
-  description: Redis
+  description: Redis와 인메모리 데이터 처리
+
 Linux:
   title: Linux
-  description: Linux
-MongoDB:
+  description: Linux 시스템과 명령어
+
+Network:
   title: Network
-  title: Network
-  description: 
+  description: 네트워크 개념과 실습
+
+TechNotes:
+  title: TechNotes
+  description: 공부하며 정리하는 기술 노트
+
+Cloud:
+  title: Cloud
+  description: 클라우드 인프라와 서비스
