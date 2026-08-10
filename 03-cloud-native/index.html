@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Cloud Native와 DevOps | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계">
+<link rel="canonical" href="https://kkr010128.github.io/03-cloud-native/">
+<meta property="og:title" content="Cloud Native와 DevOps | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계">
+<meta property="og:url" content="https://kkr010128.github.io/03-cloud-native/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cloud Native와 DevOps | renamed.log">
+<meta name="twitter:description" content="Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계">
+
+  <meta property="article:published_time" content="2026-08-10T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1786357822" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786357822" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786357822">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786357822" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1786357822">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Cloud Native와 DevOps | renamed.log",
+    "description": "Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계",
+    "url": "https://kkr010128.github.io/03-cloud-native/",
+    "datePublished": "2026-08-10T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Cloud</p>
+    
+    <h1 class="post-head__title">Cloud Native와 DevOps</h1>
+    
+      <p class="post-head__description">Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 10일 · 10분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Cloud">Cloud</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-cloud-native-개요">1) Cloud Native 개요</h2>
+<hr />
+
+<p>Cloud Native는 Public Cloud, Private Cloud, Hybrid Cloud와 같은 현대적이고 동적인 환경에서 <strong>확장 가능하고 탄력적인 애플리케이션을 개발하고 운영하기 위한 접근 방식</strong>이다.</p>
+
+<p>대표적인 기술과 설계 방식에는 다음과 같은 것들이 있다.</p>
+
+<ul>
+  <li>Container</li>
+  <li>Service Mesh</li>
+  <li>Microservices</li>
+  <li>Immutable Infrastructure</li>
+  <li>Declarative API</li>
+</ul>
+
+<p>이러한 기술을 자동화와 함께 활용하면 시스템을 느슨하게 결합하고, 변경에 유연하게 대응하며, 애플리케이션의 상태와 동작을 관찰하기 쉬운 환경을 구성할 수 있다.</p>
+
+<p>결과적으로 개발자는 큰 변경을 한 번에 적용하기보다 <strong>작은 변경을 반복적이고 예측 가능한 방식으로 배포하는 구조</strong>를 만들 수 있다.</p>
+
+<h3 id="cncf">CNCF</h3>
+
+<p>CNCF (Cloud Native Computing Foundation)는 Cloud Native 기술과 관련된 오픈 소스 프로젝트 생태계를 지원하는 재단이다.</p>
+
+<p>특정 Cloud Vendor에 종속되지 않는 생태계를 지원하며 Kubernetes를 비롯한 다양한 Cloud Native 프로젝트를 관리하고 육성한다.</p>
+
+<p>이를 통해 Cloud Native 기술과 운영 패턴이 특정 기업에만 제한되지 않고 다양한 조직과 개발자가 활용할 수 있는 생태계를 만드는 역할을 한다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>Cloud Native는 단순히 Cloud에서 Application을 실행하는 것을 의미하지 않는다.</li>
+    <li>Container, Microservices, Declarative API, 자동화 등을 활용하여 변화에 유연한 Application과 운영 환경을 만드는 접근 방식이다.</li>
+    <li>CNCF는 Cloud Native 관련 오픈 소스 프로젝트와 생태계를 지원한다.</li>
+  </ul>
+</blockquote>
+
+<h2 id="2-it-서비스-개발-및-구현-방식의-변화">2) IT 서비스 개발 및 구현 방식의 변화</h2>
+<hr />
+
+<p>Cloud Native의 등장에는 Application 개발 방식뿐 아니라 Architecture, 배포 방식, Infrastructure의 변화가 함께 영향을 주었다.</p>
+
+<h3 id="개발-방식">개발 방식</h3>
+
+<p>IT Service 개발에는 다음과 같은 다양한 방법론과 운영 방식이 사용된다.</p>
+
+<ul>
+  <li>Waterfall</li>
+  <li>Agile</li>
+  <li>Scrum</li>
+  <li>Kanban</li>
+  <li>Lean</li>
+  <li>DevOps</li>
+  <li>DevSecOps</li>
+  <li>Water-Scrum-Fall</li>
+</ul>
+
+<p>Waterfall은 과거부터 사용되어 온 전통적인 개발 방식이며, 이후 변화에 빠르게 대응하기 위한 Agile 방식과 개발·운영의 협업을 강조하는 DevOps 등이 등장하였다.</p>
+
+<h3 id="개발-프로세스의-변화">개발 프로세스의 변화</h3>
+
+<p>강의에서는 개발 및 운영 방식의 변화 흐름을 다음과 같이 정리하였다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Waterfall
+   ↓
+Agile
+   ↓
+DevOps
+   ↓
+DevSecOps
+</code></pre></div></div>
+
+<p>이는 이전 방식이 완전히 사라지고 새로운 방식으로 교체된다는 의미라기보다, <strong>빠른 변화와 지속적인 Delivery를 지원하기 위한 개발·운영 방식이 발전해 온 흐름</strong>으로 이해할 수 있다.</p>
+
+<h3 id="application-architecture의-변화"><strong>Application Architecture의 변화</strong></h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Monolithic
+   ↓
+N-Tier
+   ↓
+Microservices
+</code></pre></div></div>
+
+<p>초기의 Application은 하나의 큰 단위로 구성되는 Monolithic Architecture를 많이 사용했다.</p>
+
+<p>이후 Presentation, Business Logic, Data 등의 역할을 계층으로 분리하는 N-Tier Architecture가 사용되었으며, Cloud Native 환경에서는 기능을 독립적인 Service 단위로 분리하는 Microservices Architecture가 활용된다.</p>
+
+<h3 id="개발-및-packaging-방식의-변화"><strong>개발 및 Packaging 방식의 변화</strong></h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Physical Server
+      ↓
+Virtual Server
+      ↓
+Container
+</code></pre></div></div>
+
+<p>물리 Server에 Application을 직접 설치하는 방식에서 Virtualization을 이용하는 방식으로 변화했고, 이후 Application과 실행에 필요한 환경을 함께 Packaging하는 Container가 널리 사용되기 시작했다.</p>
+
+<p>Container는 Virtual Machine보다 Application 실행 단위를 작고 독립적으로 구성하기 쉬워 Cloud Native Architecture와 잘 결합된다.</p>
+
+<h3 id="infrastructure의-변화"><strong>Infrastructure의 변화</strong></h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Data Center
+    ↓
+Hosted Infrastructure
+    ↓
+Cloud
+</code></pre></div></div>
+
+<p>기업이 직접 Data Center와 Hardware를 운영하던 방식에서 외부 Hosting Infrastructure를 이용하는 방식으로 변화했고, 이후 필요한 Resource를 API와 자동화를 통해 사용할 수 있는 Cloud Infrastructure가 널리 사용되고 있다.</p>
+
+<p><strong>정리</strong></p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>영역</strong></th>
+      <th><strong>변화 흐름</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>개발·운영 방식</td>
+      <td>Waterfall → Agile → DevOps / DevSecOps</td>
+    </tr>
+    <tr>
+      <td>Architecture</td>
+      <td>Monolithic → N-Tier → Microservices</td>
+    </tr>
+    <tr>
+      <td>실행 환경</td>
+      <td>Physical Server → Virtual Server → Container</td>
+    </tr>
+    <tr>
+      <td>Infrastructure</td>
+      <td>Data Center → Hosted → Cloud</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="3-cloud-native-적용이-필요한-이유"><strong>3) Cloud Native 적용이 필요한 이유</strong></h2>
+
+<hr />
+
+<h3 id="서비스-배포-시간-단축"><strong>서비스 배포 시간 단축</strong></h3>
+
+<p>Cloud Native 환경에서는 Container, Microservices, CI/CD 등의 기술을 이용하여 Application을 작은 단위로 개발하고 배포할 수 있다.</p>
+
+<p>DevOps 문화와 자동화가 함께 적용되면 개발팀과 운영팀 사이의 협업 방식도 개선할 수 있다.</p>
+
+<ul>
+  <li>개발팀과 운영팀의 상호 이해 확대</li>
+  <li>DevOps 문화 정착</li>
+  <li>조직 내 Team 간 Hand-off 감소</li>
+  <li>지속적인 Delivery와 Deployment</li>
+  <li>변경 과정의 복잡성 감소</li>
+</ul>
+
+<p>Application 전체를 한 번에 변경해야 하는 구조보다 작은 Service 단위로 변경하고 배포할 수 있기 때문에 Release 주기를 단축하는 데 유리하다.</p>
+
+<h3 id="application-및-service-현대화"><strong>Application 및 Service 현대화</strong></h3>
+
+<p>Container를 이용하면 Application 실행 환경을 일정한 단위로 Packaging할 수 있다.</p>
+
+<p>이를 통해 Application이 특정 Server 환경에 직접 의존하는 문제를 줄일 수 있다.</p>
+
+<p>기존 On-Premise Application도 구조와 요구 사항에 따라 Container화하거나 Cloud 환경으로 이전할 수 있다.</p>
+
+<p>Kubernetes는 다양한 Infrastructure 환경에서 Container를 일관된 방식으로 배포하고 관리하기 위한 Platform을 제공한다.</p>
+
+<p>따라서 On-Premise와 Cloud 등 서로 다른 Infrastructure 환경에서도 Container 운영 방식을 일정하게 유지하는 데 활용할 수 있다.</p>
+
+<h3 id="신속한-신규-서비스-개발"><strong>신속한 신규 서비스 개발</strong></h3>
+
+<p>Cloud Native는 대규모 Open Source 생태계를 기반으로 발전하고 있다.</p>
+
+<p>대표적으로 Kubernetes와 CNCF 프로젝트에는 많은 개발자와 기업이 참여하고 있다.</p>
+
+<h4 id="풍부한-기술-생태계"><strong>풍부한 기술 생태계</strong></h4>
+
+<ul>
+  <li>Kubernetes</li>
+  <li>CNCF Project</li>
+  <li>Open Source Tool</li>
+  <li>Community</li>
+  <li>다양한 Vendor 및 Cloud Provider 지원</li>
+</ul>
+
+<h4 id="open-source-기반"><strong>Open Source 기반</strong></h4>
+
+<p>Open Source 생태계는 개발자들이 기술을 학습하고 도구를 활용하기 쉬운 환경을 제공한다.</p>
+
+<p>또한 특정 기업 내부에서만 사용되는 기술보다 관련 경험을 가진 개발자를 확보하기 쉬운 경우가 있다.</p>
+
+<h3 id="it-목표"><strong>IT 목표</strong></h3>
+
+<p>Cloud Native를 통해 추구하는 IT 측면의 목표는 다음과 같이 정리할 수 있다.</p>
+
+<ul>
+  <li>민첩성 (Agility)</li>
+  <li>생산성 (Productivity)</li>
+  <li>복원력 (Resilience)</li>
+  <li>확장성 (Scalability)</li>
+  <li>최적화 (Optimization)</li>
+  <li>효율성 (Efficiency)</li>
+</ul>
+
+<h3 id="사업-성과"><strong>사업 성과</strong></h3>
+
+<p>기술적인 변화는 최종적으로 다음과 같은 Business 목표와 연결될 수 있다.</p>
+
+<ul>
+  <li>새로운 시장 및 서비스 대응</li>
+  <li>Business Risk 감소</li>
+  <li>운영 비용 최적화</li>
+  <li>서비스 출시 속도 향상</li>
+</ul>
+
+<p>Cloud Native를 적용한다고 해서 이러한 결과가 자동으로 발생하는 것은 아니며, 조직의 Architecture와 운영 방식, 자동화 수준 등이 함께 변화해야 한다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>Cloud Native는 작은 단위의 변경과 지속적인 Delivery를 지원한다.</li>
+  <li>Container를 이용하여 Application과 Infrastructure 사이의 종속성을 줄일 수 있다.</li>
+  <li>Kubernetes는 다양한 Infrastructure에서 Container를 일관된 방식으로 운영할 수 있도록 한다.</li>
+  <li>기술 도입 자체보다 DevOps와 자동화, Architecture 변화가 함께 이루어지는 것이 중요하다.</li>
+</ul>
+
+<h2 id="4-cloud-native-운영-흐름"><strong>4) Cloud Native 운영 흐름</strong></h2>
+
+<hr />
+
+<p>강의에서는 Cloud Native 환경에서 제품을 개발하고 운영하는 전체 흐름을 다음과 같이 정리하였다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Product
+   ↓
+Development
+   ↓
+Capacity Planning
+   ↓
+Testing + Release Procedures
+   ↓
+Monitoring
+   ↓
+Incident Response
+   ↓
+Postmortem + Root Cause Analysis
+</code></pre></div></div>
+
+<h3 id="product"><strong>Product</strong></h3>
+
+<p>어떤 Service와 기능을 제공할 것인지 정의한다.</p>
+
+<h3 id="development"><strong>Development</strong></h3>
+
+<p>Application과 Service를 개발한다.</p>
+
+<h3 id="capacity-planning"><strong>Capacity Planning</strong></h3>
+
+<p>Service가 처리해야 하는 Traffic과 Resource 규모를 예측하고 필요한 Infrastructure Capacity를 계획한다.</p>
+
+<h3 id="testing--release-procedures"><strong>Testing &amp; Release Procedures</strong></h3>
+
+<p>Application을 검증하고 Production 환경에 Release하기 위한 절차를 구성한다.</p>
+
+<h3 id="monitoring"><strong>Monitoring</strong></h3>
+
+<p>Application과 Infrastructure의 상태를 지속적으로 관찰한다.</p>
+
+<h3 id="incident-response"><strong>Incident Response</strong></h3>
+
+<p>장애가 발생하면 문제를 감지하고 대응한다.</p>
+
+<h3 id="postmortem--root-cause-analysis"><strong>Postmortem &amp; Root Cause Analysis</strong></h3>
+
+<p>장애가 해결된 후 원인을 분석하고 재발 방지 대책을 마련한다.</p>
+
+<p>단순히 장애를 복구하는 데서 끝내지 않고 이후 동일한 문제가 다시 발생하지 않도록 개선하는 과정이 중요하다.</p>
+
+<h2 id="5-pillars-of-cloud-native"><strong>5) Pillars of Cloud Native</strong></h2>
+
+<hr />
+
+<p>강의에서는 Cloud Native를 구성하는 주요 요소를 다음 네 가지로 정리하였다.</p>
+
+<ul>
+  <li>DevOps</li>
+  <li>Microservices</li>
+  <li>Containers</li>
+  <li>Continuous Delivery</li>
+</ul>
+
+<p>각 요소는 독립적인 기술이라기보다 Cloud Native Application을 빠르고 안정적으로 개발하고 운영하기 위해 서로 연결된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>           Cloud Native
+               │
+     ┌─────────┼─────────┐
+     │         │         │
+   DevOps  Microservices Container
+     │
+Continuous Delivery
+</code></pre></div></div>
+
+<h3 id="devops"><strong>DevOps</strong></h3>
+
+<p>DevOps를 이해하기 위해서는 먼저 Agile과 IT Service Management의 변화 과정을 이해할 필요가 있다.</p>
+
+<h3 id="agile-방법론"><strong>Agile 방법론</strong></h3>
+
+<p>Waterfall은 Software Project를 요구 사항 분석부터 설계, 개발, 테스트, 배포까지 순차적으로 진행하는 방식이다.</p>
+
+<p>초기 계획을 기반으로 순서대로 진행하기 때문에 개발 중 요구 사항이 변경될 경우 대응하기 어렵다는 문제가 발생할 수 있다.</p>
+
+<p>Agile은 이러한 문제를 보완하기 위해 <strong>짧은 개발 주기와 반복적인 개선, Team의 협업과 변화 대응</strong>을 강조한다.</p>
+
+<h4 id="agile-manifesto"><strong>Agile Manifesto</strong></h4>
+
+<p>Agile Manifesto에서는 다음 네 가지 가치를 강조한다.</p>
+
+<p>프로세스와 도구보다 <strong>개인과 상호 작용</strong></p>
+
+<p>포괄적인 문서보다 <strong>작동하는 Software</strong></p>
+
+<p>계약 협상보다 <strong>고객과의 협업</strong></p>
+
+<p>계획을 따르는 것보다 <strong>변화에 대응하는 것</strong></p>
+
+<p>오른쪽의 요소도 가치가 있지만 왼쪽의 요소를 더 중요하게 본다는 의미이다.</p>
+
+<p>즉, Agile이 문서나 계획을 없애자는 의미는 아니다.</p>
+
+<p>변화하는 요구 사항에 맞춰 실제 동작하는 Software와 사람 사이의 협업을 더 중요하게 다루는 방식이다.</p>
+
+<h3 id="itil"><strong>ITIL</strong></h3>
+
+<p>ITIL (Information Technology Infrastructure Library)은 IT Service Management (ITSM)를 위한 Best Practice 체계이다.</p>
+
+<p>IT Service를 계획하고 제공하며 지속적으로 개선하기 위한 다양한 Practice를 제공한다.</p>
+
+<p>ITIL은 오랫동안 기업의 IT Service Management에 활용되어 왔다.</p>
+
+<p>ITIL 4에서는 기존의 절차 중심 접근을 확장하여 Agile, Lean, DevOps 등의 방식과 함께 사용할 수 있도록 Service Value System을 중심으로 체계가 구성되어 있다.</p>
+
+<h3 id="devops-개요"><strong>DevOps 개요</strong></h3>
+
+<p>DevOps는 <strong>Development와 Operations를 결합한 개념</strong>이다.</p>
+
+<p>Software 개발자와 운영 담당자가 서로 분리된 조직으로 동작하는 대신 Application의 개발부터 Release, Production 운영까지 전체 Life Cycle에서 협력하는 방식과 문화를 의미한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Plan
+ ↓
+Code
+ ↓
+Build
+ ↓
+Test
+ ↓
+Release
+ ↓
+Operate
+ ↓
+Monitor
+ └──────────────→ 다시 Plan
+</code></pre></div></div>
+
+<p>DevOps에서는 하나의 Team이 Application 개발부터 Production 운영까지 더 넓은 범위를 책임지는 방향을 추구한다.</p>
+
+<p>단순히 특정 CI/CD Tool을 도입하는 것이 아니라 <strong>조직 문화, 개발 방식, 운영 Process를 함께 변화시키는 것</strong>이 중요하다.</p>
+
+<h4 id="hand-off-감소"><strong>Hand-off 감소</strong></h4>
+
+<p>전통적인 조직에서는 다음과 같이 역할이 분리될 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Developer
+    ↓
+Build Team
+    ↓
+QA
+    ↓
+Deployment Team
+    ↓
+Operations
+</code></pre></div></div>
+
+<p>업무가 Team 사이를 이동할 때 Context가 손실되거나 책임 소재가 불명확해지는 문제가 발생할 수 있다.</p>
+
+<p>DevOps에서는 개발과 운영 Team의 협업과 자동화를 통해 이러한 Hand-off를 줄이는 것을 중요하게 본다.</p>
+
+<h3 id="devops-tool-chain"><strong>DevOps Tool Chain</strong></h3>
+
+<p>DevOps는 Application의 전체 Life Cycle을 하나의 반복적인 흐름으로 관리한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>단계</strong></th>
+      <th><strong>주요 역할</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Plan</td>
+      <td>목표, 요구 사항, 개발 계획 수립</td>
+    </tr>
+    <tr>
+      <td>Code</td>
+      <td>Source Code 개발, Review, Version Control, Merge</td>
+    </tr>
+    <tr>
+      <td>Build</td>
+      <td>Source Code Build 및 Artifact 생성</td>
+    </tr>
+    <tr>
+      <td>Test</td>
+      <td>Application 기능과 품질 검증</td>
+    </tr>
+    <tr>
+      <td>Package</td>
+      <td>배포 가능한 Application Artifact 또는 Image 생성</td>
+    </tr>
+    <tr>
+      <td>Release / Deploy</td>
+      <td>변경 사항 승인 및 Production 환경 배포</td>
+    </tr>
+    <tr>
+      <td>Operate</td>
+      <td>실제 Service 운영</td>
+    </tr>
+    <tr>
+      <td>Monitoring</td>
+      <td>Application 및 Infrastructure 상태와 사용자 경험 확인</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="plan"><strong>Plan</strong></h4>
+
+<p>목표를 수행하기 위한 방법과 절차를 계획한다.</p>
+
+<h4 id="code"><strong>Code</strong></h4>
+
+<ul>
+  <li>Source Code 작성</li>
+  <li>Code Review</li>
+  <li>Version Control</li>
+  <li>Branch 및 Merge 관리</li>
+</ul>
+
+<h4 id="build"><strong>Build</strong></h4>
+
+<p>Application을 실행 가능한 형태로 Build한다.</p>
+
+<p>CI (Continuous Integration)를 통해 Code 변경 시 자동으로 Build와 검증을 수행할 수 있다.</p>
+
+<h4 id="test"><strong>Test</strong></h4>
+
+<p>Application이 요구 사항에 맞게 동작하는지 검증한다.</p>
+
+<h4 id="package"><strong>Package</strong></h4>
+
+<p>배포할 Application을 Package 형태로 생성한다.</p>
+
+<p>예를 들어 Container 환경에서는 Docker Image가 배포 단위가 될 수 있다.</p>
+
+<h4 id="release--deploy"><strong>Release / Deploy</strong></h4>
+
+<p>검증된 변경 사항을 실제 환경에 Release한다.</p>
+
+<ul>
+  <li>Release 승인</li>
+  <li>변경 관리</li>
+  <li>자동 Deployment</li>
+  <li>Rollback</li>
+</ul>
+
+<h4 id="operate"><strong>Operate</strong></h4>
+
+<p>Production 환경에서 Application과 Infrastructure를 운영한다.</p>
+
+<h4 id="monitoring-1"><strong>Monitoring</strong></h4>
+
+<p>Application과 Infrastructure의 상태를 지속적으로 확인한다.</p>
+
+<ul>
+  <li>Performance</li>
+  <li>Error</li>
+  <li>Resource 사용량</li>
+  <li>최종 사용자 경험</li>
+</ul>
+
+<h3 id="devops로의-변화"><strong>DevOps로의 변화</strong></h3>
+
+<p>강의에서는 DevOps로의 변화 흐름을 다음과 같이 제시하였다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Service Oriented Architecture
+            ↓
+       Microservices
+            ↓
+Functional Microservices
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Agile Teams
+     ↓
+Mode 2 / DevOps / Agile Mindset
+     ↓
+Enterprise DevOps
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cloud Infrastructure Automation
+              ↓
+             CI/CD
+              ↓
+       DevOps Automation
+</code></pre></div></div>
+
+<p>이는 모든 조직이 반드시 동일한 단계를 거친다는 의미라기보다, Architecture와 조직 문화, 자동화 방식이 함께 변화하는 흐름을 설명한 것이다.</p>
+
+<h3 id="devops의-이점"><strong>DevOps의 이점</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>이점</strong></th>
+      <th><strong>관련 개념</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>개발 속도 향상</td>
+      <td>Agile, Microservices, Time to Market</td>
+    </tr>
+    <tr>
+      <td>신속한 배포</td>
+      <td>CI/CD</td>
+    </tr>
+    <tr>
+      <td>안정성 향상</td>
+      <td>Monitoring, Logging</td>
+    </tr>
+    <tr>
+      <td>Infrastructure 확장 및 표준화</td>
+      <td>IaC</td>
+    </tr>
+    <tr>
+      <td>협업 강화</td>
+      <td>개발·운영 협업 문화</td>
+    </tr>
+    <tr>
+      <td>Security 자동화</td>
+      <td>Policy as Code</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="속도"><strong>속도</strong></h4>
+
+<p>작은 단위로 개발하고 Release하여 새로운 기능을 빠르게 제공할 수 있다.</p>
+
+<h4 id="신속한-배포"><strong>신속한 배포</strong></h4>
+
+<p>CI/CD Pipeline을 통해 Build, Test, Deployment 과정을 자동화할 수 있다.</p>
+
+<h4 id="안정성"><strong>안정성</strong></h4>
+
+<p>Monitoring과 Logging을 이용하여 Application의 상태를 지속적으로 관찰하고 문제를 빠르게 확인할 수 있다.</p>
+
+<h4 id="확장성"><strong>확장성</strong></h4>
+
+<p>IaC를 이용하여 Infrastructure를 Code로 관리하고 반복적으로 구성할 수 있다.</p>
+
+<h4 id="협업-강화"><strong>협업 강화</strong></h4>
+
+<p>개발, 운영, 보안 등 서로 다른 역할을 가진 Team이 하나의 Service Life Cycle에 함께 참여한다.</p>
+
+<h4 id="security"><strong>Security</strong></h4>
+
+<p>Policy as Code 등의 방법을 이용하여 Security Policy 역시 자동화 과정에 포함할 수 있다.</p>
+
+<h2 id="6-devops-생태계"><strong>6) DevOps 생태계</strong></h2>
+
+<hr />
+
+<p>DevOps에서는 하나의 Tool이 모든 과정을 담당하는 것이 아니라 각 단계의 목적에 맞는 여러 Tool을 결합하여 Tool Chain을 구성한다.</p>
+
+<h3 id="source-code와-version-control"><strong>Source Code와 Version Control</strong></h3>
+
+<ul>
+  <li>Git</li>
+  <li>GitHub</li>
+  <li>GitLab</li>
+</ul>
+
+<p>Git을 이용하여 Source Code와 변경 이력을 관리하고 GitHub 또는 GitLab 등의 Platform을 이용하여 협업할 수 있다.</p>
+
+<h3 id="cicd"><strong>CI/CD</strong></h3>
+
+<ul>
+  <li>GitHub Actions</li>
+  <li>GitLab CI/CD</li>
+  <li>Jenkins</li>
+  <li>Argo CD</li>
+</ul>
+
+<p>GitHub Actions, GitLab CI/CD, Jenkins 등은 Build와 Test, Deployment Pipeline을 구성할 때 사용할 수 있다.</p>
+
+<p>Argo CD는 Kubernetes 환경에서 Git을 기준으로 Application 상태를 동기화하는 GitOps 기반 Continuous Delivery Tool로 사용된다.</p>
+
+<h3 id="test-1"><strong>Test</strong></h3>
+
+<h4 id="unit-test"><strong>Unit Test</strong></h4>
+
+<ul>
+  <li>JUnit</li>
+  <li>pytest</li>
+</ul>
+
+<h4 id="api-test"><strong>API Test</strong></h4>
+
+<ul>
+  <li>Postman</li>
+</ul>
+
+<h4 id="web-ui-test"><strong>Web UI Test</strong></h4>
+
+<ul>
+  <li>Selenium</li>
+</ul>
+
+<h4 id="performance--load-test"><strong>Performance / Load Test</strong></h4>
+
+<ul>
+  <li>JMeter</li>
+  <li>k6</li>
+</ul>
+
+<h4 id="mobile-test"><strong>Mobile Test</strong></h4>
+
+<ul>
+  <li>Appium</li>
+</ul>
+
+<h4 id="integration-test"><strong>Integration Test</strong></h4>
+
+<ul>
+  <li>Testcontainers</li>
+</ul>
+
+<h4 id="test-management"><strong>Test Management</strong></h4>
+
+<ul>
+  <li>Jira + Xray</li>
+</ul>
+
+<h4 id="static-code-analysis"><strong>Static Code Analysis</strong></h4>
+
+<ul>
+  <li>SonarQube</li>
+</ul>
+
+<h4 id="code-coverage"><strong>Code Coverage</strong></h4>
+
+<ul>
+  <li>JaCoCo</li>
+</ul>
+
+<h3 id="package-및-container"><strong>Package 및 Container</strong></h3>
+
+<ul>
+  <li>Docker</li>
+</ul>
+
+<p>Docker를 이용하여 Application과 실행에 필요한 환경을 Container Image로 Packaging할 수 있다.</p>
+
+<h3 id="deploy-및-orchestration"><strong>Deploy 및 Orchestration</strong></h3>
+
+<ul>
+  <li>Docker</li>
+  <li>Kubernetes</li>
+  <li>Argo CD</li>
+</ul>
+
+<p>Kubernetes는 Container Application의 배포, 확장, 상태 관리 등을 자동화하는 Orchestration Platform이다.</p>
+
+<h3 id="issue-및-project-management"><strong>Issue 및 Project Management</strong></h3>
+
+<ul>
+  <li>Jira</li>
+  <li>Mantis</li>
+</ul>
+
+<p>Issue와 Bug, 작업 진행 상태 등을 관리할 수 있다.</p>
+
+<h3 id="devops-tool-chain-예시"><strong>DevOps Tool Chain 예시</strong></h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Plan
+ │
+ ├─ Jira
+ │
+ ▼
+Code
+ │
+ ├─ Git
+ ├─ GitHub
+ └─ GitLab
+ │
+ ▼
+Build / CI
+ │
+ ├─ GitHub Actions
+ ├─ GitLab CI/CD
+ └─ Jenkins
+ │
+ ▼
+Test
+ │
+ ├─ JUnit
+ ├─ pytest
+ ├─ Postman
+ ├─ Selenium
+ ├─ JMeter
+ ├─ k6
+ ├─ SonarQube
+ └─ JaCoCo
+ │
+ ▼
+Package
+ │
+ └─ Docker
+ │
+ ▼
+Deploy
+ │
+ ├─ Kubernetes
+ └─ Argo CD
+ │
+ ▼
+Operate / Monitor
+</code></pre></div></div>
+
+<p>어떤 Tool을 사용하는지가 DevOps의 본질은 아니다.</p>
+
+<p>중요한 것은 개발부터 운영까지의 전체 과정을 연결하고 반복 가능한 자동화 Process를 구성하는 것이다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>DevOps는 Development와 Operations의 협업을 강조하는 문화이자 업무 방식이다.</li>
+  <li>단순히 CI/CD Tool을 도입하는 것만으로 DevOps가 되는 것은 아니다.</li>
+  <li>Plan → Code → Build → Test → Package → Release → Operate → Monitoring의 전체 Life Cycle을 지속적으로 반복한다.</li>
+  <li>Git, Jenkins, GitHub Actions, Docker, Kubernetes 등은 이러한 Process를 구현하기 위한 도구이다.</li>
+  <li>Tool 자체보다 조직 문화, 자동화, Feedback Cycle을 연결하는 것이 중요하다.</li>
+</ul>
+
+<h2 id="전체-정리"><strong>전체 정리</strong></h2>
+
+<hr />
+
+<blockquote>
+  <ul>
+    <li>
+      <p>Cloud Native는 현대적인 Cloud 환경에서 확장 가능하고 변화에 유연한 Application을 개발하고 운영하기 위한 접근 방식이다.</p>
+    </li>
+    <li>
+      <p>Container, Microservices, Service Mesh, Immutable Infrastructure, Declarative API 등이 Cloud Native를 구성하는 대표적인 기술과 설계 방식이다.</p>
+    </li>
+    <li>
+      <p>CNCF는 Cloud Native 관련 Open Source Project와 생태계를 지원한다.</p>
+    </li>
+    <li>
+      <p>IT Service는 개발 방식, Application Architecture, Packaging 방식, Infrastructure가 함께 변화해 왔다.</p>
+    </li>
+    <li>
+      <p>Cloud Native 환경에서는 Container와 자동화를 이용하여 Infrastructure에 대한 종속성을 줄이고 지속적인 Delivery를 구현할 수 있다.</p>
+    </li>
+    <li>
+      <p>Kubernetes는 다양한 Infrastructure에서 Container를 일관된 방식으로 운영하기 위한 Platform을 제공한다.</p>
+    </li>
+    <li>
+      <p>Cloud Native의 주요 요소로 DevOps, Microservices, Containers, Continuous Delivery를 볼 수 있다.</p>
+    </li>
+    <li>
+      <p>Agile은 짧은 개발 주기, 협업, 변화 대응을 중요하게 생각한다.</p>
+    </li>
+    <li>
+      <p>ITIL은 IT Service Management를 위한 Best Practice 체계이며 ITIL 4에서는 Agile, Lean, DevOps와의 연계를 강화하였다.</p>
+    </li>
+    <li>
+      <p>DevOps는 개발과 운영을 하나의 Service Life Cycle로 연결하고 Hand-off와 반복적인 수작업을 줄이는 것을 목표로 한다.</p>
+    </li>
+    <li>
+      <p>DevOps Tool Chain은 Plan → Code → Build → Test → Package → Release → Operate → Monitoring의 반복적인 Cycle로 구성할 수 있다.</p>
+    </li>
+    <li>
+      <p>Git, CI/CD, Testing Tool, Docker, Kubernetes 등의 Tool은 DevOps Process를 구현하기 위한 수단이며 Tool 자체가 DevOps를 의미하는 것은 아니다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/02-cloud-technology/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Cloud에 필요한 기술</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1786357822"></script>
+  </body>
+</html>

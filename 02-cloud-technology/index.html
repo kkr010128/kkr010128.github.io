@@ -1,0 +1,2097 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Cloud에 필요한 기술 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준">
+<link rel="canonical" href="https://kkr010128.github.io/02-cloud-technology/">
+<meta property="og:title" content="Cloud에 필요한 기술 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준">
+<meta property="og:url" content="https://kkr010128.github.io/02-cloud-technology/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cloud에 필요한 기술 | renamed.log">
+<meta name="twitter:description" content="클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준">
+
+  <meta property="article:published_time" content="2026-08-10T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1786357822" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786357822" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786357822">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786357822" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1786357822">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Cloud에 필요한 기술 | renamed.log",
+    "description": "클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준",
+    "url": "https://kkr010128.github.io/02-cloud-technology/",
+    "datePublished": "2026-08-10T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Cloud</p>
+    
+    <h1 class="post-head__title">Cloud에 필요한 기술</h1>
+    
+      <p class="post-head__description">클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 10일 · 24분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Cloud">Cloud</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-cloud에-필요한-기술">1) Cloud에 필요한 기술</h2>
+<hr />
+
+<p>클라우드 환경에서는 내부 시스템과 클라우드를 연결하고, 동적으로 생성되는 리소스를 식별하며, 네트워크와 인프라를 안정적으로 운영하기 위한 여러 기술이 필요하다.</p>
+
+<p>대표적으로 다음과 같은 기술이 사용된다.</p>
+
+<ul>
+  <li>VPN (Virtual Private Network)</li>
+  <li>Dedicated Line (전용선)</li>
+  <li>Load Balancer</li>
+  <li>Service Endpoint</li>
+  <li>Naming Service와 Service Discovery</li>
+  <li>VPC (Virtual Private Cloud) / VNet (Virtual Network)</li>
+  <li>IaC (Infrastructure as Code)</li>
+</ul>
+
+<h3 id="vpn과-클라우드-전용선">VPN과 클라우드 전용선</h3>
+
+<p>클라우드 내부 시스템을 연결하거나 On-Premise 환경에서 클라우드 리소스에 안전하게 접근해야 할 때 VPN 또는 전용선을 사용할 수 있다.</p>
+
+<h4 id="vpn">VPN</h4>
+
+<p>VPN (Virtual Private Network)은 공용 네트워크 위에 논리적인 사설 네트워크를 구성하여 데이터를 안전하게 주고받도록 하는 기술이다.</p>
+
+<p>실제 통신에는 인터넷을 사용할 수 있지만, VPN 터널 내부의 데이터를 암호화하여 전송하기 때문에 외부에서 통신 내용을 쉽게 확인할 수 없도록 한다.</p>
+
+<p>Public Cloud에서는 VPN을 구성하기 위한 기능을 제공하며, 클라우드 측 VPN Gateway와 회사 또는 사용자의 VPN 장비·클라이언트를 연결하여 사용할 수 있다.</p>
+
+<p>VPN의 성능은 다음과 같은 요소의 영향을 받을 수 있다.</p>
+
+<ul>
+  <li>인터넷 회선 품질</li>
+  <li>네트워크 경로</li>
+  <li>VPN Gateway의 처리 성능</li>
+  <li>암호화 및 복호화 처리</li>
+  <li>네트워크 혼잡도</li>
+</ul>
+
+<p>따라서 VPN 자체가 무조건 느리다고 볼 수는 없다.</p>
+
+<blockquote>
+  <p><strong>강의에서의 질문 - VPN은 암호화 때문에 느린가?</strong></p>
+
+  <p>VPN에서는 암호화 및 복호화에 따른 추가 처리가 발생한다.
+그러나 실제 성능은 인터넷 연결 상태와 네트워크 경로 등 여러 요소에 의해 결정된다.</p>
+
+  <p>안정적인 지연 시간이나 일정한 대역폭이 중요한 대규모 트래픽 환경에서는 인터넷 기반 VPN보다 전용 회선을 고려할 수 있다.</p>
+</blockquote>
+
+<h4 id="dedicated-line">Dedicated Line</h4>
+
+<p>Dedicated Line (전용선)은 기업의 On-Premise 네트워크와 클라우드 사업자의 네트워크를 전용 연결을 통해 구성하는 방식이다.</p>
+
+<p>공용 인터넷을 통한 VPN과 비교하면 일정한 네트워크 품질과 높은 대역폭을 확보하기 쉽다.</p>
+
+<p>따라서 다음과 같이 안정적인 네트워크 성능이 중요한 환경에서 고려할 수 있다.</p>
+
+<ul>
+  <li>대규모 데이터 전송</li>
+  <li>On-Premise와 Cloud 사이의 지속적인 데이터베이스 통신</li>
+  <li>지연 시간과 네트워크 품질이 중요한 서비스</li>
+  <li>대규모 기업 및 금융 환경</li>
+</ul>
+
+<p>다만 VPN보다 구축 절차가 복잡하고 비용도 높다.</p>
+
+<h4 id="vpn과-전용선-비교">VPN과 전용선 비교</h4>
+
+<table>
+  <thead>
+    <tr>
+      <th>비교</th>
+      <th>VPN</th>
+      <th>전용선</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>연결 방식</td>
+      <td>주로 공용 인터넷망을 이용한 암호화 터널</td>
+      <td>클라우드와 전용 연결 구성</td>
+    </tr>
+    <tr>
+      <td>구축 비용</td>
+      <td>비교적 저렴</td>
+      <td>비교적 높음</td>
+    </tr>
+    <tr>
+      <td>구축 속도</td>
+      <td>빠른 편</td>
+      <td>회선 구성 등이 필요하여 상대적으로 느림</td>
+    </tr>
+    <tr>
+      <td>보안</td>
+      <td>암호화된 터널 사용</td>
+      <td>공용 인터넷을 우회할 수 있음</td>
+    </tr>
+    <tr>
+      <td>속도 및 품질</td>
+      <td>인터넷 품질 등의 영향을 받음</td>
+      <td>비교적 안정적인 대역폭과 품질 확보 가능</td>
+    </tr>
+    <tr>
+      <td>확장성</td>
+      <td>비교적 유연함</td>
+      <td>회선 용량 변경 등에 추가 작업이 필요할 수 있음</td>
+    </tr>
+    <tr>
+      <td>주요 활용</td>
+      <td>원격 접속, 관리용 접속, Site-to-Site 연결</td>
+      <td>대규모 서비스, 기업 네트워크와 Cloud 연동</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+
+  <ul>
+    <li>VPN은 공용 네트워크 위에 암호화된 논리적 사설망을 구성한다.</li>
+    <li>전용선은 On-Premise와 Cloud 사이에 보다 안정적인 전용 연결을 구성한다.</li>
+    <li>VPN은 구축이 비교적 간단하고 저렴하지만 인터넷 환경의 영향을 받을 수 있다.</li>
+    <li>전용선은 안정적인 성능을 확보하기 쉽지만 구축 비용과 복잡도가 높다.</li>
+  </ul>
+</blockquote>
+
+<h3 id="load-balancer와-service-endpoint">Load Balancer와 Service Endpoint</h3>
+
+<h4 id="service-endpoint">Service Endpoint</h4>
+
+<p>Service Endpoint는 네트워크상에서 클라이언트가 특정 서비스나 애플리케이션 기능에 접근하기 위해 사용하는 접점이다.</p>
+
+<p>클라이언트는 내부 서버의 실제 구조를 직접 알지 않고 Endpoint를 기준으로 서비스에 접근할 수 있다.</p>
+
+<p>예를 들어 내부에서 실제 서버가 변경되더라도 외부에서 사용하는 Endpoint가 유지된다면 클라이언트의 접근 방식은 변경하지 않아도 된다.</p>
+
+<h4 id="캡슐화와-추상화">캡슐화와 추상화</h4>
+
+<p>Service Endpoint를 사용하면 내부 시스템의 구체적인 구조를 외부 인터페이스로부터 분리할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+   │
+   ▼
+Service Endpoint
+   │
+   ├── Server A
+   ├── Server B
+   └── Server C
+</code></pre></div></div>
+
+<p>외부 사용자는 Endpoint만 알고 있으면 되며 내부의 서버 구성이나 위치가 변경되더라도 동일한 방식으로 서비스를 사용할 수 있다.</p>
+
+<p><strong>강의 예시 - 소켓과 추상화</strong></p>
+
+<p>소켓을 설명할 때 실제 NIC와 네트워크 처리 구조를 직접 다루는 대신 네트워크 통신을 위한 인터페이스로 추상화했다고 볼 수 있다.</p>
+
+<p>내부 구현이 변경되더라도 사용하는 쪽에서 동일한 인터페이스를 사용할 수 있도록 만드는 것이 추상화의 중요한 목적이다.</p>
+
+<h4 id="보안-제어"><strong>보안 제어</strong></h4>
+
+<p>Endpoint 주변에는 다음과 같은 보안 정책을 적용할 수 있다.</p>
+
+<ul>
+  <li>인증 (Authentication)</li>
+  <li>인가 (Authorization)</li>
+  <li>방화벽 정책</li>
+  <li>접근 제어</li>
+  <li>트래픽 제한</li>
+</ul>
+
+<p>다만 Endpoint 자체가 이러한 보안 기능을 모두 수행하는 것은 아니며, 실제 환경에서는 API Gateway, Load Balancer, Firewall, IAM 등의 다른 구성 요소와 결합하여 구현한다.</p>
+
+<h4 id="load-balancer"><strong>Load Balancer</strong></h4>
+
+<p>Load Balancer는 클라이언트의 요청을 여러 서버나 서비스 인스턴스로 분산한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>           Client
+              │
+              ▼
+        Load Balancer
+         /     |     \
+        ▼      ▼      ▼
+     Server  Server  Server
+       A       B       C
+</code></pre></div></div>
+
+<p>Load Balancer가 하나의 Endpoint를 제공하고 그 뒤에 여러 서버를 배치하는 구조를 사용할 수 있다.</p>
+
+<p>따라서 <strong>Endpoint는 접근 지점에 대한 개념이고, Load Balancer는 트래픽을 여러 대상으로 분산하는 역할</strong>이라는 점을 구분해야 한다.</p>
+
+<h3 id="cloud-native-naming-service"><strong>Cloud Native Naming Service</strong></h3>
+
+<p>DNS (Domain Name System)는 사람이 이해하기 쉬운 이름과 네트워크 주소를 연결하여 통신을 쉽게 만들어준다.</p>
+
+<p>클라우드 환경에서는 서버와 컨테이너가 동적으로 생성되고 제거될 수 있기 때문에 특정 IP 주소를 직접 기억하고 관리하는 방식이 비효율적이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Service A
+   │
+   │ "Service B로 연결"
+   ▼
+Naming / Service Discovery
+   │
+   ▼
+현재 Service B의 주소
+</code></pre></div></div>
+
+<p>이러한 환경에서는 DNS를 비롯한 이름 기반의 접근 방식과 Service Discovery가 중요해진다.</p>
+
+<h4 id="service-discovery"><strong>Service Discovery</strong></h4>
+
+<p>Service Discovery는 서비스의 이름을 이용하여 현재 해당 서비스를 제공하는 위치를 찾아갈 수 있도록 하는 방식이다.</p>
+
+<p>클라우드나 컨테이너 오케스트레이션 환경에서는 서비스의 주소가 변경되더라도 등록 정보가 자동으로 갱신될 수 있다.</p>
+
+<p>예를 들어 Kubernetes에서는 Service를 생성하면 클러스터 내부 DNS를 통해 Service 이름을 기반으로 접근할 수 있다.</p>
+
+<p>따라서 애플리케이션은 상대 컨테이너의 실제 IP 주소를 직접 기억하지 않고 Service 이름을 기준으로 통신할 수 있다.</p>
+
+<h4 id="장점"><strong>장점</strong></h4>
+
+<p><strong>유연성</strong></p>
+
+<p>서버나 컨테이너의 IP 주소가 변경되더라도 이름을 기준으로 접근할 수 있다.</p>
+
+<p><strong>자동화</strong></p>
+
+<p>관리자가 매번 변경된 IP 주소를 직접 확인하여 애플리케이션 설정을 수정하는 작업을 줄일 수 있다.</p>
+
+<p><strong>서비스 간 통신 단순화</strong></p>
+
+<p>Microservice 환경에서는 다른 서비스의 이름을 기준으로 통신할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>order-service
+      │
+      ▼
+payment-service
+</code></pre></div></div>
+
+<p>애플리케이션 입장에서는 <code class="language-plaintext highlighter-rouge">payment-service</code>가 실제로 어떤 IP를 사용하고 있는지 직접 관리할 필요가 줄어든다.</p>
+
+<h4 id="private-dns"><strong>Private DNS</strong></h4>
+
+<p>클라우드에서는 외부 인터넷에 공개할 필요가 없는 내부 서비스에 대해 Private DNS 등의 내부 이름 해석 기능을 사용할 수 있다.</p>
+
+<p>이를 통해 외부에 공개되지 않는 네트워크에서도 서비스 이름을 기준으로 내부 시스템끼리 통신할 수 있다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>클라우드의 서버와 컨테이너는 동적으로 변경될 수 있어 고정 IP에 의존하기 어렵다.</li>
+  <li>이름을 기준으로 현재 서비스의 위치를 찾는 방식이 중요해진다.</li>
+  <li>Service Discovery를 이용하면 서비스의 위치 변화와 애플리케이션을 분리할 수 있다.</li>
+  <li>Private DNS를 이용하여 외부에 공개되지 않는 내부 서비스의 이름도 관리할 수 있다.</li>
+</ul>
+
+<h3 id="cloud-virtual-network-architecture"><strong>Cloud Virtual Network Architecture</strong></h3>
+
+<p>클라우드에서 서버를 구성할 때는 서버가 속할 논리적인 가상 네트워크가 필요하다.</p>
+
+<p>클라우드 사업자에 따라 이러한 네트워크를 VPC (Virtual Private Cloud), VNet (Virtual Network) 등의 이름으로 부른다.</p>
+
+<p>가상 네트워크 내부에는 다음과 같은 구성 요소를 배치할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VPC / VNet
+│
+├── Subnet
+│    ├── Server
+│    └── Server
+│
+├── Routing Table
+├── NAT Gateway
+├── Security Policy
+└── On-Premise / Internet 연결
+</code></pre></div></div>
+
+<h4 id="생성-과정"><strong>생성 과정</strong></h4>
+
+<ol>
+  <li><strong>VPC 또는 VNet 구성</strong>
+    <ul>
+      <li>사용할 Private IP 주소 범위를 설정한다.</li>
+      <li>필요한 Subnet을 구성한다.</li>
+    </ul>
+  </li>
+  <li><strong>서버 생성</strong>
+    <ul>
+      <li>서버에 Private IP를 할당한다.</li>
+      <li>외부에서 직접 접근할 필요가 있다면 Public IP 등의 연결 방식을 구성할 수 있다.</li>
+      <li>Private Subnet의 서버가 외부 인터넷으로 나가야 한다면 NAT Gateway 등을 사용할 수 있다.</li>
+    </ul>
+  </li>
+  <li><strong>Routing Table 설정</strong>
+    <ul>
+      <li>목적지에 따라 트래픽이 이동할 경로를 설정한다.</li>
+      <li>Internet Gateway, NAT Gateway, 다른 네트워크 또는 On-Premise 환경 등으로 전달할 경로를 결정한다.</li>
+    </ul>
+  </li>
+  <li><strong>보안 정책 구성</strong>
+    <ul>
+      <li>Security Group</li>
+      <li>Network ACL (Access Control List)</li>
+    </ul>
+  </li>
+</ol>
+
+<p>이와 같은 기능을 이용하여 네트워크 접근을 제어한다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>VPC 또는 VNet은 클라우드에서 사용하는 논리적 가상 네트워크이다.</li>
+  <li>내부에는 Subnet을 구성하고 Private IP를 이용하여 서버를 배치할 수 있다.</li>
+  <li>외부 연결이 필요하면 Public IP, NAT 등의 방식을 사용할 수 있다.</li>
+  <li>Routing Table은 트래픽이 이동할 경로를 결정한다.</li>
+  <li>Security Group과 Network ACL 등을 이용하여 네트워크 접근을 제어한다.</li>
+</ul>
+
+<h2 id="2-infrastructure-as-code-iac"><strong>2) Infrastructure as Code (IaC)</strong></h2>
+
+<hr />
+
+<h3 id="개요"><strong>개요</strong></h3>
+
+<p>Infrastructure as Code (IaC)는 인프라의 구성과 원하는 상태를 코드 또는 설정 파일로 정의하고, 이를 기반으로 인프라를 프로비저닝하고 관리하는 방식이다.</p>
+
+<p>관리 대상에는 다음과 같은 리소스가 포함될 수 있다.</p>
+
+<ul>
+  <li>Compute</li>
+  <li>Virtual Machine</li>
+  <li>Network</li>
+  <li>Storage</li>
+  <li>Load Balancer</li>
+  <li>Database</li>
+  <li>Cloud Resource</li>
+  <li>일부 On-Premise Infrastructure</li>
+</ul>
+
+<p>기존에는 관리자가 콘솔이나 장비에 직접 접근하여 설정을 변경하는 경우가 많았다.</p>
+
+<p>이 방식에서는 실제 환경의 변경 이력이 문서와 일치하지 않거나, 작업자가 변경 사항을 기록하지 않으면 현재 구성을 정확하게 파악하기 어려울 수 있다.</p>
+
+<p>IaC에서는 인프라 구성을 파일로 관리할 수 있기 때문에 Git 등의 Version Control System과 결합할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Infrastructure 변경
+        │
+        ▼
+     IaC Code
+        │
+        ▼
+      Git
+        │
+        ▼
+변경 이력 및 Version 관리
+</code></pre></div></div>
+
+<p>따라서 다음과 같은 정보를 추적하기 쉬워진다.</p>
+
+<ul>
+  <li>무엇이 변경되었는가?</li>
+  <li>누가 변경했는가?</li>
+  <li>언제 변경했는가?</li>
+  <li>이전 구성은 무엇이었는가?</li>
+</ul>
+
+<h3 id="등장-배경"><strong>등장 배경</strong></h3>
+
+<p>클라우드 환경에서는 구성해야 하는 리소스의 수가 증가하면서 사람이 직접 동일한 작업을 반복하는 방식의 한계가 커졌다.</p>
+
+<p>대표적인 문제는 다음과 같다.</p>
+
+<ul>
+  <li>반복 작업에서 실수가 발생할 수 있다.</li>
+  <li>환경마다 설정이 달라질 수 있다.</li>
+  <li>현재 구성을 정확하게 파악하기 어렵다.</li>
+  <li>변경 이력을 추적하기 어렵다.</li>
+  <li>여러 사람이 동일한 인프라를 관리할 때 협업하기 어렵다.</li>
+  <li>장애 발생 시 이전 상태를 파악하기 어렵다.</li>
+</ul>
+
+<p>IaC는 인프라 구성을 코드로 남겨 이러한 문제를 줄이기 위한 방법이다.</p>
+
+<p><strong>강사의 실무 경험 - 문서화의 중요성</strong></p>
+
+<p>과거에는 하드웨어를 변경하고도 변경 기록이 제대로 남지 않는 경우가 있었다.<br />
+그래서 시스템을 구성하고 관리하는 과정에서 문서화가 매우 중요했다.</p>
+
+<p>시간이 오래 지난 코드는 작성자조차 구조를 이해하기 어려워질 수 있다. 강의에서는 이를 기억하기 쉽게 “외계인 코드”에 비유하였다.</p>
+
+<p>실제 프로젝트에서도 구축이 끝난 뒤 문서가 제대로 남아 있지 않으면 이후 유지보수 과정에서 추가적인 시간과 비용이 발생할 수 있다.</p>
+
+<p><strong>강의에서의 IaC 관점</strong></p>
+
+<p>개발이나 운영 과정에서 변경 기록이 자연스럽게 부산물로 남도록 만드는 것이 중요하다.</p>
+
+<p>Git을 사용하면 코드 변경 이력이 자연스럽게 남는 것처럼, 인프라 역시 코드로 정의하면 인프라의 변경 기록을 Version Control System으로 관리할 수 있다.</p>
+
+<p>코드에서 API 문서를 생성하는 도구처럼 작업의 결과물이 자동으로 문서와 기록으로 연결되는 방식도 활용할 수 있다.</p>
+
+<p>강의에서는 Jira, Slack 등의 협업 도구를 실제 업무 환경에서 경험해보는 것도 도움이 된다고 언급하였다.</p>
+
+<p>IaC는 단순히 명령을 자동 실행하는 것을 넘어 <strong>인프라 관리 방식을 코드 중심으로 전환하는 것</strong>이라고 볼 수 있다.</p>
+
+<p>자동화와 표준화를 통해 반복적인 수작업을 줄일 수 있으므로 운영 비용 절감에도 도움을 줄 수 있다.</p>
+
+<h3 id="terraform과-ansible"><strong>Terraform과 Ansible</strong></h3>
+
+<p>Terraform과 Ansible은 모두 인프라 자동화에 사용되지만 주요 목적에는 차이가 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>비교</strong></th>
+      <th><strong>Terraform</strong></th>
+      <th><strong>Ansible</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>개발 주체</td>
+      <td>HashiCorp</td>
+      <td>Red Hat / Ansible Community</td>
+    </tr>
+    <tr>
+      <td>주요 용도</td>
+      <td>인프라 프로비저닝 및 수명 주기 관리</td>
+      <td>시스템 구성 관리 및 IT 자동화</td>
+    </tr>
+    <tr>
+      <td>대표적인 분류</td>
+      <td>IaC</td>
+      <td>Configuration Management / IT Automation</td>
+    </tr>
+    <tr>
+      <td>정의 방식</td>
+      <td>HCL 기반 구성</td>
+      <td>YAML 기반 Playbook</td>
+    </tr>
+    <tr>
+      <td>Managed Node Agent</td>
+      <td>별도 Agent 불필요</td>
+      <td>Agentless</td>
+    </tr>
+    <tr>
+      <td>확장 방식</td>
+      <td>Provider</td>
+      <td>Module, Collection, Plugin</td>
+    </tr>
+    <tr>
+      <td>주요 관리 대상</td>
+      <td>Cloud, On-Premise, SaaS 등의 Infrastructure</td>
+      <td>Server, Network, Cloud Service, Application 등</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="terraform"><strong>Terraform</strong></h4>
+
+<p>Terraform은 원하는 인프라의 상태를 선언적으로 정의하고 리소스를 생성·변경·삭제하는 데 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Terraform Code
+      │
+      ▼
+   Provider
+      │
+      ├── AWS
+      ├── Azure
+      ├── GCP
+      └── 기타 Infrastructure
+</code></pre></div></div>
+
+<p>Provider를 통해 각 플랫폼의 API와 연결한다.</p>
+
+<h4 id="ansible"><strong>Ansible</strong></h4>
+
+<p>Ansible은 서버나 시스템의 구성 상태를 자동화하는 데 많이 사용한다.</p>
+
+<p>예를 들어 다음과 같은 작업을 정의할 수 있다.</p>
+
+<ul>
+  <li>Package 설치</li>
+  <li>설정 파일 배포</li>
+  <li>Service 시작 및 중지</li>
+  <li>Application 배포</li>
+  <li>Server 구성</li>
+  <li>Network 장비 구성</li>
+</ul>
+
+<p>Managed Node에 별도의 Ansible Agent를 설치하지 않는 Agentless 방식이 특징이다.</p>
+
+<p>Terraform과 Ansible의 영역은 완전히 분리되는 것은 아니며 실제 환경에서는 함께 사용할 수도 있다.</p>
+
+<p>예를 들어 Terraform으로 VM과 Network를 생성한 뒤 Ansible로 VM 내부의 Package와 Application을 구성하는 식이다.</p>
+
+<h3 id="aws-cloudformation"><strong>AWS CloudFormation</strong></h3>
+
+<p>AWS CloudFormation은 AWS에서 제공하는 IaC 서비스이다.</p>
+
+<p>AWS Resource를 Template으로 정의하고 Stack 단위로 생성 및 관리할 수 있다.</p>
+
+<p>Template은 JSON 또는 YAML 형식으로 작성할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CloudFormation Template
+          │
+          ▼
+         Stack
+          │
+          ├── EC2
+          ├── VPC
+          ├── Load Balancer
+          └── 기타 AWS Resource
+</code></pre></div></div>
+
+<p>CloudFormation은 AWS 환경을 대상으로 하는 서비스이므로 일반적인 Multi-Cloud IaC 도구와는 성격이 다르다.</p>
+
+<p>Template에는 조건에 따라 Resource를 생성하기 위한 Condition을 정의할 수 있으며, <code class="language-plaintext highlighter-rouge">AWS::LanguageExtensions</code>를 사용하는 경우 <code class="language-plaintext highlighter-rouge">Fn::ForEach</code>를 이용한 반복적인 Resource 정의도 사용할 수 있다.</p>
+
+<h3 id="iac의-장점"><strong>IaC의 장점</strong></h3>
+
+<h4 id="환경-간-일관성"><strong>환경 간 일관성</strong></h4>
+
+<p>동일한 코드를 기반으로 인프라를 생성하면 개발, 테스트, 운영 환경에서 설정 차이가 발생하는 문제를 줄일 수 있다.</p>
+
+<h4 id="변경-이력-추적"><strong>변경 이력 추적</strong></h4>
+
+<p>IaC 파일을 Git과 같은 Version Control System으로 관리하면 변경 이력을 확인할 수 있다.</p>
+
+<h4 id="반복-작업-자동화"><strong>반복 작업 자동화</strong></h4>
+
+<p>동일한 인프라 구성을 여러 번 반복해서 수행해야 할 때 수작업을 줄일 수 있다.</p>
+
+<h4 id="불필요한-자원-관리"><strong>불필요한 자원 관리</strong></h4>
+
+<p>실제 구성과 코드의 상태를 비교하면서 필요한 리소스를 체계적으로 관리할 수 있다.</p>
+
+<p>도구에 따라 인프라 삭제 작업도 코드와 자동화 과정에 포함할 수 있다.</p>
+
+<h4 id="클라우드-환경에-대한-통제력-향상"><strong>클라우드 환경에 대한 통제력 향상</strong></h4>
+
+<p>인프라 구성을 코드로 명시하면 현재 시스템이 어떤 형태로 구성되어야 하는지를 명확하게 표현할 수 있다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>IaC는 인프라의 원하는 상태를 코드로 정의하고 관리하는 방식이다.</li>
+  <li>Git과 결합하면 인프라 변경 이력을 관리할 수 있다.</li>
+  <li>Terraform은 인프라 프로비저닝과 수명 주기 관리에 주로 사용한다.</li>
+  <li>Ansible은 서버 구성과 IT 자동화에 주로 사용한다.</li>
+  <li>CloudFormation은 AWS Resource를 Template으로 정의하는 AWS의 IaC 서비스이다.</li>
+  <li>IaC는 반복 작업, 환경 간 불일치, 변경 추적 문제를 줄이는 데 도움이 된다.</li>
+</ul>
+
+<h2 id="3-보안과-접근-제어"><strong>3) 보안과 접근 제어</strong></h2>
+
+<hr />
+
+<h3 id="shared-responsibility-model"><strong>Shared Responsibility Model</strong></h3>
+
+<p>Shared Responsibility Model (공유 책임 모델)은 클라우드 보안의 모든 책임을 Cloud Service Provider가 담당하는 것이 아니라 <strong>Cloud Provider와 Customer가 역할을 나누어 담당하는 모델</strong>이다.</p>
+
+<p>Cloud Provider는 기본적으로 데이터센터, 물리 서버, 네트워크 등 클라우드 서비스를 제공하기 위한 기반 인프라를 보호한다.</p>
+
+<p>반면 사용자는 자신이 이용하는 서비스 유형에 따라 다음과 같은 영역에 책임을 가진다.</p>
+
+<ul>
+  <li>Account</li>
+  <li>Identity</li>
+  <li>Data</li>
+  <li>Application</li>
+  <li>Operating System</li>
+  <li>Network Configuration</li>
+  <li>Security Configuration</li>
+</ul>
+
+<p>서비스가 IaaS에서 PaaS, SaaS 방향으로 이동할수록 일반적으로 Cloud Provider가 관리하는 영역이 증가한다.</p>
+
+<h3 id="서비스-모델에-따른-책임-범위"><strong>서비스 모델에 따른 책임 범위</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구분</strong></th>
+      <th><strong>사용자 책임의 특징</strong></th>
+      <th><strong>Cloud Provider 책임의 특징</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>IaaS</td>
+      <td>Guest OS, Application, Data, 계정, 상당수 Network 및 Security 설정 관리</td>
+      <td>물리 Infrastructure, Virtualization 기반 관리</td>
+    </tr>
+    <tr>
+      <td>PaaS</td>
+      <td>Application, Data, Identity와 서비스 설정 중심</td>
+      <td>OS, Runtime, Platform 등의 관리 범위 증가</td>
+    </tr>
+    <tr>
+      <td>SaaS</td>
+      <td>Account, Data, 접근 권한 및 사용 설정 중심</td>
+      <td>Application을 포함한 대부분의 Platform과 Infrastructure 운영</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>구체적인 책임 범위는 사용하는 Cloud Service와 제품에 따라 달라질 수 있다.</p>
+
+<h3 id="iam"><strong>IAM</strong></h3>
+
+<p>IAM (Identity and Access Management)은 <strong>누가 어떤 Resource에 어떤 조건으로 접근할 수 있는지를 통제하고 관리하는 보안 체계</strong>이다.</p>
+
+<p>클라우드 보안에서 가장 기본적인 통제 수단 중 하나이다.</p>
+
+<h4 id="iam의-핵심-구성-요소"><strong>IAM의 핵심 구성 요소</strong></h4>
+
+<p><strong>Identification (식별)</strong></p>
+
+<p>접근 주체가 누구인지를 구분하는 과정이다.</p>
+
+<p>Identity는 반드시 사람만을 의미하지 않는다.</p>
+
+<ul>
+  <li>User</li>
+  <li>Application</li>
+  <li>Server</li>
+  <li>Service Account</li>
+  <li>Workload</li>
+</ul>
+
+<p>등도 Identity가 될 수 있다.</p>
+
+<p><strong>Authentication (인증)</strong></p>
+
+<p>접근하려는 주체가 주장하는 Identity가 실제로 맞는지 확인한다.</p>
+
+<p>예시는 다음과 같다.</p>
+
+<ul>
+  <li>ID / Password</li>
+  <li>MFA</li>
+  <li>Certificate</li>
+  <li>외부 Identity Provider를 이용한 로그인</li>
+</ul>
+
+<p><strong>Authorization (인가)</strong></p>
+
+<p>인증된 Identity가 특정 Resource에서 어떤 행동을 수행할 수 있는지 판단한다.</p>
+
+<p>예를 들어 다음과 같은 권한을 설정할 수 있다.</p>
+
+<ul>
+  <li>읽기만 허용</li>
+  <li>Resource 생성 허용</li>
+  <li>관리자 권한 부여</li>
+  <li>특정 Database만 접근 허용</li>
+</ul>
+
+<p><strong>Account Lifecycle Management (계정 수명 주기 관리)</strong></p>
+
+<p>계정은 생성 이후 계속 유지하는 것이 아니라 전체 수명 주기를 관리해야 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>계정 생성
+   ↓
+권한 부여
+   ↓
+권한 변경
+   ↓
+비활성화
+   ↓
+삭제
+</code></pre></div></div>
+
+<h3 id="policy"><strong>Policy</strong></h3>
+
+<p>IAM에서는 Policy를 이용하여 Identity가 수행할 수 있는 작업을 정의할 수 있다.</p>
+
+<p>각 사용자에게 모든 권한을 부여하는 대신 실제 업무에 필요한 범위의 권한만 부여하는 것이 중요하다.</p>
+
+<h3 id="rbac와-abac"><strong>RBAC와 ABAC</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구분</strong></th>
+      <th><strong>RBAC (Role-Based Access Control)</strong></th>
+      <th><strong>ABAC (Attribute-Based Access Control)</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>기준</td>
+      <td>사용자의 역할(Role)</td>
+      <td>사용자, Resource, 환경 등의 Attribute</td>
+    </tr>
+    <tr>
+      <td>예</td>
+      <td>개발자, 관리자, 감사 담당자</td>
+      <td>부서, 시간, 위치, Resource Tag 등의 조건</td>
+    </tr>
+    <tr>
+      <td>특징</td>
+      <td>구조가 비교적 단순하고 관리하기 쉬움</td>
+      <td>조건을 이용한 세밀한 정책 표현 가능</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="iam이-필요한-이유"><strong>IAM이 필요한 이유</strong></h4>
+
+<p><strong>최소 권한 적용</strong></p>
+
+<p>사용자에게 업무 수행에 필요한 최소한의 권한만 부여한다.</p>
+
+<p><strong>중앙 집중식 관리</strong></p>
+
+<p>수많은 Account와 Permission을 중앙에서 관리할 수 있다.</p>
+
+<p><strong>Audit와 규정 준수</strong></p>
+
+<p>누가, 언제, 어떤 Resource에 접근하고 어떤 작업을 수행했는지 기록하여 Audit과 보안 규정 준수에 활용할 수 있다.</p>
+
+<h4 id="대표적인-iam-서비스와-솔루션"><strong>대표적인 IAM 서비스와 솔루션</strong></h4>
+
+<p><strong>Cloud IAM</strong></p>
+
+<ul>
+  <li>AWS IAM</li>
+  <li>Google Cloud IAM</li>
+  <li>Microsoft Entra ID</li>
+</ul>
+
+<p><strong>IAM / SSO Solution</strong></p>
+
+<ul>
+  <li>Okta</li>
+  <li>Ping Identity</li>
+  <li>Keycloak</li>
+</ul>
+
+<h3 id="최소-권한의-원칙"><strong>최소 권한의 원칙</strong></h3>
+
+<p>Principle of Least Privilege (최소 권한의 원칙)는 User, Process, Application 등에 <strong>주어진 업무를 수행하는 데 필요한 최소한의 권한만 부여하는 보안 원칙</strong>이다.</p>
+
+<p>필요 이상의 정보와 기능에 접근할 수 없도록 한다.</p>
+
+<p>관련 개념으로 다음과 같은 표현을 사용할 수 있다.</p>
+
+<ul>
+  <li>Need-to-Know</li>
+  <li>Need-to-Do</li>
+</ul>
+
+<h4 id="필요한-이유"><strong>필요한 이유</strong></h4>
+
+<ul>
+  <li>보안 사고 발생 시 피해 범위 최소화</li>
+  <li>내부자 위협 감소</li>
+  <li>실수로 인한 Resource 변경 및 Data 손실 방지</li>
+  <li>규정 준수</li>
+</ul>
+
+<h4 id="적용-사례"><strong>적용 사례</strong></h4>
+
+<p><strong>Root Account 사용 최소화</strong></p>
+
+<p>일반 작업에서는 일반 Account를 사용하고 필요한 경우에만 <code class="language-plaintext highlighter-rouge">sudo</code> 등으로 권한을 상승한다.</p>
+
+<p><strong>IAM Policy 세분화</strong></p>
+
+<p>개발자에게 모든 Resource에 대한 <code class="language-plaintext highlighter-rouge">*</code> 권한을 제공하는 대신 업무에 필요한 Resource와 Operation만 허용한다.</p>
+
+<p><strong>Smartphone Application 권한</strong></p>
+
+<p>Application이 실제 기능에 필요한 Camera, Location 등의 권한만 요청하도록 한다.</p>
+
+<p><strong>Database Account 분리</strong></p>
+
+<p>Database 또는 Table 단위로 Account와 Permission을 구분한다.</p>
+
+<h4 id="최소-권한-원칙-이행-방법"><strong>최소 권한 원칙 이행 방법</strong></h4>
+
+<p><strong>Default Deny</strong></p>
+
+<p>명시적으로 허용하지 않은 접근은 기본적으로 거부한다.</p>
+
+<p><strong>RBAC</strong></p>
+
+<p>사용자의 Role을 기준으로 필요한 권한을 부여한다.</p>
+
+<p><strong>Just-In-Time Access</strong></p>
+
+<p>항상 높은 권한을 보유하는 대신 필요한 순간에 일정 시간 동안만 권한을 부여한다.</p>
+
+<p><strong>Access Review</strong></p>
+
+<p>현재 사용자에게 부여된 권한이 계속 필요한지 정기적으로 점검한다.</p>
+
+<h3 id="비밀번호key와-secret-관리"><strong>비밀번호·Key와 Secret 관리</strong></h3>
+
+<p>Password와 API Key 등의 Secret을 Source Code에 직접 작성하면 코드가 외부에 노출되었을 때 Secret도 함께 유출될 수 있다.</p>
+
+<p>따라서 Secret과 Source Code를 분리하여 관리해야 한다.</p>
+
+<p>대표적인 방식에는 다음이 있다.</p>
+
+<ul>
+  <li>환경 변수</li>
+  <li>접근 권한이 제한된 외부 설정</li>
+  <li>Secret Management Service</li>
+</ul>
+
+<p>단, 환경 변수를 사용한다는 사실만으로 Secret이 안전해지는 것은 아니며 실행 환경과 접근 권한 역시 적절하게 관리해야 한다.</p>
+
+<h4 id="secret-management-service"><strong>Secret Management Service</strong></h4>
+
+<p>Cloud Provider는 Secret을 별도로 저장하고 관리하기 위한 서비스를 제공한다.</p>
+
+<p>대표적으로 다음과 같은 기능을 제공할 수 있다.</p>
+
+<ul>
+  <li>Secret 암호화 저장</li>
+  <li>접근 주체 제어</li>
+  <li>IAM과 연동</li>
+  <li>Audit</li>
+  <li>Secret Version 관리</li>
+  <li>Rotation 자동화</li>
+</ul>
+
+<p>대표적인 서비스는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Cloud</strong></th>
+      <th><strong>Service</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AWS</td>
+      <td>AWS Secrets Manager</td>
+    </tr>
+    <tr>
+      <td>Azure</td>
+      <td>Azure Key Vault</td>
+    </tr>
+    <tr>
+      <td>Google Cloud</td>
+      <td>Secret Manager</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="key-rotation"><strong>Key Rotation</strong></h4>
+
+<p>Key Rotation은 암호화 Key 또는 Credential을 일정 주기나 특정 Event에 따라 새로운 값으로 교체하는 과정이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Old Key
+   ↓
+새 Key 생성
+   ↓
+Application 전환
+   ↓
+Old Key 폐기
+</code></pre></div></div>
+
+<p>Secret Management Service를 사용하면 Rotation 과정을 자동화할 수 있는 기능을 활용할 수 있다.</p>
+
+<p>다만 Cloud가 Secret을 암호화해준다고 해서 사용자의 보안 책임이 사라지는 것은 아니다.</p>
+
+<p>다음과 같은 설정은 여전히 중요하다.</p>
+
+<ul>
+  <li>누가 Secret에 접근할 수 있는가?</li>
+  <li>어떤 Application에서 사용할 수 있는가?</li>
+  <li>Rotation 정책은 어떻게 구성할 것인가?</li>
+  <li>Logging과 Audit은 어떻게 관리할 것인가?</li>
+</ul>
+
+<h3 id="인증-token"><strong>인증 Token</strong></h3>
+
+<p>Authentication 또는 Authorization 과정에서는 사용자가 매 요청마다 ID와 Password를 다시 전송하는 대신 Token을 사용할 수 있다.</p>
+
+<p>일반적인 흐름은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자
+  │
+  │ 인증
+  ▼
+인증 Server
+  │
+  │ Token 발급
+  ▼
+사용자
+  │
+  │ Token을 이용한 요청
+  ▼
+Resource Server
+</code></pre></div></div>
+
+<p>Token은 사용자의 Password 그 자체를 반복해서 전달하지 않고 일정한 자격 정보를 이용하여 Resource에 접근할 수 있도록 한다.</p>
+
+<h3 id="jwt"><strong>JWT</strong></h3>
+
+<p>JWT (JSON Web Token)는 두 주체 사이에서 Claim을 전달하기 위한 Compact하고 URL-Safe한 Token 형식이다.</p>
+
+<p>JWT는 흔히 서명을 이용하여 Token이 변조되지 않았음을 검증하도록 구성한다.</p>
+
+<p>중요한 점은 <strong>JWT 자체가 항상 암호화되어 있는 것은 아니라는 것</strong>이다.</p>
+
+<p>서명된 JWT의 Payload는 Base64URL Encoding된 형태이므로 기밀 정보를 아무 생각 없이 넣어서는 안 된다.</p>
+
+<p>필요한 경우 암호화된 형태의 JWT도 구성할 수 있다.</p>
+
+<h3 id="access-token과-refresh-token"><strong>Access Token과 Refresh Token</strong></h3>
+
+<h4 id="access-token"><strong>Access Token</strong></h4>
+
+<p>보호된 Resource에 접근할 때 사용하는 Token이다.</p>
+
+<p>보안상 일반적으로 비교적 짧은 유효 기간을 설정하는 전략을 사용할 수 있다.</p>
+
+<p>Token이 탈취되어도 사용할 수 있는 시간을 제한하기 위한 것이다.</p>
+
+<h4 id="refresh-token"><strong>Refresh Token</strong></h4>
+
+<p>Access Token이 만료된 후 새로운 Access Token을 발급받는 데 사용할 수 있다.</p>
+
+<p>일반적으로 Access Token보다 오래 유지될 수 있기 때문에 더욱 주의해서 저장하고 관리해야 한다.</p>
+
+<p>Refresh Token의 실제 저장 위치와 관리 방식은 인증 시스템의 설계에 따라 달라진다.</p>
+
+<h3 id="token-방식의-특징"><strong>Token 방식의 특징</strong></h3>
+
+<h4 id="장점-1"><strong>장점</strong></h4>
+
+<p><strong>분산 시스템과 API에서 활용하기 쉬움</strong></p>
+
+<p>API 요청에 Token을 포함하여 인증 및 인가 정보를 전달할 수 있다.</p>
+
+<p><strong>다양한 Client에서 사용할 수 있음</strong></p>
+
+<ul>
+  <li>Web</li>
+  <li>Mobile</li>
+  <li>Application</li>
+  <li>API Client</li>
+</ul>
+
+<p>등에서 활용할 수 있다.</p>
+
+<p><strong>Stateless 구조 구성 가능</strong></p>
+
+<p>검증에 필요한 정보를 Token 자체에 포함하는 방식에서는 서버에 Session State를 최소화하는 구조를 만들 수 있다.</p>
+
+<p>다만 모든 Token 시스템이 Stateless인 것은 아니다.</p>
+
+<h4 id="고려해야-할-문제"><strong>고려해야 할 문제</strong></h4>
+
+<p><strong>Token 탈취</strong></p>
+
+<p>Token이 탈취되면 유효 기간 동안 공격자가 이를 사용할 수 있으므로 안전한 저장과 전송이 중요하다.</p>
+
+<p><strong>XSS (Cross-Site Scripting)</strong></p>
+
+<p>공격자가 Web Page에서 악성 Script를 실행하도록 만드는 공격이다.</p>
+
+<p>Client 측에서 접근할 수 있는 위치에 Token을 저장한 경우 XSS 공격으로 Token이 노출될 가능성을 고려해야 한다.</p>
+
+<p><strong>CSRF (Cross-Site Request Forgery)</strong></p>
+
+<p>사용자가 이미 인증되어 있다는 점을 악용하여 사용자가 의도하지 않은 요청을 보내도록 만드는 공격이다.</p>
+
+<p>CSRF 위험은 Token을 어떤 방식으로 전달하고 저장하는지와도 관련된다.</p>
+
+<p><strong>Token 폐기</strong></p>
+
+<p>Self-Contained Token은 발급 이후 서버의 별도 State 없이 검증할 수 있다는 장점이 있지만, 만료 전에 즉시 폐기하려면 별도의 설계가 필요할 수 있다.</p>
+
+<p>예를 들어 다음과 같은 전략을 사용할 수 있다.</p>
+
+<ul>
+  <li>짧은 Access Token 만료 시간</li>
+  <li>Refresh Token 폐기</li>
+  <li>Token Revocation 목록</li>
+  <li>Server-side Token 상태 관리</li>
+</ul>
+
+<h3 id="mfa"><strong>MFA</strong></h3>
+
+<p>MFA (Multi-Factor Authentication)는 사용자의 신원을 확인할 때 서로 다른 종류의 인증 요소를 두 개 이상 사용하는 방식이다.</p>
+
+<p>일반적으로 인증 요소를 다음과 같이 구분할 수 있다.</p>
+
+<ul>
+  <li>사용자가 알고 있는 것</li>
+  <li>사용자가 가지고 있는 것</li>
+  <li>사용자 자신을 나타내는 것</li>
+</ul>
+
+<p>Password 하나만 사용하는 환경에서는 Password가 유출되면 계정을 탈취당할 수 있다.</p>
+
+<p>MFA를 사용하면 Password가 노출된 상황에서도 추가 인증 요소를 요구하여 계정 침해 가능성을 크게 낮출 수 있다.</p>
+
+<h4 id="mfa가-필요한-이유"><strong>MFA가 필요한 이유</strong></h4>
+
+<ul>
+  <li>Password 유출에 대한 추가 방어</li>
+  <li>Account 탈취 위험 감소</li>
+  <li>중요 시스템에 대한 접근 통제 강화</li>
+  <li>보안 정책 및 규정 준수</li>
+</ul>
+
+<p>MFA의 효과에 대한 수치는 조사 환경과 인증 방식에 따라 달라질 수 있으므로 특정 비율을 모든 시스템에 동일하게 적용해서는 안 된다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>Cloud Security는 Provider와 Customer가 책임을 나누는 Shared Responsibility Model을 따른다.</li>
+  <li>IAM은 Identity의 식별, 인증, 인가 및 수명 주기를 관리한다.</li>
+  <li>Least Privilege는 업무에 필요한 최소한의 Permission만 부여하는 원칙이다.</li>
+  <li>Password와 API Key는 Source Code와 분리하여 관리해야 한다.</li>
+  <li>JWT는 항상 암호화되는 것이 아니며 Claim을 전달하기 위한 Token 형식이다.</li>
+  <li>Access Token과 Refresh Token은 목적과 수명 주기가 다르다.</li>
+  <li>MFA는 Password가 유출된 경우에도 추가적인 인증 계층을 제공한다.</li>
+</ul>
+
+<h2 id="4-cloud-장애-대응"><strong>4) Cloud 장애 대응</strong></h2>
+
+<hr />
+
+<h3 id="장애의-원인"><strong>장애의 원인</strong></h3>
+
+<p>클라우드에서도 장애는 발생한다.</p>
+
+<p>대표적인 원인은 다음과 같다.</p>
+
+<ul>
+  <li>Human Error</li>
+  <li>서비스 간 의존성 문제</li>
+  <li>물리적 Resource 장애</li>
+  <li>Network 장애</li>
+  <li>Application 장애</li>
+  <li>Configuration 오류</li>
+</ul>
+
+<p>클라우드 환경은 여러 서비스와 계층이 연결되어 있기 때문에 문제가 발생했을 때 <strong>어느 계층에서 장애가 시작되었는지 빠르게 파악하는 것</strong>이 중요하다.</p>
+
+<p>장애 자체를 완전히 제거할 수 있다고 가정하기보다 장애가 발생할 것을 전제로 다음 전체 주기를 준비해야 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>감지
+ ↓
+대응
+ ↓
+복구
+ ↓
+사후 분석
+ ↓
+재발 방지
+</code></pre></div></div>
+
+<h3 id="장애-대응-전략"><strong>장애 대응 전략</strong></h3>
+
+<p>대표적인 전략은 다음과 같다.</p>
+
+<ul>
+  <li>실시간 Monitoring과 Alert</li>
+  <li>자동 복구 및 Self-Healing</li>
+  <li>Region 또는 Zone 단위의 Redundancy</li>
+  <li>정기적인 Backup</li>
+  <li>Restore Scenario 준비</li>
+  <li>RPO와 RTO 설정</li>
+  <li>Postmortem</li>
+  <li>Root Cause Analysis</li>
+  <li>재발 방지 대책</li>
+</ul>
+
+<h3 id="monitoring과-log-수집"><strong>Monitoring과 Log 수집</strong></h3>
+
+<p>Monitoring은 시스템의 상태를 지속적으로 관찰하여 이상 상태를 빠르게 발견하기 위한 방법이다.</p>
+
+<p>예를 들어 다음 지표를 확인할 수 있다.</p>
+
+<ul>
+  <li>CPU Usage</li>
+  <li>Memory Usage</li>
+  <li>Disk Usage</li>
+  <li>Network Traffic</li>
+  <li>Request Latency</li>
+  <li>Error Rate</li>
+  <li>Application Response Time</li>
+</ul>
+
+<p>특정 기준을 초과하면 Alert을 발생시켜 운영자가 빠르게 확인할 수 있도록 구성한다.</p>
+
+<h3 id="중앙-집중식-logging"><strong>중앙 집중식 Logging</strong></h3>
+
+<p>클라우드 환경에서는 여러 Server, Container, Application에서 Log가 발생한다.</p>
+
+<p>각 Server에 직접 접속해서 Log를 확인하는 방식은 규모가 커질수록 관리하기 어렵다.</p>
+
+<p>따라서 여러 위치에서 발생한 Log를 중앙 시스템으로 수집하여 분석할 수 있도록 구성한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server A ─┐
+Server B ─┼──▶ Centralized Logging
+App C    ─┘
+</code></pre></div></div>
+
+<h3 id="distributed-tracing"><strong>Distributed Tracing</strong></h3>
+
+<p>Microservice처럼 하나의 요청이 여러 서비스를 거치는 시스템에서는 특정 요청이 어떤 서비스를 거쳐 처리되었는지 추적할 필요가 있다.</p>
+
+<p>이를 Distributed Tracing (분산 추적)이라고 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+  ↓
+Service A
+  ↓
+Service B
+  ↓
+Service C
+  ↓
+Database
+</code></pre></div></div>
+
+<p>Tracing을 이용하면 요청이 어느 구간에서 오래 걸렸거나 실패했는지 파악하는 데 도움을 받을 수 있다.</p>
+
+<h3 id="장애를-빠르게-감지하고-원인을-찾는-방법"><strong>장애를 빠르게 감지하고 원인을 찾는 방법</strong></h3>
+
+<ul>
+  <li>실시간 Monitoring으로 문제 발생 시 빠르게 Alert을 받는다.</li>
+  <li>Log를 이용하여 장애 발생 전후의 상황을 추적한다.</li>
+  <li>여러 Server의 데이터를 중앙에 모아 분석한다.</li>
+  <li>Distributed Tracing을 이용하여 서비스 간 요청 흐름을 추적한다.</li>
+</ul>
+
+<h2 id="5-high-availability"><strong>5) High Availability</strong></h2>
+
+<hr />
+
+<h3 id="개요-1"><strong>개요</strong></h3>
+
+<p>High Availability (고가용성)는 Server, Network, Application 등의 일부 구성 요소에 장애가 발생하더라도 서비스를 계속 제공하거나 중단 시간을 최소화할 수 있도록 시스템을 설계하는 개념이다.</p>
+
+<p>목표는 단순히 “서버를 항상 켜두는 것”이 아니라 <strong>일부 구성 요소의 실패가 전체 서비스 중단으로 이어지지 않도록 설계하는 것</strong>이다.</p>
+
+<h3 id="availability"><strong>Availability</strong></h3>
+
+<p>Availability는 일정 기간 동안 시스템이 정상적으로 서비스를 제공한 비율을 의미한다.</p>
+
+<p>대표적인 수치를 연간 Down Time으로 환산하면 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Availability</strong></th>
+      <th><strong>연간 Down Time</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>99.9%</td>
+      <td>약 8시간 46분</td>
+    </tr>
+    <tr>
+      <td>99.99%</td>
+      <td>약 52분 34초</td>
+    </tr>
+    <tr>
+      <td>99.999%</td>
+      <td>약 5분 15초</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>이를 흔히 <code class="language-plaintext highlighter-rouge">Three Nines</code>, <code class="language-plaintext highlighter-rouge">Four Nines</code>, <code class="language-plaintext highlighter-rouge">Five Nines</code> 등으로 표현한다.</p>
+
+<p>필요한 Availability 수준은 서비스의 중요도, 비용, SLA (Service Level Agreement) 등에 따라 결정해야 한다.</p>
+
+<p>Availability가 높아질수록 일반적으로 이를 달성하기 위한 시스템 구성과 비용도 증가한다.</p>
+
+<h3 id="고가용성의-3가지-핵심-원칙"><strong>고가용성의 3가지 핵심 원칙</strong></h3>
+
+<h4 id="1-single-point-of-failure-제거">1. <strong>Single Point of Failure 제거</strong></h4>
+
+<p>SPOF (Single Point of Failure)는 하나의 구성 요소가 실패했을 때 전체 시스템이 중단되는 지점을 의미한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+  │
+  ▼
+Single Server  ← 장애
+  │
+  X
+Service 전체 중단
+</code></pre></div></div>
+
+<p>가능하면 중요한 시스템에 SPOF가 존재하지 않도록 설계해야 한다.</p>
+
+<h4 id="2-redundancy">2. <strong>Redundancy</strong></h4>
+
+<p>Redundancy (이중화)는 동일한 기능을 수행할 수 있는 구성 요소를 여러 개 배치하는 방식이다.</p>
+
+<p>다음과 같은 대상을 이중화할 수 있다.</p>
+
+<ul>
+  <li>Server</li>
+  <li>Database</li>
+  <li>Network Device</li>
+  <li>Storage</li>
+  <li>Power Supply</li>
+  <li>Network Line</li>
+</ul>
+
+<p><strong>Active-Active</strong>
+여러 시스템이 동시에 요청을 처리한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>          Load Balancer
+          /           \
+         ▼             ▼
+     Active A       Active B
+</code></pre></div></div>
+
+<p>한 시스템에 장애가 발생하면 정상 상태의 다른 시스템이 계속 요청을 처리할 수 있도록 구성한다.</p>
+
+<p><strong>Active-Standby</strong>
+하나는 서비스를 제공하고 다른 하나는 대기한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Active
+  │
+  │ 장애
+  ▼
+Standby
+  │
+  ▼
+Active 전환
+</code></pre></div></div>
+
+<p>장애가 발생하면 Standby 시스템이 역할을 넘겨받는 Failover를 수행한다.</p>
+
+<h4 id="3-health-check와-failover">3. <strong>Health Check와 Failover</strong></h4>
+
+<p>Health Check는 Server나 Application이 정상적으로 동작하고 있는지 지속적으로 확인하는 방식이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Load Balancer
+   │
+   ├─ Health Check → Server A : 정상
+   └─ Health Check → Server B : 장애
+</code></pre></div></div>
+
+<p>장애가 감지되면 비정상 Server로의 Traffic을 차단하거나 Standby 시스템으로 전환할 수 있다.</p>
+
+<p>이 과정을 자동화하면 사람의 개입 없이 장애에 대응할 수 있다.</p>
+
+<h3 id="고가용성-관련-구성"><strong>고가용성 관련 구성</strong></h3>
+
+<h4 id="server와-database-이중화"><strong>Server와 Database 이중화</strong></h4>
+
+<p>서비스에 따라 다음과 같은 구성을 사용할 수 있다.</p>
+
+<ul>
+  <li>Primary / Replica</li>
+  <li>Read Replica</li>
+  <li>Cluster</li>
+  <li>Multi-Zone 구성</li>
+  <li>Multi-Region Deployment</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">Master-Slave</code>라는 용어도 기존 시스템에서 사용되어 왔지만, 최근 제품과 문서에서는 <code class="language-plaintext highlighter-rouge">Primary-Replica</code> 등 다른 용어를 사용하는 경우가 많다.</p>
+
+<h4 id="load-balancer-1"><strong>Load Balancer</strong></h4>
+
+<p>Load Balancer는 여러 Server에 Traffic을 분산하며 Health Check와 결합하여 비정상 Server를 Traffic 대상에서 제외할 수 있다.</p>
+
+<h4 id="multi-region-deployment"><strong>Multi-Region Deployment</strong></h4>
+
+<p>서로 다른 Region에 시스템을 구성하여 특정 지역 또는 Region 단위의 장애에 대응할 수 있다.</p>
+
+<p>다만 Multi-Region을 구성했다고 해서 자동으로 완전한 재해 복구가 이루어지는 것은 아니며 다음 요소를 함께 설계해야 한다.</p>
+
+<ul>
+  <li>Data Replication</li>
+  <li>Traffic 전환</li>
+  <li>DNS</li>
+  <li>Failover</li>
+  <li>데이터 정합성</li>
+  <li>운영 절차</li>
+</ul>
+
+<h2 id="6-disaster-recovery"><strong>6) Disaster Recovery</strong></h2>
+
+<hr />
+
+<p>Disaster Recovery (DR)는 대규모 장애나 재해로 서비스가 정상적으로 운영되지 못하는 상황에서 시스템과 데이터를 복구하기 위한 전체 전략이다.</p>
+
+<p>단순히 장애가 발생한 Server를 자동으로 교체하는 것보다 넓은 개념이다.</p>
+
+<p>DR에서는 다음과 같은 요소를 고려할 수 있다.</p>
+
+<ul>
+  <li>Backup</li>
+  <li>Replication</li>
+  <li>Standby System</li>
+  <li>Region 장애 대응</li>
+  <li>Network 복구</li>
+  <li>Traffic 전환</li>
+  <li>Recovery Procedure</li>
+  <li>Recovery Test</li>
+</ul>
+
+<h3 id="rpo"><strong>RPO</strong></h3>
+
+<p>RPO (Recovery Point Objective, 복구 시점 목표)는 장애가 발생했을 때 <strong>최대 어느 시점까지의 데이터 손실을 허용할 것인가</strong>를 나타내는 목표이다.</p>
+
+<p>질문으로 표현하면 다음과 같다.</p>
+
+<p>어느 시점의 데이터까지 복구할 수 있어야 하는가?</p>
+
+<p>최대 얼마만큼의 데이터를 잃는 것을 허용할 수 있는가?</p>
+
+<p>예를 들어 RPO가 24시간이면 장애 상황에서 최대 24시간 범위의 데이터 손실을 허용한다는 목표이다.</p>
+
+<p>Backup 주기와 Replication 전략은 이러한 RPO를 만족하도록 설계해야 한다.</p>
+
+<p>RPO를 매우 작게 만들기 위해서는 보다 빈번한 Backup 또는 Replication이 필요할 수 있다.</p>
+
+<h3 id="rto"><strong>RTO</strong></h3>
+
+<p>RTO (Recovery Time Objective, 복구 시간 목표)는 장애가 발생한 이후 서비스를 복구하는 데 허용할 수 있는 최대 목표 시간을 의미한다.</p>
+
+<p>질문으로 표현하면 다음과 같다.</p>
+
+<p>서비스가 중단된 후 얼마 이내에 정상화되어야 하는가?</p>
+
+<p>예를 들어 RTO가 4시간이라면 장애를 감지한 후 정해진 복구 과정을 수행하여 목표상 4시간 이내에 서비스를 정상화할 수 있도록 시스템과 절차를 설계한다.</p>
+
+<h3 id="rpo와-rto"><strong>RPO와 RTO</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구분</strong></th>
+      <th><strong>RPO</strong></th>
+      <th><strong>RTO</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>의미</td>
+      <td>허용 가능한 데이터 손실 범위</td>
+      <td>허용 가능한 서비스 복구 시간</td>
+    </tr>
+    <tr>
+      <td>핵심 질문</td>
+      <td>얼마나 이전 데이터까지 돌아가도 되는가?</td>
+      <td>얼마나 빨리 다시 서비스해야 하는가?</td>
+    </tr>
+    <tr>
+      <td>관련 요소</td>
+      <td>Backup, Replication</td>
+      <td>Failover, 복구 자동화, 운영 절차</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>쉽게 구분하면 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RPO → 데이터
+RTO → 시간
+</code></pre></div></div>
+
+<h3 id="backup-정책"><strong>Backup 정책</strong></h3>
+
+<p>Backup 정책을 설계할 때는 다음 사항을 고려해야 한다.</p>
+
+<ul>
+  <li>어떤 데이터를 Backup할 것인가?</li>
+  <li>얼마나 자주 Backup할 것인가?</li>
+  <li>Backup 데이터를 어디에 저장할 것인가?</li>
+  <li>Backup 데이터를 어떻게 암호화하고 보호할 것인가?</li>
+  <li>Backup을 얼마나 오래 보관할 것인가?</li>
+  <li>실제로 Restore가 가능한지 어떻게 검증할 것인가?</li>
+</ul>
+
+<p>중요한 데이터는 운영 시스템과 동일한 장애 영역에만 Backup을 보관하지 않는 것이 중요하다.</p>
+
+<p>필요에 따라 다른 Zone 또는 Region에 Backup을 보관하여 동일한 장애로 원본과 Backup이 동시에 손실되는 위험을 줄일 수 있다.</p>
+
+<p>Backup 파일이 존재한다는 것만으로 복구 가능성이 보장되는 것은 아니다.</p>
+
+<p>따라서 <strong>정기적인 Restore Test를 통해 실제 복구가 가능한지 확인해야 한다.</strong></p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>장애는 발생하지 않도록 하는 것뿐 아니라 발생했을 때 빠르게 감지하고 복구하도록 준비해야 한다.</li>
+  <li>Monitoring, Logging, Distributed Tracing을 이용하여 장애의 위치와 원인을 파악한다.</li>
+  <li>High Availability는 일부 구성 요소가 실패해도 서비스를 지속하도록 설계하는 것이다.</li>
+  <li>SPOF 제거, Redundancy, Health Check, Failover가 중요한 구성 원칙이다.</li>
+  <li>DR은 대규모 장애 이후 서비스와 데이터를 복구하기 위한 전략이다.</li>
+  <li>RPO는 허용 가능한 데이터 손실, RTO는 허용 가능한 복구 시간을 의미한다.</li>
+  <li>Backup은 생성하는 것뿐 아니라 실제 Restore Test까지 수행해야 한다.</li>
+</ul>
+
+<h2 id="7-주요-cloud-platform-비교"><strong>7) 주요 Cloud Platform 비교</strong></h2>
+
+<hr />
+
+<p>대표적인 Public Cloud Platform으로 AWS, Microsoft Azure, Google Cloud가 있다.</p>
+
+<p>세 Platform 모두 Compute, Storage, Network, Database, Container, Serverless, AI/ML 등 다양한 Cloud Service를 제공하지만 서비스 구성 방식과 생태계에는 차이가 있다.</p>
+
+<h3 id="공통점"><strong>공통점</strong></h3>
+
+<h4 id="다양한-cloud-service-model"><strong>다양한 Cloud Service Model</strong></h4>
+
+<p>다음과 같은 광범위한 Cloud Resource와 Managed Service를 제공한다.</p>
+
+<ul>
+  <li>Compute</li>
+  <li>Storage</li>
+  <li>Network</li>
+  <li>Database</li>
+  <li>Container</li>
+  <li>Serverless</li>
+  <li>AI / ML</li>
+  <li>Security</li>
+</ul>
+
+<h4 id="shared-responsibility-model-1"><strong>Shared Responsibility Model</strong></h4>
+
+<p>Cloud Provider와 사용자가 보안 책임을 나누어 가진다.</p>
+
+<p>책임 범위는 사용하는 서비스 유형과 제품에 따라 달라진다.</p>
+
+<h4 id="다양한-요금-모델"><strong>다양한 요금 모델</strong></h4>
+
+<p>대표적으로 사용량에 기반한 과금 방식과 일정 사용량 또는 기간을 약정하여 비용을 절감하는 방식 등을 제공한다.</p>
+
+<h4 id="global-infrastructure"><strong>Global Infrastructure</strong></h4>
+
+<p>여러 Region과 Availability Zone 등의 Infrastructure를 이용하여 지리적으로 분산된 시스템을 설계할 수 있다.</p>
+
+<h3 id="aws--azure--google-cloud-비교"><strong>AWS · Azure · Google Cloud 비교</strong></h3>
+
+<p>다음 표는 강의에서 각 Platform의 특징을 비교하기 위한 <strong>대표적인 경향</strong>을 정리한 것이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구분</strong></th>
+      <th><strong>AWS</strong></th>
+      <th><strong>Azure</strong></th>
+      <th><strong>Google Cloud</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>주요 특징</td>
+      <td>폭넓은 Cloud Service와 생태계</td>
+      <td>Microsoft 생태계 및 Hybrid 환경과의 연계</td>
+      <td>Data, Kubernetes, AI 분야의 강점</td>
+    </tr>
+    <tr>
+      <td>Compute</td>
+      <td>EC2</td>
+      <td>Azure Virtual Machines</td>
+      <td>Compute Engine</td>
+    </tr>
+    <tr>
+      <td>Object Storage</td>
+      <td>Amazon S3</td>
+      <td>Azure Blob Storage</td>
+      <td>Cloud Storage</td>
+    </tr>
+    <tr>
+      <td>관계형 Database</td>
+      <td>Amazon RDS</td>
+      <td>Azure SQL 계열</td>
+      <td>Cloud SQL</td>
+    </tr>
+    <tr>
+      <td>Serverless</td>
+      <td>AWS Lambda</td>
+      <td>Azure Functions</td>
+      <td>Cloud Run / Cloud Functions 계열</td>
+    </tr>
+    <tr>
+      <td>Kubernetes</td>
+      <td>Amazon EKS</td>
+      <td>Azure Kubernetes Service (AKS)</td>
+      <td>Google Kubernetes Engine (GKE)</td>
+    </tr>
+    <tr>
+      <td>AI Platform</td>
+      <td>Amazon SageMaker, Amazon Bedrock</td>
+      <td>Azure AI 및 Azure OpenAI</td>
+      <td>Vertex AI</td>
+    </tr>
+    <tr>
+      <td>Data 분석</td>
+      <td>다양한 분석 서비스</td>
+      <td>Azure Data Platform</td>
+      <td>BigQuery 등</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>특정 서비스의 우열은 고정되어 있지 않으며 새로운 서비스가 지속적으로 추가되므로 실제 도입 시점의 요구 사항을 기준으로 비교해야 한다.</p>
+
+<h3 id="aws"><strong>AWS</strong></h3>
+
+<p>AWS는 다양한 분야의 Cloud Service와 광범위한 생태계를 제공한다.</p>
+
+<p>다양한 Resource를 세밀하게 조합하여 Infrastructure를 구성할 수 있다는 장점이 있지만, 사용할 수 있는 서비스와 옵션이 많기 때문에 처음 학습할 때 복잡하게 느껴질 수 있다.</p>
+
+<p>다음과 같은 상황에서 검토할 수 있다.</p>
+
+<ul>
+  <li>다양한 Cloud Service를 조합해야 하는 환경</li>
+  <li>광범위한 Reference와 Ecosystem이 필요한 환경</li>
+  <li>여러 유형의 Workload를 하나의 Cloud에서 운영해야 하는 환경</li>
+</ul>
+
+<h3 id="azure"><strong>Azure</strong></h3>
+
+<p>Azure는 Microsoft의 Enterprise Product와 연계하여 활용할 수 있다.</p>
+
+<p>다음과 같은 환경에서 검토하기 쉽다.</p>
+
+<ul>
+  <li>Windows Server 기반 Infrastructure</li>
+  <li>Microsoft Identity 환경</li>
+  <li>Microsoft 365를 사용하는 조직</li>
+  <li>.NET 기반 Application</li>
+  <li>On-Premise Microsoft 환경과 Cloud를 연결하는 Hybrid 환경</li>
+</ul>
+
+<h3 id="google-cloud"><strong>Google Cloud</strong></h3>
+
+<p>Google Cloud는 Data Analytics, Kubernetes, AI 등의 영역과 연결하여 활용할 수 있다.</p>
+
+<p>대표적인 서비스로 다음이 있다.</p>
+
+<ul>
+  <li>BigQuery</li>
+  <li>Google Kubernetes Engine (GKE)</li>
+  <li>Vertex AI</li>
+  <li>Cloud Spanner</li>
+  <li>Compute Engine</li>
+  <li>Cloud Storage</li>
+</ul>
+
+<p>다음과 같은 환경에서 검토할 수 있다.</p>
+
+<ul>
+  <li>대규모 Data 분석</li>
+  <li>Kubernetes 중심의 Container Platform</li>
+  <li>AI / ML Workload</li>
+  <li>Google Cloud의 Data Platform을 적극적으로 활용하는 환경</li>
+</ul>
+
+<p><strong>정리</strong></p>
+
+<p>Cloud Platform은 단순히 “어느 회사가 가장 좋은가”로 선택하기 어렵다.</p>
+
+<p>현재 조직에서 사용하는 기술, Data 특성, Network 구조, Security 요구 사항, 운영 인력 등을 함께 고려해야 한다.</p>
+
+<h3 id="국내-cloud-platform"><strong>국내 Cloud Platform</strong></h3>
+
+<p>국내에서도 여러 Cloud Service Provider가 서비스를 제공한다.</p>
+
+<p>강의에서는 다음 네 Platform의 특징을 중심으로 다루었다.</p>
+
+<h4 id="naver-cloud"><strong>NAVER Cloud</strong></h4>
+
+<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
+
+<ul>
+  <li>AI Ecosystem</li>
+  <li>국내 기업 및 공공 환경을 고려한 Cloud Service</li>
+  <li>Sovereign Cloud</li>
+  <li>HyperCLOVA X와 연계된 AI Service</li>
+  <li>IaaS / PaaS / SaaS</li>
+  <li>금융·의료·공공 분야를 고려한 Cloud 환경</li>
+</ul>
+
+<h4 id="nhn-cloud"><strong>NHN Cloud</strong></h4>
+
+<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
+
+<ul>
+  <li>Game Infrastructure</li>
+  <li>공공 Cloud</li>
+  <li>AI Data Center</li>
+  <li>SaaS 연계</li>
+  <li>게임 서비스 운영 경험을 활용한 Infrastructure</li>
+  <li>Dooray 등의 업무 서비스</li>
+</ul>
+
+<h4 id="kt-cloud"><strong>KT Cloud</strong></h4>
+
+<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
+
+<ul>
+  <li>IDC (Internet Data Center)</li>
+  <li>공공 Cloud</li>
+  <li>통신 Infrastructure 연계</li>
+  <li>Edge Computing</li>
+  <li>Enterprise Infrastructure</li>
+</ul>
+
+<h4 id="kakao-cloud"><strong>Kakao Cloud</strong></h4>
+
+<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
+
+<ul>
+  <li>개발자 중심의 Cloud 환경</li>
+  <li>Kubernetes</li>
+  <li>Cloud Native Infrastructure</li>
+  <li>AI Service</li>
+  <li>Mobile 및 Kakao Ecosystem과의 연계</li>
+</ul>
+
+<p>국내 Cloud 역시 특정 산업에 무조건 하나의 Provider가 적합하다고 단정하기보다는 실제 요구 사항과 인증, 규제, 서비스 지원 범위를 확인하여 선택해야 한다.</p>
+
+<h3 id="cloud-선택-기준"><strong>Cloud 선택 기준</strong></h3>
+
+<p>Cloud Platform을 선택할 때는 단순히 서비스 수나 가격만 비교해서는 안 된다.</p>
+
+<h4 id="기술적-적합성"><strong>기술적 적합성</strong></h4>
+
+<p>현재 Application과 Infrastructure에서 필요한 기술을 지원하는지 확인한다.</p>
+
+<h4 id="비용"><strong>비용</strong></h4>
+
+<p>다음 비용을 함께 고려해야 한다.</p>
+
+<ul>
+  <li>Compute</li>
+  <li>Storage</li>
+  <li>Network Traffic</li>
+  <li>Managed Service</li>
+  <li>운영 인력</li>
+  <li>Migration</li>
+</ul>
+
+<h4 id="지역성과-법적-요구-사항"><strong>지역성과 법적 요구 사항</strong></h4>
+
+<p>Data가 저장되는 Region과 해당 산업에서 요구하는 법률·규제·인증 조건을 확인한다.</p>
+
+<h4 id="기업의-전략-방향"><strong>기업의 전략 방향</strong></h4>
+
+<p>현재 기업이 사용하는 기술 Stack과 장기적인 Cloud 전략을 고려한다.</p>
+
+<h4 id="조직의-cloud-성숙도"><strong>조직의 Cloud 성숙도</strong></h4>
+
+<p>Cloud Platform 자체의 기능뿐 아니라 해당 Platform을 실제로 운영할 수 있는 인력이 있는지도 중요하다.</p>
+
+<h4 id="내부-security-policy"><strong>내부 Security Policy</strong></h4>
+
+<p>조직의 Security Policy와 Cloud Provider가 제공하는 Security 기능이 맞는지 검토한다.</p>
+
+<h4 id="sla"><strong>SLA</strong></h4>
+
+<p>SLA (Service Level Agreement)에서 보장하는 Availability와 보상 조건 등을 확인한다.</p>
+
+<h4 id="migration-난이도"><strong>Migration 난이도</strong></h4>
+
+<p>기존 On-Premise 또는 다른 Cloud 환경에서 Application과 Data를 이전하는 데 필요한 비용과 난이도를 고려한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cloud 선택
+
+기술 적합성
+    +
+비용
+    +
+Security
+    +
+법적 요구 사항
+    +
+조직 역량
+    +
+SLA
+    +
+Migration 난이도
+</code></pre></div></div>
+
+<h2 id="전체-정리"><strong>전체 정리</strong></h2>
+
+<hr />
+
+<blockquote>
+  <ul>
+    <li>
+      <p>VPN은 인터넷 등의 네트워크 위에 암호화된 사설 통신 경로를 구성하며, 전용선은 보다 안정적인 Cloud 연결을 구성할 때 사용할 수 있다.</p>
+    </li>
+    <li>
+      <p>Service Endpoint는 Client가 Service에 접근하는 접점이고 Load Balancer는 여러 Server에 Traffic을 분산하는 역할을 한다.</p>
+    </li>
+    <li>
+      <p>Cloud에서는 Server와 Container의 주소가 동적으로 변경될 수 있으므로 DNS와 Service Discovery 같은 이름 기반 접근 방식이 중요하다.</p>
+    </li>
+    <li>
+      <p>VPC와 VNet은 Cloud Resource를 배치하기 위한 논리적인 Network이며 Subnet, Routing, NAT, Security Policy 등을 구성할 수 있다.</p>
+    </li>
+    <li>
+      <p>IaC는 Infrastructure의 원하는 상태를 코드로 정의하여 반복적인 작업을 자동화하고 변경 이력을 관리하는 방식이다.</p>
+    </li>
+    <li>
+      <p>Terraform은 Infrastructure Provisioning에, Ansible은 Configuration Management와 IT Automation에 주로 사용하며 두 도구를 함께 사용할 수도 있다.</p>
+    </li>
+    <li>
+      <p>Shared Responsibility Model에서는 Cloud Provider와 Customer가 사용하는 서비스에 따라 Security 책임을 나누어 가진다.</p>
+    </li>
+    <li>
+      <p>IAM은 Identification, Authentication, Authorization과 Account Lifecycle을 관리하며 Least Privilege를 적용하는 기반이 된다.</p>
+    </li>
+    <li>
+      <p>Secret은 Source Code와 분리하여 관리하고 접근 권한, Rotation, Audit까지 함께 고려해야 한다.</p>
+    </li>
+    <li>
+      <p>JWT는 항상 암호화된 Token이 아니며 Claim을 전달하기 위해 서명 또는 암호화할 수 있는 Token 형식이다.</p>
+    </li>
+    <li>
+      <p>장애 대응에서는 Monitoring, Logging, Distributed Tracing을 통해 문제를 빠르게 발견하고 원인을 추적해야 한다.</p>
+    </li>
+    <li>
+      <p>High Availability는 SPOF를 제거하고 Redundancy, Health Check, Failover 등을 이용하여 서비스 중단을 최소화하는 방식이다.</p>
+    </li>
+    <li>
+      <p>RPO는 허용 가능한 데이터 손실 범위를, RTO는 허용 가능한 복구 시간을 의미한다.</p>
+    </li>
+    <li>
+      <p>Backup은 생성뿐 아니라 실제 Restore Test까지 수행해야 한다.</p>
+    </li>
+    <li>
+      <p>AWS, Azure, Google Cloud와 국내 Cloud Platform은 각각 다른 Ecosystem과 특성을 가지므로 기술, 비용, Security, 법적 요구 사항, 조직 역량, SLA, Migration 난이도를 종합하여 선택해야 한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/04-memo-virtualize/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Type 1 Hypervisor가 Type 2보다 빠른 이유</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/03-cloud-native/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Cloud Native와 DevOps</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1786357822"></script>
+  </body>
+</html>

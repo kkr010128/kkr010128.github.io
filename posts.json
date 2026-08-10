@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Cloud Native와 DevOps",
+        "url": "/03-cloud-native/",
+        "description": "Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계",
+        "thumbnail": null,
+        "tags": ["Cloud","AutoEverSW"],
+        "series_key": "cloud",
+        "series_title": "Cloud",
+        "date_label": "2026년 8월 10일",
+        "reading_time_label": "10분 읽기",
+        "search": "cloud native와 devops cloud native의 개념과 적용 이유, cncf, 개발 방식의 변화, devops와 agile, ci/cd, docker와 kubernetes를 포함한 devops 생태계 cloud autoeversw cloud"
+      },
+    
+      
+      
+      {
+        "title": "Cloud에 필요한 기술",
+        "url": "/02-cloud-technology/",
+        "description": "클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준",
+        "thumbnail": null,
+        "tags": ["Cloud","AutoEverSW"],
+        "series_key": "cloud",
+        "series_title": "Cloud",
+        "date_label": "2026년 8월 10일",
+        "reading_time_label": "24분 읽기",
+        "search": "cloud에 필요한 기술 클라우드 네트워크, iac, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준 cloud autoeversw cloud"
+      },
+    
+      
+      
+      {
         "title": "Type 1 Hypervisor가 Type 2보다 빠른 이유",
         "url": "/04-memo-virtualize/",
         "description": "Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이",
@@ -20,7 +50,7 @@
       
       {
         "title": "클라우드의 이해",
-        "url": "/01-cloud/",
+        "url": "/01-cloud-basic/",
         "description": "가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조 정리",
         "thumbnail": null,
         "tags": ["Cloud","AutoEverSW"],
