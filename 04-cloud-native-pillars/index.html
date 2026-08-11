@@ -1,0 +1,647 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>클라우드 네이티브의 핵심 요소 CI/CD와 Container | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름">
+<link rel="canonical" href="https://kkr010128.github.io/04-cloud-native-pillars/">
+<meta property="og:title" content="클라우드 네이티브의 핵심 요소 CI/CD와 Container | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름">
+<meta property="og:url" content="https://kkr010128.github.io/04-cloud-native-pillars/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="클라우드 네이티브의 핵심 요소 CI/CD와 Container | renamed.log">
+<meta name="twitter:description" content="CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름">
+
+  <meta property="article:published_time" content="2026-08-11T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1786486320" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786486320" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786486320">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786486320" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1786486320">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "클라우드 네이티브의 핵심 요소 CI/CD와 Container | renamed.log",
+    "description": "CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름",
+    "url": "https://kkr010128.github.io/04-cloud-native-pillars/",
+    "datePublished": "2026-08-11T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">Cloud</p>
+    
+    <h1 class="post-head__title">클라우드 네이티브의 핵심 요소 CI/CD와 Container</h1>
+    
+      <p class="post-head__description">CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 11일 · 4분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Cloud">Cloud</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="pillars-of-cloud-native">Pillars of Cloud Native</h2>
+
+<hr />
+
+<h3 id="cicd">CI/CD</h3>
+
+<h4 id="개요">개요</h4>
+
+<p>CI/CD는 애플리케이션 개발 단계를 자동화하여 애플리케이션을 더 짧은 주기로 고객에게 제공하기 위한 방법이다.</p>
+
+<p>새로운 코드를 기존 코드에 통합하는 과정에서 개발 및 운영에 발생할 수 있는 <strong>Integration Hell</strong> 문제를 줄이는 데 목적이 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CI (Continuous Integration)</td>
+      <td>지속적 통합</td>
+    </tr>
+    <tr>
+      <td>CD (Continuous Delivery)</td>
+      <td>지속적 제공</td>
+    </tr>
+    <tr>
+      <td>CD (Continuous Deployment)</td>
+      <td>지속적 배포</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="흐름">흐름</h4>
+
+<p>개발자가 코드를 작성한 뒤 저장소에 Push 또는 Upload하면 이후 Build, Test, Merge 등의 과정이 CI 파이프라인에서 수행된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Development</th>
+      <th>CI</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Coding → Push / Upload</td>
+      <td>Build → Test → Merge</td>
+    </tr>
+    <tr>
+      <td>Coding은 수동</td>
+      <td>대부분 자동화되며 일부 과정은 Manual일 수 있음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>CI 이후에는 Acceptance Test와 Staging 배포를 거쳐 Production 환경에 배포한다.</p>
+
+<p><strong>Continuous Delivery</strong></p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Coding
+  ↓
+Push / Upload
+  ↓
+Build
+  ↓
+Test
+  ↓
+Merge
+  ↓
+Acceptance Test
+  ↓
+Deploy to Staging
+  ↓
+Deploy to Production (Manual)
+  ↓
+Smoke Test
+</code></pre></div></div>
+
+<p>Continuous Delivery에서는 Production에 배포할 수 있는 상태까지 자동화하지만, 실제 Production 배포는 수동으로 수행한다.</p>
+
+<p><strong>Continuous Deployment</strong></p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Coding
+  ↓
+Push / Upload
+  ↓
+Build
+  ↓
+Test
+  ↓
+Merge
+  ↓
+Acceptance Test
+  ↓
+Deploy to Staging
+  ↓
+Deploy to Production
+  ↓
+Smoke Test
+</code></pre></div></div>
+
+<p>Continuous Deployment에서는 검증을 통과한 변경 사항을 Production 환경까지 자동으로 배포한다.</p>
+
+<h4 id="테스트-종류"><strong>테스트 종류</strong></h4>
+
+<p><strong>CI 단계의 테스트</strong></p>
+
+<p>CI에서 수행하는 테스트는 코드 검증과 정적 테스트를 포함한다.</p>
+
+<p>예를 들어 다음 항목을 점검할 수 있다.</p>
+
+<ul>
+  <li>사용하지 않는 변수</li>
+  <li>사용하지 않는 패키지</li>
+  <li>코드 및 로직 문제</li>
+</ul>
+
+<p><strong>Acceptance Test</strong></p>
+
+<p>인수 테스트(Acceptance Test)는 개발된 애플리케이션이 고객의 요구사항에 부합하는지 확인하는 테스트이다.</p>
+
+<p><strong>Smoke Test</strong></p>
+
+<p>Smoke Test는 새로운 빌드나 배포판이 생성되었을 때 기본적인 기능이 정상적으로 동작하는지 빠르게 확인하는 테스트이다.</p>
+
+<h3 id="ci-continuous-integration"><strong>CI (Continuous Integration)</strong></h3>
+
+<p>CI는 개발팀이 작은 변경 사항을 구현하고 코드를 버전 제어 저장소(Repository)에 자주 체크인하도록 하는 코딩 철학이자 일련의 관행이다.</p>
+
+<p>최신 애플리케이션은 다양한 플랫폼과 도구를 이용하여 개발되기 때문에 여러 개발자가 만든 변경 사항을 지속적으로 통합하고 검증하기 위한 메커니즘이 필요하다.</p>
+
+<p>CI의 기술적 목표는 애플리케이션을 <strong>빌드, 패키징, 테스트하는 일관되고 자동화된 방법을 구축하는 것</strong>이다.</p>
+
+<p>통합 프로세스의 일관성을 유지하면 개발자가 코드 변경을 더 자주 커밋할 수 있고, 공동 작업과 소프트웨어 품질을 향상시킬 수 있다.</p>
+
+<p>소프트웨어 공학에서 지속적 통합은 품질 관리를 마지막 단계에서 한 번 수행하는 방식이 아니라, 작은 단위로 자주 통합하면서 지속적으로 품질 관리를 수행하는 프로세스이다.</p>
+
+<p>이를 통해 소프트웨어의 품질을 높이고 배포에 걸리는 시간을 줄이는 데 초점을 맞춘다.</p>
+
+<h3 id="continuous-delivery"><strong>Continuous Delivery</strong></h3>
+
+<p>Continuous Delivery는 개발자가 애플리케이션에 적용한 변경 사항을 테스트한 뒤 Repository에 자동으로 업로드하고, 언제든 Production 환경에 배포할 수 있는 상태로 유지하는 방식이다.</p>
+
+<p>Repository에는 Git 저장소나 Image Registry 등이 사용될 수 있다.</p>
+
+<p>운영팀은 이 Repository에 저장된 결과물을 가져와 실제 Production 환경에 배포한다.</p>
+
+<p><strong>목적</strong></p>
+
+<ul>
+  <li>개발팀과 비즈니스팀 간의 가시성 부족 문제 완화</li>
+  <li>개발팀과 운영팀 간의 커뮤니케이션 문제 감소</li>
+  <li>최소한의 노력으로 새로운 코드를 배포할 수 있는 상태 유지</li>
+</ul>
+
+<p>Continuous Delivery에서는 Production 배포가 가능한 상태까지 자동화하지만 실제 배포 시점은 사람이 결정한다.</p>
+
+<h3 id="continuous-deployment"><strong>Continuous Deployment</strong></h3>
+
+<p>Continuous Deployment는 개발자의 변경 사항을 Repository에서 고객이 실제로 사용할 수 있는 Production 환경까지 자동으로 릴리즈하는 방식이다.</p>
+
+<p>수동 배포 과정으로 인해 운영팀에 프로세스 과부하가 발생하거나, 애플리케이션 제공 속도가 늦어지는 문제를 줄이는 데 목적이 있다.</p>
+
+<p>Continuous Deployment는 Continuous Delivery에서 제공하는 자동화 기반을 활용하고, 그 다음 단계인 Production 배포까지 자동화한다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>CI는 코드 변경 사항을 자주 통합하고 Build와 Test를 자동화하는 방식이다.</li>
+  <li>Continuous Delivery는 Production에 배포 가능한 상태까지 자동화한다.</li>
+  <li>Continuous Deployment는 Production 배포까지 자동화한다.</li>
+  <li>Acceptance Test는 고객 요구사항 충족 여부를 확인한다.</li>
+  <li>Smoke Test는 새로운 빌드나 배포 이후 기본 기능의 정상 동작 여부를 빠르게 확인한다.</li>
+</ul>
+
+<h3 id="containers"><strong>Containers</strong></h3>
+
+<h4 id="개요-1"><strong>개요</strong></h4>
+
+<p>Linux Container는 애플리케이션 실행에 필요한 파일과 실행 환경을 하나의 단위로 패키징하고, 다른 애플리케이션과 분리하여 실행할 수 있도록 하는 기술이다.</p>
+
+<p>컨테이너화된 애플리케이션은 기능을 유지하면서 개발, 테스트, Production 환경 사이를 쉽게 이동할 수 있다.</p>
+
+<p>또한 컨테이너 파이프라인에 보안을 적용하고 인프라를 보호함으로써 컨테이너 환경의 안정성, 확장성, 신뢰성을 확보할 수 있다.</p>
+
+<h4 id="실행-구조-비교"><strong>실행 구조 비교</strong></h4>
+
+<p><strong>가상화를 사용하지 않는 경우</strong></p>
+
+<p>하나의 운영체제 위에 여러 애플리케이션을 직접 배치하여 실행한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
+Application
+Application
+    ↓
+Operating System
+    ↓
+Hardware
+</code></pre></div></div>
+
+<p>각 애플리케이션이 동일한 운영체제 환경을 공유한다.</p>
+
+<p><strong>KVM 가상화를 이용하는 경우</strong></p>
+
+<p>운영체제 위에 Hypervisor를 배치하고, 그 위에 Guest OS를 설치한 뒤 애플리케이션을 실행한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application      Application
+    ↓                ↓
+Guest OS         Guest OS
+    ↓                ↓
+      Hypervisor
+          ↓
+    Operating System
+          ↓
+       Hardware
+</code></pre></div></div>
+
+<p>애플리케이션을 서로 분리하려면 여러 Guest OS를 구성해야 한다.</p>
+
+<p><strong>Linux Container를 이용하는 경우</strong></p>
+
+<p>운영체제 위에 여러 Container를 직접 배치하지만, 각 Container는 서로 격리된 환경에서 실행된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container
+Container
+Container
+    ↓
+Operating System
+    ↓
+Hardware
+</code></pre></div></div>
+
+<p>Guest OS를 각각 설치하지 않고도 애플리케이션을 분리할 수 있다는 점이 가상 머신 방식과의 주요 차이이다.</p>
+
+<h3 id="devops와-cicd에서의-container-활용"><strong>DevOps와 CI/CD에서의 Container 활용</strong></h3>
+
+<p>Container는 DevOps와 CI/CD를 구현하는 주요 기술 요소 중 하나로 활용된다.</p>
+
+<p>개발자가 코드를 Push하면 다음과 같은 흐름으로 배포가 진행될 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Developer
+    ↓
+Push
+    ↓
+Code Repository
+    ↓
+Build Tool
+    ↓
+Docker Build
+    ↓
+Image Registry
+    ↓
+Kubernetes Deploy
+</code></pre></div></div>
+
+<p>개발자가 Code Repository에 코드를 Push하면 Build Tool이 애플리케이션을 빌드하고, Docker Image를 생성한다.</p>
+
+<p>생성된 이미지는 Image Registry에 저장되고, 이후 Kubernetes 환경에 배포된다.</p>
+
+<blockquote>
+  <p><strong>정리</strong></p>
+  <ul>
+    <li>
+      <p>Cloud Native의 주요 요소에는 CI/CD와 Container가 포함된다.</p>
+    </li>
+    <li>
+      <p>CI는 코드 변경 사항을 지속적으로 통합하고 검증하는 과정이다.</p>
+    </li>
+    <li>
+      <p>Continuous Delivery는 Production에 배포 가능한 상태까지 자동화하고, 실제 Production 배포는 수동으로 수행한다.</p>
+    </li>
+    <li>
+      <p>Continuous Deployment는 Production 환경까지 자동으로 배포한다.</p>
+    </li>
+    <li>
+      <p>Acceptance Test는 고객 요구사항 충족 여부를 확인하고, Smoke Test는 배포 이후 기본 기능의 정상 동작 여부를 빠르게 확인한다.</p>
+    </li>
+    <li>
+      <p>Container는 애플리케이션과 실행 환경을 패키징하고 서로 격리하여 실행할 수 있도록 한다.</p>
+    </li>
+    <li>
+      <p>가상 머신은 Guest OS를 각각 구성하지만, Container는 동일한 운영체제 환경을 공유하면서 격리된다.</p>
+    </li>
+    <li>
+      <p>CI/CD 파이프라인에서는 Code Repository, Build Tool, Docker Build, Image Registry, Kubernetes 등을 연결하여 배포 과정을 자동화할 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/03-cloud-native/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Cloud Native와 DevOps</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/05-cloud-native-micro-service/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">클라우드 네이티브 - Micro Serivce</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="/assets/js/site.js?v=1786486320"></script>
+  </body>
+</html>

@@ -4,6 +4,36 @@
       
       
       {
+        "title": "클라우드 네이티브 - Micro Serivce",
+        "url": "/05-cloud-native-micro-service/",
+        "description": "Cloud Native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 Micro Service Architecture의 핵심 원리, 운영 방식, 주요 패턴",
+        "thumbnail": null,
+        "tags": ["Cloud","AutoEverSW"],
+        "series_key": "cloud",
+        "series_title": "Cloud",
+        "date_label": "2026년 8월 11일",
+        "reading_time_label": "22분 읽기",
+        "search": "클라우드 네이티브 - micro serivce cloud native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 micro service architecture의 핵심 원리, 운영 방식, 주요 패턴 cloud autoeversw cloud"
+      },
+    
+      
+      
+      {
+        "title": "클라우드 네이티브의 핵심 요소 CI/CD와 Container",
+        "url": "/04-cloud-native-pillars/",
+        "description": "CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름",
+        "thumbnail": null,
+        "tags": ["Cloud","AutoEverSW"],
+        "series_key": "cloud",
+        "series_title": "Cloud",
+        "date_label": "2026년 8월 11일",
+        "reading_time_label": "4분 읽기",
+        "search": "클라우드 네이티브의 핵심 요소 ci/cd와 container ci, continuous delivery, continuous deployment의 차이와 container 기반 배포 흐름 cloud autoeversw cloud"
+      },
+    
+      
+      
+      {
         "title": "Cloud Native와 DevOps",
         "url": "/03-cloud-native/",
         "description": "Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계",
@@ -64,7 +94,7 @@
       
       
       {
-        "title": "Network - Security 4",
+        "title": "네트워크 보안 - 4",
         "url": "/11-network-security4/",
         "description": "방화벽과 연계 보안 솔루션 및 ACL 실습",
         "thumbnail": null,
@@ -73,13 +103,13 @@
         "series_title": "Network",
         "date_label": "2026년 8월 6일",
         "reading_time_label": "5분 읽기",
-        "search": "network - security 4 방화벽과 연계 보안 솔루션 및 acl 실습 network autoeversw gns3 network"
+        "search": "네트워크 보안 - 4 방화벽과 연계 보안 솔루션 및 acl 실습 network autoeversw gns3 network"
       },
     
       
       
       {
-        "title": "Network - Security 3",
+        "title": "네트워크 보안 - 3",
         "url": "/11-network-security3/",
         "description": "네트워크 보안 솔루션과 통제 및 감시 장비의 종류",
         "thumbnail": null,
@@ -88,13 +118,13 @@
         "series_title": "Network",
         "date_label": "2026년 8월 6일",
         "reading_time_label": "11분 읽기",
-        "search": "network - security 3 네트워크 보안 솔루션과 통제 및 감시 장비의 종류 network autoeversw network"
+        "search": "네트워크 보안 - 3 네트워크 보안 솔루션과 통제 및 감시 장비의 종류 network autoeversw network"
       },
     
       
       
       {
-        "title": "Network - Security 2",
+        "title": "네트워크 보안 - 2",
         "url": "/10-network-security2/",
         "description": "네트워크 위협 및 공격 기법의 원리, 특징 정리",
         "thumbnail": null,
@@ -103,7 +133,7 @@
         "series_title": "Network",
         "date_label": "2026년 8월 6일",
         "reading_time_label": "15분 읽기",
-        "search": "network - security 2 네트워크 위협 및 공격 기법의 원리, 특징 정리 network autoeversw network"
+        "search": "네트워크 보안 - 2 네트워크 위협 및 공격 기법의 원리, 특징 정리 network autoeversw network"
       },
     
       
@@ -124,7 +154,7 @@
       
       
       {
-        "title": "Network - Security 1",
+        "title": "네트워크 보안 - 1",
         "url": "/09-network-security1/",
         "description": "네트워크 보안의 5대 요소",
         "thumbnail": null,
@@ -133,13 +163,13 @@
         "series_title": "Network",
         "date_label": "2026년 8월 5일",
         "reading_time_label": "3분 읽기",
-        "search": "network - security 1 네트워크 보안의 5대 요소 network autoeversw network"
+        "search": "네트워크 보안 - 1 네트워크 보안의 5대 요소 network autoeversw network"
       },
     
       
       
       {
-        "title": "Network - Router & Switch Lab 2",
+        "title": "네트워크 라우터 및 스위치 실습 2",
         "url": "/08-network-lab2/",
         "description": "GNS3 환경의 Cisco Router 구성 중 IP 설정, 라우팅 테이블, 정적 라우팅, RIP, OSPF 등 라우팅의 기본 개념과 IOS 명령어 실습 내용 정리",
         "thumbnail": null,
@@ -148,7 +178,7 @@
         "series_title": "Network",
         "date_label": "2026년 8월 5일",
         "reading_time_label": "8분 읽기",
-        "search": "network - router & switch lab 2 gns3 환경의 cisco router 구성 중 ip 설정, 라우팅 테이블, 정적 라우팅, rip, ospf 등 라우팅의 기본 개념과 ios 명령어 실습 내용 정리 network autoeversw cisco gns3 network"
+        "search": "네트워크 라우터 및 스위치 실습 2 gns3 환경의 cisco router 구성 중 ip 설정, 라우팅 테이블, 정적 라우팅, rip, ospf 등 라우팅의 기본 개념과 ios 명령어 실습 내용 정리 network autoeversw cisco gns3 network"
       },
     
       
@@ -169,7 +199,7 @@
       
       
       {
-        "title": "Network - Router & Switch Lab 1",
+        "title": "네트워크 라우터 및 스위치 실습 1",
         "url": "/08-network-lab1/",
         "description": "GNS3를 이용한 Router·Switch 실습과 Cisco IOS 명령어 정리",
         "thumbnail": null,
@@ -178,13 +208,13 @@
         "series_title": "Network",
         "date_label": "2026년 8월 4일",
         "reading_time_label": "3분 읽기",
-        "search": "network - router & switch lab 1 gns3를 이용한 router·switch 실습과 cisco ios 명령어 정리 network autoeversw cisco gns3 network"
+        "search": "네트워크 라우터 및 스위치 실습 1 gns3를 이용한 router·switch 실습과 cisco ios 명령어 정리 network autoeversw cisco gns3 network"
       },
     
       
       
       {
-        "title": "Network Device 3 - L4 Device",
+        "title": "네트워크 장비 - 4계층 장비",
         "url": "/07-network-device-l4/",
         "description": "L4 장비의 핵심 개념과 Session 기반 동작, Load Balancer, Firewall, Scale Up/Out, 비대칭 경로 문제 및 해결 방법을 정리",
         "thumbnail": null,
@@ -193,7 +223,7 @@
         "series_title": "Network",
         "date_label": "2026년 8월 4일",
         "reading_time_label": "9분 읽기",
-        "search": "network device 3 - l4 device l4 장비의 핵심 개념과 session 기반 동작, load balancer, firewall, scale up/out, 비대칭 경로 문제 및 해결 방법을 정리 network autoeversw network"
+        "search": "네트워크 장비 - 4계층 장비 l4 장비의 핵심 개념과 session 기반 동작, load balancer, firewall, scale up/out, 비대칭 경로 문제 및 해결 방법을 정리 network autoeversw network"
       },
     
       
@@ -214,7 +244,7 @@
       
       
       {
-        "title": "Network Device 2 - Router",
+        "title": "네트워크 장비 - 라우터",
         "url": "/06-network-device-router/",
         "description": "L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing",
         "thumbnail": null,
@@ -223,13 +253,13 @@
         "series_title": "Network",
         "date_label": "2026년 8월 3일",
         "reading_time_label": "4분 읽기",
-        "search": "network device 2 - router l3 라우팅 핵심 - 라우팅 테이블, next hop, ttl, static / dynamic routing network autoeversw network"
+        "search": "네트워크 장비 - 라우터 l3 라우팅 핵심 - 라우팅 테이블, next hop, ttl, static / dynamic routing network autoeversw network"
       },
     
       
       
       {
-        "title": "Network Device 1 - Switch",
+        "title": "네트워크 장비 - 스위치",
         "url": "/05-network-device-switch/",
         "description": "L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지",
         "thumbnail": null,
@@ -238,7 +268,7 @@
         "series_title": "Network",
         "date_label": "2026년 8월 3일",
         "reading_time_label": "12분 읽기",
-        "search": "network device 1 - switch l2 switch의 핵심 개념 - mac 학습, vlan 분리, stp 루프 방지 network autoeversw network"
+        "search": "네트워크 장비 - 스위치 l2 switch의 핵심 개념 - mac 학습, vlan 분리, stp 루프 방지 network autoeversw network"
       },
     
       
@@ -259,7 +289,7 @@
       
       
       {
-        "title": "Network Protocol",
+        "title": "네트워크 프로토콜",
         "url": "/03-network-protocol/",
         "description": "MAC 주소, IP 주소, TCP/UDP, ARP, 서브넷 등 OSI 7계층 기반 네트워크 통신 핵심 프로토콜 정리",
         "thumbnail": null,
@@ -268,13 +298,13 @@
         "series_title": "Network",
         "date_label": "2026년 7월 31일",
         "reading_time_label": "13분 읽기",
-        "search": "network protocol mac 주소, ip 주소, tcp/udp, arp, 서브넷 등 osi 7계층 기반 네트워크 통신 핵심 프로토콜 정리 network autoeversw network"
+        "search": "네트워크 프로토콜 mac 주소, ip 주소, tcp/udp, arp, 서브넷 등 osi 7계층 기반 네트워크 통신 핵심 프로토콜 정리 network autoeversw network"
       },
     
       
       
       {
-        "title": "Network Components",
+        "title": "네트워크 컴포넌트",
         "url": "/02-network-components/",
         "description": "LAN/WAN/VPN 개념과 NIC, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리",
         "thumbnail": null,
@@ -283,13 +313,13 @@
         "series_title": "Network",
         "date_label": "2026년 7월 30일",
         "reading_time_label": "6분 읽기",
-        "search": "network components lan/wan/vpn 개념과 nic, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리 network autoeversw network"
+        "search": "네트워크 컴포넌트 lan/wan/vpn 개념과 nic, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리 network autoeversw network"
       },
     
       
       
       {
-        "title": "Network",
+        "title": "네트워크 기본 개념",
         "url": "/01-network/",
         "description": "OSI 7계층 구조, TCP/IP 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리",
         "thumbnail": null,
@@ -298,7 +328,7 @@
         "series_title": "Network",
         "date_label": "2026년 7월 30일",
         "reading_time_label": "8분 읽기",
-        "search": "network osi 7계층 구조, tcp/ip 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리 network autoeversw network"
+        "search": "네트워크 기본 개념 osi 7계층 구조, tcp/ip 프로토콜 스택, 캡슐화/역캡슐화 등 네트워크 통신의 기본 개념 정리 network autoeversw network"
       },
     
       
