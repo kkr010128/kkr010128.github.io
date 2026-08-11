@@ -1,5 +1,5 @@
 ---
-title: Network Protocol
+title: 네트워크 프로토콜
 description: MAC 주소, IP 주소, TCP/UDP, ARP, 서브넷 등 OSI 7계층 기반 네트워크 통신 핵심 프로토콜 정리
 date: 2026-07-31
 series: Network

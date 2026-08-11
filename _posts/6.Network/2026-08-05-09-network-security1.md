@@ -1,5 +1,5 @@
 ---
-title: Network - Security 1
+title: 네트워크 보안 - 1
 description: 네트워크 보안의 5대 요소
 date: 2026-08-05
 series: Network

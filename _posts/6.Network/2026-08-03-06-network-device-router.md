@@ -1,5 +1,5 @@
 ---
-title: Network Device 2 - Router
+title: 네트워크 장비 - 라우터
 description: L3 라우팅 핵심 - 라우팅 테이블, Next Hop, TTL, Static / Dynamic Routing
 date: 2026-08-03
 series: Network

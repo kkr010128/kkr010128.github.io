@@ -1,5 +1,5 @@
 ---
-title: Network Device 1 - Switch
+title: 네트워크 장비 - 스위치
 description: L2 Switch의 핵심 개념 - MAC 학습, VLAN 분리, STP 루프 방지
 date: 2026-08-03
 series: Network
@@ -7,8 +7,6 @@ tags:
   - Network
   - AutoEverSW
 ---
-
-
 ## Device 1 ) Switch
 ---
 ### 장비 동작

@@ -1,5 +1,5 @@
 ---
-title: Network - Security 4
+title: 네트워크 보안 - 4
 description: 방화벽과 연계 보안 솔루션 및 ACL 실습
 date: 2026-08-06
 series: Network

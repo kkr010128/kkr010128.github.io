@@ -1,5 +1,5 @@
 ---
-title: Network - Security 2
+title: 네트워크 보안 - 2
 description: 네트워크 위협 및 공격 기법의 원리, 특징 정리
 date: 2026-08-06
 series: Network

@@ -1,5 +1,5 @@
 ---
-title: Network Components
+title: 네트워크 컴포넌트
 description: LAN/WAN/VPN 개념과 NIC, 스위치, 라우터, 로드밸런서 등 네트워크 구성 장비 정리
 date: 2026-07-30
 series: Network

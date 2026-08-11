@@ -1,5 +1,5 @@
 ---
-title: Network Device 3 - L4 Device
+title: 네트워크 장비 - 4계층 장비
 description: L4 장비의 핵심 개념과 Session 기반 동작, Load Balancer, Firewall, Scale Up/Out, 비대칭 경로 문제 및 해결 방법을 정리
 date: 2026-08-04
 series: Network

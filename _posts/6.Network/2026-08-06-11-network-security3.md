@@ -1,5 +1,5 @@
 ---
-title: Network - Security 3
+title: 네트워크 보안 - 3
 description: 네트워크 보안 솔루션과 통제 및 감시 장비의 종류
 date: 2026-08-06
 series: Network
