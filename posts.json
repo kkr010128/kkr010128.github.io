@@ -4,53 +4,113 @@
       
       
       {
+        "title": "Kafka를 활용한 CQRS 구현",
+        "url": "/cloud-native-07-kafka-cqrs/",
+        "description": "Spring Boot, MySQL, MongoDB와 Kafka를 이용하여 쓰기와 읽기 모델을 분리한 CQRS 구조 구현",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 12일",
+        "reading_time_label": "6분 읽기",
+        "search": "kafka를 활용한 cqrs 구현 spring boot, mysql, mongodb와 kafka를 이용하여 쓰기와 읽기 모델을 분리한 cqrs 구조 구현 cloudnative autoeversw cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "CQRS와 읽기 · 쓰기 · 책임의 분리",
+        "url": "/cloud-native-06-cqrs/",
+        "description": "CQRS의 개념과 기존 데이터 모델의 문제점, Command와 Query 분리 구조 및 적용 기준",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 12일",
+        "reading_time_label": "6분 읽기",
+        "search": "cqrs와 읽기 · 쓰기 · 책임의 분리 cqrs의 개념과 기존 데이터 모델의 문제점, command와 query 분리 구조 및 적용 기준 cloudnative autoeversw cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kafka 설치와 기본 실습",
+        "url": "/cloud-native-05-kafka-practice/",
+        "description": "Docker와 Ubuntu 환경에 Kafka 구성, Broker와 ZooKeepeer 실행 및 Topic 생성과 Producer, Consumer 메시지 송수신 실습",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 12일",
+        "reading_time_label": "7분 읽기",
+        "search": "kafka 설치와 기본 실습 docker와 ubuntu 환경에 kafka 구성, broker와 zookeepeer 실행 및 topic 생성과 producer, consumer 메시지 송수신 실습 cloudnative autoeversw cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Apache Kafka",
+        "url": "/cloud-native-04-kafka/",
+        "description": "Apache Kafka의 등장 배경과 특징, Topic과 Partition 중심의 Kafka의 기본 구조와 동작 방식",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 12일",
+        "reading_time_label": "9분 읽기",
+        "search": "apache kafka apache kafka의 등장 배경과 특징, topic과 partition 중심의 kafka의 기본 구조와 동작 방식 cloudnative autoeversw cloudnative"
+      },
+    
+      
+      
+      {
         "title": "클라우드 네이티브 - Micro Serivce",
-        "url": "/05-cloud-native-micro-service/",
+        "url": "/cloud-native-03-micro-service/",
         "description": "Cloud Native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 Micro Service Architecture의 핵심 원리, 운영 방식, 주요 패턴",
         "thumbnail": null,
-        "tags": ["Cloud","AutoEverSW"],
-        "series_key": "cloud",
-        "series_title": "Cloud",
+        "tags": ["CloudNative","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
         "date_label": "2026년 8월 11일",
         "reading_time_label": "22분 읽기",
-        "search": "클라우드 네이티브 - micro serivce cloud native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 micro service architecture의 핵심 원리, 운영 방식, 주요 패턴 cloud autoeversw cloud"
+        "search": "클라우드 네이티브 - micro serivce cloud native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 micro service architecture의 핵심 원리, 운영 방식, 주요 패턴 cloudnative autoeversw cloudnative"
       },
     
       
       
       {
         "title": "클라우드 네이티브의 핵심 요소 CI/CD와 Container",
-        "url": "/04-cloud-native-pillars/",
+        "url": "/cloud-native-02-pillars/",
         "description": "CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름",
         "thumbnail": null,
-        "tags": ["Cloud","AutoEverSW"],
-        "series_key": "cloud",
-        "series_title": "Cloud",
+        "tags": ["CloudNative","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
         "date_label": "2026년 8월 11일",
         "reading_time_label": "4분 읽기",
-        "search": "클라우드 네이티브의 핵심 요소 ci/cd와 container ci, continuous delivery, continuous deployment의 차이와 container 기반 배포 흐름 cloud autoeversw cloud"
+        "search": "클라우드 네이티브의 핵심 요소 ci/cd와 container ci, continuous delivery, continuous deployment의 차이와 container 기반 배포 흐름 cloudnative autoeversw cloudnative"
       },
     
       
       
       {
         "title": "Cloud Native와 DevOps",
-        "url": "/03-cloud-native/",
+        "url": "/cloud-native-01-overview/",
         "description": "Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계",
         "thumbnail": null,
-        "tags": ["Cloud","AutoEverSW"],
-        "series_key": "cloud",
-        "series_title": "Cloud",
+        "tags": ["CloudNative","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
         "date_label": "2026년 8월 10일",
         "reading_time_label": "10분 읽기",
-        "search": "cloud native와 devops cloud native의 개념과 적용 이유, cncf, 개발 방식의 변화, devops와 agile, ci/cd, docker와 kubernetes를 포함한 devops 생태계 cloud autoeversw cloud"
+        "search": "cloud native와 devops cloud native의 개념과 적용 이유, cncf, 개발 방식의 변화, devops와 agile, ci/cd, docker와 kubernetes를 포함한 devops 생태계 cloudnative autoeversw cloudnative"
       },
     
       
       
       {
         "title": "Cloud에 필요한 기술",
-        "url": "/02-cloud-technology/",
+        "url": "/cloud-02-technology/",
         "description": "클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준",
         "thumbnail": null,
         "tags": ["Cloud","AutoEverSW"],
@@ -80,7 +140,7 @@
       
       {
         "title": "클라우드의 이해",
-        "url": "/01-cloud-basic/",
+        "url": "/cloud-01-overview/",
         "description": "가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조 정리",
         "thumbnail": null,
         "tags": ["Cloud","AutoEverSW"],
