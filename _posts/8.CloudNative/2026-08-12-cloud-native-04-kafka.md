@@ -313,9 +313,11 @@ Producer가 보낸 데이터는 Partition에 저장되며, 이렇게 저장되�
 **Record**는 Kafka에 저장되는 데이터의 단위이다.
 
 ```text
-Partition
+Partition 0
 
-Record → Record → Record → Record
+Offset     0          1          2
+           ↓          ↓          ↓
+Record   "hello"    "Kafka"    "message"
 ```
 
 강의에서는 Kafka가 Java로 구현되어 Java 객체를 사용할 수 있다고 설명하였다.
