@@ -1,31 +1,35 @@
 Python:
   title: Python
-  description: Python 문법과 활용
+  description: Python의 기본 문법부터 객체지향 프로그래밍과 주요 기능
 
 MariaDB:
   title: MariaDB
-  description: MariaDB와 관계형 데이터베이스
+  description: 관계형 데이터베이스의 기본 개념과 MariaDB를 활용한 SQL 및 데이터 관리
 
 MongoDB:
   title: MongoDB
-  description: MongoDB와 NoSQL 데이터베이스
+  description: NoSQL 데이터베이스의 기본 개념과 MongoDB를 활용한 데이터 저장 및 처리
 
 Redis:
   title: Redis
-  description: Redis와 인메모리 데이터 처리
+  description: 인메모리 데이터베이스의 기본 개념과 Redis를 활용한 데이터 처리
 
 Linux:
   title: Linux
-  description: Linux 시스템과 명령어
+  description: Linux 운영체제의 기본 개념과 시스템 관리 및 명령어
 
 Network:
   title: Network
-  description: 네트워크 개념과 실습
+  description: 네트워크의 기본 개념부터 프로토콜, 장비 구성과 네트워크 실습
 
 TechNotes:
   title: TechNotes
-  description: 공부하며 정리하는 기술 노트
+  description: 학습 과정에서 생긴 궁금증과 기술 개념을 깊게 정리하는 기술 노트
 
 Cloud:
   title: Cloud
-  description: 클라우드 인프라와 서비스
+  description: 클라우드 컴퓨팅의 기본 개념부터 가상화, 서비스 모델과 인프라 구조
+
+CloudNative:
+  title: CloudNative
+  description: 클라우드 환경에 적합한 애플리케이션 구조와 MSA, Container, CI/CD 등의 Cloud Native 기술
