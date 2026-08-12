@@ -2,9 +2,9 @@
 title: Cloud Native와 DevOps
 description: Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계
 date: 2026-08-10
-series: Cloud
+series: CloudNative
 tags:
-  - Cloud
+  - CloudNative
   - AutoEverSW
 ---
 ## 1) Cloud Native 개요

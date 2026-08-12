@@ -2,9 +2,9 @@
 title: 클라우드 네이티브 - Micro Serivce
 description: Cloud Native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 Micro Service Architecture의 핵심 원리, 운영 방식, 주요 패턴
 date: 2026-08-11
-series: Cloud
+series: CloudNative
 tags:
-  - Cloud
+  - CloudNative
   - AutoEverSW
 ---
 ## 1 ) 비즈니스 민첩성과 Cloud Native

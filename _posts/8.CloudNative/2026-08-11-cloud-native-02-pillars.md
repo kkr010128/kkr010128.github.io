@@ -2,9 +2,9 @@
 title: 클라우드 네이티브의 핵심 요소 CI/CD와 Container
 description: CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름
 date: 2026-08-11
-series: Cloud
+series: CloudNative
 tags:
-  - Cloud
+  - CloudNative
   - AutoEverSW
 ---
 ## Pillars of Cloud Native
