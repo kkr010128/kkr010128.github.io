@@ -25,6 +25,8 @@
     {% if algolia_page_enabled %}
       <script src="https://cdn.jsdelivr.net/npm/@docsearch/js@4"></script>
     {% endif %}
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="{{ '/assets/js/site.js' | relative_url }}?v={{ asset_version }}"></script>
+    <script src="{{ '/assets/js/code-enhancements.js' | relative_url }}?v={{ asset_version }}"></script>
   </body>
 </html>
