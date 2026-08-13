@@ -1,4 +1,1148 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-13T12:59:37+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Apache Kafka</title><link href="https://kkr010128.github.io/cloud-native-04-kafka/" rel="alternate" type="text/html" title="Apache Kafka" /><published>2026-08-12T00:00:00+09:00</published><updated>2026-08-12T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-04-kafka</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-04-kafka/"><![CDATA[<h2 id="1--apache-kafka">1 ) Apache Kafka</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-14T08:39:52+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">클라우드 보안</title><link href="https://kkr010128.github.io/cloud-03-security/" rel="alternate" type="text/html" title="클라우드 보안" /><published>2026-08-13T00:00:00+09:00</published><updated>2026-08-13T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-03-security</id><content type="html" xml:base="https://kkr010128.github.io/cloud-03-security/"><![CDATA[<h2 id="1--클라우드-보안">1 ) 클라우드 보안</h2>
+
+<hr />
+
+<p>클라우드 환경에서는 설정 오류, 자격 증명 노출, 과도한 권한 부여 등이 보안 사고로 이어질 수 있다.</p>
+
+<p>대표적인 사례는 다음과 같다.</p>
+
+<ul>
+  <li>S3 Bucket을 Public으로 설정하여 고객 정보가 유출되는 경우</li>
+  <li>개발자가 AWS Access Key를 GitHub에 업로드하는 경우</li>
+  <li>사용자 또는 서비스에 과도한 권한을 부여하는 경우</li>
+</ul>
+
+<p>특히 Access Key를 소스 코드에 직접 포함하면 GitHub와 같은 외부 저장소에 코드가 공개될 때 자격 증명도 함께 노출될 수 있다.</p>
+
+<p>최근에는 GitHub에서 AWS Access Key가 포함된 코드를 Push하지 못하도록 제한하며, AWS에서도 GitHub에 노출된 Key를 이용한 접근을 감지하면 계정을 잠그는 방식으로 대응한다.</p>
+
+<h3 id="클라우드-보안이-중요한-이유">클라우드 보안이 중요한 이유</h3>
+
+<p>클라우드 보안은 크게 비용, 신뢰, 법적인 측면에서 중요하다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>비용</td>
+      <td>보안 사고로 인한 직접적인 금전적 피해가 발생할 수 있다.</td>
+    </tr>
+    <tr>
+      <td>신뢰</td>
+      <td>정보 유출 등의 사고는 서비스와 기업에 대한 신뢰 하락으로 이어질 수 있다.</td>
+    </tr>
+    <tr>
+      <td>법</td>
+      <td>개인정보 및 데이터와 관련된 법적 책임이 발생할 수 있다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="2--iam">2 ) IAM</h2>
+
+<hr />
+
+<p>IAM (Identity and Access Management)은 AWS에서 사용자와 서비스의 접근 권한을 관리하기 위한 서비스이다.</p>
+
+<h3 id="주요-구성-요소">주요 구성 요소</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>User</td>
+      <td>AWS를 사용하는 개별 사용자</td>
+    </tr>
+    <tr>
+      <td>Group</td>
+      <td>여러 User를 묶어 관리</td>
+    </tr>
+    <tr>
+      <td>Role</td>
+      <td>권한의 묶음</td>
+    </tr>
+    <tr>
+      <td>Policy</td>
+      <td>허용하거나 거부할 권한을 정의하는 정책</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="root-사용자와-iam-사용자">Root 사용자와 IAM 사용자</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Root 사용자</th>
+      <th>IAM 사용자</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>권한</td>
+      <td>모든 권한 소유</td>
+      <td>부여된 권한만 사용</td>
+    </tr>
+    <tr>
+      <td>생성</td>
+      <td>자동 생성</td>
+      <td>Root 사용자가 생성</td>
+    </tr>
+    <tr>
+      <td>삭제</td>
+      <td>삭제할 수 없음</td>
+      <td>삭제 가능</td>
+    </tr>
+    <tr>
+      <td>일상 사용</td>
+      <td>사용하지 않음</td>
+      <td>일상 업무에 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Root 계정에서는 다음과 같은 작업을 수행한다.</p>
+
+<ul>
+  <li>AWS 계정 이름, 이메일, 비밀번호 변경</li>
+  <li>결제 정보 변경</li>
+  <li>AWS Support Plan 변경</li>
+  <li>계정 해지</li>
+  <li>IAM 사용자의 권한 복원</li>
+</ul>
+
+<p>Root 계정은 모든 권한을 가지고 있으므로 반드시 MFA (Multi-Factor Authentication)를 설정한다.</p>
+
+<h3 id="iam-role">IAM Role</h3>
+
+<p>Role은 권한을 묶어서 필요한 대상에게 부여하는 방식이다.</p>
+
+<p>대표적인 사용 사례는 다음과 같다.</p>
+
+<ul>
+  <li>AWS 서비스 간 접근</li>
+  <li>다른 AWS 계정에서 접근</li>
+  <li>임시 접근 권한 부여</li>
+</ul>
+
+<p>예를 들어 EC2가 S3에 접근해야 하는 경우 EC2에 필요한 Role을 부여할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EC2
+ │
+ │ IAM Role
+ ▼
+S3
+</code></pre></div></div>
+
+<h3 id="iam-policy"><strong>IAM Policy</strong></h3>
+
+<p>Policy는 무엇을 허용하고 무엇을 거부할지를 정의한 규칙이다.</p>
+
+<p>Policy는 JSON으로 직접 작성하거나 GUI를 이용하여 작성할 수 있다.</p>
+
+<p>주요 구성 요소는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>항목</strong></th>
+      <th><strong>역할</strong></th>
+      <th><strong>예</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Effect</td>
+      <td>허용 또는 거부</td>
+      <td><code class="language-plaintext highlighter-rouge">Allow</code>, <code class="language-plaintext highlighter-rouge">Deny</code></td>
+    </tr>
+    <tr>
+      <td>Action</td>
+      <td>수행할 작업</td>
+      <td><code class="language-plaintext highlighter-rouge">s3:GetObject</code></td>
+    </tr>
+    <tr>
+      <td>Resource</td>
+      <td>작업 대상 Resource</td>
+      <td><code class="language-plaintext highlighter-rouge">arn:aws:s3:::my-bucket/*</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>예시는 다음과 같다.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"Version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2012-10-17"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"Statement"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"Effect"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Allow"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"Action"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"s3:GetObject"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"s3:ListBucket"</span><span class="w">
+      </span><span class="p">],</span><span class="w">
+      </span><span class="nl">"Resource"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="s2">"arn:aws:s3:::my-bucket"</span><span class="w">
+      </span><span class="p">]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Policy에서 <code class="language-plaintext highlighter-rouge">Allow</code>와 <code class="language-plaintext highlighter-rouge">Deny</code>가 동시에 적용되는 경우 <code class="language-plaintext highlighter-rouge">Deny</code>가 적용된다.</p>
+
+<h3 id="최소-권한-원칙"><strong>최소 권한 원칙</strong></h3>
+
+<p>사용자와 서비스에는 작업에 필요한 최소한의 권한만 부여한다.</p>
+
+<p>불필요하게 많은 권한을 부여하면 계정이나 Access Key가 탈취되었을 때 피해 범위도 커질 수 있다.</p>
+
+<h3 id="iam-모범-사례"><strong>IAM 모범 사례</strong></h3>
+
+<ul>
+  <li>Root 계정에 MFA를 설정한다.</li>
+  <li>일상적인 작업에는 IAM 계정을 생성하여 사용한다.</li>
+  <li>Group을 이용하여 권한을 관리한다.</li>
+  <li>최소 권한 원칙을 적용한다.</li>
+  <li>강력한 비밀번호 정책을 설정한다.</li>
+  <li>Access Key를 코드에 직접 포함하지 않는다.</li>
+  <li>사용하지 않는 사용자와 Key를 정리한다.</li>
+  <li>Access Key 대신 IAM Role을 활용한다.</li>
+</ul>
+
+<p>IAM 계정을 사용하면 누가 어떤 작업을 수행했는지 구분할 수 있으며, Group을 이용하면 여러 사용자의 권한을 일관되고 효율적으로 관리할 수 있다.</p>
+
+<h3 id="비밀번호-정책"><strong>비밀번호 정책</strong></h3>
+
+<p>권장하는 비밀번호 정책은 다음과 같다.</p>
+
+<ul>
+  <li>최소 길이 12자 이상</li>
+  <li>대문자, 소문자, 숫자, 특수 문자 포함</li>
+  <li>비밀번호 만료 시간 설정</li>
+  <li>최근 12개의 비밀번호를 기억하여 재사용 방지</li>
+  <li>사용자가 자신의 비밀번호를 변경할 수 있도록 허용</li>
+</ul>
+
+<p>짧은 비밀번호는 무차별 대입 공격에 취약할 수 있으며, 여러 종류의 문자를 사용하여 비밀번호 복잡도를 높일 수 있다.</p>
+
+<h3 id="aws-접근-방법"><strong>AWS 접근 방법</strong></h3>
+
+<p>AWS에는 콘솔을 이용하는 방법과 Access Key를 이용하는 방법이 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구분</strong></th>
+      <th><strong>Console Login</strong></th>
+      <th><strong>Access Key</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>접근 방법</td>
+      <td>Web Browser로 AWS Console 접속</td>
+      <td>프로그램이나 명령어로 AWS API 호출</td>
+    </tr>
+    <tr>
+      <td>사용 방법</td>
+      <td>ID + Password + MFA</td>
+      <td>Access Key ID + Secret Access Key</td>
+    </tr>
+    <tr>
+      <td>사용 대상</td>
+      <td>사람</td>
+      <td>프로그램, CLI Tool, 자동화 Script</td>
+    </tr>
+    <tr>
+      <td>보안 위험</td>
+      <td>비밀번호 유출, Phishing</td>
+      <td>Key를 코드에 포함하면 유출 위험</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>프로그램에서 AWS에 접근할 때는 Access Key를 코드에 직접 저장하는 것보다 IAM Role을 사용하는 것을 권장한다.</p>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>IAM은 AWS Resource에 대한 접근 권한을 관리한다.</li>
+  <li>User, Group, Role, Policy가 주요 구성 요소이다.</li>
+  <li>Root 계정은 일상적인 작업에 사용하지 않고 MFA를 설정한다.</li>
+  <li>사용자와 서비스에는 필요한 최소한의 권한만 부여한다.</li>
+  <li>Access Key를 소스 코드에 직접 포함하지 않는다.</li>
+</ul>
+
+<h2 id="3--네트워크-보안-아키텍처"><strong>3 ) 네트워크 보안 아키텍처</strong></h2>
+
+<hr />
+
+<p>AWS에서는 하나의 보안 장치에만 의존하지 않고 여러 계층에 보안 기능을 배치하는 방어 심층 전략 (Defense in Depth)을 적용할 수 있다.</p>
+
+<h3 id="방어-심층-전략"><strong>방어 심층 전략</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>계층</strong></th>
+      <th><strong>서비스</strong></th>
+      <th><strong>보호 대상</strong></th>
+      <th><strong>주요 기능</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Edge</td>
+      <td>CloudFront, Shield, WAF</td>
+      <td>외부 Internet 경계</td>
+      <td>DDoS 방어, L7 Filtering</td>
+    </tr>
+    <tr>
+      <td>VPC 경계</td>
+      <td>Network Firewall, IGW</td>
+      <td>VPC 진입점</td>
+      <td>IDS/IPS, Stateful 검사</td>
+    </tr>
+    <tr>
+      <td>Subnet</td>
+      <td>NACL, Route Table</td>
+      <td>Subnet 경계</td>
+      <td>Stateless Filtering</td>
+    </tr>
+    <tr>
+      <td>Instance</td>
+      <td>Security Group</td>
+      <td>Instance 경계</td>
+      <td>Stateful Filtering</td>
+    </tr>
+    <tr>
+      <td>Application</td>
+      <td>IAM, 암호화, 인증</td>
+      <td>Application 내부</td>
+      <td>인증/인가, 데이터 암호화</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="aws-네트워크-보안-서비스"><strong>AWS 네트워크 보안 서비스</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>서비스</strong></th>
+      <th><strong>역할</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AWS Shield</td>
+      <td>DDoS 방어</td>
+    </tr>
+    <tr>
+      <td>AWS WAF</td>
+      <td>Web Application 공격 Filtering</td>
+    </tr>
+    <tr>
+      <td>AWS Firewall Manager</td>
+      <td>여러 계정의 보안 정책 중앙 관리</td>
+    </tr>
+    <tr>
+      <td>AWS Network Firewall</td>
+      <td>VPC 수준 Firewall 및 IDS/IPS</td>
+    </tr>
+    <tr>
+      <td>VPC Flow Logs</td>
+      <td>Network Interface Traffic 기록</td>
+    </tr>
+    <tr>
+      <td>Traffic Mirroring</td>
+      <td>Traffic을 복제하여 보안 분석 도구로 전달</td>
+    </tr>
+    <tr>
+      <td>Route 53 Resolver DNS Firewall</td>
+      <td>악성 Domain DNS Query 차단 및 DNS Tunneling 방지</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>AWS Shield</strong></p>
+
+<p>DDoS 방어를 목적으로 사용한다.</p>
+
+<ul>
+  <li>Standard: 무료이며 L3/L4 자동 보호</li>
+  <li>Advanced: L7 방어</li>
+</ul>
+
+<p><strong>AWS WAF</strong></p>
+
+<p>Web Application Firewall로 SQL Injection, XSS, Bot 등 L7 공격을 Filtering한다.</p>
+
+<p>CloudFront와 ALB 등에 적용할 수 있다.</p>
+
+<p><strong>AWS Firewall Manager</strong></p>
+
+<p>여러 AWS 계정에서 사용하는 WAF, Shield, Security Group, NACL 규칙 등을 중앙에서 관리한다.</p>
+
+<p><strong>AWS Network Firewall</strong></p>
+
+<p>VPC 수준에서 Stateful/Stateless Packet 검사를 수행하며 IDS/IPS 기능을 제공한다.</p>
+
+<p><strong>VPC Flow Logs</strong></p>
+
+<p>VPC 내부 Network Interface의 Traffic 정보를 기록한다.</p>
+
+<p><strong>Traffic Mirroring</strong></p>
+
+<p>Traffic을 복제하여 보안 분석 도구로 전달한다.</p>
+
+<p><strong>Route 53 Resolver DNS Firewall</strong></p>
+
+<p>악성 Domain에 대한 DNS Query를 차단하고 DNS Tunneling을 방지하는 데 사용한다.</p>
+
+<h2 id="4--aws-waf"><strong>4 ) AWS WAF</strong></h2>
+
+<hr />
+
+<p>AWS WAF는 Web ACL에 Rule을 정의하고 CloudFront 또는 ALB에 연결하여 HTTP/HTTPS Traffic을 Filtering한다.</p>
+
+<h3 id="waf-동작-구조"><strong>WAF 동작 구조</strong></h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Web Request
+HTTP / HTTPS
+     │
+     ▼
+CloudFront / ALB
+     │
+     │ WAF Web ACL
+     ▼
+Rule 평가
+     │
+     │ 우선순위 순서로 Rule Matching
+     ▼
+Allow / Block / Count
+</code></pre></div></div>
+
+<p>Rule에 Matching되면 해당 Action을 수행하고, Matching되지 않으면 기본 Action을 수행한다.</p>
+
+<h3 id="waf-규칙-유형"><strong>WAF 규칙 유형</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>유형</strong></th>
+      <th><strong>설명</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>IP 기반</td>
+      <td>특정 IP/CIDR을 허용하거나 차단</td>
+    </tr>
+    <tr>
+      <td>Rate 기반</td>
+      <td>일정 시간 동안의 요청 수 제한</td>
+    </tr>
+    <tr>
+      <td>관리형 규칙</td>
+      <td>AWS 또는 Marketplace에서 제공하는 규칙</td>
+    </tr>
+    <tr>
+      <td>사용자 정의</td>
+      <td>Header, Query String 등의 조건을 직접 정의</td>
+    </tr>
+    <tr>
+      <td>정규식 패턴</td>
+      <td>URL, User-Agent 등을 정규표현식으로 Matching</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>관리형 규칙은 OWASP Top 10이나 Bot 제어 등에 활용할 수 있다.</p>
+
+<h3 id="aws-관리형-규칙-그룹"><strong>AWS 관리형 규칙 그룹</strong></h3>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesCommonRuleSet</code>: XSS, 파일 포함, SSRF 등 공통 취약점</li>
+  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesSQLiRuleSet</code>: SQL Injection 공격 패턴</li>
+  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesKnownBadInputsRuleSet</code>: Log4j, Java Deserialization 등 알려진 악성 입력</li>
+  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesAmazonIpReputationRuleSet</code>: AWS 위협 Intelligence 기반 악성 IP</li>
+  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesBotControlRuleSet</code>: Bot Traffic 탐지 및 제어</li>
+</ul>
+
+<h3 id="waf-logging"><strong>WAF Logging</strong></h3>
+
+<p>WAF Log를 분석하면 공격 패턴을 파악하고 Rule을 최적화할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>로그 대상</strong></th>
+      <th><strong>활용</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>S3</td>
+      <td>대용량 저장 및 Athena를 이용한 장기 분석</td>
+    </tr>
+    <tr>
+      <td>CloudWatch Logs</td>
+      <td>실시간 조회 및 Metric Filter를 이용한 차단 현황 Monitoring</td>
+    </tr>
+    <tr>
+      <td>Kinesis Data Firehose</td>
+      <td>SIEM 연동 및 실시간 Dashboard 활용</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="5--vpc-보안-전략"><strong>5 ) VPC 보안 전략</strong></h2>
+
+<hr />
+
+<h3 id="vpc-보안-설계-원칙"><strong>VPC 보안 설계 원칙</strong></h3>
+
+<p><strong>최소 노출</strong></p>
+
+<p>Internet에 노출되는 Resource를 최소화한다. Public Subnet에는 ALB, NAT 등의 최소한의 Resource만 배치한다.</p>
+
+<p><strong>네트워크 분리</strong></p>
+
+<p>워크로드별 Network를 격리한다. 예를 들어 <code class="language-plaintext highlighter-rouge">dev</code>, <code class="language-plaintext highlighter-rouge">stg</code>, <code class="language-plaintext highlighter-rouge">prod</code> 환경별로 VPC를 분리할 수 있다.</p>
+
+<p><strong>트래픽 제어</strong></p>
+
+<p>SG와 NACL을 이용하여 허용된 Traffic만 통과시키는 White List 방식을 사용한다.</p>
+
+<p><strong>가시성 확보</strong></p>
+
+<p>VPC Flow Logs를 활성화하여 Traffic 흐름을 기록한다.</p>
+
+<p><strong>암호화 전송</strong></p>
+
+<p>Network 구간의 데이터를 보호하기 위해 TLS를 강제하고 VPN, PrivateLink 등을 활용한다.</p>
+
+<h3 id="subnet-분리-전략"><strong>Subnet 분리 전략</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Tier</strong></th>
+      <th><strong>Subnet</strong></th>
+      <th><strong>배치 Resource</strong></th>
+      <th><strong>Internet 접근</strong></th>
+      <th><strong>보안</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Public Tier</td>
+      <td>Public Subnet</td>
+      <td>ALB, NAT Gateway, Bastion</td>
+      <td>Inbound/Outbound 허용</td>
+      <td>최소 Resource</td>
+    </tr>
+    <tr>
+      <td>App Tier</td>
+      <td>Private Subnet</td>
+      <td>EC2, ECS, Lambda</td>
+      <td>NAT를 통한 Outbound만</td>
+      <td>ALB에서만 접근</td>
+    </tr>
+    <tr>
+      <td>Data Tier</td>
+      <td>격리된 Private Subnet</td>
+      <td>RDS, ElastiCache</td>
+      <td>Internet 접근 불가</td>
+      <td>App Tier에서만 접근</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="vpc-간-연결-보안"><strong>VPC 간 연결 보안</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>연결 방식</strong></th>
+      <th><strong>용도</strong></th>
+      <th><strong>보안 고려사항</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>VPC Peering</td>
+      <td>두 VPC 간 Private 연결</td>
+      <td>CIDR 중복 불가, 전이적 Routing 불가</td>
+    </tr>
+    <tr>
+      <td>Transit Gateway</td>
+      <td>다수 VPC/On-Premises Hub 연결</td>
+      <td>Routing Table을 통한 Traffic 제어, Blackhole Routing</td>
+    </tr>
+    <tr>
+      <td>PrivateLink</td>
+      <td>서비스 간 Private 접근</td>
+      <td>Internet 노출 없이 서비스 제공</td>
+    </tr>
+    <tr>
+      <td>Site-to-Site VPN</td>
+      <td>On-Premises와 VPC의 암호화 연결</td>
+      <td>IPSec Tunnel, BGP Routing, 이중화</td>
+    </tr>
+    <tr>
+      <td>Direct Connect</td>
+      <td>전용선 연결</td>
+      <td>물리적 분리, MACsec 암호화</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="vpc-endpoint"><strong>VPC Endpoint</strong></h3>
+
+<p>VPC Endpoint를 이용하면 Internet Gateway 없이 AWS 서비스에 Private하게 접근할 수 있어 공격 표면을 줄일 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>유형</strong></th>
+      <th><strong>지원 서비스</strong></th>
+      <th><strong>보안 제어</strong></th>
+      <th><strong>비용</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Gateway Endpoint</td>
+      <td>S3, DynamoDB</td>
+      <td>Endpoint Policy로 접근 제한</td>
+      <td>무료</td>
+    </tr>
+    <tr>
+      <td>Interface Endpoint</td>
+      <td>대부분의 AWS 서비스</td>
+      <td>Security Group 적용</td>
+      <td>시간당 + GB당 과금</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Interface Endpoint는 PrivateLink 기반 ENI를 사용한다.</p>
+
+<p>보안에 필요한 주요 VPC Endpoint는 다음과 같다.</p>
+
+<ul>
+  <li><strong>S3</strong>: Private Subnet에서 Internet을 경유하지 않고 접근하며 NAT Gateway 비용을 줄일 수 있다.</li>
+  <li><strong>STS</strong>: 임시 자격 증명 발급을 Private하게 수행한다.</li>
+  <li><strong>Secrets Manager</strong>: 비밀값을 Internet을 통하지 않고 조회한다.</li>
+</ul>
+
+<h2 id="6--security-group과-nacl"><strong>6 ) Security Group과 NACL</strong></h2>
+
+<hr />
+
+<p>Security Group과 NACL (Network Access Control List)은 AWS Network Traffic을 제어하지만 적용 범위와 동작 방식이 다르다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구분</strong></th>
+      <th><strong>Security Group</strong></th>
+      <th><strong>Network ACL</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>적용 대상</td>
+      <td>Instance 수준</td>
+      <td>Subnet 수준</td>
+    </tr>
+    <tr>
+      <td>상태</td>
+      <td>Stateful</td>
+      <td>Stateless</td>
+    </tr>
+    <tr>
+      <td>응답 Traffic</td>
+      <td>자동 허용</td>
+      <td>별도 Rule 필요</td>
+    </tr>
+    <tr>
+      <td>기본 동작</td>
+      <td>Inbound 거부 / Outbound 허용</td>
+      <td>기본 NACL 모두 허용 / Custom NACL 모두 거부</td>
+    </tr>
+    <tr>
+      <td>Rule 유형</td>
+      <td>Allow만 가능</td>
+      <td>Allow / Deny 가능</td>
+    </tr>
+    <tr>
+      <td>Rule 평가</td>
+      <td>모든 Rule 종합 평가</td>
+      <td>번호 순서대로 평가 후 첫 Matching에서 중단</td>
+    </tr>
+    <tr>
+      <td>SG 참조</td>
+      <td>다른 SG를 Source로 참조 가능</td>
+      <td>IP/CIDR 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="트래픽-평가-순서"><strong>트래픽 평가 순서</strong></h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Internet
+   ↓
+NACL Inbound
+   ↓
+Security Group Inbound
+   ↓
+Instance
+   ↓
+Security Group 응답 자동 허용
+   ↓
+NACL Outbound
+</code></pre></div></div>
+
+<p>Security Group은 Stateful이므로 허용된 요청에 대한 응답 Traffic은 자동으로 허용된다.</p>
+
+<p>NACL은 Stateless이므로 Inbound와 Outbound Rule을 각각 설정해야 한다.</p>
+
+<h3 id="서비스별-security-group-설정"><strong>서비스별 Security Group 설정</strong></h3>
+
+<p><strong>RDS</strong></p>
+
+<ul>
+  <li>App SG에서만 DB Port 허용</li>
+  <li>Public 접근 비활성화</li>
+  <li>DB 전용 Subnet 사용</li>
+</ul>
+
+<p><strong>ElastiCache</strong></p>
+
+<ul>
+  <li>App SG에서만 Redis/Memcached Port 허용</li>
+  <li>VPC 외부 접근 불가</li>
+  <li>전송 중 TLS 활성화</li>
+</ul>
+
+<p><strong>Lambda</strong></p>
+
+<ul>
+  <li>Outbound 중심으로 관리</li>
+  <li>Lambda SG의 Outbound를 필요한 서비스에만 허용</li>
+</ul>
+
+<p><strong>정리</strong></p>
+
+<ul>
+  <li>AWS Network 보안은 Defense in Depth 방식으로 여러 계층에서 구성한다.</li>
+  <li>WAF는 Web Application Traffic을 Filtering한다.</li>
+  <li>VPC는 Public, App, Data Tier 등으로 분리하여 Resource 노출을 최소화할 수 있다.</li>
+  <li>VPC Endpoint를 이용하면 AWS 서비스에 Internet을 통하지 않고 접근할 수 있다.</li>
+  <li>Security Group은 Stateful이며 NACL은 Stateless이다.</li>
+</ul>
+
+<h2 id="7--데이터-보안-전략"><strong>7 ) 데이터 보안 전략</strong></h2>
+
+<hr />
+
+<p>데이터 보안의 기본 원칙은 기밀성, 무결성, 가용성이다.</p>
+
+<ul>
+  <li><strong>기밀성 (Confidentiality)</strong>: 허가된 대상만 데이터에 접근할 수 있도록 한다.</li>
+  <li><strong>무결성 (Integrity)</strong>: 데이터가 허가되지 않은 방식으로 변경되지 않도록 한다.</li>
+  <li><strong>가용성 (Availability)</strong>: 필요한 시점에 데이터와 서비스를 사용할 수 있도록 한다.</li>
+</ul>
+
+<h3 id="암호화-유형"><strong>암호화 유형</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구분</strong></th>
+      <th><strong>저장 데이터 암호화</strong></th>
+      <th><strong>전송 데이터 암호화</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>보호 대상</td>
+      <td>Disk, S3, DB 등에 저장된 데이터</td>
+      <td>Network를 통해 이동하는 데이터</td>
+    </tr>
+    <tr>
+      <td>방법</td>
+      <td>AES-256 대칭키 암호화</td>
+      <td>TLS 1.2/1.3</td>
+    </tr>
+    <tr>
+      <td>AWS</td>
+      <td>KMS, CloudHSM</td>
+      <td>ACM</td>
+    </tr>
+    <tr>
+      <td>적용 대상</td>
+      <td>EBS, S3, RDS, DynamoDB, EFS 등</td>
+      <td>HTTPS, VPN, PrivateLink</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="서비스별-암호화"><strong>서비스별 암호화</strong></h3>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>서비스</strong></th>
+      <th><strong>저장 암호화</strong></th>
+      <th><strong>전송 암호화</strong></th>
+      <th><strong>특징</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>S3</td>
+      <td>SSE-S3, SSE-KMS, SSE-C</td>
+      <td>HTTPS 강제</td>
+      <td>기본 암호화 설정 가능</td>
+    </tr>
+    <tr>
+      <td>EBS</td>
+      <td>KMS 암호화</td>
+      <td>Instance-EBS 간 자동 암호화</td>
+      <td>계정 수준 암호화</td>
+    </tr>
+    <tr>
+      <td>RDS</td>
+      <td>KMS 암호화</td>
+      <td>SSL/TLS 인증서</td>
+      <td>생성 후 암호화 변경 불가</td>
+    </tr>
+    <tr>
+      <td>DynamoDB</td>
+      <td>기본 암호화</td>
+      <td>HTTPS Endpoint</td>
+      <td>고객 관리 Key 선택 가능</td>
+    </tr>
+    <tr>
+      <td>EFS</td>
+      <td>KMS 암호화</td>
+      <td>TLS Mount Helper</td>
+      <td>생성 시 암호화 설정</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="8--보안-감사"><strong>8 ) 보안 감사</strong></h2>
+
+<hr />
+
+<p>AWS에서는 Resource의 설정을 지속적으로 확인하고 보안 상태와 규정 준수 여부를 점검하기 위한 여러 서비스를 제공한다.</p>
+
+<h3 id="aws-config"><strong>AWS Config</strong></h3>
+
+<p>AWS Config는 Resource의 구성 변경을 지속적으로 기록하고 Rule에 따라 규정 준수 여부를 자동으로 평가하는 서비스이다.</p>
+
+<h4 id="config-rule-유형"><strong>Config Rule 유형</strong></h4>
+
+<ul>
+  <li><strong>AWS 관리형 Rule</strong>: AWS가 사전에 정의한 Rule</li>
+  <li><strong>사용자 정의 Rule</strong>: Lambda 함수로 작성한 Custom Rule</li>
+</ul>
+
+<p>보안에 활용할 수 있는 Rule로 <code class="language-plaintext highlighter-rouge">restricted-ssh</code>가 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Security Group
+      │
+      │ SSH 0.0.0.0/0
+      ▼
+AWS Config
+      │
+      ▼
+Rule 위반 탐지
+</code></pre></div></div>
+
+<h4 id="auto-remediation"><strong>Auto Remediation</strong></h4>
+
+<p>Config Rule을 위반하면 SSM Automation 문서를 연결하여 자동으로 교정할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>위반 사항</strong></th>
+      <th><strong>대응</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Public S3 Bucket</td>
+      <td>Block Public Access 자동 활성화</td>
+    </tr>
+    <tr>
+      <td>암호화되지 않은 EBS</td>
+      <td>알림 전송 후 새로운 Volume 생성 필요</td>
+    </tr>
+    <tr>
+      <td>SSH <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> 허용 SG</td>
+      <td>해당 Rule 자동 제거</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="aws-security-hub"><strong>AWS Security Hub</strong></h3>
+
+<p>AWS Security Hub는 여러 보안 서비스의 결과를 중앙에서 통합 관리하는 서비스이다.</p>
+
+<p>주요 보안 표준은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>보안 표준</strong></th>
+      <th><strong>설명</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AWS Foundational Security Best Practices</td>
+      <td>AWS 자체 보안 모범 사례, 약 200개</td>
+    </tr>
+    <tr>
+      <td>CIS AWS Foundations Benchmark</td>
+      <td>CIS의 AWS 보안 Benchmark, 약 50개</td>
+    </tr>
+    <tr>
+      <td>PCI DSS</td>
+      <td>결제 카드 산업 보안 표준, 약 30개</td>
+    </tr>
+    <tr>
+      <td>NIST SP 800-53</td>
+      <td>미국 연방 보안 Framework, 약 160개</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="cis-benchmark"><strong>CIS Benchmark</strong></h4>
+
+<p>CIS (Center for Internet Security)는 System과 Cloud 환경을 안전하게 구성하기 위한 보안 Benchmark를 제공한다.</p>
+
+<p>Ubuntu Server에서는 다음과 같은 항목을 점검할 수 있다.</p>
+
+<ul>
+  <li>불필요한 서비스 비활성화</li>
+  <li>SSH 보안 설정</li>
+  <li>비밀번호 정책 강화</li>
+  <li>파일 및 Directory 권한 설정</li>
+  <li>Log 및 감사 설정</li>
+  <li>Firewall 설정</li>
+  <li>계정 및 권한 관리</li>
+  <li>시간 동기화</li>
+  <li>Kernel 및 Package 보안 설정</li>
+</ul>
+
+<p>SSH를 예로 들면 단순히 SSH 설치 여부만 확인하는 것이 아니라 다음과 같은 보안 설정을 점검할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Root 직접 로그인 차단
+        ↓
+비밀번호 인증 제한
+        ↓
+적절한 암호화 알고리즘 사용
+        ↓
+접근 가능한 사용자 제한
+</code></pre></div></div>
+
+<p>Kubernetes에도 별도의 CIS Kubernetes Benchmark가 존재한다.</p>
+
+<p>Security Hub를 활성화하면 Security Score가 산출되며 이를 기반으로 개선 우선순위를 설정하고 Critical/High 항목부터 대응할 수 있다.</p>
+
+<h3 id="aws-audit-manager"><strong>AWS Audit Manager</strong></h3>
+
+<p>AWS Audit Manager는 AWS 사용에 대한 감사 증거를 자동으로 수집하고 규정 준수 보고서를 생성하는 서비스이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>기능</strong></th>
+      <th><strong>설명</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>사전 정의 Framework</td>
+      <td>SOC 2, PCI DSS, GDPR, HIPAA 등 제공</td>
+    </tr>
+    <tr>
+      <td>자동 증거 수집</td>
+      <td>Config, CloudTrail, Security Hub 등에서 증거 수집</td>
+    </tr>
+    <tr>
+      <td>Custom Framework</td>
+      <td>조직의 내부 정책에 맞는 감사 Framework 생성</td>
+    </tr>
+    <tr>
+      <td>감사 보고서</td>
+      <td>감사인에게 제출 가능한 보고서 생성</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="aws-trusted-advisor"><strong>AWS Trusted Advisor</strong></h3>
+
+<p>AWS Trusted Advisor는 AWS 환경의 보안, 비용 최적화, 성능, 서비스 한도 등을 점검하는 서비스이다.</p>
+
+<p>보안과 관련된 주요 점검 항목은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>점검 항목</strong></th>
+      <th><strong>내용</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>S3 Bucket Public 접근</td>
+      <td>Public 읽기/쓰기가 허용된 S3 Bucket 탐지</td>
+    </tr>
+    <tr>
+      <td>Root 계정 MFA</td>
+      <td>Root 계정 MFA 활성화 여부 확인</td>
+    </tr>
+    <tr>
+      <td>Security Group 무제한 접근</td>
+      <td><code class="language-plaintext highlighter-rouge">0.0.0.0/0</code>으로 개방된 Port 탐지</td>
+    </tr>
+    <tr>
+      <td>IAM Access Key Rotation</td>
+      <td>90일 이상 Rotation되지 않은 Access Key 탐지</td>
+    </tr>
+    <tr>
+      <td>EBS Public Snapshot</td>
+      <td>Public으로 공유된 EBS Snapshot 탐지</td>
+    </tr>
+    <tr>
+      <td>CloudTrail Logging</td>
+      <td>CloudTrail 활성화 여부 확인</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>CloudTrail은 AWS에서 누가 무엇을 수행했는지를 기록하는 감사 및 보안 Logging 서비스이다.</p>
+
+<h3 id="amazon-inspector"><strong>Amazon Inspector</strong></h3>
+
+<p>Amazon Inspector는 EC2 Instance, Container Image, Lambda 함수의 Software 취약점과 Network 노출을 자동으로 Scan하는 서비스이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>Scan 대상</strong></th>
+      <th><strong>검출 내용</strong></th>
+      <th><strong>특징</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>EC2 Instance</td>
+      <td>OS Package 취약점, Network 도달 가능성</td>
+      <td>SSM Agent 기반 Agentless Scan</td>
+    </tr>
+    <tr>
+      <td>ECR Container Image</td>
+      <td>Container Image 내부 Package 취약점</td>
+      <td>Image Push 시 자동 Scan</td>
+    </tr>
+    <tr>
+      <td>Lambda 함수</td>
+      <td>함수 Code 및 Dependency 취약점</td>
+      <td>배포 시 자동 Scan</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>ECR은 Docker Image 등을 저장하는 Container Image Repository로 사용할 수 있다.</p>
+
+<h3 id="규정-준수의-코드화"><strong>규정 준수의 코드화</strong></h3>
+
+<p>규정 준수의 코드화는 규정 준수 요구 사항을 코드로 정의하고 자동으로 검증하는 접근 방식이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>구성 요소</strong></th>
+      <th><strong>AWS 서비스</strong></th>
+      <th><strong>역할</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>정책 정의</td>
+      <td>AWS Config Rules, SCP, CloudFormation Guard</td>
+      <td>보안 정책을 코드로 정의</td>
+    </tr>
+    <tr>
+      <td>자동 평가</td>
+      <td>AWS Config, Security Hub</td>
+      <td>Resource의 정책 준수 여부 지속 평가</td>
+    </tr>
+    <tr>
+      <td>자동 교정</td>
+      <td>SSM Automation, Lambda</td>
+      <td>위반 사항 자동 수정</td>
+    </tr>
+    <tr>
+      <td>증거 수집</td>
+      <td>Audit Manager, CloudTrail</td>
+      <td>규정 준수 증거 자동 수집</td>
+    </tr>
+    <tr>
+      <td>보고</td>
+      <td>Security Hub, Audit Manager</td>
+      <td>규정 준수 현황 보고</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>전체 흐름은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>정책 코드 작성
+      ↓
+CI/CD 배포
+      ↓
+지속적 평가
+      ↓
+자동 교정 / 보고
+</code></pre></div></div>
+
+<hr />
+
+<blockquote>
+  <p><strong>전체 정리</strong></p>
+
+  <ul>
+    <li>클라우드 보안에서는 Public Resource 설정, Access Key 노출, 과도한 권한과 같은 보안 위험을 줄이는 것이 중요하다.</li>
+    <li>IAM을 통해 User, Group, Role, Policy를 관리하며, Root 계정의 사용을 최소화하고 MFA와 최소 권한 원칙을 적용한다.</li>
+    <li>AWS Network는 WAF, Network Firewall, NACL, Security Group 등을 이용하여 여러 계층을 보호하는 Defense in Depth 전략을 적용할 수 있다.</li>
+    <li>VPC에서는 Public, App, Data 영역을 분리하고 필요한 Traffic만 허용하여 Resource의 외부 노출을 최소화한다.</li>
+    <li>저장 데이터와 전송 데이터에는 각각 적절한 암호화를 적용하여 데이터의 기밀성과 무결성을 보호한다.</li>
+    <li>AWS Config, Security Hub, Audit Manager, Trusted Advisor, Amazon Inspector 등을 활용하여 보안 상태와 취약점, 규정 준수 여부를 지속적으로 점검할 수 있다.</li>
+    <li>규정 준수 요구 사항을 코드로 정의하면 정책 정의 → 지속적 평가 → 자동 교정 → 증거 수집 → 보고 과정으로 관리할 수 있다.</li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="Cloud" /><category term="AutoEverSW" /><summary type="html"><![CDATA[IAM과 네트워크 보안, 데이터 암호화, 보안 감사 및 규정 준수 중심의 AWS 클라우드 보안 전략]]></summary></entry><entry><title type="html">Apache Kafka</title><link href="https://kkr010128.github.io/cloud-native-04-kafka/" rel="alternate" type="text/html" title="Apache Kafka" /><published>2026-08-12T00:00:00+09:00</published><updated>2026-08-12T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-04-kafka</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-04-kafka/"><![CDATA[<h2 id="1--apache-kafka">1 ) Apache Kafka</h2>
 
 <hr />
 
@@ -1657,111 +2801,81 @@ Read Database 갱신
     </li>
   </ul>
 </blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><summary type="html"><![CDATA[CQRS의 개념과 기존 데이터 모델의 문제점, Command와 Query 분리 구조 및 적용 기준]]></summary></entry><entry><title type="html">Kafka를 활용한 CQRS 구현</title><link href="https://kkr010128.github.io/cloud-native-07-kafka-cqrs/" rel="alternate" type="text/html" title="Kafka를 활용한 CQRS 구현" /><published>2026-08-12T00:00:00+09:00</published><updated>2026-08-12T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-07-kafka-cqrs</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-07-kafka-cqrs/"><![CDATA[<h2 id="1--spring-boot-기반-cqrs-구현">1 ) Spring Boot 기반 CQRS 구현</h2>
+
 <hr />
 
-<p>이번 실습에서는 CQRS (Command Query Responsibility Segregation)의 읽기와 쓰기 책임을 실제 애플리케이션으로 분리한다.</p>
+<p>CQRS(Command Query Responsibility Segregation)는 데이터를 변경하는 책임과 조회하는 책임을 분리하는 패턴이다.</p>
 
-<p>쓰기 프로젝트에서는 <strong>Spring Boot와 MySQL</strong>을 이용하여 데이터를 저장하고, 읽기 프로젝트에서는 <strong>Spring Boot와 MongoDB</strong>를 이용하여 데이터를 조회한다.</p>
+<p>이번 실습에서는 이 책임을 두 개의 Spring Boot 프로젝트로 나눠서 구현한다.</p>
 
-<p>최종적으로 Kafka를 이용하여 두 프로젝트 사이의 데이터 변경 사항을 전달하는 구조로 확장한다.</p>
+<p>쓰기 프로젝트는 MySQL을 사용해서 데이터를 저장하고, 읽기 프로젝트는 MongoDB를 사용해서 데이터를 조회한다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                Command
-                   ↓
-          Spring Boot Write
-                   ↓
-                 MySQL
-                   ↓
-                 Kafka
-                   ↓
-          Spring Boot Read
-                   ↓
-                MongoDB
-                   ↓
-                 Query
+<p>두 프로젝트는 서로 독립적으로 동작하지만, 나중에 Kafka를 연결해서 쓰기 프로젝트에서 발생한 변경 사항이 읽기 프로젝트로 전달되도록 확장한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Command
+   ↓
+Write (MySQL)
+   ↓
+ Kafka
+   ↓
+Read (MongoDB)
+   ↓
+Query
 </code></pre></div></div>
 
-<p>현재 강의 내용에서는 Write Project와 Read Project의 기본 구현까지 진행하였다. Kafka를 이용하여 두 프로젝트를 연결하는 부분은 이후 과정에서 구현한다.</p>
+<h3 id="실습-준비">실습 준비</h3>
 
-<h3 id="실습-환경"><strong>실습 환경</strong></h3>
-
-<p>실습을 위해 다음 환경을 준비한다.</p>
+<p>실습을 시작하기 전에 다음을 준비한다.</p>
 
 <table>
   <thead>
     <tr>
-      <th><strong>구성 요소</strong></th>
-      <th><strong>역할</strong></th>
+      <th>준비 항목</th>
+      <th>내용</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>Java</td>
-      <td>Spring Boot 애플리케이션 실행</td>
-    </tr>
-    <tr>
-      <td>IntelliJ IDEA</td>
-      <td>Spring Boot 프로젝트 개발</td>
-    </tr>
-    <tr>
-      <td>Docker</td>
-      <td>Kafka 및 데이터베이스 실행 환경</td>
-    </tr>
-    <tr>
-      <td>MySQL</td>
-      <td>Write Database</td>
-    </tr>
-    <tr>
-      <td>MongoDB</td>
-      <td>Read Database</td>
+      <td>MySQL / MariaDB</td>
+      <td>설치 후 접속 확인</td>
     </tr>
     <tr>
       <td>Kafka</td>
-      <td>Write와 Read 영역 사이의 Message 전달</td>
+      <td>설치</td>
     </tr>
     <tr>
-      <td>Git</td>
-      <td>Source Code 버전 관리</td>
+      <td>JDK</td>
+      <td>설치</td>
+    </tr>
+    <tr>
+      <td>IntelliJ IDEA</td>
+      <td>설치</td>
     </tr>
   </tbody>
 </table>
 
-<h2 id="2--write-project">2 ) <strong>Write Project</strong></h2>
+<h2 id="2--쓰기-프로젝트-write-project">2 ) <strong>쓰기 프로젝트 (Write Project)</strong></h2>
 
 <hr />
 
-<p>Write Project는 CQRS에서 <strong>Command 영역</strong>을 담당한다.</p>
+<p>쓰기 프로젝트는 CQRS에서 Command 영역을 담당한다.</p>
 
-<p>사용자로부터 도서 정보를 전달받아 비즈니스 로직을 수행하고 MySQL에 데이터를 저장한다.</p>
+<p>사용자로부터 도서 정보를 받아서 MySQL에 저장하는 역할을 한다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
-  ↓
-POST /cqrs/book
-  ↓
-BookController
-  ↓
-BookService
-  ↓
-BookRepository
-  ↓
-MySQL
-</code></pre></div></div>
+<h3 id="프로젝트-생성">프로젝트 생성</h3>
 
-<h3 id="프로젝트-생성"><strong>프로젝트 생성</strong></h3>
-
-<p>다음 의존성을 포함하여 Spring Boot 프로젝트를 생성한다.</p>
+<p>다음 의존성을 포함해서 Spring Boot 프로젝트를 생성한다.</p>
 
 <ul>
   <li>Spring Boot DevTools</li>
   <li>Lombok</li>
   <li>Spring Web</li>
   <li>Spring Data JPA</li>
-  <li>MySQL Driver</li>
+  <li>MySQL</li>
   <li>Kafka</li>
 </ul>
 
-<h3 id="applicationyml-설정"><strong>application.yml 설정</strong></h3>
-
-<p>Write Project는 <code class="language-plaintext highlighter-rouge">7000</code> 포트를 사용하고 MySQL에 연결한다.</p>
+<h3 id="applicationyml-설정">application.yml 설정</h3>
 
 <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">server</span><span class="pi">:</span>
   <span class="na">port</span><span class="pi">:</span> <span class="m">7000</span>
@@ -1789,9 +2903,13 @@ MySQL
     <span class="na">org.hibernate.type.description.sql</span><span class="pi">:</span> <span class="s">trace</span>
 </code></pre></div></div>
 
-<h3 id="book-entity"><strong>Book Entity</strong></h3>
+<p>7000번 포트로 실행되고, MySQL의 mysql 데이터베이스에 연결한다.</p>
 
-<p><code class="language-plaintext highlighter-rouge">Book</code>은 MySQL의 <code class="language-plaintext highlighter-rouge">book</code> 테이블과 연결되는 Entity이다.</p>
+<p><code class="language-plaintext highlighter-rouge">ddl-auto: update</code> 설정 때문에 Entity 클래스를 기준으로 테이블이 자동으로 생성되거나 수정된다.</p>
+
+<h3 id="book-entity">Book Entity</h3>
+
+<p><code class="language-plaintext highlighter-rouge">Book</code>은 MySQL의 <code class="language-plaintext highlighter-rouge">book</code> 테이블과 매핑되는 Entity 클래스다.</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">jakarta.persistence.*</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">lombok.*</span><span class="o">;</span>
@@ -1806,45 +2924,39 @@ MySQL
 <span class="nd">@AllArgsConstructor</span>
 <span class="nd">@NoArgsConstructor</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">Book</span> <span class="o">{</span>
-
     <span class="nd">@Id</span>
     <span class="nd">@GeneratedValue</span><span class="o">(</span><span class="n">strategy</span> <span class="o">=</span> <span class="nc">GenerationType</span><span class="o">.</span><span class="na">AUTO</span><span class="o">)</span>
     <span class="kd">private</span> <span class="nc">Long</span> <span class="n">bid</span><span class="o">;</span>
 
     <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
     <span class="kd">private</span> <span class="nc">String</span> <span class="n">title</span><span class="o">;</span>
-
     <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
     <span class="kd">private</span> <span class="nc">String</span> <span class="n">author</span><span class="o">;</span>
-
     <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
     <span class="kd">private</span> <span class="nc">String</span> <span class="n">category</span><span class="o">;</span>
-
     <span class="nd">@Column</span>
     <span class="kd">private</span> <span class="kt">int</span> <span class="n">pages</span><span class="o">;</span>
-
     <span class="nd">@Column</span>
     <span class="kd">private</span> <span class="kt">int</span> <span class="n">price</span><span class="o">;</span>
-
     <span class="nd">@Column</span>
     <span class="kd">private</span> <span class="nc">Date</span> <span class="n">published_date</span><span class="o">;</span>
-
     <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
     <span class="kd">private</span> <span class="nc">String</span> <span class="n">description</span><span class="o">;</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<h3 id="bookdto"><strong>BookDTO</strong></h3>
+<p><code class="language-plaintext highlighter-rouge">bid</code>는 <code class="language-plaintext highlighter-rouge">@GeneratedValue(strategy = GenerationType.AUTO)</code>로 설정되어 있어서 저장할 때 자동으로 생성된다.</p>
 
-<p>DTO (Data Transfer Object)는 계층 사이에서 데이터를 전달하기 위해 사용하는 객체이다.</p>
+<h3 id="bookdto">BookDTO</h3>
 
-<p>클라이언트가 전달한 도서 정보를 <code class="language-plaintext highlighter-rouge">BookDTO</code>를 통해 전달받는다.</p>
+<p>DTO는 계층 사이에서 데이터를 주고받기 위한 객체다.</p>
+
+<p>클라이언트가 보낸 도서 정보를 <code class="language-plaintext highlighter-rouge">BookDTO</code>로 받는다.</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.Data</span><span class="o">;</span>
 
 <span class="nd">@Data</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookDTO</span> <span class="o">{</span>
-
     <span class="kd">private</span> <span class="nc">String</span> <span class="n">title</span><span class="o">;</span>
     <span class="kd">private</span> <span class="nc">String</span> <span class="n">author</span><span class="o">;</span>
     <span class="kd">private</span> <span class="nc">String</span> <span class="n">category</span><span class="o">;</span>
@@ -1855,9 +2967,9 @@ MySQL
 <span class="o">}</span>
 </code></pre></div></div>
 
-<h3 id="bookrepository"><strong>BookRepository</strong></h3>
+<p>이 시점에는 아직 <code class="language-plaintext highlighter-rouge">bid</code> 필드가 없다.</p>
 
-<p><code class="language-plaintext highlighter-rouge">BookRepository</code>는 Spring Data JPA의 <code class="language-plaintext highlighter-rouge">JpaRepository</code>를 상속하여 <code class="language-plaintext highlighter-rouge">Book</code> Entity의 데이터베이스 작업을 담당한다.</p>
+<h3 id="bookrepository">BookRepository</h3>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.data.jpa.repository.JpaRepository</span><span class="o">;</span>
 
@@ -1865,11 +2977,13 @@ MySQL
 <span class="o">}</span>
 </code></pre></div></div>
 
-<h3 id="bookservice"><strong>BookService</strong></h3>
+<p><code class="language-plaintext highlighter-rouge">JpaRepository</code>를 상속받는 것만으로 기본적인 CRUD 기능을 사용할 수 있다.</p>
 
-<p><code class="language-plaintext highlighter-rouge">BookService</code>에서는 전달받은 <code class="language-plaintext highlighter-rouge">BookDTO</code>를 <code class="language-plaintext highlighter-rouge">Book</code> Entity로 변환한 뒤 MySQL에 저장한다.</p>
+<h3 id="bookservice">BookService</h3>
 
-<p><code class="language-plaintext highlighter-rouge">published_date</code>는 문자열로 전달되므로 <code class="language-plaintext highlighter-rouge">SimpleDateFormat</code>을 이용하여 <code class="language-plaintext highlighter-rouge">Date</code>로 변환한다.</p>
+<p><code class="language-plaintext highlighter-rouge">BookDTO</code>를 <code class="language-plaintext highlighter-rouge">Book</code> Entity로 변환해서 MySQL에 저장한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">published_date</code>는 문자열로 들어오기 때문에 <code class="language-plaintext highlighter-rouge">SimpleDateFormat</code>으로 <code class="language-plaintext highlighter-rouge">Date</code> 타입으로 변환해야 한다.</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
@@ -1881,17 +2995,13 @@ MySQL
 <span class="nd">@Service</span>
 <span class="nd">@RequiredArgsConstructor</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookService</span> <span class="o">{</span>
-
     <span class="kd">private</span> <span class="kd">final</span> <span class="nc">BookRepository</span> <span class="n">bookRepository</span><span class="o">;</span>
 
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
         <span class="k">try</span> <span class="o">{</span>
-            <span class="nc">SimpleDateFormat</span> <span class="n">formatter</span> <span class="o">=</span>
-                    <span class="k">new</span> <span class="nf">SimpleDateFormat</span><span class="o">(</span><span class="s">"yyyy-MM-dd"</span><span class="o">,</span> <span class="nc">Locale</span><span class="o">.</span><span class="na">ENGLISH</span><span class="o">);</span>
-
-            <span class="nc">Date</span> <span class="n">published_date</span> <span class="o">=</span>
-                    <span class="n">formatter</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPublished_date</span><span class="o">());</span>
-
+            <span class="nc">SimpleDateFormat</span> <span class="n">formatter</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span>
+                    <span class="s">"yyyy-MM-dd"</span><span class="o">,</span> <span class="nc">Locale</span><span class="o">.</span><span class="na">ENGLISH</span><span class="o">);</span>
+            <span class="nc">Date</span> <span class="n">published_date</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPublished_date</span><span class="o">());</span>
             <span class="nc">Book</span> <span class="n">book</span> <span class="o">=</span> <span class="nc">Book</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
                     <span class="o">.</span><span class="na">title</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getTitle</span><span class="o">())</span>
                     <span class="o">.</span><span class="na">author</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">())</span>
@@ -1901,32 +3011,16 @@ MySQL
                     <span class="o">.</span><span class="na">published_date</span><span class="o">(</span><span class="n">published_date</span><span class="o">)</span>
                     <span class="o">.</span><span class="na">description</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getDescription</span><span class="o">())</span>
                     <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-
             <span class="n">bookRepository</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
-
-        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="o">}</span>
+        <span class="k">catch</span><span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">){</span>
             <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
         <span class="o">}</span>
     <span class="o">}</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>처리 흐름은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>BookDTO
-   ↓
-published_date 변환
-   ↓
-Book Entity 생성
-   ↓
-BookRepository.save()
-   ↓
-MySQL
-</code></pre></div></div>
-
-<h3 id="bookcontroller"><strong>BookController</strong></h3>
-
-<p><code class="language-plaintext highlighter-rouge">BookController</code>는 사용자의 HTTP 요청을 처리한다.</p>
+<h3 id="bookcontroller">BookController</h3>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.GetMapping</span><span class="o">;</span>
@@ -1937,35 +3031,32 @@ MySQL
 <span class="nd">@RestController</span>
 <span class="nd">@RequiredArgsConstructor</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookController</span> <span class="o">{</span>
-
     <span class="kd">private</span> <span class="kd">final</span> <span class="nc">BookService</span> <span class="n">bookService</span><span class="o">;</span>
 
     <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">index</span><span class="o">()</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">index</span><span class="o">(){</span>
         <span class="k">return</span> <span class="s">"homepage"</span><span class="o">;</span>
     <span class="o">}</span>
 
     <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/health"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">healthCheck</span><span class="o">()</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">healthCheck</span><span class="o">(){</span>
         <span class="k">return</span> <span class="s">"success"</span><span class="o">;</span>
     <span class="o">}</span>
 
     <span class="nd">@PostMapping</span><span class="o">(</span><span class="s">"/cqrs/book"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nd">@RequestBody</span> <span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nd">@RequestBody</span> <span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
         <span class="n">bookService</span><span class="o">.</span><span class="na">saveBook</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">);</span>
         <span class="k">return</span> <span class="s">"success"</span><span class="o">;</span>
     <span class="o">}</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>각 Endpoint의 역할은 다음과 같다.</p>
-
 <table>
   <thead>
     <tr>
-      <th><strong>Method</strong></th>
-      <th><strong>Endpoint</strong></th>
-      <th><strong>역할</strong></th>
+      <th>Method</th>
+      <th>Endpoint</th>
+      <th>역할</th>
     </tr>
   </thead>
   <tbody>
@@ -1987,50 +3078,21 @@ MySQL
   </tbody>
 </table>
 
-<h3 id="write-project-테스트"><strong>Write Project 테스트</strong></h3>
+<p>서버를 실행하고 <code class="language-plaintext highlighter-rouge">localhost:7000</code>으로 접속해서 동작을 확인한다.</p>
 
-<p>웹 서버를 실행한 뒤 다음 주소로 접근하여 서버가 실행되는지 확인한다.</p>
+<p>데이터 저장이 잘 되는지는 POSTMAN으로 테스트한다. (4번에서 자세히 다룬다.)</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>localhost:7000
-</code></pre></div></div>
-
-<p>이후 Postman을 이용하여 REST API에 데이터를 전송하고 MySQL에 정상적으로 저장되는지 확인한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Postman
-   ↓
-POST /cqrs/book
-   ↓
-BookController
-   ↓
-BookService
-   ↓
-BookRepository
-   ↓
-MySQL
-</code></pre></div></div>
-
-<h2 id="3--read-project">3 ) <strong>Read Project</strong></h2>
+<h2 id="3--읽기-프로젝트-read-project">3 ) <strong>읽기 프로젝트 (Read Project)</strong></h2>
 
 <hr />
 
-<p>Read Project는 CQRS에서 <strong>Query 영역</strong>을 담당한다.</p>
+<p>읽기 프로젝트는 CQRS에서 Query 영역을 담당한다.</p>
 
-<p>Write Project가 MySQL을 사용한 것과 달리 Read Project에서는 MongoDB를 사용한다.</p>
+<p>쓰기 프로젝트가 MySQL을 사용한 것과 다르게, 읽기 프로젝트는 MongoDB를 사용한다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
-  ↓
-GET /cqrs/book
-  ↓
-BookController
-  ↓
-MongoDB
-  ↓
-조회 결과 반환
-</code></pre></div></div>
+<h3 id="프로젝트-생성-1">프로젝트 생성</h3>
 
-<h3 id="프로젝트-생성-1"><strong>프로젝트 생성</strong></h3>
-
-<p>다음 의존성을 포함하여 Spring Boot 프로젝트를 생성한다.</p>
+<p>다음 의존성을 포함해서 Spring Boot 프로젝트를 생성한다.</p>
 
 <ul>
   <li>Spring Boot DevTools</li>
@@ -2041,9 +3103,9 @@ MongoDB
   <li>Kafka</li>
 </ul>
 
-<h3 id="bookcontroller-1"><strong>BookController</strong></h3>
+<h3 id="bookcontroller-1">BookController</h3>
 
-<p>Read Project에서는 <code class="language-plaintext highlighter-rouge">/cqrs/book</code> 요청이 들어오면 MongoDB의 <code class="language-plaintext highlighter-rouge">books</code> Collection에서 데이터를 조회한다.</p>
+<p><code class="language-plaintext highlighter-rouge">/cqrs/book</code>으로 요청이 들어오면 MongoDB의 <code class="language-plaintext highlighter-rouge">books</code> Collection을 조회해서 반환한다.</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">com.mongodb.client.*</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
@@ -2052,160 +3114,468 @@ MongoDB
 <span class="kn">import</span> <span class="nn">org.springframework.http.ResponseEntity</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.GetMapping</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
-
 <span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
 <span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
 
 <span class="nd">@RestController</span>
 <span class="nd">@RequiredArgsConstructor</span>
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookController</span> <span class="o">{</span>
-
     <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/cqrs/book"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">ResponseEntity</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&gt;</span> <span class="nf">getBooks</span><span class="o">()</span> <span class="o">{</span>
-
-        <span class="nc">MongoClient</span> <span class="n">mongoClient</span> <span class="o">=</span>
-                <span class="nc">MongoClients</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"mongodb://localhost:27017"</span><span class="o">);</span>
-
-        <span class="nc">MongoDatabase</span> <span class="n">database</span> <span class="o">=</span>
-                <span class="n">mongoClient</span><span class="o">.</span><span class="na">getDatabase</span><span class="o">(</span><span class="s">"mymongo"</span><span class="o">);</span>
-
+    <span class="kd">public</span> <span class="nc">ResponseEntity</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&gt;</span> <span class="nf">getBooks</span><span class="o">(){</span>
+        <span class="nc">MongoClient</span> <span class="n">mongoClient</span> <span class="o">=</span> <span class="nc">MongoClients</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"mongodb://localhost:27017"</span><span class="o">);</span>
+        <span class="nc">MongoDatabase</span> <span class="n">database</span> <span class="o">=</span> <span class="n">mongoClient</span><span class="o">.</span><span class="na">getDatabase</span><span class="o">(</span><span class="s">"mymongo"</span><span class="o">);</span>
         <span class="nc">MongoCollection</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">mongo_books</span> <span class="o">=</span>
                 <span class="n">database</span><span class="o">.</span><span class="na">getCollection</span><span class="o">(</span><span class="s">"books"</span><span class="o">);</span>
-
         <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;();</span>
 
-        <span class="k">try</span> <span class="o">{</span>
-            <span class="k">try</span> <span class="o">(</span><span class="nc">MongoCursor</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">cur</span> <span class="o">=</span>
-                         <span class="n">mongo_books</span><span class="o">.</span><span class="na">find</span><span class="o">().</span><span class="na">iterator</span><span class="o">())</span> <span class="o">{</span>
-
-                <span class="k">while</span> <span class="o">(</span><span class="n">cur</span><span class="o">.</span><span class="na">hasNext</span><span class="o">())</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">{</span>
+            <span class="k">try</span><span class="o">(</span><span class="nc">MongoCursor</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">cur</span> <span class="o">=</span> <span class="n">mongo_books</span><span class="o">.</span><span class="na">find</span><span class="o">().</span><span class="na">iterator</span><span class="o">()){</span>
+                <span class="k">while</span><span class="o">(</span><span class="n">cur</span><span class="o">.</span><span class="na">hasNext</span><span class="o">()){</span>
                     <span class="nc">Document</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="na">next</span><span class="o">();</span>
                     <span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">doc</span><span class="o">);</span>
                 <span class="o">}</span>
             <span class="o">}</span>
-
-        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="o">}</span><span class="k">catch</span><span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">){</span>
             <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-
-        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+        <span class="o">}</span>
+        <span class="k">finally</span><span class="o">{</span>
             <span class="n">mongoClient</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
         <span class="o">}</span>
-
-        <span class="k">return</span> <span class="nc">ResponseEntity</span>
-                <span class="o">.</span><span class="na">status</span><span class="o">(</span><span class="nc">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">)</span>
-                <span class="o">.</span><span class="na">body</span><span class="o">(</span><span class="n">list</span><span class="o">);</span>
+        <span class="k">return</span> <span class="nc">ResponseEntity</span><span class="o">.</span><span class="na">status</span><span class="o">(</span><span class="nc">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">).</span><span class="na">body</span><span class="o">(</span><span class="n">list</span><span class="o">);</span>
     <span class="o">}</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>조회 과정은 다음과 같다.</p>
+<p><code class="language-plaintext highlighter-rouge">MongoClients.create()</code>로 MongoDB에 연결하고 <code class="language-plaintext highlighter-rouge">mymongo</code> 데이터베이스의 <code class="language-plaintext highlighter-rouge">books</code> Collection을 가져온다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GET /cqrs/book
-       ↓
-MongoClient 생성
-       ↓
-mymongo Database 선택
-       ↓
-books Collection 선택
-       ↓
-find()
-       ↓
-MongoCursor
-       ↓
-List&lt;Document&gt;
-       ↓
-HTTP Response
-</code></pre></div></div>
+<p><code class="language-plaintext highlighter-rouge">find()</code>로 전체 Document를 조회하고, <code class="language-plaintext highlighter-rouge">MongoCursor</code>를 순회하면서 <code class="language-plaintext highlighter-rouge">List</code>에 담는다.</p>
 
-<p><code class="language-plaintext highlighter-rouge">MongoClients.create()</code>를 이용하여 MongoDB에 연결하고 <code class="language-plaintext highlighter-rouge">mymongo</code> Database의 <code class="language-plaintext highlighter-rouge">books</code> Collection을 가져온다.</p>
+<p>조회가 끝나면 <code class="language-plaintext highlighter-rouge">mongoClient.close()</code>로 연결을 닫고 결과를 응답으로 반환한다.</p>
 
-<p><code class="language-plaintext highlighter-rouge">find()</code>를 통해 Collection의 Document를 조회하고 <code class="language-plaintext highlighter-rouge">MongoCursor</code>를 순회하면서 결과를 <code class="language-plaintext highlighter-rouge">List&lt;Document&gt;</code>에 저장한다.</p>
+<p>프로젝트를 실행해서 정상적으로 동작하는지 확인한다.</p>
 
-<p>조회가 끝나면 <code class="language-plaintext highlighter-rouge">mongoClient.close()</code>를 호출하여 MongoDB 연결을 종료하고, 조회 결과를 HTTP Response로 반환한다.</p>
+<p><strong>중간 정리</strong></p>
 
-<h2 id="4--cqrs-구조에서의-역할">4 ) <strong>CQRS 구조에서의 역할</strong></h2>
+<ul>
+  <li>쓰기 프로젝트는 MySQL에 도서 데이터를 저장하는 Command 영역을 담당한다.</li>
+  <li>읽기 프로젝트는 MongoDB에서 도서 데이터를 조회하는 Query 영역을 담당한다.</li>
+  <li>현재까지는 두 프로젝트가 완전히 분리되어 있어서, 쓰기 프로젝트에 저장된 데이터가 읽기 프로젝트로 자동으로 전달되지 않는다.</li>
+  <li>이 문제는 이후 Kafka를 연결해서 해결한다.</li>
+</ul>
+
+<h2 id="4--쓰기-프로젝트-데이터-삽입-테스트-postman">4 ) <strong>쓰기 프로젝트 데이터 삽입 테스트 (POSTMAN)</strong></h2>
 
 <hr />
 
-<p>이번 실습에서는 하나의 애플리케이션과 하나의 데이터베이스에서 읽기와 쓰기를 모두 처리하지 않는다.</p>
+<p>쓰기 프로젝트가 MySQL에 정상적으로 데이터를 저장하는지 POSTMAN으로 확인한다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>                  Client
-                    │
-          ┌─────────┴─────────┐
-          │                   │
-     데이터 변경 요청        데이터 조회 요청
-      (Command)            (Query)
-          │                   │
-          ▼                   ▼
-   Write Project        Read Project
-          │                   │
-          ▼                   ▼
-        MySQL               MongoDB
+<h3 id="요청-설정">요청 설정</h3>
+
+<ul>
+  <li>Method: <code class="language-plaintext highlighter-rouge">POST</code></li>
+  <li>URL: <code class="language-plaintext highlighter-rouge">http://localhost:7000/cqrs/book</code></li>
+  <li>Headers: <code class="language-plaintext highlighter-rouge">Content-Type: application/json</code></li>
+  <li>Body: <code class="language-plaintext highlighter-rouge">raw</code> / <code class="language-plaintext highlighter-rouge">JSON</code></li>
+</ul>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"오딧세이"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"호메로스"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"category"</span><span class="p">:</span><span class="w"> </span><span class="s2">"신화"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"크리스토퍼 놀란"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">356</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"price"</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"published_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-08-13"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">Send</code>를 눌러서 요청을 전송한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POSTMAN
+   ↓
+BookController
+   ↓
+BookService
+   ↓
+BookRepository
+   ↓
+MySQL
 </code></pre></div></div>
 
-<p>Write Project는 데이터 변경을 담당하고 MySQL을 사용한다.</p>
+<p>요청이 성공하면 MySQL의 <code class="language-plaintext highlighter-rouge">book</code> 테이블에 데이터가 저장된다.</p>
 
-<p>Read Project는 데이터 조회를 담당하고 MongoDB를 사용한다.</p>
+<p>데이터베이스를 직접 확인해서 저장 여부를 검증한다.</p>
 
-<p>이를 통해 CQRS에서 설명한 <strong>Command와 Query의 책임 분리</strong>를 실제 Spring Boot 프로젝트 수준에서 확인할 수 있다.</p>
+<h2 id="5--kafka를-이용한-cqrs-연결">5 ) <strong>Kafka를 이용한 CQRS 연결</strong></h2>
 
-<p>현재 구현 상태는 다음과 같다.</p>
+<hr />
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Write Project → MySQL
+<p>쓰기 프로젝트와 읽기 프로젝트는 각각 MySQL, MongoDB를 사용하지만 서로 분리되어 있다.</p>
 
-Read Project  → MongoDB
+<p>그래서 쓰기 프로젝트에서 데이터가 바뀌어도 읽기 프로젝트는 그 사실을 알 수 없다.</p>
+
+<p>이 문제를 해결하기 위해 두 프로젝트 사이에 Kafka를 연결한다.</p>
+
+<p>쓰기 프로젝트가 MySQL 저장을 완료하면 Kafka로 Message를 발행하고, 읽기 프로젝트가 그 Message를 받아서 MongoDB에 반영하는 구조다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POSTMAN
+   ↓
+Write Project → MySQL
+   ↓
+Kafka Producer → cqrs-topic → Kafka Consumer
+   ↓
+Read Project → MongoDB
+   ↓
+POSTMAN
 </code></pre></div></div>
 
-<p>이후 Kafka를 연결하면 다음 구조로 확장할 수 있다.</p>
+<h3 id="쓰기-프로젝트에-kafka-연결">쓰기 프로젝트에 Kafka 연결</h3>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Write Project
-     ↓
-   MySQL
-     ↓
-   Kafka
-     ↓
-Read Project
-     ↓
-  MongoDB
+<h4 id="라이브러리-추가">라이브러리 추가</h4>
+
+<p><code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">dependencies</code>에 다음을 추가한다.</p>
+
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-kafka'</span>
 </code></pre></div></div>
+
+<p>추가한 뒤에는 IntelliJ에서 코끼리 아이콘을 눌러서 Gradle을 다시 Build한다.</p>
+
+<h4 id="kafka-설정">Kafka 설정</h4>
+
+<p><code class="language-plaintext highlighter-rouge">application.yaml</code>에 Kafka 연결 정보를 추가한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">kafka</span><span class="pi">:</span>
+    <span class="na">bootstrap-servers</span><span class="pi">:</span> <span class="s">127.0.0.1:9092</span>
+    <span class="na">consumer</span><span class="pi">:</span>
+      <span class="na">group-id</span><span class="pi">:</span> <span class="s">adamsoft</span>
+      <span class="na">auto-offset-reset</span><span class="pi">:</span> <span class="s">earliest</span>
+      <span class="na">key-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
+      <span class="na">value-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
+    <span class="na">producer</span><span class="pi">:</span>
+      <span class="na">key-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
+      <span class="na">value-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
+</code></pre></div></div>
+
+<p>Message를 문자열로 처리하기 위해 <code class="language-plaintext highlighter-rouge">StringSerializer</code>, <code class="language-plaintext highlighter-rouge">StringDeserializer</code>를 사용한다.</p>
+
+<h4 id="kafkaconfiguration">KafkaConfiguration</h4>
+
+<p><code class="language-plaintext highlighter-rouge">KafkaTemplate</code>을 생성하기 위한 설정 클래스를 작성한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.ProducerConfig</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Value</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Bean</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Configuration</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.DefaultKafkaProducerFactory</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.KafkaTemplate</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.ProducerFactory</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.StringSerializer</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
+
+<span class="nd">@Configuration</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaConfiguration</span> <span class="o">{</span>
+    <span class="nd">@Value</span><span class="o">(</span><span class="s">"${spring.kafka.bootstrap-servers}"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">bootStrapServers</span><span class="o">;</span>
+
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">ProducerFactory</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">producerFactory</span><span class="o">(){</span>
+        <span class="nc">Map</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">Object</span><span class="o">&gt;</span> <span class="n">configs</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">&lt;&gt;();</span>
+        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">BOOTSTRAP_SERVERS_CONFIG</span><span class="o">,</span> <span class="n">bootStrapServers</span><span class="o">);</span>
+        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">KEY_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">VALUE_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">DefaultKafkaProducerFactory</span><span class="o">&lt;&gt;(</span><span class="n">configs</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">kafkaTemplate</span><span class="o">(){</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;&gt;(</span><span class="n">producerFactory</span><span class="o">());</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ProducerFactory</code>는 Kafka Producer를 만들기 위한 설정이고, <code class="language-plaintext highlighter-rouge">KafkaTemplate</code>은 실제로 Topic에 Message를 보낼 때 사용한다.</p>
+
+<h4 id="bookdto-수정">BookDTO 수정</h4>
+
+<p><code class="language-plaintext highlighter-rouge">bid</code> 필드를 추가한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookDTO</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="nc">Long</span> <span class="n">bid</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">title</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">author</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">category</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">pages</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">price</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">published_date</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">description</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>클라이언트가 <code class="language-plaintext highlighter-rouge">bid</code>를 직접 보내는 게 아니라, MySQL에 저장한 뒤 생성된 <code class="language-plaintext highlighter-rouge">bid</code>를 여기에 다시 담아서 Kafka Message에 포함시킨다.</p>
+
+<h4 id="kafkaproducer">KafkaProducer</h4>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Autowired</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.KafkaTemplate</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
+
+<span class="nd">@Service</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaProducer</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">String</span> <span class="no">TOPIC</span> <span class="o">=</span> <span class="s">"cqrs-topic"</span><span class="o">;</span>
+
+    <span class="nd">@Autowired</span>
+    <span class="kd">private</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">kafkaTemplate</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="nc">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">getClass</span><span class="o">());</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">sendMessage</span><span class="o">(</span><span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
+        <span class="nc">String</span> <span class="n">message</span> <span class="o">=</span> <span class="s">"{\"bid\":"</span> <span class="o">+</span> <span class="s">"\""</span> <span class="o">+</span> <span class="n">bookDTO</span><span class="o">.</span><span class="na">getBid</span><span class="o">()</span> <span class="o">+</span> <span class="s">"\"}"</span><span class="o">;</span>
+        <span class="c1">//메시지 전송</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">kafkaTemplate</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="no">TOPIC</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">bid</code>를 <code class="language-plaintext highlighter-rouge">{"bid":"1"}</code> 형태의 JSON 문자열로 만들어서 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>으로 전송한다.</p>
+
+<p>여기서는 <code class="language-plaintext highlighter-rouge">bid</code>만 보낸다. 제목이나 저자 같은 나머지 정보는 Message에 포함되지 않는다.</p>
+
+<h4 id="bookservice-수정">BookService 수정</h4>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Service</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookService</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">BookRepository</span> <span class="n">bookRepository</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">KafkaProducer</span> <span class="n">kafkaProducer</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="nc">SimpleDateFormat</span> <span class="n">formatter</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span>
+                    <span class="s">"yyyy-MM-dd"</span><span class="o">,</span> <span class="nc">Locale</span><span class="o">.</span><span class="na">ENGLISH</span><span class="o">);</span>
+            <span class="nc">Date</span> <span class="n">published_date</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPublished_date</span><span class="o">());</span>
+            <span class="nc">Book</span> <span class="n">book</span> <span class="o">=</span> <span class="nc">Book</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
+                    <span class="o">.</span><span class="na">title</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getTitle</span><span class="o">())</span>
+                    <span class="o">.</span><span class="na">author</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">())</span>
+                    <span class="o">.</span><span class="na">category</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getCategory</span><span class="o">())</span>
+                    <span class="o">.</span><span class="na">pages</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPages</span><span class="o">())</span>
+                    <span class="o">.</span><span class="na">price</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPrice</span><span class="o">())</span>
+                    <span class="o">.</span><span class="na">published_date</span><span class="o">(</span><span class="n">published_date</span><span class="o">)</span>
+                    <span class="o">.</span><span class="na">description</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getDescription</span><span class="o">())</span>
+                    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+            <span class="n">bookRepository</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
+            <span class="n">bookDTO</span><span class="o">.</span><span class="na">setBid</span><span class="o">(</span><span class="n">book</span><span class="o">.</span><span class="na">getBid</span><span class="o">());</span>
+            <span class="c1">//쓰기 작업을 완료할 때 카프카에게 메시지를 전송</span>
+            <span class="n">kafkaProducer</span><span class="o">.</span><span class="na">sendMessage</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">);</span> 
+        <span class="o">}</span>
+        <span class="k">catch</span><span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">){</span>
+            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>MySQL 저장 이후 코드 3줄이 Kafka 연결의 핵심이다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bookRepository</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
+<span class="n">bookDTO</span><span class="o">.</span><span class="na">setBid</span><span class="o">(</span><span class="n">book</span><span class="o">.</span><span class="na">getBid</span><span class="o">());</span>
+<span class="c1">//쓰기 작업을 완료할 때 카프카에게 메시지를 전송</span>
+<span class="n">kafkaProducer</span><span class="o">.</span><span class="na">sendMessage</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">);</span>
+</code></pre></div></div>
+
+<p>저장하고, 생성된 <code class="language-plaintext highlighter-rouge">bid</code>를 받아오고, 그 <code class="language-plaintext highlighter-rouge">bid</code>를 Kafka로 보낸다.</p>
+
+<h4 id="cqrs-topic-생성-및-확인">cqrs-topic 생성 및 확인</h4>
+
+<p>Kafka 컨테이너에 접속한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker <span class="nb">exec</span> <span class="nt">-it</span> kafka /bin/bash
+</code></pre></div></div>
+
+<p>Topic을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kafka-topics.sh <span class="nt">--create</span> <span class="nt">--zookeeper</span> zookeeper:2181 <span class="nt">--replication-factor</span> 1 <span class="nt">--partitions</span> 1 <span class="nt">--topic</span> cqrs-topic
+</code></pre></div></div>
+
+<p>Console Consumer로 Message를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kafka-console-consumer.sh <span class="nt">--topic</span> cqrs-topic <span class="nt">--bootstrap-server</span> localhost:9092 <span class="nt">--from-beginning</span>
+</code></pre></div></div>
+
+<p>POSTMAN으로 책을 저장하면 Console Consumer에 다음과 같은 Message가 찍힌다.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"bid"</span><span class="p">:</span><span class="s2">"1"</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>이 Message가 보이면 쓰기 프로젝트에서 Kafka까지 연결이 정상적으로 동작하는 것이다.</p>
+
+<h3 id="읽기-프로젝트에-kafka-연결">읽기 프로젝트에 Kafka 연결</h3>
+
+<h4 id="라이브러리-추가-1">라이브러리 추가</h4>
+
+<p>Kafka에서 받은 JSON 문자열을 처리하기 위해 <code class="language-plaintext highlighter-rouge">build.gradle</code>에 추가한다.</p>
+
+<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.json:json:20190722'</span>
+</code></pre></div></div>
+
+<h4 id="kafka-설정-1">Kafka 설정</h4>
+
+<p><code class="language-plaintext highlighter-rouge">application.yaml</code>에 쓰기 프로젝트와 동일한 Kafka 설정을 추가한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">kafka</span><span class="pi">:</span>
+    <span class="na">bootstrap-servers</span><span class="pi">:</span> <span class="s">127.0.0.1:9092</span>
+    <span class="na">consumer</span><span class="pi">:</span>
+      <span class="na">group-id</span><span class="pi">:</span> <span class="s">adamsoft</span>
+      <span class="na">auto-offset-reset</span><span class="pi">:</span> <span class="s">earliest</span>
+      <span class="na">key-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
+      <span class="na">value-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
+    <span class="na">producer</span><span class="pi">:</span>
+      <span class="na">key-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
+      <span class="na">value-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
+</code></pre></div></div>
+
+<h4 id="kafkaconfiguration-1">KafkaConfiguration</h4>
+
+<p>읽기 프로젝트에도 쓰기 프로젝트와 동일한 <code class="language-plaintext highlighter-rouge">KafkaConfiguration</code> 클래스를 작성한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.ProducerConfig</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Value</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Bean</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Configuration</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.DefaultKafkaProducerFactory</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.KafkaTemplate</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.ProducerFactory</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.StringSerializer</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
+
+<span class="nd">@Configuration</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaConfiguration</span> <span class="o">{</span>
+    <span class="nd">@Value</span><span class="o">(</span><span class="s">"${spring.kafka.bootstrap-servers}"</span><span class="o">)</span>
+    <span class="kd">private</span> <span class="nc">String</span> <span class="n">bootStrapServers</span><span class="o">;</span>
+
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">ProducerFactory</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">producerFactory</span><span class="o">(){</span>
+        <span class="nc">Map</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">Object</span><span class="o">&gt;</span> <span class="n">configs</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">&lt;&gt;();</span>
+        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">BOOTSTRAP_SERVERS_CONFIG</span><span class="o">,</span> <span class="n">bootStrapServers</span><span class="o">);</span>
+        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">KEY_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">VALUE_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">DefaultKafkaProducerFactory</span><span class="o">&lt;&gt;(</span><span class="n">configs</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Bean</span>
+    <span class="kd">public</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">kafkaTemplate</span><span class="o">(){</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;&gt;(</span><span class="n">producerFactory</span><span class="o">());</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h4 id="kafkaconsumer">KafkaConsumer</h4>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">com.mongodb.client.MongoClient</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">com.mongodb.client.MongoClients</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">com.mongodb.client.MongoCollection</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">com.mongodb.client.MongoDatabase</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.bson.Document</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.json.JSONObject</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.kafka.annotation.KafkaListener</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
+
+<span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">kafkaConsumer</span> <span class="o">{</span>
+    <span class="nd">@KafkaListener</span><span class="o">(</span><span class="n">topics</span><span class="o">=</span><span class="s">"cqrs-topic"</span><span class="o">,</span> <span class="n">groupId</span> <span class="o">=</span> <span class="s">"adamsoft"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">consumer</span><span class="o">(</span><span class="nc">String</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">IOException</span><span class="o">{</span>
+        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"message:"</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+        <span class="c1">//JSON 파싱: JSON문자열로 온 것을 자바 객체로 변환</span>
+        <span class="nc">JSONObject</span> <span class="n">messageObj</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">JSONObject</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+		
+		<span class="c1">//JSON 파싱: JSON문자열로 온 것을 자바 객체로 변환</span>
+        <span class="nc">MongoClient</span> <span class="n">mongoClient</span> <span class="o">=</span> <span class="nc">MongoClients</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"mongodb://localhost:27017"</span><span class="o">);</span>
+        <span class="nc">MongoDatabase</span> <span class="n">database</span> <span class="o">=</span> <span class="n">mongoClient</span><span class="o">.</span><span class="na">getDatabase</span><span class="o">(</span><span class="s">"mymongo"</span><span class="o">);</span>
+        <span class="nc">MongoCollection</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">mongo_books</span> <span class="o">=</span>
+                <span class="n">database</span><span class="o">.</span><span class="na">getCollection</span><span class="o">(</span><span class="s">"books"</span><span class="o">);</span>
+		<span class="c1">//받은 데이터로 삽입할 데이터를 생성</span>
+        <span class="nc">Document</span> <span class="n">book</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Document</span><span class="o">();</span>
+        <span class="n">book</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">"bid"</span><span class="o">,</span> <span class="n">messageObj</span><span class="o">.</span><span class="na">getLong</span><span class="o">(</span><span class="s">"bid"</span><span class="o">));</span>
+        <span class="n">mongo_books</span><span class="o">.</span><span class="na">insertOne</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
+        <span class="n">mongoClient</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">@KafkaListener</code>로 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>을 구독하고 있다가 Message가 오면 동작한다.</p>
+
+<p>받은 문자열을 <code class="language-plaintext highlighter-rouge">JSONObject</code>로 파싱해서 <code class="language-plaintext highlighter-rouge">bid</code>를 꺼내고, MongoDB의 <code class="language-plaintext highlighter-rouge">mymongo</code> 데이터베이스, <code class="language-plaintext highlighter-rouge">books</code> Collection에 저장한다.</p>
+
+<h3 id="전체-실행">전체 실행</h3>
+
+<p>두 프로젝트를 모두 실행한 상태에서 POSTMAN으로 쓰기 프로젝트에 데이터를 보내면 다음 순서로 처리된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POSTMAN
+   ↓
+BookController (Write)
+   ↓
+BookService
+   ↓
+MySQL 저장 → bid 생성
+   ↓
+KafkaProducer → cqrs-topic
+   ↓
+KafkaConsumer (Read)
+   ↓
+MongoDB 저장
+</code></pre></div></div>
+
+<p>읽기 프로젝트의 <code class="language-plaintext highlighter-rouge">GET /cqrs/book</code>으로 조회하면 방금 저장된 <code class="language-plaintext highlighter-rouge">bid</code>가 MongoDB에 들어있는 것을 확인할 수 있다.</p>
+<pre><code class="language-mermaid">flowchart LR
+    A[Client] --&gt; B[Write Project]
+    B --&gt; C[(MySQL)]
+    B --&gt; D[Kafka]
+    D --&gt; E[Read Project]
+    E --&gt; F[(MongoDB)]
+</code></pre>
+
+<h3 id="실습-메모">실습 메모</h3>
+
+<p>지금 구조는 CQRS를 구현해보는 실습 구조로, Kafka로 전달되는 정보는 <code class="language-plaintext highlighter-rouge">bid</code> 하나뿐이다.</p>
+
+<p>읽기 프로젝트가 나중에 도서의 상세 정보를 조회하려면, <code class="language-plaintext highlighter-rouge">KafkaProducer</code>에서 <code class="language-plaintext highlighter-rouge">bid</code>뿐만 아니라 도서 정보 전체를 JSON으로 보내도록 수정해야 한다.</p>
+
+<hr />
 
 <blockquote>
-  <p><strong>실습 정리</strong></p>
+  <p><strong>정리</strong></p>
 
   <ul>
     <li>
-      <p>CQRS 구현을 위해 Write Project와 Read Project를 서로 분리하였다.</p>
+      <p>이번 실습은 CQRS 패턴에 따라 쓰기와 읽기 책임을 두 개의 Spring Boot 프로젝트로 분리하는 것이다. 쓰기 프로젝트는 MySQL에, 읽기 프로젝트는 MongoDB에 도서 데이터를 저장하거나 조회한다.</p>
     </li>
     <li>
-      <p>Write Project는 Spring Boot, Spring Data JPA, MySQL을 이용하여 Command 영역을 구현한다.</p>
+      <p>쓰기 프로젝트는 <code class="language-plaintext highlighter-rouge">BookController → BookService → BookRepository</code> 순서로 요청을 처리해서 MySQL에 <code class="language-plaintext highlighter-rouge">Book</code> Entity를 저장한다.</p>
     </li>
     <li>
-      <p>사용자가 전달한 데이터는 <code class="language-plaintext highlighter-rouge">BookDTO</code>를 통해 Controller와 Service로 전달되고, <code class="language-plaintext highlighter-rouge">Book</code> Entity로 변환된 뒤 <code class="language-plaintext highlighter-rouge">BookRepository</code>를 통해 MySQL에 저장된다.</p>
+      <p>읽기 프로젝트는 <code class="language-plaintext highlighter-rouge">BookController</code>에서 <code class="language-plaintext highlighter-rouge">MongoClient</code>로 MongoDB에 직접 연결해서 <code class="language-plaintext highlighter-rouge">books</code> Collection을 조회한다.</p>
     </li>
     <li>
-      <p>Read Project는 MongoDB의 <code class="language-plaintext highlighter-rouge">books</code> Collection에서 데이터를 조회하여 Query 요청에 응답한다.</p>
+      <p>두 프로젝트가 분리되어 있어서 쓰기 프로젝트의 변경 사항이 읽기 프로젝트에 자동으로 전달되지 않는데, 이 문제를 Kafka로 해결한다.</p>
     </li>
     <li>
-      <p>Write 영역에서는 MySQL을 사용하고 Read 영역에서는 MongoDB를 사용하여 각각의 작업에 서로 다른 저장 기술을 적용하였다.</p>
+      <p>쓰기 프로젝트는 MySQL 저장 후 생성된 <code class="language-plaintext highlighter-rouge">bid</code>를 <code class="language-plaintext highlighter-rouge">KafkaProducer</code>를 통해 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>으로 전송한다.</p>
     </li>
     <li>
-      <p>이를 통해 CQRS에서 설명한 읽기와 쓰기의 책임 분리를 실제 Spring Boot 프로젝트로 구성하였다.</p>
-    </li>
-    <li>
-      <p>두 프로젝트 모두 Kafka 의존성을 포함하고 있지만 현재 제공된 강의 내용에서는 Kafka를 통한 Write와 Read 영역의 연동까지 구현하지 않았다.</p>
-    </li>
-    <li>
-      <p>이후 Kafka를 이용하여 Write 영역에서 발생한 데이터 변경을 Read 영역으로 전달하는 구조로 확장한다.</p>
+      <p>읽기 프로젝트는 <code class="language-plaintext highlighter-rouge">@KafkaListener</code>로 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>을 구독하고, 받은 <code class="language-plaintext highlighter-rouge">bid</code>를 MongoDB의 <code class="language-plaintext highlighter-rouge">books</code> Collection에 저장한다.</p>
     </li>
   </ul>
-</blockquote>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>현재 내용은 CQRS 기본 프로젝트 구성 단계까지임
-다음 수업에서 Kafka 연동 내용이 이어지면 이 문서 후반에 붙이기
-강사님이 Git에 Repo 올려주신다고 하셨음
-https://github.com/ggangpae1
-IntelliJ Ultimate 라이센스 expr 언제인지 확인하기
-</code></pre></div></div>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Spring Boot, MySQL, MongoDB와 Kafka를 이용하여 쓰기와 읽기 모델을 분리한 CQRS 구조 구현]]></summary></entry><entry><title type="html">클라우드 네이티브의 핵심 요소 CI/CD와 Container</title><link href="https://kkr010128.github.io/cloud-native-02-pillars/" rel="alternate" type="text/html" title="클라우드 네이티브의 핵심 요소 CI/CD와 Container" /><published>2026-08-11T00:00:00+09:00</published><updated>2026-08-11T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-02-pillars</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-02-pillars/"><![CDATA[<h2 id="pillars-of-cloud-native">Pillars of Cloud Native</h2>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Spring Boot, MySQL, MongoDB와 Kafka를 이용하여 쓰기와 읽기 모델을 분리한 CQRS 구조 구현]]></summary></entry><entry><title type="html">클라우드 네이티브의 핵심 요소 CI/CD와 Container</title><link href="https://kkr010128.github.io/cloud-native-02-pillars/" rel="alternate" type="text/html" title="클라우드 네이티브의 핵심 요소 CI/CD와 Container" /><published>2026-08-11T00:00:00+09:00</published><updated>2026-08-11T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-02-pillars</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-02-pillars/"><![CDATA[<h2 id="pillars-of-cloud-native">Pillars of Cloud Native</h2>
 
 <hr />
 
@@ -6668,1847 +8038,4 @@ Hardware
   <li>Type 1은 서버와 데이터센터 환경에 적합하다.</li>
   <li>Type 2는 설치와 사용이 편리하여 개발 및 개인 실습에 적합하다.</li>
   <li>성능 차이를 단순히 계층 수만으로 판단하기보다 자원 관리 구조의 차이로 이해하는 것이 좋다.</li>
-</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="Virtualization" /><category term="Hypervisor" /><summary type="html"><![CDATA[Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이]]></summary></entry><entry><title type="html">클라우드의 이해</title><link href="https://kkr010128.github.io/cloud-01-overview/" rel="alternate" type="text/html" title="클라우드의 이해" /><published>2026-08-07T00:00:00+09:00</published><updated>2026-08-07T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-01-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-01-overview/"><![CDATA[<h2 id="1--on-premise와-cloud-computing">1 ) On-Premise와 Cloud Computing</h2>
-<hr />
-<p>클라우드 컴퓨팅이 등장하기 이전에는 대부분의 기업이 자체 데이터센터를 구축하여 IT 서비스를 운영하였다. 이러한 방식을 <strong>온프레미스(On-Premise)</strong> 라고 하며, 이후 인터넷을 통해 필요한 만큼 컴퓨팅 자원을 제공받는 <strong>클라우드 컴퓨팅(Cloud Computing)</strong> 이 등장하면서 인프라 구축 방식에 큰 변화가 발생하였다.</p>
-
-<blockquote>
-  <p><strong>참고</strong></p>
-
-  <p>일반적으로 On-Premise와 Cloud를 비교하는 경우가 많지만, 정확하게는 <strong>Private Cloud와 Public Cloud</strong>를 비교하는 개념에 가깝다.</p>
-</blockquote>
-
-<h3 id="on-premise">On-Premise</h3>
-
-<h4 id="개요">개요</h4>
-
-<p>On-Premise는 기업이 직접 데이터센터를 구축하고, 서버와 네트워크 장비를 포함한 모든 IT 자산을 자체적으로 소유 및 운영하는 방식이다.</p>
-
-<p>CPU, 메모리, 디스크, 운영체제(OS), 네트워크 장비, 소프트웨어 라이선스까지 모든 자원을 직접 구매하고 관리해야 한다.</p>
-
-<h4 id="특징">특징</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>자원 소유</td>
-      <td>기업이 직접 소유</td>
-    </tr>
-    <tr>
-      <td>초기 비용</td>
-      <td>매우 높음</td>
-    </tr>
-    <tr>
-      <td>확장성</td>
-      <td>낮음</td>
-    </tr>
-    <tr>
-      <td>운영 관리</td>
-      <td>기업이 직접 수행</td>
-    </tr>
-    <tr>
-      <td>보안 및 통제</td>
-      <td>높음</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="장점">장점</h4>
-
-<ul>
-  <li>기업이 모든 시스템을 직접 관리하므로 높은 통제권을 가진다.</li>
-  <li>기업 내부 정책에 맞춘 보안 환경을 구축할 수 있다.</li>
-  <li>내부 서비스 품질을 직접 관리할 수 있다.</li>
-</ul>
-
-<h4 id="단점">단점</h4>
-
-<p><strong>높은 초기 투자 비용</strong></p>
-
-<p>서비스를 운영하기 위해 필요한 모든 장비를 직접 구매해야 한다.
-	- 서버
-	- 스토리지
-	- 네트워크 장비
-	- 운영체제
-	- 각종 라이선스</p>
-
-<p>초기 구축 비용이 매우 크며, 이후에도 장비 교체 및 유지보수 비용이 지속적으로 발생한다.</p>
-
-<p><strong>최대 사용량 기준으로 설계</strong></p>
-
-<p>온프레미스 환경에서는 필요한 순간에 서버를 즉시 추가할 수 없기 때문에 대부분 <strong>최대 예상 사용량(Peak Load)</strong> 을 기준으로 인프라를 설계한다.</p>
-
-<p>예를 들어,</p>
-<ul>
-  <li>최대 동시 접속자 수</li>
-  <li>최대 네트워크 트래픽</li>
-  <li>최대 CPU 사용량</li>
-</ul>
-
-<p>등을 모두 고려하여 여유 있게 시스템을 구축하게 된다.</p>
-
-<p>그 결과 평상시에는 자원이 남더라도 항상 고사양의 인프라를 유지해야 한다.</p>
-
-<p><strong>증설 비용</strong>
-사용자가 증가하면 단순히 서버를 추가하는 것으로 끝나지 않는다.</p>
-<ul>
-  <li>장비 구매</li>
-  <li>설치</li>
-  <li>네트워크 구성</li>
-  <li>운영 인력 투입</li>
-</ul>
-
-<p>등이 모두 필요하므로 시간적·인적 비용이 함께 증가한다.</p>
-
-<h3 id="강사님-사례-예시">강사님 사례 예시</h3>
-<p>게임 서비스는 출시 전까지 실제 이용자 수를 예측하기 어렵다.
-과거에는 오픈 베타 서비스를 통해 예상 수요를 확인한 뒤 서버를 구매하는 방식이 일반적이었다.
-예를 들어 오픈 베타에서 약 200만 명이 접속하면 이를 근거로 투자금을 확보하고, 이후 필요한 서버를 대량 구매하여 데이터센터에 구축하였다.
-또한 실제 유료 이용자는 전체 이용자의 일부에 불과하므로, 예상 접속자 수를 기반으로 서버 규모를 판단하는 것이 매우 중요했다.
-대형 게임 회사에서도 신규 게임을 출시할 때 기존 게임의 서버를 회수하여 재배치하는 경우가 있었으며, 서버 운영을 위해 다양한 전문 인력을 직접 확보해야 하는 부담도 존재하였다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>On-Premise는 최대 사용량을 기준으로 인프라를 구축한다.</li>
-    <li>초기 구축 비용과 증설 비용이 매우 크다.</li>
-    <li>모든 장비와 운영 인력을 직접 관리해야 한다.</li>
-    <li>대신 높은 통제권과 보안 수준을 확보할 수 있다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="cloud-computing">Cloud Computing</h3>
-
-<h4 id="개요-1">개요</h4>
-
-<p>Cloud Computing은 컴퓨팅 자원을 직접 소유하지 않고 인터넷을 통해 필요한 만큼 사용하는 서비스 모델이다.</p>
-
-<p>사용자는 서버를 구매하지 않고, 클라우드 사업자가 운영하는 데이터센터의 자원을 서비스 형태로 이용한다.</p>
-
-<h4 id="특징-1">특징</h4>
-
-<ul>
-  <li>IT 자산을 직접 소유하지 않는다.</li>
-  <li>인터넷만 연결되어 있으면 어디서든 사용할 수 있다.</li>
-  <li>필요한 시점에 자원을 신속하게 생성하거나 제거할 수 있다.</li>
-  <li>서비스 제공자의 최소한의 관리만으로 인프라를 구성할 수 있다.</li>
-  <li>여러 사용자가 공유하는 컴퓨팅 자원을 서비스 형태로 제공받는다.</li>
-</ul>
-
-<h4 id="public-cloud가-게임-업계에서-빠르게-도입된-이유">Public Cloud가 게임 업계에서 빠르게 도입된 이유</h4>
-
-<p>게임 서비스는 출시 초기에 실제 접속자가 얼마나 될지 예측하기 어렵다.</p>
-
-<p>예상보다 많은 사용자가 접속하면 서버가 부족해지고, 반대로 적게 접속하면 구매한 서버가 놀게 된다.</p>
-
-<p>Public Cloud는 이러한 문제를 해결할 수 있었다.</p>
-
-<p>필요한 만큼만 서버를 생성하고, 사용량이 줄어들면 즉시 반납할 수 있기 때문이다.</p>
-
-<p>또한 클라우드 사업자는 서버, 네트워크, 스토리지 등을 관리하는 전문 인력을 보유하고 있으므로, 사용자는 필요한 자원을 요청하기만 하면 빠르게 인프라를 구성할 수 있다.</p>
-
-<h3 id="on-premise와-cloud의-비용">On-Premise와 Cloud의 비용</h3>
-
-<p>클라우드가 항상 On-Premise보다 저렴한 것은 아니다.</p>
-
-<p>동일한 사양을 기준으로 비교하면 일정 기간까지는 클라우드가 유리할 수 있지만, 장기간 사용할 경우에는 On-Premise가 더 경제적일 수 있다.</p>
-
-<p>클라우드 사업자 역시 데이터센터와 서버를 직접 구매하여 운영하기 때문에 장비 투자 비용을 일정 기간 동안 회수해야 한다.</p>
-
-<p>강의에서는 대략 <strong>3년 정도까지는 클라우드가 유리할 수 있으며</strong>, 장기간 동일한 인프라를 계속 사용하는 경우에는 On-Premise의 비용 효율이 높아질 수 있다고 설명하였다.</p>
-
-<p>이러한 이유로 대기업들도 모든 시스템을 클라우드로 이전하지 않고 일정 규모의 On-Premise 환경을 함께 유지하는 경우가 많다.</p>
-
-<p>또한 단순한 장비 비용뿐 아니라 운영 인력, 기술 역량, 유지보수 비용까지 함께 고려해야 실제 총소유비용(TCO)을 판단할 수 있다.</p>
-
-<h3 id="on-premise와-cloud-비교">On-Premise와 Cloud 비교</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>On-Premise</th>
-      <th>Cloud</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>자원 소유</td>
-      <td>직접 소유</td>
-      <td>서비스 이용</td>
-    </tr>
-    <tr>
-      <td>초기 비용</td>
-      <td>높음</td>
-      <td>낮음</td>
-    </tr>
-    <tr>
-      <td>확장성</td>
-      <td>낮음</td>
-      <td>매우 높음</td>
-    </tr>
-    <tr>
-      <td>증설 속도</td>
-      <td>느림</td>
-      <td>매우 빠름</td>
-    </tr>
-    <tr>
-      <td>운영 관리</td>
-      <td>기업이 직접 수행</td>
-      <td>사업자가 대부분 수행</td>
-    </tr>
-    <tr>
-      <td>자원 활용</td>
-      <td>최대 사용량 기준 구축</td>
-      <td>필요한 만큼 사용</td>
-    </tr>
-    <tr>
-      <td>장기 비용</td>
-      <td>유리할 수 있음</td>
-      <td>장기간 사용 시 증가 가능</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>On-Premise는 모든 인프라를 직접 구축하고 운영하는 방식이다.</li>
-    <li>초기 투자 비용은 크지만 높은 통제권과 보안성을 제공한다.</li>
-    <li>Cloud는 필요한 자원을 서비스 형태로 사용하는 방식으로 빠른 확장성과 유연성이 장점이다.</li>
-    <li>클라우드가 항상 저렴한 것은 아니며, 사용 기간과 운영 방식에 따라 비용 효율이 달라질 수 있다.</li>
-    <li>실제 기업은 비용, 운영 인력, 확장성 등을 종합적으로 고려하여 On-Premise와 Cloud를 함께 사용하는 경우도 많다.</li>
-  </ul>
-</blockquote>
-
-<h2 id="2--cloud의-정의와-특징">2 ) Cloud의 정의와 특징</h2>
-<hr />
-
-<h3 id="cloud의-정의">Cloud의 정의</h3>
-
-<p>Cloud Computing은 공유 가능한 컴퓨팅 자원(서버, 스토리지, 네트워크 등)을 하나의 자원 풀(Resource Pool)로 구성하고, 사용자가 네트워크를 통해 언제 어디서나 필요한 만큼 사용할 수 있도록 제공하는 컴퓨팅 모델이다.</p>
-
-<p>사용자는 복잡한 구축 과정이나 서비스 제공자의 개입 없이 필요한 시점에 컴퓨팅 자원을 신속하게 생성하고 사용할 수 있으며, 사용이 끝나면 반납할 수 있다.</p>
-
-<h3 id="cloud의-특징">Cloud의 특징</h3>
-
-<p>Cloud Computing은 미국 국립표준기술연구소(NIST)에서 제시한 다음 다섯 가지 핵심 특징을 가진다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>특징</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>On-Demand Self-Service</td>
-      <td>사용자가 필요할 때 직접 자원을 생성하고 사용할 수 있다.</td>
-    </tr>
-    <tr>
-      <td>Broad Network Access</td>
-      <td>네트워크를 통해 언제 어디서나 다양한 장치에서 접근할 수 있다.</td>
-    </tr>
-    <tr>
-      <td>Resource Pooling</td>
-      <td>여러 사용자가 공유하는 자원을 효율적으로 할당하여 사용한다.</td>
-    </tr>
-    <tr>
-      <td>Rapid Elasticity</td>
-      <td>자원을 빠르게 확장하거나 축소할 수 있다.</td>
-    </tr>
-    <tr>
-      <td>Measured Service</td>
-      <td>사용량을 측정하여 사용한 만큼 비용을 지불한다.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="on-demand-self-service">On-Demand Self-Service</h4>
-
-<p>주문형 셀프 서비스(On-Demand Self-Service)는 사용자가 별도의 기술 지원이나 서비스 제공자의 개입 없이 필요한 컴퓨팅 자원을 직접 생성하고 사용할 수 있는 특징이다.</p>
-
-<p>필요한 시점에 서버를 생성하고, 사용이 끝나면 즉시 제거할 수 있어 자원 활용의 효율성을 높일 수 있다.</p>
-
-<h4 id="broad-network-access">Broad Network Access</h4>
-
-<p>Broad Network Access는 네트워크를 통해 언제(Any Time), 어디서나(Any Place), 어떤 장치(Any Device)에서도 Cloud 자원에 접근할 수 있는 특징이다.</p>
-
-<p>인터넷이 연결된 환경이라면 PC, 노트북, 스마트폰, 태블릿 등 다양한 장치에서 동일한 서비스를 이용할 수 있다.</p>
-
-<h4 id="resource-pooling">Resource Pooling</h4>
-
-<p>Resource Pooling은 여러 사용자가 하나의 자원 풀(Resource Pool)을 공유하는 방식이다.</p>
-
-<p>Cloud 사업자는 다중 임차 모델(Multi-Tenancy)을 이용하여 물리적인 서버 자원을 여러 사용자에게 효율적으로 분배한다.</p>
-
-<p>사용자는 자신만의 서버를 사용하는 것처럼 보이지만 실제로는 다른 사용자와 물리적인 자원을 공유하여 사용한다.</p>
-
-<h4 id="rapid-elasticity">Rapid Elasticity</h4>
-
-<p>Rapid Elasticity는 서비스 상황에 따라 컴퓨팅 자원을 빠르게 확장하거나 축소할 수 있는 특징이다.</p>
-
-<p>사용자가 증가하면 서버를 추가하고, 사용량이 감소하면 자원을 줄여 비용을 절감할 수 있다.</p>
-
-<p>이러한 특성은 유연성(Flexibility)과 확장성(Scalability)을 제공하는 Cloud의 핵심 장점이다.</p>
-
-<h4 id="measured-service">Measured Service</h4>
-
-<p>Measured Service는 컴퓨팅 자원의 사용량을 지속적으로 측정하고 기록하는 방식이다.</p>
-
-<p>Cloud 서비스는 일반적으로 <strong>Pay-Per-Use</strong> 또는 <strong>Pay-As-You-Go</strong> 방식의 과금 체계를 사용하며, 실제 사용한 자원만큼 비용을 지불한다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>Cloud는 필요한 컴퓨팅 자원을 네트워크를 통해 즉시 사용할 수 있는 서비스 모델이다.</li>
-    <li>사용자는 직접 자원을 생성하고 제거할 수 있다.</li>
-    <li>자원은 여러 사용자가 공유하며 사용량에 따라 비용을 지불한다.</li>
-    <li>필요에 따라 자원을 빠르게 확장하거나 축소할 수 있다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="cloud-설계-시-고려할-사항">Cloud 설계 시 고려할 사항</h3>
-
-<p>Cloud 환경은 단순히 서버를 생성하는 것이 아니라 장애 대응과 서비스 연속성을 고려하여 설계해야 한다.</p>
-
-<h4 id="1-fault-tolerance-내결함성">1. Fault Tolerance (내결함성)</h4>
-
-<p>Fault Tolerance는 시스템 일부에 장애가 발생하더라도 전체 서비스가 중단되지 않고 계속 동작할 수 있는 능력이다.</p>
-
-<p>예를 들어 하나의 서버나 네트워크 장비에 장애가 발생하면 다른 장비가 즉시 해당 역할을 대신 수행하여 사용자는 장애를 거의 인식하지 못한다.</p>
-
-<h4 id="2-high-availability-고가용성">2. High Availability (고가용성)</h4>
-
-<p>High Availability는 서비스를 가능한 오랫동안 중단 없이 운영할 수 있는 능력이다.</p>
-
-<p>이를 위해서는 단순히 서버를 하나 더 추가하는 것만으로는 충분하지 않다.</p>
-
-<p>다음과 같은 구성 요소를 모두 고려하여 이중화(Redundancy)를 설계해야 한다.</p>
-
-<ul>
-  <li>서버</li>
-  <li>네트워크 장비</li>
-  <li>스토리지</li>
-  <li>데이터베이스</li>
-  <li>전원 및 네트워크 경로</li>
-</ul>
-
-<h4 id="3-scalability-확장성">3. Scalability (확장성)</h4>
-
-<p>Scalability는 서비스 요구사항에 맞추어 시스템의 처리 능력을 확장하거나 축소할 수 있는 능력이다.</p>
-
-<p>확장 방식은 크게 두 가지로 구분된다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Scale Up</td>
-      <td>CPU, 메모리 등 기존 서버의 성능을 향상</td>
-    </tr>
-    <tr>
-      <td>Scale Out</td>
-      <td>서버 수를 추가하여 처리 능력을 증가</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Cloud 환경에서는 필요할 때 자원을 추가하고, 사용량이 감소하면 다시 축소하여 효율적으로 운영할 수 있다.</p>
-
-<h4 id="4-redundancy--resilience-중복성--탄력성">4. Redundancy / Resilience (중복성 / 탄력성)</h4>
-
-<p>Redundancy 또는 Resilience는 서비스 수요 변화에 따라 시스템이 자동으로 대응할 수 있는 능력을 의미한다.</p>
-
-<p>단순히 확장이 가능한 수준을 넘어, 시스템이 부하를 감지하여 자원을 자동으로 늘리거나 줄이는 <strong>Auto Scaling</strong>까지 포함하는 개념이다.</p>
-
-<p>예를 들어 학교에서 운영하는 서비스는 학기 중에는 많은 사용자가 접속하지만 방학에는 사용량이 크게 감소한다.</p>
-
-<p>Cloud 환경에서는 방학이 시작되기 전에 서버 수를 줄여 비용을 절감하고, 개강 시점에는 다시 자원을 확장하여 효율적으로 운영할 수 있다.</p>
-
-<p>이처럼 사용자 수가 계절이나 이벤트에 따라 크게 변하는 서비스에서는 Cloud의 자동 확장 기능이 매우 효과적이다.</p>
-
-<p>토스, 마켓컬리와 같은 서비스도 이러한 자동 확장 기능을 적극적으로 활용하여 트래픽 변화에 대응하고 있으며, 대규모 Cloud 인프라를 운영하는 네이버와 카카오 역시 이러한 기술을 활용하고 있다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>Fault Tolerance는 장애가 발생해도 서비스를 계속 제공하는 능력이다.</li>
-    <li>High Availability는 장시간 안정적으로 서비스를 운영하기 위한 설계이다.</li>
-    <li>Scalability는 시스템을 수평 또는 수직으로 확장하는 능력이다.</li>
-    <li>Resilience는 부하에 따라 자원을 자동으로 증감하는 탄력적인 운영 능력이다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="cloud의-장점">Cloud의 장점</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>장점</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>경제성</td>
-      <td>초기 투자 비용 없이 필요한 만큼 사용한다.</td>
-    </tr>
-    <tr>
-      <td>자동화</td>
-      <td>업데이트, 보안 패치, 백업 등을 Cloud 사업자가 지원한다.</td>
-    </tr>
-    <tr>
-      <td>이동성</td>
-      <td>인터넷이 가능한 환경이라면 다양한 장치에서 동일한 서비스를 사용할 수 있다.</td>
-    </tr>
-    <tr>
-      <td>자원 공유</td>
-      <td>여러 사용자가 동일한 인프라를 효율적으로 공유한다.</td>
-    </tr>
-    <tr>
-      <td>빠른 구축</td>
-      <td>필요한 자원을 즉시 생성하여 사용할 수 있다.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="cloud의-한계">Cloud의 한계</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>한계</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Internet Access</td>
-      <td>인터넷 연결이 없으면 Cloud 서비스를 이용할 수 없다.</td>
-    </tr>
-    <tr>
-      <td>Security</td>
-      <td>외부 환경을 이용하므로 보안 정책과 접근 제어를 고려해야 한다.</td>
-    </tr>
-    <tr>
-      <td>Privacy</td>
-      <td>데이터 저장 위치와 개인정보 보호에 대한 고려가 필요하다.</td>
-    </tr>
-    <tr>
-      <td>Vendor Lock-In</td>
-      <td>특정 Cloud 사업자의 서비스에 의존하면 다른 Cloud로 이전하기 어려울 수 있다.</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Vendor Lock-In은 특정 Cloud 사업자만 제공하는 서비스를 사용하면서 발생하는 문제이다.</p>
-
-<p>사업자마다 제공하는 서비스와 API가 다르므로, 특정 벤더의 서비스를 많이 사용할수록 다른 Cloud 환경으로 이전하는 비용과 난이도가 높아질 수 있다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>Cloud는 네트워크를 통해 필요한 컴퓨팅 자원을 즉시 사용할 수 있는 서비스 모델이다.</li>
-    <li>핵심 특징은 On-Demand Self-Service, Broad Network Access, Resource Pooling, Rapid Elasticity, Measured Service이다.</li>
-    <li>Cloud 설계에서는 내결함성, 고가용성, 확장성, 탄력성을 반드시 고려해야 한다.</li>
-    <li>Cloud는 경제성과 자동화, 빠른 구축이라는 장점을 가지지만 인터넷 의존성, 보안, 개인정보 보호, Vendor Lock-In 등의 한계도 존재한다.</li>
-  </ul>
-</blockquote>
-
-<h2 id="3-cloud-service-종류">3) Cloud Service 종류</h2>
-<hr />
-
-<p>Cloud 서비스는 사용자가 어느 수준까지 직접 관리하는지에 따라 여러 형태로 구분된다. 대표적인 서비스 모델은 <strong>IaaS, PaaS, SaaS</strong>이며, 원격 업무 환경을 위한 <strong>DaaS</strong>도 활용된다.</p>
-
-<h3 id="iaas-infrastructure-as-a-service">IaaS (Infrastructure as a Service)</h3>
-
-<p>IaaS는 서버, 스토리지, 네트워크, 방화벽, 로드밸런서 등의 인프라 하드웨어 자원을 가상화하여 사용자에게 제공하는 Cloud 서비스 모델이다.</p>
-
-<p>사용자는 물리적인 장비를 직접 구매하지 않고 필요한 만큼의 인프라를 생성하여 사용할 수 있으며, 운영체제와 애플리케이션은 직접 설치하고 관리한다.</p>
-
-<h4 id="특징-2">특징</h4>
-
-<ul>
-  <li>서버, 스토리지, 네트워크 등 인프라 자원을 제공한다.</li>
-  <li>자유도가 높아 세밀한 설정이 가능하다.</li>
-  <li>운영체제와 애플리케이션은 사용자가 직접 관리한다.</li>
-  <li>인프라를 구성하는 각 자원에 대한 이해와 운영 지식이 필요하다.</li>
-</ul>
-
-<h4 id="대표-서비스">대표 서비스</h4>
-
-<ul>
-  <li>AWS EC2</li>
-</ul>
-
-<blockquote>
-  <p><strong>참고</strong></p>
-
-  <p>대부분의 CSP(Cloud Service Provider)는 기본적으로 IaaS 서비스를 제공한다.</p>
-</blockquote>
-
-<h3 id="paas-platform-as-a-service">PaaS (Platform as a Service)</h3>
-
-<p>PaaS는 애플리케이션을 개발하고 실행 및 관리할 수 있는 플랫폼과 프레임워크를 제공하는 Cloud 서비스 모델이다.</p>
-
-<p>개발자는 서버나 운영체제를 직접 관리하지 않고 애플리케이션 개발에 집중할 수 있다.</p>
-
-<h4 id="특징-3">특징</h4>
-
-<ul>
-  <li>개발 플랫폼과 실행 환경을 제공한다.</li>
-  <li>운영체제와 미들웨어를 직접 관리하지 않아도 된다.</li>
-  <li>개발 환경을 빠르게 구축할 수 있다.</li>
-  <li>여러 개발자가 동일한 환경에서 작업할 수 있다.</li>
-</ul>
-
-<blockquote>
-  <p><strong>예시</strong></p>
-
-  <p>여러 개발자가 하나의 프로젝트를 진행하면 운영체제나 라이브러리 버전이 서로 달라 실행 오류가 발생할 수 있다.</p>
-
-  <p>PaaS는 동일한 개발 환경을 미리 제공하므로 환경 차이로 인한 문제를 줄일 수 있으며, 개발자는 환경 구축보다 애플리케이션 개발에 집중할 수 있다.</p>
-</blockquote>
-
-<h4 id="대표-서비스-1">대표 서비스</h4>
-
-<ul>
-  <li>Salesforce Platform</li>
-  <li>ServiceNow</li>
-</ul>
-
-<h3 id="saas-software-as-a-service">SaaS (Software as a Service)</h3>
-
-<p>SaaS는 완성된 응용 프로그램을 인터넷을 통해 제공하는 Cloud 서비스 모델이다.</p>
-
-<p>사용자는 별도의 설치나 유지보수 없이 웹 브라우저나 전용 프로그램을 통해 서비스를 사용할 수 있다.</p>
-
-<h4 id="대표-서비스-2">대표 서비스</h4>
-
-<ul>
-  <li>Microsoft 365</li>
-  <li>Adobe Photoshop(Adobe Creative Cloud)</li>
-</ul>
-
-<h3 id="daas-desktop-as-a-service">DaaS (Desktop as a Service)</h3>
-
-<p>DaaS는 인터넷을 통해 가상 데스크톱 환경을 제공하는 Cloud 서비스이다.</p>
-
-<p>인터넷만 연결되어 있다면 언제 어디서나 기업 내부망에 접속하여 동일한 업무 환경을 사용할 수 있으며, 모든 데이터는 중앙 서버에서 관리된다.</p>
-
-<p>직원의 PC가 바이러스에 감염되거나 파손·분실되더라도 정보 유출 위험이 낮으며, 외부에서 기업망에 안전하게 접근할 수 있는 기술로 활용된다.</p>
-
-<blockquote>
-  <p><strong>예시</strong></p>
-
-  <p>데이터를 중앙 서버에만 저장하는 구조도 하나의 위험 요소가 될 수 있다.</p>
-
-  <p>실제로 <strong>카카오는 SK C&amp;C 데이터센터 화재로 인해 주요 서비스가 장시간 중단되는 사고를 겪었다.</strong></p>
-
-  <p>당시 내부 규정상 소스코드를 중앙 서버에 보관하는 구조였기 때문에 백업만으로는 즉시 서비스를 복구하는 데 한계가 있었다.</p>
-
-  <p>반면 Git과 같은 분산 버전 관리 시스템은 저장소가 여러 위치에 복제되므로 한 저장소에 장애가 발생하더라도 다른 저장소를 이용하여 복구할 수 있다.</p>
-
-  <p>이 사례는 중앙 집중형 관리의 편의성과 함께 장애에 대비한 이중화와 분산 저장의 중요성을 보여준다.</p>
-</blockquote>
-
-<h3 id="cloud-서비스-모델-비교">Cloud 서비스 모델 비교</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>제공 범위</th>
-      <th>사용자가 관리하는 영역</th>
-      <th>대표 서비스</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>IaaS</td>
-      <td>인프라</td>
-      <td>운영체제, 미들웨어, 애플리케이션</td>
-      <td>AWS EC2</td>
-    </tr>
-    <tr>
-      <td>PaaS</td>
-      <td>개발 플랫폼</td>
-      <td>애플리케이션</td>
-      <td>Salesforce Platform, ServiceNow</td>
-    </tr>
-    <tr>
-      <td>SaaS</td>
-      <td>완성된 소프트웨어</td>
-      <td>없음</td>
-      <td>Microsoft 365, Adobe Photoshop</td>
-    </tr>
-    <tr>
-      <td>DaaS</td>
-      <td>가상 데스크톱</td>
-      <td>사용자 환경</td>
-      <td>Azure Virtual Desktop, Amazon WorkSpaces</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="cloud-관련-사업자">Cloud 관련 사업자</h3>
-
-<h4 id="csp-cloud-service-provider">CSP (Cloud Service Provider)</h4>
-
-<p>Public Cloud 서비스를 직접 제공하는 사업자이다.</p>
-
-<p>자체 데이터센터와 인프라를 구축하여 서버, 스토리지, 네트워크 등의 Cloud 서비스를 제공한다.</p>
-
-<p><strong>대표 사업자</strong></p>
-
-<ul>
-  <li>AWS</li>
-  <li>Google Cloud Platform(GCP)</li>
-  <li>Microsoft Azure</li>
-  <li>Oracle Cloud</li>
-  <li>NHN Cloud</li>
-  <li>NAVER Cloud</li>
-  <li>Kakao Cloud</li>
-  <li>KT Cloud</li>
-</ul>
-
-<h4 id="msp-managed-service-provider">MSP (Managed Service Provider)</h4>
-
-<p>MSP는 자체 Cloud 인프라를 보유하지 않고 CSP의 Cloud 서비스를 고객에게 구축하고 운영·유지보수해 주는 전문 기업이다.</p>
-
-<p>기업은 MSP를 통해 Cloud 구축, 운영, 모니터링, 비용 최적화 등의 서비스를 지원받을 수 있다.</p>
-
-<p><strong>대표 사업자</strong></p>
-
-<ul>
-  <li>메가존클라우드</li>
-  <li>베스핀글로벌</li>
-  <li>메타넷플랫폼</li>
-</ul>
-
-<blockquote>
-  <p><strong>참고</strong></p>
-
-  <p>국내에서는 대기업 계열 CSP 외에도 메가존클라우드, 베스핀글로벌과 같은 MSP가 대표적인 Cloud 전문 기업으로 알려져 있다.</p>
-</blockquote>
-
-<h4 id="neocloud">NeoCloud</h4>
-
-<p>GPU 클러스터와 AI 플랫폼을 중심으로 서비스를 제공하는 Cloud 사업자를 의미한다.</p>
-
-<p>일반적인 CSP와 유사하게 인프라를 제공하지만, AI 모델 학습과 추론을 위한 GPU 자원 제공에 특화되어 있다는 차이가 있다.</p>
-
-<p><strong>대표 사업자</strong></p>
-
-<ul>
-  <li>CoreWeave</li>
-  <li>NAVER Cloud</li>
-</ul>
-
-<blockquote>
-  <p><strong>참고</strong></p>
-
-  <p>NAVER Cloud는 NVIDIA와의 협력을 통해 AI GPU 인프라를 확대하며 AI 중심 Cloud 서비스를 강화하고 있다.</p>
-</blockquote>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>IaaS는 인프라를, PaaS는 개발 환경을, SaaS는 완성된 소프트웨어를 제공한다.</li>
-    <li>DaaS는 인터넷을 통해 가상 데스크톱 환경을 제공하여 원격 업무를 지원한다.</li>
-    <li>PaaS는 개발 환경을 표준화하여 협업 과정에서 발생하는 환경 차이를 줄여준다.</li>
-    <li>DaaS는 중앙 관리가 가능하지만, 카카오 데이터센터 장애 사례처럼 중앙 저장소에 대한 장애 대비도 함께 고려해야 한다.</li>
-    <li>CSP는 Cloud 서비스를 직접 제공하는 사업자이며, MSP는 이를 구축·운영해 주는 전문 기업이다.</li>
-    <li>NeoCloud는 AI 학습을 위한 GPU 인프라를 중심으로 서비스를 제공하는 Cloud 사업자를 의미한다.</li>
-  </ul>
-</blockquote>
-
-<h2 id="4--클라우드-이용-모델-deployment-model">4 ) 클라우드 이용 모델 (Deployment Model)</h2>
-<hr />
-
-<p>클라우드 컴퓨팅은 인프라를 누구에게 제공하고 어떻게 구성하는지에 따라 여러 가지 이용 모델(Deployment Model)로 구분된다.</p>
-
-<h3 id="public-cloud">Public Cloud</h3>
-
-<p>Public Cloud는 클라우드 서비스 제공업체(CSP, Cloud Service Provider)가 구축한 인프라를 여러 사용자에게 인터넷을 통해 서비스 형태로 제공하는 모델이다.</p>
-
-<p>사용자는 필요한 만큼의 컴퓨팅 자원을 임대하여 사용하며, 서버와 네트워크 등 인프라의 구축 및 운영은 클라우드 사업자가 담당한다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>인터넷을 통해 누구나 이용 가능</li>
-  <li>초기 구축 비용이 낮음</li>
-  <li>사용량에 따라 비용을 지불하는 방식(Pay-as-you-go)</li>
-  <li>높은 확장성과 유연성을 제공</li>
-</ul>
-
-<h3 id="private-cloud">Private Cloud</h3>
-
-<p>Private Cloud는 하나의 조직만을 위해 구축되는 클라우드 환경이다.</p>
-
-<p>기업 내부에 직접 구축하거나 외부 사업자가 특정 기업 전용으로 구축하여 운영할 수도 있다. 클라우드 기술을 활용하지만 특정 조직만 사용할 수 있다는 점이 Public Cloud와 가장 큰 차이이다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>특정 조직만 이용</li>
-  <li>높은 보안성과 통제권 제공</li>
-  <li>기업 정책에 맞는 환경 구성 가능</li>
-  <li>구축 및 운영 비용이 상대적으로 높음</li>
-</ul>
-
-<h3 id="multi-cloud">Multi Cloud</h3>
-
-<p>Multi Cloud는 둘 이상의 클라우드 서비스를 함께 사용하는 방식이다.</p>
-
-<p>여러 Public Cloud를 함께 사용할 수도 있고, 여러 Private Cloud를 함께 사용하는 경우도 포함된다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>두 개 이상의 Public Cloud 또는 Private Cloud 사용</li>
-  <li>서비스별 장점을 선택하여 활용 가능</li>
-  <li>특정 클라우드 사업자에 대한 의존도를 줄일 수 있음</li>
-</ul>
-
-<h3 id="hybrid-cloud">Hybrid Cloud</h3>
-
-<p>Hybrid Cloud는 Public Cloud와 Private Cloud를 함께 사용하는 방식이다.</p>
-
-<p>업무의 특성에 따라 보안이 중요한 시스템은 Private Cloud에서 운영하고, 확장성이 필요한 서비스는 Public Cloud에서 운영하는 등 두 환경을 조합하여 활용한다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>Public Cloud와 Private Cloud를 혼합하여 사용</li>
-  <li>보안성과 확장성을 동시에 확보 가능</li>
-  <li>업무 특성에 따라 유연하게 자원 배치 가능</li>
-</ul>
-
-<h3 id="community-cloud">Community Cloud</h3>
-
-<p>Community Cloud는 공통의 목적이나 요구사항을 가진 여러 조직이 공동으로 클라우드 환경을 구축하고 운영하는 방식이다.</p>
-
-<p>참여하는 조직들은 하나의 데이터센터를 함께 사용하며, 필요한 데이터를 공동으로 관리하고 활용할 수 있다.</p>
-
-<h4 id="사례">사례</h4>
-
-<p>예를 들어 현대자동차와 현대오토에버가 공동으로 데이터센터를 구축하여 운영하고, 공통 데이터를 함께 활용한다면 이를 <strong>Community Cloud</strong>로 볼 수 있다.</p>
-
-<p>다만 현대자동차 내부의 관점에서는 해당 클라우드가 자사 전용으로 사용되는 환경이므로 <strong>Private Cloud</strong>로 해석할 수도 있다.</p>
-
-<p>즉, Community Cloud와 Private Cloud는 <strong>누구의 관점에서 바라보느냐에 따라 다르게 표현될 수 있다.</strong></p>
-
-<p>면접에서도 이러한 사례가 제시될 수 있으므로, 절대적인 답을 찾기보다는 <strong>문제에서 제시한 관점</strong>을 기준으로 판단하는 것이 중요하다.</p>
-
-<h3 id="이용-모델-비교">이용 모델 비교</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>이용 모델</th>
-      <th>사용 대상</th>
-      <th>특징</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Public Cloud</td>
-      <td>일반 사용자</td>
-      <td>클라우드 사업자가 제공하는 공유형 클라우드</td>
-    </tr>
-    <tr>
-      <td>Private Cloud</td>
-      <td>단일 조직</td>
-      <td>특정 조직만 사용하는 전용 클라우드</td>
-    </tr>
-    <tr>
-      <td>Multi Cloud</td>
-      <td>하나 이상의 조직</td>
-      <td>두 개 이상의 Public Cloud 또는 Private Cloud를 함께 사용</td>
-    </tr>
-    <tr>
-      <td>Hybrid Cloud</td>
-      <td>단일 또는 복수 조직</td>
-      <td>Public Cloud와 Private Cloud를 혼합하여 사용</td>
-    </tr>
-    <tr>
-      <td>Community Cloud</td>
-      <td>공통 목적의 여러 조직</td>
-      <td>공동으로 구축·운영하며 데이터를 공유</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>Public Cloud는 여러 사용자가 함께 사용하는 공유형 클라우드이다.</li>
-    <li>Private Cloud는 특정 조직만 사용하는 전용 클라우드이다.</li>
-    <li>Multi Cloud는 두 개 이상의 클라우드 서비스를 함께 사용하는 방식이다.</li>
-    <li>Hybrid Cloud는 Public Cloud와 Private Cloud를 조합하여 사용하는 방식이다.</li>
-    <li>Community Cloud는 공통의 목적을 가진 여러 조직이 공동으로 구축·운영하는 클라우드이며, 관점에 따라 Private Cloud로 해석될 수도 있다.</li>
-  </ul>
-</blockquote>
-
-<h2 id="5--cloud와-on-premise-비교-public-cloud--private-cloud">5 ) Cloud와 On-Premise 비교 (Public Cloud &amp; Private Cloud)</h2>
-<hr />
-
-<p>Cloud와 On-Premise는 비용 구조, 확장성, 운영 방식, 책임 범위 등 여러 측면에서 차이가 있다. 기업은 서비스의 특성과 운영 기간, 보안 요구사항 등을 종합적으로 고려하여 적합한 방식을 선택해야 한다.</p>
-
-<h3 id="비용-비교">비용 비교</h3>
-
-<p>일반적으로 <strong>단기간 사용은 Cloud</strong>, <strong>장기간 사용은 On-Premise</strong>가 비용 측면에서 유리한 경우가 많다.</p>
-
-<p>동일한 사양의 인프라를 오랜 기간 지속적으로 사용하는 경우에는 장비를 직접 구매하는 On-Premise가 총비용(TCO) 측면에서 유리할 수 있다. 반면 초기 투자 비용을 줄이고 빠르게 서비스를 시작해야 하는 경우에는 Cloud가 적합하다.</p>
-
-<h4 id="capex와-opex">CapEx와 OpEx</h4>
-
-<p>Cloud 도입으로 기업의 비용 구조는 <strong>CapEx(Capital Expenditure)</strong> 중심에서 <strong>OpEx(Operating Expenditure)</strong> 중심으로 변화하였다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>CapEx</td>
-      <td>서버, 스토리지, 네트워크 장비 등 초기 자산 구매 비용</td>
-    </tr>
-    <tr>
-      <td>OpEx</td>
-      <td>인프라 운영 및 유지보수 비용(장비 사용 비용, 인건비, 운영 비용 등)</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>On-Premise는 초기 장비 구매 비용(CapEx)의 비중이 크지만, Cloud는 필요한 만큼 서비스를 사용하면서 운영 비용(OpEx) 형태로 지불하는 것이 일반적이다.</p>
-
-<h3 id="확장성-비교">확장성 비교</h3>
-
-<p>Cloud는 필요한 시점에 컴퓨팅 자원을 즉시 추가하거나 제거할 수 있으므로 높은 확장성을 제공한다.</p>
-
-<p>특히 대규모 IT 인프라를 직접 구축하기 어려운 중소기업도 Cloud를 이용하면 초기 투자 없이 대기업 수준의 서비스를 운영할 수 있다.</p>
-
-<p>반면 On-Premise는 새로운 장비를 구매하고 설치해야 하므로 확장에 많은 시간과 비용이 필요하다.</p>
-
-<h3 id="안정성과-신뢰성">안정성과 신뢰성</h3>
-
-<p>Cloud는 높은 가용성과 편의성을 제공하지만, 서비스 제공자에게 의존하는 만큼 다양한 리스크도 함께 존재한다.</p>
-
-<h4 id="클라우드의-리스크">클라우드의 리스크</h4>
-
-<p><strong>IaaS(Infrastructure as a Service)의 리스크</strong></p>
-
-<p>Cloud 사업자의 인프라에서 장애가 발생하면 사용자의 서비스에도 직접적인 영향을 미칠 수 있다.</p>
-
-<p>대표적인 위험 요소는 다음과 같다.</p>
-
-<ul>
-  <li>하드웨어 장애로 인한 서비스 중단</li>
-  <li>저장 데이터의 손실 가능성</li>
-  <li>데이터센터 장애에 따른 서비스 장애</li>
-</ul>
-
-<p>또한 네트워크 환경에서는 다음과 같은 보안 위협이 발생할 수 있다.</p>
-
-<ul>
-  <li>통신 도청(Eavesdropping)</li>
-  <li>중간자 공격(MITM, Man-In-The-Middle Attack)</li>
-  <li>스푸핑(Spoofing)</li>
-  <li>네트워크 관리 미흡으로 인한 시스템 장애</li>
-</ul>
-
-<p>사용자가 이러한 장애를 완전히 방지할 수는 없지만, 다음과 같은 대비는 가능하다.</p>
-
-<ul>
-  <li>가상 서버 백업</li>
-  <li>서버 이미지 또는 템플릿 생성</li>
-  <li>장애 발생 시 신속한 복구 환경 마련</li>
-</ul>
-
-<h4 id="cloud-보안-거버넌스">Cloud 보안 거버넌스</h4>
-
-<p>Cloud 환경에서는 기업이 직접 모든 인프라를 관리하지 않는다.</p>
-
-<p>데이터 저장과 시스템 운영의 일부를 Cloud 사업자에게 맡기게 되므로, 기업이 모든 보안 요소를 직접 통제할 수 없다는 한계가 존재한다.</p>
-
-<p>또한 다음과 같은 리스크도 고려해야 한다.</p>
-
-<ul>
-  <li>보안 사고(Incident) 발생 시 제한적인 대응</li>
-  <li>서비스 장애 및 복구 과정에 대한 직접적인 통제 불가</li>
-  <li>Cloud 사업자의 서비스 종료 또는 파산으로 인한 서비스 연속성(Continuity) 문제</li>
-</ul>
-
-<p>따라서 Cloud를 도입할 때에는 서비스 수준 협약(SLA, Service Level Agreement), 백업 정책, 재해 복구(Disaster Recovery) 정책 등을 함께 검토해야 한다.</p>
-
-<h3 id="책임-분계선-shared-responsibility">책임 분계선 (Shared Responsibility)</h3>
-
-<p>Cloud 환경에서는 모든 책임을 Cloud 사업자가 부담하는 것이 아니다.</p>
-
-<p>서비스 제공자가 책임지는 영역과 사용자가 직접 관리해야 하는 영역이 구분되며, 이를 <strong>책임 분계선(Shared Responsibility Model)</strong> 이라고 한다.</p>
-
-<p>예를 들어,</p>
-
-<ul>
-  <li>Cloud 사업자는 물리 서버, 네트워크, 데이터센터 등의 인프라를 관리한다.</li>
-  <li>사용자는 운영체제 설정, 계정 관리, 애플리케이션, 데이터 보안 등을 관리한다.</li>
-</ul>
-
-<p>따라서 Cloud를 사용하더라도 보안과 운영에 대한 모든 책임이 Cloud 사업자에게 있는 것은 아니며, 사용자 역시 자신의 관리 영역에 대한 책임을 부담해야 한다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>단기간 사용은 Cloud, 장기간 사용은 On-Premise가 비용 측면에서 유리한 경우가 많다.</li>
-    <li>Cloud는 CapEx를 줄이고 OpEx 중심의 비용 구조를 제공한다.</li>
-    <li>Cloud는 뛰어난 확장성을 제공하여 초기 투자 없이 대규모 서비스를 운영할 수 있다.</li>
-    <li>Cloud 환경에서는 사업자의 장애나 네트워크 위협 등 다양한 리스크를 고려해야 한다.</li>
-    <li>Cloud는 책임을 모두 사업자가 부담하는 것이 아니라, 사용자와 사업자가 각각 책임지는 영역이 구분된다.</li>
-  </ul>
-</blockquote>
-
-<h2 id="6--클라우드에-필요한-기술">6 ) 클라우드에 필요한 기술</h2>
-<hr />
-
-<h3 id="가상화">가상화</h3>
-
-<p>가상화(Virtualization)는 서버, 스토리지, 네트워크와 같은 물리적 자원을 소프트웨어를 통해 논리적인 자원으로 추상화하는 기술이다.</p>
-
-<p>하나의 물리적 시스템을 여러 개의 독립된 시스템처럼 사용할 수 있도록 하며, 물리적 하드웨어의 기능을 소프트웨어로 구현하여 여러 가상 환경을 동시에 실행할 수 있다.</p>
-
-<p>기업에서는 가상화를 통해 다음과 같은 효과를 얻을 수 있다.</p>
-
-<ul>
-  <li>물리적 하드웨어 자원을 효율적으로 사용</li>
-  <li>인프라 운영 및 관리 자동화</li>
-  <li>새로운 환경을 빠르게 생성하고 배포</li>
-  <li>장애 발생 시 복구 환경을 신속하게 구성</li>
-  <li>클라우드 컴퓨팅 환경의 기반 기술로 활용</li>
-</ul>
-
-<p>가상화는 서버뿐 아니라 운영체제, 스토리지, 네트워크 등 다양한 인프라 영역에 적용된다.</p>
-
-<p>과거에는 각 영역의 전문 엔지니어가 물리 장비를 직접 설정했지만, 점차 하드웨어 관련 기능이 소프트웨어로 추상화되면서 API나 코드를 통해 인프라를 관리할 수 있는 형태로 변화하고 있다.</p>
-
-<p>이러한 흐름은 DevOps와도 밀접하게 연결된다. 인프라 구성을 코드로 관리하는 IaC(Infrastructure as Code)와 같은 방식은 개발자가 인프라 구성과 변경에 보다 쉽게 접근할 수 있도록 한다.</p>
-
-<h3 id="가상화의-이점">가상화의 이점</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>장점</th>
-      <th>고려할 점</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>자원 활용</td>
-      <td>하나의 서버에서 여러 가상 머신을 실행하여 자원을 효율적으로 사용</td>
-      <td>여러 가상 머신이 동일한 물리 자원을 공유하므로 과도한 사용 시 자원 경합 발생 가능</td>
-    </tr>
-    <tr>
-      <td>비용</td>
-      <td>물리 장비 수 감소로 전력, 공간, 운영비 절감</td>
-      <td>일부 소프트웨어는 가상 환경에서 별도의 라이선스 비용이 발생할 수 있음</td>
-    </tr>
-    <tr>
-      <td>배포 속도</td>
-      <td>가상 머신 생성과 복제가 빠르며 Snapshot을 활용한 복구 가능</td>
-      <td>가상 머신 수가 많아질수록 관리와 모니터링 복잡도 증가</td>
-    </tr>
-    <tr>
-      <td>보안 및 격리</td>
-      <td>가상 머신 간 논리적 격리 가능</td>
-      <td>Hypervisor가 공격받으면 여러 가상 머신이 함께 영향을 받을 수 있음</td>
-    </tr>
-    <tr>
-      <td>운영 유연성</td>
-      <td>테스트 환경을 빠르게 구성하고 폐기 가능</td>
-      <td>고성능 작업에서는 물리 서버 대비 오버헤드가 발생할 수 있음</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="가상화-서비스">가상화 서비스</h3>
-
-<h4 id="운영체제-가상화">운영체제 가상화</h4>
-
-<p>하나의 운영체제에서 여러 애플리케이션을 서로 분리하여 실행하려는 목적으로 발전한 방식이다.</p>
-
-<p>초기에는 <code class="language-plaintext highlighter-rouge">chroot</code>를 이용해 프로세스가 접근할 수 있는 파일 시스템의 범위를 분리하였다.</p>
-
-<p>이후 FreeBSD Jail과 같은 기술에서는 파일 시스템뿐 아니라 CPU, 메모리, 네트워크 등 다양한 자원을 분리하여 하나의 운영체제에서 여러 독립된 환경을 실행할 수 있게 되었다.</p>
-
-<p>Linux에서는 Namespace와 Control Group(cgroup)을 이용해 프로세스를 격리하고 자원을 제한하며, 이러한 기술을 기반으로 Container가 발전하였다.</p>
-
-<p>Docker 역시 이러한 Linux 커널의 기능을 기반으로 컨테이너 환경을 제공한다.</p>
-
-<p>운영체제 가상화는 DevOps 환경에서도 많이 사용되며, 애플리케이션 실행 환경과 인프라 구성을 소프트웨어 형태로 관리하고 배포하는 데 활용된다.</p>
-
-<h4 id="서버-가상화">서버 가상화</h4>
-
-<p>서버 가상화는 하나의 물리적 컴퓨터 위에 여러 개의 독립된 가상 컴퓨터를 만드는 방식이다.</p>
-
-<p>물리적 CPU, Memory, Disk, Network Adapter 등의 하드웨어를 소프트웨어로 가상화하고 각 가상 머신(Virtual Machine, VM)에 독립적인 운영체제를 설치한다.</p>
-
-<p>가상 머신을 생성하고 하드웨어 자원을 할당하는 소프트웨어를 Hypervisor라고 한다.</p>
-
-<p>Hypervisor는 구현 방식에 따라 다음과 같이 나뉜다.</p>
-
-<ul>
-  <li>물리 하드웨어에 직접 Hypervisor를 설치하는 방식</li>
-  <li>기존 운영체제 위에 Hypervisor를 설치하는 방식</li>
-</ul>
-
-<h4 id="스토리지-가상화">스토리지 가상화</h4>
-
-<p>스토리지 가상화는 여러 물리적 저장 장치를 하나의 논리적인 저장 공간으로 구성하거나, 하나의 물리 스토리지를 여러 논리적 스토리지로 나누어 사용하는 기술이다.</p>
-
-<p>스토리지 기능을 소프트웨어로 정의하고 제어하는 방식을 SDS(Software Defined Storage)라고 한다.</p>
-
-<p>EMC, NetApp 등 많은 스토리지 제품도 API를 제공하여 소프트웨어를 통한 구성과 관리가 가능하다.</p>
-
-<p>과거에는 전문 스토리지 엔지니어가 서비스별 용량을 계산하고 데이터 배치, 디스크 증설 등을 직접 관리하였다.</p>
-
-<p>SDS를 이용하면 이러한 스토리지 구성과 관리 작업도 소프트웨어를 통해 제어할 수 있어 개발과 운영의 연계성이 높아진다.</p>
-
-<h4 id="네트워크-가상화">네트워크 가상화</h4>
-
-<p>대표적인 네트워크 가상화 기술로 VLAN(Virtual LAN)이 있다.</p>
-
-<p>VLAN은 하나의 물리적 스위치를 여러 개의 논리적인 네트워크로 분리할 수 있도록 한다.</p>
-
-<p>대규모 네트워크에서는 더욱 유연하고 자동화된 네트워크 구성이 필요해졌고, 이러한 요구에 대응하기 위해 SDN(Software Defined Networking)이 등장하였다.</p>
-
-<p>네트워크 구성과 정책을 소프트웨어로 제어할 수 있게 되면서 다음과 같은 영역도 점차 자동화되고 있다.</p>
-
-<ul>
-  <li>네트워크 설정</li>
-  <li>방화벽 정책</li>
-  <li>로드 밸런싱</li>
-  <li>네트워크 경로 제어</li>
-</ul>
-
-<p>과거에는 네트워크 전문 엔지니어가 직접 구성하던 영역이었지만, 소프트웨어 기반 제어가 확대되면서 개발 부문에서도 네트워크 구성을 이해하고 일부 변경할 수 있게 되었다.</p>
-
-<h4 id="데이터-가상화">데이터 가상화</h4>
-
-<p>여러 위치나 형식에 존재하는 데이터를 물리적으로 이동시키지 않고 하나의 통합된 데이터 소스처럼 사용할 수 있도록 추상화하는 방식이다.</p>
-
-<h4 id="애플리케이션-가상화">애플리케이션 가상화</h4>
-
-<p>애플리케이션을 운영체제에 직접 설치하지 않고 격리된 환경에서 실행할 수 있도록 구성하는 방식이다.</p>
-
-<h4 id="데스크톱-가상화">데스크톱 가상화</h4>
-
-<p>VDI(Virtual Desktop Infrastructure)는 사용자의 데스크톱 환경을 중앙 서버에서 실행하고 화면과 입력만 원격으로 전달하는 기술이다.</p>
-
-<p>사용자는 자신의 모니터, 키보드, 마우스를 사용하지만 실제 프로그램 실행과 데이터 저장은 중앙 서버에서 이루어진다.</p>
-
-<p>서버 가상화와 목적이 다르다.</p>
-
-<ul>
-  <li>서버 가상화 → 서비스를 제공하기 위한 서버 환경 구성</li>
-  <li>데스크톱 가상화 → 사용자의 작업 환경 제공</li>
-</ul>
-
-<hr />
-
-<h3 id="hypervisor-가상화">Hypervisor 가상화</h3>
-
-<h4 id="type-1-native--bare-metal-hypervisor">Type 1: Native / Bare-Metal Hypervisor</h4>
-
-<p>Type 1 Hypervisor는 물리적 하드웨어 위에 일반적인 호스트 운영체제 없이 Hypervisor가 직접 실행되는 방식이다.</p>
-
-<p>하드웨어에 직접 설치되기 때문에 Bare-Metal Hypervisor라고도 한다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>중간에 일반적인 호스트 운영체제를 거치지 않아 오버헤드가 적다.</li>
-  <li>하드웨어를 직접 제어하므로 높은 성능과 안정성을 제공한다.</li>
-  <li>기업용 서버와 데이터센터 환경에서 많이 사용된다.</li>
-  <li>대규모 환경에서는 별도의 관리 서버나 관리 콘솔을 통해 여러 Hypervisor를 중앙에서 관리하는 경우가 많다.</li>
-</ul>
-
-<p><strong>대표적인 기술</strong></p>
-
-<ul>
-  <li>VMware ESXi</li>
-  <li>Microsoft Hyper-V</li>
-  <li>KVM(Kernel-based Virtual Machine)</li>
-  <li>Xen 계열 Hypervisor</li>
-</ul>
-
-<blockquote>
-  <p><strong>KVM</strong></p>
-
-  <p>Linux 커널에 가상화 기능을 추가하여 Linux를 Hypervisor 역할로 동작하게 하는 기술이다.</p>
-</blockquote>
-
-<h4 id="type-2-hosted-hypervisor">Type 2: Hosted Hypervisor</h4>
-
-<p>Type 2 Hypervisor는 물리적 하드웨어 위에 먼저 호스트 운영체제를 설치한 후, 그 위에서 가상화 소프트웨어를 실행하는 방식이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
-      ↓
-Hypervisor
-      ↓
-Host OS
-      ↓
-Hardware
-</code></pre></div></div>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>일반 애플리케이션처럼 설치하고 제거할 수 있다.</li>
-  <li>사용 방법이 비교적 간단하다.</li>
-  <li>Type 1보다 추가적인 소프트웨어 계층을 거치기 때문에 오버헤드가 발생할 수 있다.</li>
-  <li>개발, 테스트, 개인 실습 환경에서 많이 사용된다.</li>
-</ul>
-
-<p><strong>대표적인 소프트웨어</strong></p>
-
-<ul>
-  <li>VMware Workstation</li>
-  <li>Oracle VirtualBox</li>
-  <li>Parallels Desktop</li>
-  <li>QEMU</li>
-  <li>UTM</li>
-</ul>
-
-<blockquote>
-  <p>Hyper-V는 Windows의 Hypervisor 기반 가상화 기술로 구조상 일반적인 Type 2 Hypervisor와는 구분해서 이해하는 것이 적절하다.</p>
-</blockquote>
-
-<h4 id="가상-머신의-구성-요소">가상 머신의 구성 요소</h4>
-
-<p><strong>CPU</strong></p>
-
-<p>물리 CPU의 처리 자원을 가상화하여 가상 머신에 vCPU(Virtual CPU) 형태로 할당한다.</p>
-
-<p><strong>Memory</strong></p>
-
-<p>물리 메모리의 일부를 가상 머신에 할당한다.</p>
-
-<p>여러 가상 머신이 동일한 물리 메모리를 사용하지만 Hypervisor가 각 가상 머신의 메모리 공간을 논리적으로 분리한다.</p>
-
-<p><strong>Disk</strong></p>
-
-<p>가상 머신의 디스크는 일반적으로 가상 디스크 파일 형태로 구성된다.</p>
-
-<p>해당 파일 안에 다음과 같은 내용이 저장된다.</p>
-
-<ul>
-  <li>운영체제</li>
-  <li>애플리케이션</li>
-  <li>사용자 데이터</li>
-</ul>
-
-<p>Hypervisor는 이 파일을 가상 머신에서 하나의 실제 디스크처럼 사용할 수 있도록 제공한다.</p>
-
-<p><strong>Network Adapter</strong></p>
-
-<p>각 가상 머신에는 가상 네트워크 어댑터(vNIC)를 생성할 수 있다.</p>
-
-<p>이를 이용해 다음과 같은 통신이 가능하다.</p>
-
-<ul>
-  <li>다른 가상 머신과 통신</li>
-  <li>호스트 시스템과 통신</li>
-  <li>외부 네트워크와 통신</li>
-</ul>
-
-<hr />
-
-<h3 id="snapshot">Snapshot</h3>
-
-<p>Snapshot은 가상 머신의 특정 시점 상태를 저장해 이후 해당 상태로 되돌릴 수 있도록 하는 기능이다.</p>
-
-<p>Snapshot에 포함되는 범위는 Hypervisor와 생성 옵션에 따라 달라질 수 있으며, 일반적으로 가상 디스크 상태를 기준으로 관리한다.</p>
-
-<p>일부 환경에서는 메모리 상태까지 함께 저장하여 실행 중인 프로그램 상태를 복원할 수 있다.</p>
-
-<h4 id="저장할-수-있는-정보">저장할 수 있는 정보</h4>
-
-<ul>
-  <li>가상 디스크의 상태</li>
-  <li>가상 머신 설정</li>
-  <li>선택적으로 메모리 상태</li>
-</ul>
-
-<h4 id="동작-원리">동작 원리</h4>
-
-<p>Snapshot은 가상 디스크 전체를 매번 복사하기보다 원본을 기준으로 변경된 데이터만 별도의 파일에 기록하는 방식으로 구현되는 경우가 많다.</p>
-
-<p>대표적으로 Copy-on-Write 또는 차동 디스크 구조를 사용한다.</p>
-
-<ol>
-  <li>기본 가상 디스크가 존재한다.</li>
-  <li>Snapshot을 생성하면 현재 상태를 기준점으로 고정한다.</li>
-  <li>이후 발생하는 변경 사항은 별도의 차동 디스크에 기록한다.</li>
-  <li>Rollback을 수행하면 변경된 내용을 제거하고 Snapshot 시점의 상태로 돌아간다.</li>
-</ol>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Base Disk
-   │
-   └── Snapshot
-          │
-          └── 변경 데이터
-</code></pre></div></div>
-
-<h4 id="활용">활용</h4>
-<ul>
-  <li>운영체제 업데이트 전</li>
-  <li>시스템 설정 변경 전</li>
-  <li>프로그램 설치 및 테스트 전</li>
-  <li>개발 환경에서 여러 버전을 테스트할 때</li>
-  <li>악성코드 분석 환경을 초기 상태로 복원할 때</li>
-</ul>
-
-<h4 id="주의사항">주의사항</h4>
-
-<p>Snapshot은 <strong>백업(Backup)을 대체하지 않는다.</strong></p>
-
-<p>Snapshot은 원본 가상 디스크와 연관되어 있기 때문에 원본 데이터가 손상되거나 저장 장치 자체에 문제가 발생하면 Snapshot도 함께 사용할 수 없을 수 있다.</p>
-
-<p>또한 Snapshot을 장기간 유지하거나 여러 개를 누적하면 다음과 같은 문제가 발생할 수 있다.</p>
-
-<ul>
-  <li>차동 디스크 크기 증가</li>
-  <li>저장 공간 사용량 증가</li>
-  <li>Disk I/O 성능 저하</li>
-  <li>Snapshot 체인 관리 복잡성 증가</li>
-</ul>
-
-<p>따라서 Snapshot은 필요한 작업이 끝나면 삭제하거나 병합하여 관리한다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>Snapshot은 특정 시점으로 되돌리기 위한 기능이다.</li>
-    <li>전체 가상 머신을 별도 저장하는 Backup과 목적이 다르다.</li>
-    <li>Snapshot은 원본 가상 디스크에 의존하므로 장기 보관용 백업으로 사용하지 않는다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="container">Container</h3>
-
-<p>Container는 애플리케이션과 해당 애플리케이션을 실행하는 데 필요한 실행 환경, 라이브러리, 설정 파일 등을 하나의 독립적인 실행 단위로 구성하는 기술이다.</p>
-
-<p>가상 머신은 하드웨어를 가상화한 뒤 각 VM마다 Guest OS를 실행한다.</p>
-
-<p>반면 Container는 호스트 운영체제의 커널을 공유하면서 프로세스 수준에서 애플리케이션을 격리한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
-
-Application
-Guest OS
-Hypervisor
-Host / Hardware
-</code></pre></div></div>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container
-
-Application + Dependencies
-Container Runtime
-Host OS Kernel
-Hardware
-</code></pre></div></div>
-
-<p>Linux 컨테이너에서는 Namespace와 cgroup을 이용하여 프로세스를 격리하고 자원 사용량을 제어한다.</p>
-
-<ul>
-  <li>Namespace → 프로세스가 볼 수 있는 시스템 자원 분리</li>
-  <li>cgroup → CPU, Memory 등의 자원 사용량 제어</li>
-</ul>
-
-<p>Container는 VM과 달리 Guest OS 전체를 별도로 실행하지 않기 때문에 상대적으로 가볍고 빠르다.</p>
-
-<h4 id="장점-1">장점</h4>
-
-<ul>
-  <li>Guest OS가 없어 상대적으로 가볍다.</li>
-  <li>Image 복제와 배포가 쉽다.</li>
-  <li>애플리케이션 시작 속도가 빠르다.</li>
-  <li>동일한 물리 서버에서 VM보다 많은 애플리케이션을 실행할 수 있다.</li>
-  <li>개발 환경과 운영 환경을 동일한 Image로 구성하기 쉽다.</li>
-</ul>
-
-<h4 id="한계">한계</h4>
-
-<p>Container는 VM처럼 완전히 독립된 Guest OS를 실행하는 구조가 아니며, 호스트 커널을 공유한다.</p>
-
-<p>따라서 VM에 비해 격리 경계가 약할 수 있으며 보안 설정이 중요하다.</p>
-
-<p>또한 Container가 Linux에서만 사용할 수 있는 것은 아니다. Windows Container도 존재하지만, 컨테이너는 기본적으로 호스트와 호환되는 커널 환경을 공유해야 한다는 제약이 있다.</p>
-
-<hr />
-
-<h3 id="container-runtime">Container Runtime</h3>
-
-<p>Container Runtime은 Container를 생성하고 실행하며 수명 주기를 관리하는 소프트웨어이다.</p>
-
-<h4 id="containerd">containerd</h4>
-
-<p>containerd는 컨테이너 실행을 관리하는 오픈 소스 Container Runtime이다.</p>
-
-<p>주요 기능은 다음과 같다.</p>
-
-<ul>
-  <li>Container Image 관리</li>
-  <li>Container 생성 및 실행</li>
-  <li>Container 중지 및 삭제</li>
-  <li>Container 수명 주기 관리</li>
-</ul>
-
-<p>Docker에서도 내부적으로 containerd를 사용한다.</p>
-
-<p>Kubernetes 역시 Container Runtime과 연동하여 Container를 실행한다.</p>
-
-<h4 id="docker">Docker</h4>
-
-<p>Docker는 Container를 생성하고 실행하는 기능뿐 아니라 다음과 같은 기능을 함께 제공하는 Container 플랫폼이다.</p>
-
-<ul>
-  <li>Image Build</li>
-  <li>Image 관리</li>
-  <li>Container 실행</li>
-  <li>Network 관리</li>
-  <li>Volume 관리</li>
-</ul>
-
-<p>Docker Engine 내부에서는 containerd를 이용해 실제 Container 실행을 처리한다.</p>
-
-<h4 id="cri-o">CRI-O</h4>
-
-<p>CRI-O는 Kubernetes 환경을 위해 개발된 오픈 소스 Container Runtime이다.</p>
-
-<p>Kubernetes의 CRI(Container Runtime Interface)에 맞춰 설계되었으며, Kubernetes에서 Container를 실행하는 데 필요한 기능에 집중한다.</p>
-
-<hr />
-
-<h3 id="container-orchestration">Container Orchestration</h3>
-
-<p>Container Orchestration은 여러 Container를 여러 서버에 분산 배치하고 실행하며, 상태를 지속적으로 관리하기 위한 기술이다.</p>
-
-<p>Container 수가 많아지면 사람이 직접 다음 작업을 관리하기 어렵다.</p>
-
-<ul>
-  <li>Container 배포</li>
-  <li>Container 상태 확인</li>
-  <li>장애가 발생한 Container 재시작</li>
-  <li>여러 서버에 Container 분산 배치</li>
-  <li>확장 및 축소</li>
-  <li>네트워크 연결</li>
-</ul>
-
-<p>Container Orchestration은 이러한 작업을 자동화한다.</p>
-
-<h4 id="docker-swarm">Docker Swarm</h4>
-
-<p>Docker에서 제공하는 Container Orchestration 기능이다.</p>
-
-<ul>
-  <li>설치와 구성이 비교적 간단하다.</li>
-  <li>Docker와 연동이 쉽다.</li>
-  <li>소규모 환경에서 사용하기 편리하다.</li>
-  <li>대규모 환경에서는 Kubernetes에 비해 기능과 생태계가 제한적이다.</li>
-</ul>
-
-<h4 id="mesos">Mesos</h4>
-
-<p>Apache Mesos는 여러 서버의 CPU, Memory 등 자원을 하나의 자원 풀처럼 관리하기 위한 분산 시스템 기술이다.</p>
-
-<p>Twitter, Apple, Airbnb, Uber 등 여러 대규모 서비스에서 사용된 사례가 있다.</p>
-
-<p>다만 Container Orchestration 기능을 구성하려면 Marathon 등의 추가 시스템과 연계해야 하므로 전체 구성이 복잡해질 수 있다.</p>
-
-<h4 id="nomad">Nomad</h4>
-
-<p>Nomad는 HashiCorp에서 개발한 Orchestration 도구이다.</p>
-
-<p>비교적 단순한 구성으로 여러 환경에 Workload를 배포할 수 있다는 특징이 있다.</p>
-
-<p>HashiCorp의 다른 도구와 연동하기 쉽다.</p>
-
-<ul>
-  <li>Consul</li>
-  <li>Vault</li>
-</ul>
-
-<p>이미 HashiCorp 생태계를 사용하고 있는 조직에서는 함께 활용하기 좋다.</p>
-
-<h4 id="kubernetes">Kubernetes</h4>
-
-<p>Kubernetes는 Google이 내부에서 사용하던 Borg 시스템의 경험을 기반으로 개발된 Container Orchestration 플랫폼이다.</p>
-
-<p>현재는 CNCF(Cloud Native Computing Foundation)에서 관리한다.</p>
-
-<p>Container의 배포, 확장, 장애 복구, 네트워크 연결 등을 자동화하는 대표적인 Orchestration 플랫폼이다.</p>
-
-<hr />
-
-<h3 id="serverless-computing과-event-driven-architecture">Serverless Computing과 Event Driven Architecture</h3>
-
-<h4 id="serverless-computing">Serverless Computing</h4>
-
-<p>Serverless Computing은 개발자가 서버를 직접 프로비저닝하거나 운영할 필요 없이 애플리케이션을 실행할 수 있도록 하는 클라우드 컴퓨팅 모델이다.</p>
-
-<p>Serverless라는 이름은 실제 서버가 존재하지 않는다는 의미가 아니다.</p>
-
-<blockquote>
-  <p>개발자 관점에서 직접 관리해야 하는 서버가 보이지 않는다는 의미이다.</p>
-</blockquote>
-
-<p>물리 서버의 운영, 관리, 확장 등은 Cloud Service Provider가 담당한다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>서버 관리 부담 감소</li>
-  <li>자동 확장</li>
-  <li>실제 사용량을 기준으로 과금</li>
-  <li>인프라보다 애플리케이션 로직 개발에 집중 가능</li>
-</ul>
-
-<h4 id="faas-function-as-a-service">FaaS (Function as a Service)</h4>
-
-<p>FaaS는 Serverless Computing의 대표적인 형태이다.</p>
-
-<p>애플리케이션 전체를 하나의 장기 실행 프로그램으로 배포하는 대신, 특정 이벤트가 발생했을 때 실행되는 작은 함수 단위로 코드를 배포한다.</p>
-
-<p>대표적인 서비스는 다음과 같다.</p>
-
-<ul>
-  <li>AWS Lambda</li>
-  <li>Google Cloud Functions</li>
-  <li>Microsoft Azure Functions</li>
-</ul>
-
-<p><strong>장점</strong></p>
-
-<ul>
-  <li>인프라 관리 부담 감소</li>
-  <li>사용량이 적은 서비스에서 비용 절감 가능</li>
-  <li>기능을 빠르게 개발하고 배포할 수 있음</li>
-  <li>요청량에 따라 자동 확장 가능</li>
-</ul>
-
-<p><strong>단점</strong></p>
-
-<ul>
-  <li>Cold Start</li>
-  <li>플랫폼 종속성</li>
-  <li>장시간 지속 실행되는 작업에서는 비용 증가 가능</li>
-</ul>
-
-<p><strong>Cold Start</strong></p>
-
-<p>함수가 일정 시간 동안 실행되지 않아 실행 환경이 준비되어 있지 않은 경우, 첫 요청에서 실행 환경을 초기화하는 시간이 추가로 발생할 수 있다.</p>
-
-<p><strong>플랫폼 종속성</strong></p>
-
-<p>특정 Cloud Provider의 서비스와 API에 강하게 의존하면 다른 Cloud Provider로 이전할 때 코드와 인프라 구성을 수정해야 할 수 있다.</p>
-
-<p><strong>장기 실행 비용</strong></p>
-
-<p>24시간 계속 실행되는 서비스라면 사용량 기반 Serverless보다 VM이나 Container 기반 서비스를 지속적으로 운영하는 것이 비용 측면에서 유리할 수 있다.</p>
-
-<hr />
-
-<h3 id="event-driven-architecture">Event Driven Architecture</h3>
-
-<p>EDA(Event Driven Architecture)는 시스템 내부나 외부에서 발생하는 상태 변화를 Event로 표현하고 이를 생성, 전달, 소비하여 시스템을 동작시키는 Software Architecture 방식이다.</p>
-
-<p>Publish / Subscribe 패턴이 대표적으로 사용된다.</p>
-
-<h4 id="핵심-구성-요소">핵심 구성 요소</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성 요소</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Producer</td>
-      <td>상태 변화를 감지하여 Event를 생성하고 발행</td>
-    </tr>
-    <tr>
-      <td>Event Broker</td>
-      <td>Event를 저장하거나 전달하여 Producer와 Consumer를 중재</td>
-    </tr>
-    <tr>
-      <td>Consumer</td>
-      <td>Event를 전달받아 비즈니스 로직 수행</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><strong>Producer</strong></p>
-
-<p>시스템에서 발생한 상태 변화를 감지하여 Event를 생성한다.</p>
-
-<p>예를 들어 다음과 같은 상황이 Event가 될 수 있다.</p>
-
-<ul>
-  <li>주문 생성</li>
-  <li>결제 완료</li>
-  <li>파일 업로드</li>
-  <li>사용자 가입</li>
-</ul>
-
-<p><strong>Event Broker</strong></p>
-
-<p>Producer가 생성한 Event를 전달받아 Consumer에게 전달하는 중간 계층이다.</p>
-
-<p>대표적인 기술은 다음과 같다.</p>
-
-<ul>
-  <li>Apache Kafka</li>
-  <li>RabbitMQ</li>
-</ul>
-
-<p>Cloud Provider에서도 이와 유사한 Managed Service를 제공한다.</p>
-
-<p><strong>Consumer</strong></p>
-
-<p>Event Broker에서 Event를 전달받아 자신의 비즈니스 로직을 수행한다.</p>
-
-<h4 id="loose-coupling">Loose Coupling</h4>
-
-<p>EDA의 중요한 특징은 Loose Coupling(느슨한 결합)이다.</p>
-
-<p>Producer가 Consumer를 직접 호출하지 않고 Broker를 통해 Event를 전달하므로 각 서비스가 서로 강하게 의존하지 않는다.</p>
-
-<p>따라서 하나의 서비스가 변경되어도 다른 서비스에 미치는 영향을 줄일 수 있다.</p>
-
-<h4 id="장점-2">장점</h4>
-
-<ul>
-  <li>높은 유연성과 확장성</li>
-  <li>새로운 Consumer 추가가 비교적 쉬움</li>
-  <li>서비스 간 결합도 감소</li>
-  <li>장애 격리 가능</li>
-  <li>대량의 Event를 Broker에서 완충하여 처리 가능</li>
-</ul>
-
-<p>특정 Consumer에 장애가 발생해도 Broker가 Event를 일정 기간 보관할 수 있다면, Consumer 복구 후 처리되지 않은 Event를 다시 처리할 수 있다.</p>
-
-<p>또한 트래픽이 순간적으로 증가하더라도 Broker가 Event를 임시로 보관하여 Consumer가 처리 가능한 속도로 가져갈 수 있다.</p>
-
-<h4 id="단점-1">단점</h4>
-
-<p><strong>시스템 복잡도 증가</strong></p>
-
-<p>여러 서비스와 Event Broker가 분산되어 동작하기 때문에 시스템 전체 흐름을 추적하기 어려워질 수 있다.</p>
-
-<p><strong>데이터 일관성</strong></p>
-
-<p>여러 서비스가 Event를 순차적으로 처리하므로 모든 데이터가 동일한 순간에 변경되지 않을 수 있다.</p>
-
-<p>이 때문에 최종적 일관성(Eventual Consistency)을 고려한 설계가 필요하다.</p>
-
-<p><strong>중복 처리</strong></p>
-
-<p>네트워크 장애나 재전송 과정에서 동일한 Event가 두 번 이상 전달될 수 있다.</p>
-
-<p>따라서 Consumer는 동일한 Event를 여러 번 받아도 결과가 중복되지 않도록 멱등성(Idempotency)을 고려하여 구현해야 한다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>Serverless는 개발자가 서버 관리에서 벗어나 애플리케이션 로직에 집중하도록 하는 실행 모델이다.</li>
-    <li>FaaS는 특정 Event가 발생할 때 Function을 실행하는 Serverless의 대표적인 형태이다.</li>
-    <li>EDA는 Event를 중심으로 서비스들을 연결한다.</li>
-    <li>Event Broker를 사용하면 Producer와 Consumer 간 결합도를 낮출 수 있다.</li>
-  </ul>
-</blockquote>
-
-<hr />
-
-<h3 id="스토리지와-데이터-구조">스토리지와 데이터 구조</h3>
-
-<p>Cloud Storage를 선택할 때는 필요한 저장 용량만 고려해서는 안 된다.</p>
-
-<p>다음과 같은 요소를 함께 고려해야 한다.</p>
-
-<ul>
-  <li>데이터를 어떤 형태로 저장하는가</li>
-  <li>얼마나 자주 접근하는가</li>
-  <li>어느 정도의 읽기/쓰기 성능이 필요한가</li>
-  <li>여러 시스템이 동시에 접근해야 하는가</li>
-  <li>데이터를 얼마나 오래 보관해야 하는가</li>
-</ul>
-
-<p>Cloud 환경에서는 대표적으로 다음 세 가지 Storage 방식을 사용한다.</p>
-
-<ul>
-  <li>Object Storage</li>
-  <li>Block Storage</li>
-  <li>File Storage</li>
-</ul>
-
-<h4 id="object-storage">Object Storage</h4>
-
-<p>Object Storage는 데이터를 Object 단위로 저장한다.</p>
-
-<p>하나의 Object는 다음 요소로 구성된다.</p>
-
-<ul>
-  <li>데이터 본문</li>
-  <li>Metadata</li>
-  <li>고유 식별자 또는 Key</li>
-</ul>
-
-<p>Object Storage는 전통적인 디렉토리 기반 파일 시스템과 달리 기본적으로 평면적인 Namespace 구조를 사용한다.</p>
-
-<p>사용자에게 디렉토리처럼 보이는 경로를 제공할 수 있지만 실제로는 Object Key의 문자열 구조를 이용해 표현하는 경우가 많다.</p>
-
-<p>또한 Web API 기반으로 접근할 수 있도록 설계되어 있어 프로그램과 Cloud Service에서 사용하기 쉽다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>구조가 단순하다.</li>
-  <li>대규모 확장에 유리하다.</li>
-  <li>대용량 데이터를 장기간 저장하기 좋다.</li>
-  <li>HTTP 기반 API를 이용한 접근이 쉽다.</li>
-</ul>
-
-<p><strong>활용 예시</strong></p>
-
-<ul>
-  <li>로그</li>
-  <li>백업</li>
-  <li>이미지</li>
-  <li>동영상</li>
-  <li>정적 파일</li>
-  <li>장기 보관 데이터</li>
-</ul>
-
-<h4 id="block-storage">Block Storage</h4>
-
-<p>Block Storage는 데이터를 고정된 크기의 Block 단위로 나누어 저장하는 방식이다.</p>
-
-<p>운영체제에서는 일반적인 디스크처럼 인식하며 파일 시스템을 구성한 뒤 사용한다.</p>
-
-<p>가상 머신의 디스크로 많이 사용한다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>빠른 읽기/쓰기 성능</li>
-  <li>데이터 일부만 수정 가능</li>
-  <li>운영체제에서 일반 디스크처럼 사용 가능</li>
-  <li>Database와 같이 높은 I/O 성능이 필요한 환경에 적합</li>
-</ul>
-
-<p>반면 사용자가 직접 다음 작업을 수행해야 하는 경우가 많다.</p>
-
-<ul>
-  <li>Partition 구성</li>
-  <li>File System 생성</li>
-  <li>Mount</li>
-  <li>용량 관리</li>
-</ul>
-
-<h4 id="file-storage">File Storage</h4>
-
-<p>File Storage는 일반적인 디렉토리와 파일 구조를 그대로 제공하는 방식이다.</p>
-
-<p>네트워크를 통해 여러 Client가 하나의 File System에 동시에 접근할 수 있다.</p>
-
-<p><strong>특징</strong></p>
-
-<ul>
-  <li>디렉토리 기반 계층 구조</li>
-  <li>여러 Client가 동시에 접근 가능</li>
-  <li>기존 파일 시스템 방식과 유사하여 사용하기 쉬움</li>
-  <li>파일 공유와 협업에 적합</li>
-</ul>
-
-<p><strong>활용 예시</strong></p>
-
-<ul>
-  <li>공유 문서</li>
-  <li>Web Server의 공통 정적 리소스</li>
-  <li>사용자 Home Directory</li>
-  <li>여러 Server가 함께 사용하는 파일</li>
-</ul>
-
-<p>다만 많은 Client가 동시에 대량의 데이터를 읽고 쓰는 환경에서는 병목이 발생할 수 있다.</p>
-
-<h4 id="storage-비교">Storage 비교</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>Object Storage</th>
-      <th>Block Storage</th>
-      <th>File Storage</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>저장 단위</td>
-      <td>Object</td>
-      <td>Block</td>
-      <td>File</td>
-    </tr>
-    <tr>
-      <td>구조</td>
-      <td>평면 Namespace</td>
-      <td>Block Device</td>
-      <td>Directory / File</td>
-    </tr>
-    <tr>
-      <td>접근 방식</td>
-      <td>Web API</td>
-      <td>Disk 방식</td>
-      <td>공유 File System</td>
-    </tr>
-    <tr>
-      <td>장점</td>
-      <td>대규모 확장, 구조 단순</td>
-      <td>빠른 I/O, 높은 제어 수준</td>
-      <td>사용 편리, 공유 용이</td>
-    </tr>
-    <tr>
-      <td>단점</td>
-      <td>일반 디스크처럼 직접 수정하기 어려움</td>
-      <td>File System을 직접 관리해야 함</td>
-      <td>높은 성능이나 대규모 동시 I/O에서는 병목 가능</td>
-    </tr>
-    <tr>
-      <td>주요 용도</td>
-      <td>대용량 데이터, 백업, 로그</td>
-      <td>Database, VM Disk</td>
-      <td>File 공유</td>
-    </tr>
-    <tr>
-      <td>대표 서비스</td>
-      <td>AWS S3, Azure Blob Storage, Google Cloud Storage</td>
-      <td>AWS EBS, Azure Managed Disks, Google Persistent Disk</td>
-      <td>AWS EFS, Azure Files, Google Filestore</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr />
-
-<h3 id="aws-s3-glacier">AWS S3 Glacier</h3>
-
-<p>AWS S3 Glacier 계열 Storage Class는 자주 사용하지 않는 데이터를 장기간 저렴하게 보관하기 위한 저장 방식이다.</p>
-
-<p>대표적인 용도는 다음과 같다.</p>
-
-<ul>
-  <li>장기 백업</li>
-  <li>Archive</li>
-  <li>법적 보관 데이터</li>
-  <li>장기간 접근하지 않는 로그</li>
-</ul>
-
-<p>데이터를 압축할 필요가 있다면 일반적으로 사용자가 데이터를 압축한 후 S3에 업로드한다.</p>
-
-<p>Glacier가 사용자의 파일을 임의로 압축해서 저장하는 방식으로 이해하면 안 된다.</p>
-
-<hr />
-
-<h3 id="storage-요금">Storage 요금</h3>
-
-<p>Cloud Storage는 단순히 저장 공간만을 기준으로 과금하지 않는다.</p>
-
-<p>대표적인 과금 요소는 다음과 같다.</p>
-
-<ol>
-  <li>저장 용량</li>
-  <li>API 요청 및 I/O 작업 횟수</li>
-  <li>외부로 전송되는 데이터 양</li>
-  <li>Storage Class</li>
-  <li>데이터 조회 방식</li>
-</ol>
-
-<p>따라서 저장 용량이 작더라도 요청 횟수나 데이터 전송량이 많으면 비용이 증가할 수 있다.</p>
-
-<hr />
-
-<h3 id="수명-주기-관리">수명 주기 관리</h3>
-
-<p>Lifecycle Management는 데이터의 사용 패턴이나 보관 기간에 따라 Storage Class를 자동으로 변경하거나 데이터를 삭제하도록 정책을 설정하는 기능이다.</p>
-
-<p>예를 들어 다음과 같은 정책을 구성할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>데이터 생성
-↓
-자주 사용하는 Storage
-↓
-30일 후
-↓
-저비용 Storage
-↓
-1년 후
-↓
-Archive Storage
-↓
-보존 기간 종료
-↓
-삭제
-</code></pre></div></div>
-
-<p>수명 주기 관리를 사용하면 오래된 데이터를 사람이 직접 이동하거나 삭제하지 않아도 되며, 데이터의 중요도와 접근 빈도에 따라 저장 비용을 줄일 수 있다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>가상화는 물리 자원을 소프트웨어로 추상화하여 하나의 자원을 여러 논리 자원으로 사용할 수 있도록 한다.</li>
-    <li>Hypervisor 기반 가상화는 가상 머신마다 독립적인 운영체제를 실행하며 Type 1과 Type 2로 구분할 수 있다.</li>
-    <li>Snapshot은 특정 시점의 가상 머신 상태를 복원하기 위한 기능이며 Backup과는 목적이 다르다.</li>
-    <li>Container는 호스트 커널을 공유하면서 프로세스를 격리하여 VM보다 가볍게 애플리케이션을 실행할 수 있다.</li>
-    <li>Container Runtime은 Container를 실행하고, Container Orchestration은 여러 Container의 배포와 상태 관리를 자동화한다.</li>
-    <li>Serverless는 서버 관리 부담을 Cloud Provider에 위임하고 애플리케이션 로직에 집중할 수 있도록 한다.</li>
-    <li>EDA는 Event Broker를 중심으로 Producer와 Consumer를 느슨하게 결합한다.</li>
-    <li>Cloud Storage는 Object, Block, File Storage로 구분하며 사용 목적과 접근 방식에 따라 적절한 Storage를 선택해야 한다.</li>
-    <li>Lifecycle Management를 이용하면 데이터의 접근 빈도와 보관 기간에 따라 저장 위치와 삭제 시점을 자동으로 관리할 수 있다.</li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="Cloud" /><category term="AutoEverSW" /><summary type="html"><![CDATA[가상화, 컨테이너, 서버리스, 이벤트 기반 아키텍처와 클라우드 스토리지 구조 정리]]></summary></entry></feed>
+</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="Virtualization" /><category term="Hypervisor" /><summary type="html"><![CDATA[Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이]]></summary></entry></feed>

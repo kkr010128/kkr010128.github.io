@@ -4,6 +4,21 @@
       
       
       {
+        "title": "클라우드 보안",
+        "url": "/cloud-03-security/",
+        "description": "IAM과 네트워크 보안, 데이터 암호화, 보안 감사 및 규정 준수 중심의 AWS 클라우드 보안 전략",
+        "thumbnail": null,
+        "tags": ["Cloud","AutoEverSW"],
+        "series_key": "cloud",
+        "series_title": "Cloud",
+        "date_label": "2026년 8월 13일",
+        "reading_time_label": "11분 읽기",
+        "search": "클라우드 보안 iam과 네트워크 보안, 데이터 암호화, 보안 감사 및 규정 준수 중심의 aws 클라우드 보안 전략 cloud autoeversw cloud"
+      },
+    
+      
+      
+      {
         "title": "Kafka를 활용한 CQRS 구현",
         "url": "/cloud-native-07-kafka-cqrs/",
         "description": "Spring Boot, MySQL, MongoDB와 Kafka를 이용하여 쓰기와 읽기 모델을 분리한 CQRS 구조 구현",
@@ -12,7 +27,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 12일",
-        "reading_time_label": "6분 읽기",
+        "reading_time_label": "8분 읽기",
         "search": "kafka를 활용한 cqrs 구현 spring boot, mysql, mongodb와 kafka를 이용하여 쓰기와 읽기 모델을 분리한 cqrs 구조 구현 cloudnative autoeversw cloudnative"
       },
     
@@ -664,6 +679,21 @@
       
       
       {
+        "title": "Redis 사용",
+        "url": "/02-redis-usage/",
+        "description": "Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리",
+        "thumbnail": null,
+        "tags": ["Redis","AutoEverSW"],
+        "series_key": "redis",
+        "series_title": "Redis",
+        "date_label": "2026년 7월 17일",
+        "reading_time_label": "5분 읽기",
+        "search": "redis 사용 redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리 redis autoeversw redis"
+      },
+    
+      
+      
+      {
         "title": "Redis DB API",
         "url": "/02-redis-db-api/",
         "description": "Python에서 redis 라이브러리를 이용한 Redis 연결, Pool, 키 관리 정리",
@@ -689,21 +719,6 @@
         "date_label": "2026년 7월 17일",
         "reading_time_label": "2분 읽기",
         "search": "python db api python에서 pymongo를 이용한 mongodb 연결 및 crud 연동 정리 python autoeversw python"
-      },
-    
-      
-      
-      {
-        "title": "Redis 사용",
-        "url": "/02-redis-usage/",
-        "description": "Redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리",
-        "thumbnail": null,
-        "tags": ["Redis","AutoEverSW"],
-        "series_key": "redis",
-        "series_title": "Redis",
-        "date_label": "2026년 7월 17일",
-        "reading_time_label": "5분 읽기",
-        "search": "redis 사용 redis 설치, 설정, 접속, 자료구조 활용, 키 관리 정리 redis autoeversw redis"
       },
     
       
