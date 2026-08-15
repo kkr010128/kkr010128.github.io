@@ -1,4 +1,914 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-15T21:50:19+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">클라우드 보안</title><link href="https://kkr010128.github.io/cloud-03-security/" rel="alternate" type="text/html" title="클라우드 보안" /><published>2026-08-13T00:00:00+09:00</published><updated>2026-08-13T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-03-security</id><content type="html" xml:base="https://kkr010128.github.io/cloud-03-security/"><![CDATA[<h2 id="1--클라우드-보안">1 ) 클라우드 보안</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-15T22:42:08+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker와 Container 가상화</title><link href="https://kkr010128.github.io/cloud-native-08-docker-overview/" rel="alternate" type="text/html" title="Docker와 Container 가상화" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-08-docker-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-08-docker-overview/"><![CDATA[<h2 id="1--가상화">1 ) 가상화</h2>
+
+<hr />
+
+<p>가상화(Virtualization)는 <strong>물리적 시스템의 CPU, Memory, Storage, Network 같은 자원을 추상화하여 여러 가상 환경에서 사용할 수 있게 하는 기술</strong>이다.</p>
+
+<p>가상화 소프트웨어는 물리적 Hardware의 기능을 논리적으로 분리한다. 하나의 물리적인 Computer에서도 여러 가상 System을 동시에 실행할 수 있으므로 Hardware Resource의 활용도를 높이고 Infrastructure를 유연하게 관리할 수 있다.</p>
+
+<pre><code class="language-mermaid">flowchart TB
+    A["물리적 컴퓨터"] --&gt; B["가상화 소프트웨어"]
+    B --&gt; C["가상 시스템 1"]
+    B --&gt; D["가상 시스템 2"]
+    B --&gt; E["가상 시스템 3"]
+</code></pre>
+
+<h3 id="가상화의-장점">가상화의 장점</h3>
+
+<ul>
+  <li><strong>효율적인 리소스 사용</strong>
+    <ul>
+      <li>하나의 물리적 System을 여러 환경이 공유하여 Resource를 효율적으로 사용한다.</li>
+    </ul>
+  </li>
+  <li><strong>자동화된 IT 관리</strong>
+    <ul>
+      <li>가상 환경의 생성, 배포 및 관리를 자동화하기 쉽다.</li>
+    </ul>
+  </li>
+  <li><strong>신속한 재해 복구</strong>
+    <ul>
+      <li>Snapshot과 복제된 환경을 이용하여 장애 발생 시 빠르게 복구할 수 있다.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="가상화-서비스">가상화 서비스</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Server 가상화</td>
+      <td>하나의 물리적 Server를 여러 가상 Server로 분리</td>
+    </tr>
+    <tr>
+      <td>Storage 가상화</td>
+      <td>여러 Storage Resource를 하나의 논리적 Storage처럼 구성</td>
+    </tr>
+    <tr>
+      <td>Network 가상화</td>
+      <td>물리적 Network를 논리적으로 분리하고 Software로 제어</td>
+    </tr>
+    <tr>
+      <td>Data 가상화</td>
+      <td>여러 위치의 Data를 하나의 Data Source처럼 제공</td>
+    </tr>
+    <tr>
+      <td>Application 가상화</td>
+      <td>Application을 운영체제와 분리된 환경에서 실행</td>
+    </tr>
+    <tr>
+      <td>Desktop 가상화</td>
+      <td>Desktop 환경을 중앙 Server에서 제공</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Network 가상화의 대표적인 기술로 SDN(Software-Defined Networking)이 있다. SDN은 물리적 장비가 담당하던 Traffic 제어 기능을 Software로 분리하여 Routing 정책을 중앙에서 관리한다. 예를 들어 영상 통화 Traffic을 일반 Application Traffic보다 우선 처리하도록 구성할 수 있다.</p>
+
+<h3 id="가상화-방식">가상화 방식</h3>
+
+<h4 id="host-os-가상화">Host OS 가상화</h4>
+
+<p>Host OS 위에 가상화 Software를 설치하고 그 위에서 Guest OS를 실행하는 방식이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
+Guest OS
+Virtualization Software
+Host OS
+Hardware
+</code></pre></div></div>
+
+<p>Host와 Guest 운영체제의 선택이 비교적 자유롭지만 운영체제 위에서 또 다른 운영체제를 실행하므로 Overhead가 클 수 있다.</p>
+
+<h4 id="hypervisor-가상화">Hypervisor 가상화</h4>
+
+<p>Host OS 없이 Hardware에 Hypervisor를 직접 설치하고 여러 Guest OS를 실행하는 방식이다. Hardware에 직접 설치하는 Hypervisor를 <strong>Bare Metal Hypervisor</strong>라고 하며 Server 가상화에서 주로 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
+Guest OS
+Hypervisor
+Hardware
+</code></pre></div></div>
+
+<p>Host OS를 거치지 않으므로 Host OS 방식보다 Overhead가 작다.</p>
+
+<h4 id="container-가상화">Container 가상화</h4>
+
+<p>Host OS 위에 Container Runtime을 설치하고 Application 실행 환경을 논리적으로 격리하는 방식이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container A        Container B
+App + Library      App + Library
+--------------------------------
+Container Runtime
+Host OS
+Hardware
+</code></pre></div></div>
+
+<p>Container는 Guest OS 전체를 포함하지 않고 Host OS의 Kernel을 공유한다. 따라서 Virtual Machine보다 가볍고 빠르지만 서로 다른 종류의 Kernel을 요구하는 운영체제를 동시에 실행하기 어렵고, 격리 수준도 완전한 Virtual Machine과 차이가 있다.</p>
+
+<p>Container 가상화 Software에는 OpenVZ, LXC, Linux VServer, Docker, Oracle Solaris Zones 등이 있다.</p>
+
+<h2 id="2--container">2 ) Container</h2>
+
+<hr />
+
+<p>Container는 <strong>Application Code와 실행에 필요한 Library 및 의존성을 하나의 격리된 단위로 묶은 실행 환경</strong>이다. Guest OS Layer가 없으므로 Image 크기가 작고 시작 시간이 빠르다.</p>
+
+<h3 id="container의-장점">Container의 장점</h3>
+
+<ul>
+  <li>Hypervisor와 Guest OS가 필요하지 않아 가볍다.</li>
+  <li>Image의 복제, 이관 및 배포가 쉽다.</li>
+  <li>Guest OS를 Booting하지 않으므로 Application 시작이 빠르다.</li>
+  <li>동일한 Hardware에서 Virtual Machine보다 많은 Application을 실행할 수 있다.</li>
+  <li>Application마다 의존성을 분리하여 Library와 설정의 충돌을 줄인다.</li>
+</ul>
+
+<p>Application 배포 방식은 다음과 같이 변화해 왔다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>운영체제에 직접 배포 → Virtual Machine 기반 배포 → Container 기반 배포
+</code></pre></div></div>
+
+<h2 id="3--docker">3 ) Docker</h2>
+
+<hr />
+
+<p>Docker는 <strong>Container형 가상화 기술을 구현하는 상주 애플리케이션과 이를 조작하는 명령행 도구</strong>로 구성된다. 애플리케이션과 데이터를 독립된 환경에 격리하여 실행할 수 있게 한다.</p>
+
+<h3 id="특징">특징</h3>
+
+<ul>
+  <li>Microservice, DevOps, Testing 등 다양한 분야에서 활용된다.</li>
+  <li>Linux Container 구현체의 사실상 표준(de facto)이다.</li>
+  <li>가상 머신보다 가볍고 실행 및 배포가 빠르다.</li>
+</ul>
+
+<h3 id="docker와-linux">Docker와 Linux</h3>
+
+<p>Docker는 Linux를 전제로 만들어졌다. Windows와 macOS에서도 Docker Desktop을 사용할 수 있지만 내부적으로 Linux 환경을 사용하며, Container에서 실행할 프로그램도 Linux용이다.</p>
+
+<h3 id="lxclinux-containers">LXC(Linux Containers)</h3>
+
+<p>LXC (Linux Containers)는 <strong>OS 수준의 가상화(OS-level Virtualization)</strong>를 구현하는 Linux Container 기술이다.
+하나의 Linux System에서 격리된 Container 환경을 실행하며, 이를 위해 여러 Linux 기능을 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>기술</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">chroot</code></td>
+      <td>특정 Directory를 Root처럼 인식시켜 File 영역을 격리</td>
+    </tr>
+    <tr>
+      <td>cgroups</td>
+      <td>CPU와 Memory 등의 Resource 사용량을 제한하고 격리</td>
+    </tr>
+    <tr>
+      <td>Namespace</td>
+      <td>Process Tree, Network, User ID, Mount 영역을 분리</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="chroot">chroot</h4>
+
+<p><code class="language-plaintext highlighter-rouge">chroot</code>는 특정 Directory를 최상위 Directory인 Root로 인식하도록 설정하는 Linux 기능이다.
+이를 통해 다음과 같은 영역을 격리할 수 있다.</p>
+
+<ul>
+  <li>User</li>
+  <li>File</li>
+  <li>Directory</li>
+</ul>
+
+<h4 id="cgroups">cgroups</h4>
+
+<p>cgroups (Control Groups)는 <strong>Resource를 제한하고 격리하는 Linux Kernel 기능</strong>이다.</p>
+
+<p>각 Container가 사용할 수 있는 CPU, Memory 등의 Resource를 제한하는 데 사용할 수 있다.</p>
+
+<h4 id="namespace">Namespace</h4>
+
+<p>Namespace는 <strong>Process를 독립시키기 위한 Linux Kernel의 격리 기술</strong>이다.</p>
+
+<p>각 Process가 서로 분리된 운영 환경을 바라볼 수 있도록 하며 다음과 같은 영역을 격리할 수 있다.</p>
+
+<ul>
+  <li>Process Tree</li>
+  <li>Network</li>
+  <li>User ID</li>
+  <li>Mount된 File System</li>
+</ul>
+
+<h3 id="프로그램과-데이터를-격리하는-이유">프로그램과 데이터를 격리하는 이유</h3>
+
+<p>여러 프로그램이 동일한 실행 환경을 사용하면 서로 영향을 줄 수 있다.</p>
+
+<p>예를 들어 여러 프로그램이 특정 Directory를 공유하거나 같은 경로의 설정 정보를 사용하는 경우, 하나의 프로그램을 Update했을 때 다른 프로그램에도 영향을 줄 수 있다.</p>
+
+<p>이러한 문제는 다음과 같은 부분에서 발생할 수 있다.</p>
+
+<ul>
+  <li>실행 환경</li>
+  <li>Library</li>
+  <li>Directory</li>
+  <li>설정 파일</li>
+</ul>
+
+<p>여러 프로그램이 같은 Directory, Library, 설정 파일을 공유하면 하나의 변경이 다른 프로그램에 영향을 줄 수 있다. Docker는 실행 환경을 Container 단위로 격리하여 이러한 충돌을 줄인다.</p>
+
+<h2 id="4--image와-container">4 ) Image와 Container</h2>
+
+<hr />
+
+<p>Image는 Container를 만들기 위한 <strong>설계도</strong>, Container는 Image를 실행한 <strong>Instance</strong>에 해당한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Image        → Class
+Container    → Instance
+</code></pre></div></div>
+
+<p>하나의 Image로 동일한 환경의 Container를 여러 개 생성할 수 있고, 실행 중인 Container를 새로운 Image로 만드는 것도 가능하다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>              ┌─ Container 1
+Docker Image ─┼─ Container 2
+              └─ Container 3
+</code></pre></div></div>
+<h3 id="docker-hub">Docker Hub</h3>
+
+<p>Docker Hub는 Docker가 제공하는 공식 Image Registry이다. 일반적으로 Docker Hub에서 Base Image를 내려받고 필요한 Layer를 추가하여 새로운 Image를 만든 뒤 배포한다.</p>
+
+<h3 id="다양한-형태로-구성할-수-있는-container">다양한 형태로 구성할 수 있는 Container</h3>
+
+<p>Container는 하나의 애플리케이션으로 구성할 수도 있고 여러 개의 애플리케이션을 묶어서 구성할 수도 있다.</p>
+<blockquote>
+  <p>WordPress를 Apache Web Server와 MySQL로 함께 구성한 사례</p>
+</blockquote>
+
+<h3 id="container와-데이터">Container와 데이터</h3>
+
+<p>Container는 삭제 후 복구할 수 없는 일회성 실행 환경이다. Container 내부에만 저장한 데이터도 함께 사라질 수 있다.</p>
+
+<p>따라서 Container의 Lifecycle과 저장해야 하는 데이터를 구분하여 다루어야 한다.</p>
+
+<p>보존할 데이터는 Host의 Disk나 Docker Volume을 Mount하여 저장한다.</p>
+
+<h2 id="5--docker의-장점과-구성-요소">5 ) Docker의 장점과 구성 요소</h2>
+
+<hr />
+
+<h3 id="장점">장점</h3>
+
+<ul>
+  <li>개발 환경과 운영 환경을 거의 동일하게 재현할 수 있다.</li>
+  <li>물리적 환경과 Server 구성 차이의 영향을 줄일 수 있다.</li>
+  <li>가상 머신보다 가볍고 Image의 복제·이관·배포가 쉽다.</li>
+  <li>Cloud Platform과 Container Orchestration 환경에서 활용할 수 있다.</li>
+</ul>
+
+<p>Linux 운영체제 자체의 동작이나 비 Linux 환경이 필요한 경우에는 완전한 Guest OS를 제공하는 Virtual Machine이 더 적합할 수 있다.</p>
+
+<p>Container는 완전한 Guest OS를 제공하는 Virtual Machine과는 구조적으로 차이가 있다.</p>
+
+<h3 id="주요-도구">주요 도구</h3>
+
+<p>| 도구 | 역할 |
+|—|—|
+| containerd | Image 전송·저장, Container 실행과 감독 등 Lifecycle 관리 |
+| BuildKit | Dockerfile을 기반으로 Docker Image Build |
+| Docker CLI | <code class="language-plaintext highlighter-rouge">docker</code> 명령을 통해 Docker Engine 조작 |
+| Docker Compose | YAML로 여러 Container를 하나의 Application처럼 관리 |
+| Docker Registry | Image 저장 및 Push/Pull 제공 |
+| Docker Swarm | 여러 Docker Host를 Cluster로 관리 |</p>
+<h4 id="containerd">containerd</h4>
+
+<p>containerd는 Container를 구동하고 관리하는 Runtime이다.</p>
+
+<p>Linux 및 Windows용 Daemon으로 동작하며 다음과 같은 Container Lifecycle을 관리한다.</p>
+
+<ul>
+  <li>Image 전송 및 저장</li>
+  <li>Container 실행</li>
+  <li>Container 감독</li>
+  <li>Network 연결</li>
+  <li>Container Lifecycle 관리</li>
+</ul>
+
+<p>강의에서는 Kubernetes를 학습할 때 Docker와 containerd의 관계를 주의해야 한다고 설명하였다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 Docker를 직접 Container Runtime으로 사용하는 방식이 제거되었으며 containerd와 같은 Container Runtime을 사용한다.</p>
+</blockquote>
+
+<h4 id="buildkit">BuildKit</h4>
+
+<p>BuildKit은 Dockerfile의 설정 정보를 이용하여 <strong>Docker Image를 Build하는 Open Source 도구</strong>이다.</p>
+
+<p>Image Build 과정에서 다양한 Architecture와 Build 기능을 제공한다.</p>
+
+<p>강의에서는 현재 Docker가 <strong>Docker Image를 만드는 도구로 많이 사용된다는 점</strong>을 강조하였다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dockerfile → BuildKit → Docker Image
+</code></pre></div></div>
+
+<h4 id="docker-cli">Docker CLI</h4>
+
+<p>Docker CLI (Command Line Interface)는 Docker 명령을 실행하기 위한 명령행 도구이다.</p>
+
+<p>Docker CLI를 이용하여 Docker Image와 Container 등을 조작할 수 있다.</p>
+
+<h3 id="container와-orchestration">Container와 Orchestration</h3>
+
+<p>Container 기술은 PaaS 서비스를 가능하게 하는 Software 개발 환경을 제공하는 데 활용할 수 있다.</p>
+
+<p>하지만 Container의 수가 증가하면 각각의 Container를 직접 관리하기 어려워진다.</p>
+
+<p>Container 수가 많아지면 자동 복구, Traffic Routing, Load Balancing 등을 직접 처리하기 어렵다. 이때 Kubernetes와 같은 Orchestration 도구를 사용한다.</p>
+
+<p>다음과 같은 작업을 자동화하고 관리하기 위해 <strong>Orchestration 도구</strong>가 필요하다.</p>
+
+<ul>
+  <li>Container 자동 관리</li>
+  <li>Traffic Routing</li>
+  <li>Load Balancing</li>
+</ul>
+
+<p>강의에서는 Container 기반 환경의 구성을 다음과 같이 연결하여 설명하였다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container로 구동되는 Application
+              ↓
+      LXC / Docker 기술
+              ↓
+ Orchestration Tool
+        Kubernetes
+              ↓
+             IaaS
+</code></pre></div></div>
+
+<p>즉, Docker와 같은 Container 기술을 이용하여 애플리케이션 실행 환경을 구성하고, 여러 Container를 운영해야 하는 환경에서는 Kubernetes와 같은 Orchestration 도구를 이용하여 이를 관리한다.</p>
+
+<h3 id="docker의-구성-요소">Docker의 구성 요소</h3>
+
+<p>Docker는 Client, Host, Engine을 중심으로 동작하며 Container 구성과 Image 관리, Cluster 관리 등을 위한 여러 도구로 구성된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Docker Client</td>
+      <td>Docker에 명령을 전달할 수 있는 CLI</td>
+    </tr>
+    <tr>
+      <td>Docker Host</td>
+      <td>Docker가 설치되어 실행되는 Server 또는 Virtual Machine</td>
+    </tr>
+    <tr>
+      <td>Docker Engine</td>
+      <td>Docker를 이용한 Application 실행 환경을 제공하는 핵심 요소</td>
+    </tr>
+    <tr>
+      <td>Docker Compose</td>
+      <td>여러 Container의 구성 정보를 YAML로 작성하여 하나의 Application처럼 관리하는 도구</td>
+    </tr>
+    <tr>
+      <td>Docker Registry</td>
+      <td>Docker Image를 Push/Pull할 수 있도록 Image를 저장하고 배포하는 Registry</td>
+    </tr>
+    <tr>
+      <td>Docker Swarm</td>
+      <td>여러 Docker Host를 Cluster로 구성하여 관리하는 Docker Orchestration 도구</td>
+    </tr>
+    <tr>
+      <td>Docker Hub</td>
+      <td>Docker Image를 공유할 수 있는 Cloud 기반 Registry Service</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="docker-client">Docker Client</h4>
+
+<p>Docker Client는 사용자가 Docker에 명령을 전달하기 위한 CLI (Command Line Interface)이다.</p>
+
+<p>사용자가 <code class="language-plaintext highlighter-rouge">docker</code> 명령을 실행하면 Docker Client를 통해 Docker Engine에 명령이 전달된다.</p>
+
+<h4 id="docker-host와-docker-engine">Docker Host와 Docker Engine</h4>
+
+<p>Docker Host는 Docker가 설치되어 있는 Server 또는 Virtual Machine이다.</p>
+
+<p>Docker Host 내부에서는 <strong>Docker Engine</strong>이 동작하며, Docker를 이용한 Application 실행 환경을 제공한다.</p>
+
+<p>Docker Engine은 Docker의 핵심 요소로 Container와 Image를 실행하고 관리한다.</p>
+
+<h4 id="docker-compose">Docker Compose</h4>
+
+<p>Docker Compose는 서로 의존성을 가지는 여러 Container의 구성 정보를 <strong>YAML 파일</strong>로 작성하여 일원화된 Application 관리가 가능하도록 하는 도구이다.</p>
+
+<p>여러 Container로 구성된 Application의 실행 환경을 하나의 설정 파일에서 관리할 수 있다.</p>
+
+<h4 id="docker-registry와-docker-hub">Docker Registry와 Docker Hub</h4>
+
+<p>Docker Registry는 Docker Image를 저장하고 <code class="language-plaintext highlighter-rouge">push</code>, <code class="language-plaintext highlighter-rouge">pull</code>할 수 있도록 하는 Image 저장소이다.</p>
+
+<p>Docker Hub는 Docker Image를 공유할 수 있도록 Docker에서 제공하는 Cloud Service이다.</p>
+
+<h4 id="docker-swarm">Docker Swarm</h4>
+
+<p>Docker Swarm은 여러 Docker Host를 하나의 Cluster로 구성하여 관리할 수 있도록 하는 <strong>Docker Orchestration 도구</strong>이다.</p>
+
+<p>여러 Docker Host에서 실행되는 Container를 하나의 Cluster 단위로 관리할 때 사용할 수 있다.</p>
+
+<h2 id="6--docker-설치">6 ) Docker 설치</h2>
+
+<hr />
+
+<p>Docker는 64-bit 운영체제에서 사용한다. Windows와 macOS에서는 Docker Desktop을 설치한다.</p>
+
+<h3 id="windows">Windows</h3>
+
+<p>WSL 2를 설치한 뒤 Docker Desktop을 설치한다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wsl</span><span class="w"> </span><span class="nt">--install</span><span class="w">
+</span><span class="n">wsl</span><span class="w"> </span><span class="nt">--set-default-version</span><span class="w"> </span><span class="nx">2</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="ubuntu">Ubuntu</h3>
+
+<p>Ubuntu에서는 Docker 공식 저장소를 등록한 뒤 Docker Engine과 관련 Plugin을 설치한다. 세부 명령은 버전에 따라 달라질 수 있으므로 <a href="https://docs.docker.com/engine/install/ubuntu/">Docker 공식 설치 문서</a>를 기준으로 진행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+</code></pre></div></div>
+
+<p>설치 후 Version과 Service 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker version
+<span class="nb">sudo </span>systemctl status docker
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> docker
+</code></pre></div></div>
+
+<p>현재 사용자가 <code class="language-plaintext highlighter-rouge">sudo</code> 없이 Docker를 실행하려면 <code class="language-plaintext highlighter-rouge">docker</code> Group에 추가한 뒤 다시 로그인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>usermod <span class="nt">-aG</span> docker <span class="s2">"</span><span class="si">$(</span><span class="nb">whoami</span><span class="si">)</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Docker Socket의 권한을 <code class="language-plaintext highlighter-rouge">666</code>으로 변경하면 모든 사용자가 Docker Daemon을 제어할 수 있으므로 사용하지 않는다.</p>
+</blockquote>
+
+<h2 id="7--기본-사용">7 ) 기본 사용</h2>
+
+<hr />
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Image 다운로드와 확인</span>
+docker pull hello-world
+docker images
+
+<span class="c"># Container 생성 및 실행</span>
+docker run hello-world
+
+<span class="c"># 실행 중인 Container 확인</span>
+docker ps
+
+<span class="c"># 모든 Container 확인</span>
+docker ps <span class="nt">-a</span>
+
+<span class="c"># Docker Version과 System 정보 확인</span>
+docker version
+docker info
+docker system <span class="nb">df</span>
+</code></pre></div></div>
+
+<p>대화형 Terminal이 필요한 Container는 <code class="language-plaintext highlighter-rouge">-it</code> Option으로 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">-it</span> IMAGE_NAME
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker run</code>은 Image가 없으면 내려받고, Container를 생성한 뒤 시작한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[가상화와 Container의 원리부터 Docker의 구성 요소, 설치 및 기본 사용법까지 정리]]></summary></entry><entry><title type="html">Docker 명령어와 Registry</title><link href="https://kkr010128.github.io/cloud-native-09-docker-commands/" rel="alternate" type="text/html" title="Docker 명령어와 Registry" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-09-docker-commands</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-09-docker-commands/"><![CDATA[<h2 id="1--docker-registry">1 ) Docker Registry</h2>
+
+<hr />
+
+<p>Docker Registry는 Image를 저장하고 배포하는 장소이다. Docker Hub는 Docker가 운영하는 공식 Public Registry이며 Apache, MySQL, Ubuntu 등의 공식 Image를 제공한다.</p>
+
+<p>Registry는 여러 <strong>Repository</strong>로 구성된다. 직접 Private Registry를 구축하거나 Cloud Service Provider가 제공하는 Registry를 사용할 수도 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Registry
+  ├─ Repository A
+  │    ├─ Image:1.0
+  │    └─ Image:2.0
+  └─ Repository B
+</code></pre></div></div>
+
+<h2 id="2--container-application-개발-흐름">2 ) Container Application 개발 흐름</h2>
+
+<hr />
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application Code 작성
+        ↓
+Dockerfile 작성
+        ↓
+Image Build
+        ↓
+Container 생성 및 실행
+        ↓
+Application Test
+        ↓
+Registry에 Image Push
+</code></pre></div></div>
+
+<p>Dockerfile은 Git으로 관리하며 코드 변경 후 같은 과정을 반복한다. 여러 Container가 필요한 Application은 Docker Compose로 함께 실행하고 각각의 Container와 전체 Application을 테스트한다.</p>
+
+<h2 id="3--docker-명령-구조">3 ) Docker 명령 구조</h2>
+
+<hr />
+
+<p>모든 Docker 명령은 <code class="language-plaintext highlighter-rouge">docker</code>로 시작한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker [상위 명령] [하위 명령] [Option] [대상] [인자]
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image pull penguin
+docker container run penguin
+docker container run <span class="nt">-d</span> penguin
+</code></pre></div></div>
+
+<p>일부 명령은 상위 명령을 생략한 이전 형식도 지원하지만, 동작 대상을 명확히 나타내려면 <code class="language-plaintext highlighter-rouge">docker image ...</code>, <code class="language-plaintext highlighter-rouge">docker container ...</code> 형식을 사용하는 것이 좋다.</p>
+
+<h3 id="image-명령">Image 명령</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker image pull IMAGE</code></td>
+      <td>Registry에서 Image 다운로드</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker image ls</code></td>
+      <td>Local Image 목록 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker image build -t NAME .</code></td>
+      <td>Dockerfile로 Image Build 및 Tag 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker image rm IMAGE</code></td>
+      <td>Image 삭제</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="container-명령">Container 명령</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container create IMAGE</code></td>
+      <td>Container 생성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container start CONTAINER</code></td>
+      <td>정지된 Container 시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container run IMAGE</code></td>
+      <td>Image Pull, Container 생성과 시작 수행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container stop CONTAINER</code></td>
+      <td>실행 중인 Container 정지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container rm CONTAINER</code></td>
+      <td>정지된 Container 삭제</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container ls</code></td>
+      <td>실행 중인 Container 목록 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container exec -it CONTAINER CMD</code></td>
+      <td>실행 중인 Container에서 명령 수행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container cp SRC DEST</code></td>
+      <td>Host와 Container 사이에서 File 복사</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker container commit CONTAINER IMAGE</code></td>
+      <td>Container 상태를 Image로 저장</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>자주 사용하는 <code class="language-plaintext highlighter-rouge">run</code> Option은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--name</code></td>
+      <td>Container 이름 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-d</code></td>
+      <td>Background 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-i</code></td>
+      <td>표준 입력 유지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-t</code></td>
+      <td>가상 Terminal 할당</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-e</code></td>
+      <td>환경 변수 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-p</code></td>
+      <td>Host와 Container Port 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-v</code></td>
+      <td>Volume 또는 Directory Mount</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="4--volume과-network-명령">4 ) Volume과 Network 명령</h2>
+
+<hr />
+
+<h3 id="volume">Volume</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create VOLUME_NAME
+docker volume inspect VOLUME_NAME
+docker volume <span class="nb">ls
+</span>docker volume <span class="nb">rm </span>VOLUME_NAME
+docker volume prune
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">prune</code>은 사용하지 않는 Resource를 일괄 삭제하므로 삭제 대상을 확인한 후 실행한다.</p>
+
+<h3 id="network">Network</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create NETWORK_NAME
+docker network inspect NETWORK_NAME
+docker network <span class="nb">ls
+</span>docker network connect NETWORK_NAME CONTAINER_NAME
+docker network <span class="nb">rm </span>NETWORK_NAME
+docker network prune
+</code></pre></div></div>
+
+<h2 id="5--그-밖의-명령">5 ) 그 밖의 명령</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker login</code> / <code class="language-plaintext highlighter-rouge">logout</code></td>
+      <td>Registry 인증과 해제</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker search</code></td>
+      <td>Registry의 Image 검색</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker version</code></td>
+      <td>Client와 Server Version 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker info</code></td>
+      <td>Docker Engine 정보 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker system</code></td>
+      <td>Docker System 정보와 Resource 관리</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker swarm</code></td>
+      <td>Docker Swarm 관리</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker node</code></td>
+      <td>Swarm Node 관리</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker service</code></td>
+      <td>Swarm Service 관리</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker stack</code></td>
+      <td>여러 Swarm Service로 구성한 Stack 관리</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker secret</code></td>
+      <td>Swarm의 비밀 정보 관리</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker plugin</code></td>
+      <td>Docker Plugin 관리</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>명령의 자세한 사용법은 <code class="language-plaintext highlighter-rouge">--help</code>로 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--help</span>
+</code></pre></div></div>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Registry와 Container 개발 흐름, Image·Container·Volume·Network 관리 명령어]]></summary></entry><entry><title type="html">Docker 이미지와 Union File System</title><link href="https://kkr010128.github.io/cloud-native-10-docker-images/" rel="alternate" type="text/html" title="Docker 이미지와 Union File System" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-10-docker-images</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-10-docker-images/"><![CDATA[<h2 id="1--docker-image">1 ) Docker Image</h2>
+
+<hr />
+
+<p>Docker Image는 Container 형태로 Software를 배포하고 실행하는 데 필요한 코드, Runtime, Library와 설정을 담은 Package이다.</p>
+
+<ul>
+  <li>실행에 필요한 요소를 포함하므로 환경별 의존성 차이를 줄인다.</li>
+  <li>특정 시점의 Container File System을 담은 Snapshot으로 볼 수 있다.</li>
+  <li>하나의 Image로 동일한 환경을 가진 Container를 여러 개 생성할 수 있다.</li>
+  <li>여러 개의 읽기 전용 Layer로 구성된다.</li>
+</ul>
+
+<h3 id="image-이름">Image 이름</h3>
+
+<p>Image의 전체 참조 형식은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>REGISTRY/NAMESPACE/REPOSITORY:TAG
+</code></pre></div></div>
+
+<p>Docker Hub 공식 Image는 <code class="language-plaintext highlighter-rouge">docker.io/library</code>를 생략할 수 있고, Tag를 생략하면 기본적으로 <code class="language-plaintext highlighter-rouge">latest</code>가 사용된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker.io/library/debian:latest
+library/debian:latest
+debian:latest
+debian
+</code></pre></div></div>
+
+<p>네 표현은 모두 같은 Image를 가리킨다. 다만 <code class="language-plaintext highlighter-rouge">latest</code>는 가장 최신 Version을 보장하는 의미가 아니라 이름이 <code class="language-plaintext highlighter-rouge">latest</code>인 Tag이므로, 재현 가능한 배포에는 명시적인 Version Tag나 Digest를 사용하는 것이 좋다.</p>
+
+<h2 id="2--image-검색과-다운로드">2 ) Image 검색과 다운로드</h2>
+
+<hr />
+
+<h3 id="검색">검색</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker search <span class="o">[</span>OPTIONS] KEYWORD
+docker search <span class="nt">--limit</span> 5 httpd
+</code></pre></div></div>
+
+<p>검색 결과에는 Image 이름, 설명, Star 수, 공식 Image 여부 등이 표시된다.</p>
+
+<h3 id="다운로드">다운로드</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image pull NAME[:TAG]
+docker image pull NAME@DIGEST
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker pull jenkins/jenkins:lts
+docker pull debian:latest
+docker pull gcr.io/google-samples/hello-app:1.0
+</code></pre></div></div>
+
+<p>주요 Option은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--all-tags</code>, <code class="language-plaintext highlighter-rouge">-a</code></td>
+      <td>Repository의 모든 Tag 다운로드</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--platform</code></td>
+      <td>대상 Platform 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--quiet</code>, <code class="language-plaintext highlighter-rouge">-q</code></td>
+      <td>상세 출력 생략</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Apple Silicon Mac에서는 필요에 따라 <code class="language-plaintext highlighter-rouge">--platform linux/arm64</code> 또는 실행할 Image가 요구하는 Platform을 지정한다.</p>
+
+<p>Digest는 Image Content를 식별하는 Hash 값이다. 같은 Digest를 사용하면 동일한 Image Content를 가리킨다.</p>
+
+<h2 id="3--image-조회">3 ) Image 조회</h2>
+
+<hr />
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Local Image 목록</span>
+docker images
+docker image <span class="nb">ls</span>
+
+<span class="c"># 상세 정보</span>
+docker image inspect httpd
+
+<span class="c"># 생성 시각만 출력</span>
+docker image inspect <span class="nt">--format</span><span class="o">=</span><span class="s1">''</span> httpd
+
+<span class="c"># Layer 생성 이력</span>
+docker image <span class="nb">history </span>httpd
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker image history</code>를 사용하면 Image를 구성한 명령과 Layer 정보를 확인할 수 있다.</p>
+
+<h2 id="4--union-file-system">4 ) Union File System</h2>
+
+<hr />
+
+<p>Union File System은 서로 다른 File System이나 Directory의 내용을 하나의 File System처럼 합쳐 보여주는 기술이다.</p>
+
+<p>Docker Image는 변경할 수 없는 여러 읽기 전용 Layer로 구성된다. Image로 Container를 실행하면 그 위에 쓰기 가능한 Container Layer가 추가되고, 실행 중 발생한 변경 사항은 이 Layer에 기록된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container Layer     ← Read / Write
+-----------------
+Application Layer   ← Read Only
+Library Layer       ← Read Only
+Base Image Layer    ← Read Only
+</code></pre></div></div>
+
+<p>동일한 Image에서 만든 Container들은 읽기 전용 Image Layer를 공유하므로 Disk를 효율적으로 사용할 수 있다. Container Layer는 Container 삭제 시 함께 사라질 수 있으므로 영구 데이터는 Volume에 저장한다.</p>
+
+<p>Linux Docker Engine의 데이터와 Log는 일반적으로 <code class="language-plaintext highlighter-rouge">/var/lib/docker</code> 아래에 저장되며 Storage Driver에 따라 실제 구조가 달라질 수 있다. <code class="language-plaintext highlighter-rouge">overlay2</code>를 사용하는 환경에서는 관련 Layer 데이터가 해당 영역에 관리된다.</p>
+
+<h2 id="5--docker-hub-로그인과-image-배포">5 ) Docker Hub 로그인과 Image 배포</h2>
+
+<hr />
+
+<h3 id="로그인">로그인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker login
+docker login <span class="nt">-u</span> USERNAME
+docker <span class="nb">logout</span>
+</code></pre></div></div>
+
+<p>비밀번호를 Command에 직접 작성하지 않는다. Docker Hub가 요구하는 경우 Password 대신 Access Token을 사용하고, Token은 문서나 Git Repository에 저장하지 않는다.</p>
+
+<h3 id="tag-지정">Tag 지정</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image tag SOURCE_IMAGE TARGET_IMAGE
+docker image tag httpd:latest USERNAME/myapache:1.0
+</code></pre></div></div>
+
+<p>Tag는 같은 Image에 Registry에 업로드할 참조 이름과 Version을 부여한다.</p>
+
+<h3 id="push">Push</h3>
+
+<p>Docker Hub에서 Repository를 만든 뒤 계정 Namespace가 포함된 이름으로 Push한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker push USERNAME/myapache:1.0
+</code></pre></div></div>
+
+<p>새 Version은 다른 Tag를 붙여 같은 Repository에 추가할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image tag httpd:latest USERNAME/myapache:2.0
+docker push USERNAME/myapache:2.0
+</code></pre></div></div>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Image 검색과 다운로드, Layer 구조, Tag 및 Docker Hub 배포 방법]]></summary></entry><entry><title type="html">클라우드 보안</title><link href="https://kkr010128.github.io/cloud-03-security/" rel="alternate" type="text/html" title="클라우드 보안" /><published>2026-08-13T00:00:00+09:00</published><updated>2026-08-13T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-03-security</id><content type="html" xml:base="https://kkr010128.github.io/cloud-03-security/"><![CDATA[<h2 id="1--클라우드-보안">1 ) 클라우드 보안</h2>
 
 <hr />
 
@@ -5466,2619 +6376,4 @@ Query Service   → Read Database
       <p>MSA는 단순히 애플리케이션을 작은 서비스로 나누는 기술이 아니라 조직, 개발, 배포, 데이터, 통신, 장애 대응 및 운영 체계 전체를 함께 고려하는 아키텍처이다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Cloud Native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 Micro Service Architecture의 핵심 원리, 운영 방식, 주요 패턴]]></summary></entry><entry><title type="html">Cloud에 필요한 기술</title><link href="https://kkr010128.github.io/cloud-02-technology/" rel="alternate" type="text/html" title="Cloud에 필요한 기술" /><published>2026-08-10T00:00:00+09:00</published><updated>2026-08-10T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-02-technology</id><content type="html" xml:base="https://kkr010128.github.io/cloud-02-technology/"><![CDATA[<h2 id="1-cloud에-필요한-기술">1) Cloud에 필요한 기술</h2>
-<hr />
-
-<p>클라우드 환경에서는 내부 시스템과 클라우드를 연결하고, 동적으로 생성되는 리소스를 식별하며, 네트워크와 인프라를 안정적으로 운영하기 위한 여러 기술이 필요하다.</p>
-
-<p>대표적으로 다음과 같은 기술이 사용된다.</p>
-
-<ul>
-  <li>VPN (Virtual Private Network)</li>
-  <li>Dedicated Line (전용선)</li>
-  <li>Load Balancer</li>
-  <li>Service Endpoint</li>
-  <li>Naming Service와 Service Discovery</li>
-  <li>VPC (Virtual Private Cloud) / VNet (Virtual Network)</li>
-  <li>IaC (Infrastructure as Code)</li>
-</ul>
-
-<h3 id="vpn과-클라우드-전용선">VPN과 클라우드 전용선</h3>
-
-<p>클라우드 내부 시스템을 연결하거나 On-Premise 환경에서 클라우드 리소스에 안전하게 접근해야 할 때 VPN 또는 전용선을 사용할 수 있다.</p>
-
-<h4 id="vpn">VPN</h4>
-
-<p>VPN (Virtual Private Network)은 공용 네트워크 위에 논리적인 사설 네트워크를 구성하여 데이터를 안전하게 주고받도록 하는 기술이다.</p>
-
-<p>실제 통신에는 인터넷을 사용할 수 있지만, VPN 터널 내부의 데이터를 암호화하여 전송하기 때문에 외부에서 통신 내용을 쉽게 확인할 수 없도록 한다.</p>
-
-<p>Public Cloud에서는 VPN을 구성하기 위한 기능을 제공하며, 클라우드 측 VPN Gateway와 회사 또는 사용자의 VPN 장비·클라이언트를 연결하여 사용할 수 있다.</p>
-
-<p>VPN의 성능은 다음과 같은 요소의 영향을 받을 수 있다.</p>
-
-<ul>
-  <li>인터넷 회선 품질</li>
-  <li>네트워크 경로</li>
-  <li>VPN Gateway의 처리 성능</li>
-  <li>암호화 및 복호화 처리</li>
-  <li>네트워크 혼잡도</li>
-</ul>
-
-<p>따라서 VPN 자체가 무조건 느리다고 볼 수는 없다.</p>
-
-<blockquote>
-  <p><strong>강의에서의 질문 - VPN은 암호화 때문에 느린가?</strong></p>
-
-  <p>VPN에서는 암호화 및 복호화에 따른 추가 처리가 발생한다.
-그러나 실제 성능은 인터넷 연결 상태와 네트워크 경로 등 여러 요소에 의해 결정된다.</p>
-
-  <p>안정적인 지연 시간이나 일정한 대역폭이 중요한 대규모 트래픽 환경에서는 인터넷 기반 VPN보다 전용 회선을 고려할 수 있다.</p>
-</blockquote>
-
-<h4 id="dedicated-line">Dedicated Line</h4>
-
-<p>Dedicated Line (전용선)은 기업의 On-Premise 네트워크와 클라우드 사업자의 네트워크를 전용 연결을 통해 구성하는 방식이다.</p>
-
-<p>공용 인터넷을 통한 VPN과 비교하면 일정한 네트워크 품질과 높은 대역폭을 확보하기 쉽다.</p>
-
-<p>따라서 다음과 같이 안정적인 네트워크 성능이 중요한 환경에서 고려할 수 있다.</p>
-
-<ul>
-  <li>대규모 데이터 전송</li>
-  <li>On-Premise와 Cloud 사이의 지속적인 데이터베이스 통신</li>
-  <li>지연 시간과 네트워크 품질이 중요한 서비스</li>
-  <li>대규모 기업 및 금융 환경</li>
-</ul>
-
-<p>다만 VPN보다 구축 절차가 복잡하고 비용도 높다.</p>
-
-<h4 id="vpn과-전용선-비교">VPN과 전용선 비교</h4>
-
-<table>
-  <thead>
-    <tr>
-      <th>비교</th>
-      <th>VPN</th>
-      <th>전용선</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>연결 방식</td>
-      <td>주로 공용 인터넷망을 이용한 암호화 터널</td>
-      <td>클라우드와 전용 연결 구성</td>
-    </tr>
-    <tr>
-      <td>구축 비용</td>
-      <td>비교적 저렴</td>
-      <td>비교적 높음</td>
-    </tr>
-    <tr>
-      <td>구축 속도</td>
-      <td>빠른 편</td>
-      <td>회선 구성 등이 필요하여 상대적으로 느림</td>
-    </tr>
-    <tr>
-      <td>보안</td>
-      <td>암호화된 터널 사용</td>
-      <td>공용 인터넷을 우회할 수 있음</td>
-    </tr>
-    <tr>
-      <td>속도 및 품질</td>
-      <td>인터넷 품질 등의 영향을 받음</td>
-      <td>비교적 안정적인 대역폭과 품질 확보 가능</td>
-    </tr>
-    <tr>
-      <td>확장성</td>
-      <td>비교적 유연함</td>
-      <td>회선 용량 변경 등에 추가 작업이 필요할 수 있음</td>
-    </tr>
-    <tr>
-      <td>주요 활용</td>
-      <td>원격 접속, 관리용 접속, Site-to-Site 연결</td>
-      <td>대규모 서비스, 기업 네트워크와 Cloud 연동</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>VPN은 공용 네트워크 위에 암호화된 논리적 사설망을 구성한다.</li>
-    <li>전용선은 On-Premise와 Cloud 사이에 보다 안정적인 전용 연결을 구성한다.</li>
-    <li>VPN은 구축이 비교적 간단하고 저렴하지만 인터넷 환경의 영향을 받을 수 있다.</li>
-    <li>전용선은 안정적인 성능을 확보하기 쉽지만 구축 비용과 복잡도가 높다.</li>
-  </ul>
-</blockquote>
-
-<h3 id="load-balancer와-service-endpoint">Load Balancer와 Service Endpoint</h3>
-
-<h4 id="service-endpoint">Service Endpoint</h4>
-
-<p>Service Endpoint는 네트워크상에서 클라이언트가 특정 서비스나 애플리케이션 기능에 접근하기 위해 사용하는 접점이다.</p>
-
-<p>클라이언트는 내부 서버의 실제 구조를 직접 알지 않고 Endpoint를 기준으로 서비스에 접근할 수 있다.</p>
-
-<p>예를 들어 내부에서 실제 서버가 변경되더라도 외부에서 사용하는 Endpoint가 유지된다면 클라이언트의 접근 방식은 변경하지 않아도 된다.</p>
-
-<h4 id="캡슐화와-추상화">캡슐화와 추상화</h4>
-
-<p>Service Endpoint를 사용하면 내부 시스템의 구체적인 구조를 외부 인터페이스로부터 분리할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
-   │
-   ▼
-Service Endpoint
-   │
-   ├── Server A
-   ├── Server B
-   └── Server C
-</code></pre></div></div>
-
-<p>외부 사용자는 Endpoint만 알고 있으면 되며 내부의 서버 구성이나 위치가 변경되더라도 동일한 방식으로 서비스를 사용할 수 있다.</p>
-
-<p><strong>강의 예시 - 소켓과 추상화</strong></p>
-
-<p>소켓을 설명할 때 실제 NIC와 네트워크 처리 구조를 직접 다루는 대신 네트워크 통신을 위한 인터페이스로 추상화했다고 볼 수 있다.</p>
-
-<p>내부 구현이 변경되더라도 사용하는 쪽에서 동일한 인터페이스를 사용할 수 있도록 만드는 것이 추상화의 중요한 목적이다.</p>
-
-<h4 id="보안-제어"><strong>보안 제어</strong></h4>
-
-<p>Endpoint 주변에는 다음과 같은 보안 정책을 적용할 수 있다.</p>
-
-<ul>
-  <li>인증 (Authentication)</li>
-  <li>인가 (Authorization)</li>
-  <li>방화벽 정책</li>
-  <li>접근 제어</li>
-  <li>트래픽 제한</li>
-</ul>
-
-<p>다만 Endpoint 자체가 이러한 보안 기능을 모두 수행하는 것은 아니며, 실제 환경에서는 API Gateway, Load Balancer, Firewall, IAM 등의 다른 구성 요소와 결합하여 구현한다.</p>
-
-<h4 id="load-balancer"><strong>Load Balancer</strong></h4>
-
-<p>Load Balancer는 클라이언트의 요청을 여러 서버나 서비스 인스턴스로 분산한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>           Client
-              │
-              ▼
-        Load Balancer
-         /     |     \
-        ▼      ▼      ▼
-     Server  Server  Server
-       A       B       C
-</code></pre></div></div>
-
-<p>Load Balancer가 하나의 Endpoint를 제공하고 그 뒤에 여러 서버를 배치하는 구조를 사용할 수 있다.</p>
-
-<p>따라서 <strong>Endpoint는 접근 지점에 대한 개념이고, Load Balancer는 트래픽을 여러 대상으로 분산하는 역할</strong>이라는 점을 구분해야 한다.</p>
-
-<h3 id="cloud-native-naming-service"><strong>Cloud Native Naming Service</strong></h3>
-
-<p>DNS (Domain Name System)는 사람이 이해하기 쉬운 이름과 네트워크 주소를 연결하여 통신을 쉽게 만들어준다.</p>
-
-<p>클라우드 환경에서는 서버와 컨테이너가 동적으로 생성되고 제거될 수 있기 때문에 특정 IP 주소를 직접 기억하고 관리하는 방식이 비효율적이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Service A
-   │
-   │ "Service B로 연결"
-   ▼
-Naming / Service Discovery
-   │
-   ▼
-현재 Service B의 주소
-</code></pre></div></div>
-
-<p>이러한 환경에서는 DNS를 비롯한 이름 기반의 접근 방식과 Service Discovery가 중요해진다.</p>
-
-<h4 id="service-discovery"><strong>Service Discovery</strong></h4>
-
-<p>Service Discovery는 서비스의 이름을 이용하여 현재 해당 서비스를 제공하는 위치를 찾아갈 수 있도록 하는 방식이다.</p>
-
-<p>클라우드나 컨테이너 오케스트레이션 환경에서는 서비스의 주소가 변경되더라도 등록 정보가 자동으로 갱신될 수 있다.</p>
-
-<p>예를 들어 Kubernetes에서는 Service를 생성하면 클러스터 내부 DNS를 통해 Service 이름을 기반으로 접근할 수 있다.</p>
-
-<p>따라서 애플리케이션은 상대 컨테이너의 실제 IP 주소를 직접 기억하지 않고 Service 이름을 기준으로 통신할 수 있다.</p>
-
-<h4 id="장점"><strong>장점</strong></h4>
-
-<p><strong>유연성</strong></p>
-
-<p>서버나 컨테이너의 IP 주소가 변경되더라도 이름을 기준으로 접근할 수 있다.</p>
-
-<p><strong>자동화</strong></p>
-
-<p>관리자가 매번 변경된 IP 주소를 직접 확인하여 애플리케이션 설정을 수정하는 작업을 줄일 수 있다.</p>
-
-<p><strong>서비스 간 통신 단순화</strong></p>
-
-<p>Microservice 환경에서는 다른 서비스의 이름을 기준으로 통신할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>order-service
-      │
-      ▼
-payment-service
-</code></pre></div></div>
-
-<p>애플리케이션 입장에서는 <code class="language-plaintext highlighter-rouge">payment-service</code>가 실제로 어떤 IP를 사용하고 있는지 직접 관리할 필요가 줄어든다.</p>
-
-<h4 id="private-dns"><strong>Private DNS</strong></h4>
-
-<p>클라우드에서는 외부 인터넷에 공개할 필요가 없는 내부 서비스에 대해 Private DNS 등의 내부 이름 해석 기능을 사용할 수 있다.</p>
-
-<p>이를 통해 외부에 공개되지 않는 네트워크에서도 서비스 이름을 기준으로 내부 시스템끼리 통신할 수 있다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>클라우드의 서버와 컨테이너는 동적으로 변경될 수 있어 고정 IP에 의존하기 어렵다.</li>
-  <li>이름을 기준으로 현재 서비스의 위치를 찾는 방식이 중요해진다.</li>
-  <li>Service Discovery를 이용하면 서비스의 위치 변화와 애플리케이션을 분리할 수 있다.</li>
-  <li>Private DNS를 이용하여 외부에 공개되지 않는 내부 서비스의 이름도 관리할 수 있다.</li>
-</ul>
-
-<h3 id="cloud-virtual-network-architecture"><strong>Cloud Virtual Network Architecture</strong></h3>
-
-<p>클라우드에서 서버를 구성할 때는 서버가 속할 논리적인 가상 네트워크가 필요하다.</p>
-
-<p>클라우드 사업자에 따라 이러한 네트워크를 VPC (Virtual Private Cloud), VNet (Virtual Network) 등의 이름으로 부른다.</p>
-
-<p>가상 네트워크 내부에는 다음과 같은 구성 요소를 배치할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VPC / VNet
-│
-├── Subnet
-│    ├── Server
-│    └── Server
-│
-├── Routing Table
-├── NAT Gateway
-├── Security Policy
-└── On-Premise / Internet 연결
-</code></pre></div></div>
-
-<h4 id="생성-과정"><strong>생성 과정</strong></h4>
-
-<ol>
-  <li><strong>VPC 또는 VNet 구성</strong>
-    <ul>
-      <li>사용할 Private IP 주소 범위를 설정한다.</li>
-      <li>필요한 Subnet을 구성한다.</li>
-    </ul>
-  </li>
-  <li><strong>서버 생성</strong>
-    <ul>
-      <li>서버에 Private IP를 할당한다.</li>
-      <li>외부에서 직접 접근할 필요가 있다면 Public IP 등의 연결 방식을 구성할 수 있다.</li>
-      <li>Private Subnet의 서버가 외부 인터넷으로 나가야 한다면 NAT Gateway 등을 사용할 수 있다.</li>
-    </ul>
-  </li>
-  <li><strong>Routing Table 설정</strong>
-    <ul>
-      <li>목적지에 따라 트래픽이 이동할 경로를 설정한다.</li>
-      <li>Internet Gateway, NAT Gateway, 다른 네트워크 또는 On-Premise 환경 등으로 전달할 경로를 결정한다.</li>
-    </ul>
-  </li>
-  <li><strong>보안 정책 구성</strong>
-    <ul>
-      <li>Security Group</li>
-      <li>Network ACL (Access Control List)</li>
-    </ul>
-  </li>
-</ol>
-
-<p>이와 같은 기능을 이용하여 네트워크 접근을 제어한다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>VPC 또는 VNet은 클라우드에서 사용하는 논리적 가상 네트워크이다.</li>
-  <li>내부에는 Subnet을 구성하고 Private IP를 이용하여 서버를 배치할 수 있다.</li>
-  <li>외부 연결이 필요하면 Public IP, NAT 등의 방식을 사용할 수 있다.</li>
-  <li>Routing Table은 트래픽이 이동할 경로를 결정한다.</li>
-  <li>Security Group과 Network ACL 등을 이용하여 네트워크 접근을 제어한다.</li>
-</ul>
-
-<h2 id="2-infrastructure-as-code-iac"><strong>2) Infrastructure as Code (IaC)</strong></h2>
-
-<hr />
-
-<h3 id="개요"><strong>개요</strong></h3>
-
-<p>Infrastructure as Code (IaC)는 인프라의 구성과 원하는 상태를 코드 또는 설정 파일로 정의하고, 이를 기반으로 인프라를 프로비저닝하고 관리하는 방식이다.</p>
-
-<p>관리 대상에는 다음과 같은 리소스가 포함될 수 있다.</p>
-
-<ul>
-  <li>Compute</li>
-  <li>Virtual Machine</li>
-  <li>Network</li>
-  <li>Storage</li>
-  <li>Load Balancer</li>
-  <li>Database</li>
-  <li>Cloud Resource</li>
-  <li>일부 On-Premise Infrastructure</li>
-</ul>
-
-<p>기존에는 관리자가 콘솔이나 장비에 직접 접근하여 설정을 변경하는 경우가 많았다.</p>
-
-<p>이 방식에서는 실제 환경의 변경 이력이 문서와 일치하지 않거나, 작업자가 변경 사항을 기록하지 않으면 현재 구성을 정확하게 파악하기 어려울 수 있다.</p>
-
-<p>IaC에서는 인프라 구성을 파일로 관리할 수 있기 때문에 Git 등의 Version Control System과 결합할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Infrastructure 변경
-        │
-        ▼
-     IaC Code
-        │
-        ▼
-      Git
-        │
-        ▼
-변경 이력 및 Version 관리
-</code></pre></div></div>
-
-<p>따라서 다음과 같은 정보를 추적하기 쉬워진다.</p>
-
-<ul>
-  <li>무엇이 변경되었는가?</li>
-  <li>누가 변경했는가?</li>
-  <li>언제 변경했는가?</li>
-  <li>이전 구성은 무엇이었는가?</li>
-</ul>
-
-<h3 id="등장-배경"><strong>등장 배경</strong></h3>
-
-<p>클라우드 환경에서는 구성해야 하는 리소스의 수가 증가하면서 사람이 직접 동일한 작업을 반복하는 방식의 한계가 커졌다.</p>
-
-<p>대표적인 문제는 다음과 같다.</p>
-
-<ul>
-  <li>반복 작업에서 실수가 발생할 수 있다.</li>
-  <li>환경마다 설정이 달라질 수 있다.</li>
-  <li>현재 구성을 정확하게 파악하기 어렵다.</li>
-  <li>변경 이력을 추적하기 어렵다.</li>
-  <li>여러 사람이 동일한 인프라를 관리할 때 협업하기 어렵다.</li>
-  <li>장애 발생 시 이전 상태를 파악하기 어렵다.</li>
-</ul>
-
-<p>IaC는 인프라 구성을 코드로 남겨 이러한 문제를 줄이기 위한 방법이다.</p>
-
-<p><strong>강사의 실무 경험 - 문서화의 중요성</strong></p>
-
-<p>과거에는 하드웨어를 변경하고도 변경 기록이 제대로 남지 않는 경우가 있었다.<br />
-그래서 시스템을 구성하고 관리하는 과정에서 문서화가 매우 중요했다.</p>
-
-<p>시간이 오래 지난 코드는 작성자조차 구조를 이해하기 어려워질 수 있다. 강의에서는 이를 기억하기 쉽게 “외계인 코드”에 비유하였다.</p>
-
-<p>실제 프로젝트에서도 구축이 끝난 뒤 문서가 제대로 남아 있지 않으면 이후 유지보수 과정에서 추가적인 시간과 비용이 발생할 수 있다.</p>
-
-<p><strong>강의에서의 IaC 관점</strong></p>
-
-<p>개발이나 운영 과정에서 변경 기록이 자연스럽게 부산물로 남도록 만드는 것이 중요하다.</p>
-
-<p>Git을 사용하면 코드 변경 이력이 자연스럽게 남는 것처럼, 인프라 역시 코드로 정의하면 인프라의 변경 기록을 Version Control System으로 관리할 수 있다.</p>
-
-<p>코드에서 API 문서를 생성하는 도구처럼 작업의 결과물이 자동으로 문서와 기록으로 연결되는 방식도 활용할 수 있다.</p>
-
-<p>강의에서는 Jira, Slack 등의 협업 도구를 실제 업무 환경에서 경험해보는 것도 도움이 된다고 언급하였다.</p>
-
-<p>IaC는 단순히 명령을 자동 실행하는 것을 넘어 <strong>인프라 관리 방식을 코드 중심으로 전환하는 것</strong>이라고 볼 수 있다.</p>
-
-<p>자동화와 표준화를 통해 반복적인 수작업을 줄일 수 있으므로 운영 비용 절감에도 도움을 줄 수 있다.</p>
-
-<h3 id="terraform과-ansible"><strong>Terraform과 Ansible</strong></h3>
-
-<p>Terraform과 Ansible은 모두 인프라 자동화에 사용되지만 주요 목적에는 차이가 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>비교</strong></th>
-      <th><strong>Terraform</strong></th>
-      <th><strong>Ansible</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>개발 주체</td>
-      <td>HashiCorp</td>
-      <td>Red Hat / Ansible Community</td>
-    </tr>
-    <tr>
-      <td>주요 용도</td>
-      <td>인프라 프로비저닝 및 수명 주기 관리</td>
-      <td>시스템 구성 관리 및 IT 자동화</td>
-    </tr>
-    <tr>
-      <td>대표적인 분류</td>
-      <td>IaC</td>
-      <td>Configuration Management / IT Automation</td>
-    </tr>
-    <tr>
-      <td>정의 방식</td>
-      <td>HCL 기반 구성</td>
-      <td>YAML 기반 Playbook</td>
-    </tr>
-    <tr>
-      <td>Managed Node Agent</td>
-      <td>별도 Agent 불필요</td>
-      <td>Agentless</td>
-    </tr>
-    <tr>
-      <td>확장 방식</td>
-      <td>Provider</td>
-      <td>Module, Collection, Plugin</td>
-    </tr>
-    <tr>
-      <td>주요 관리 대상</td>
-      <td>Cloud, On-Premise, SaaS 등의 Infrastructure</td>
-      <td>Server, Network, Cloud Service, Application 등</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="terraform"><strong>Terraform</strong></h4>
-
-<p>Terraform은 원하는 인프라의 상태를 선언적으로 정의하고 리소스를 생성·변경·삭제하는 데 사용한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Terraform Code
-      │
-      ▼
-   Provider
-      │
-      ├── AWS
-      ├── Azure
-      ├── GCP
-      └── 기타 Infrastructure
-</code></pre></div></div>
-
-<p>Provider를 통해 각 플랫폼의 API와 연결한다.</p>
-
-<h4 id="ansible"><strong>Ansible</strong></h4>
-
-<p>Ansible은 서버나 시스템의 구성 상태를 자동화하는 데 많이 사용한다.</p>
-
-<p>예를 들어 다음과 같은 작업을 정의할 수 있다.</p>
-
-<ul>
-  <li>Package 설치</li>
-  <li>설정 파일 배포</li>
-  <li>Service 시작 및 중지</li>
-  <li>Application 배포</li>
-  <li>Server 구성</li>
-  <li>Network 장비 구성</li>
-</ul>
-
-<p>Managed Node에 별도의 Ansible Agent를 설치하지 않는 Agentless 방식이 특징이다.</p>
-
-<p>Terraform과 Ansible의 영역은 완전히 분리되는 것은 아니며 실제 환경에서는 함께 사용할 수도 있다.</p>
-
-<p>예를 들어 Terraform으로 VM과 Network를 생성한 뒤 Ansible로 VM 내부의 Package와 Application을 구성하는 식이다.</p>
-
-<h3 id="aws-cloudformation"><strong>AWS CloudFormation</strong></h3>
-
-<p>AWS CloudFormation은 AWS에서 제공하는 IaC 서비스이다.</p>
-
-<p>AWS Resource를 Template으로 정의하고 Stack 단위로 생성 및 관리할 수 있다.</p>
-
-<p>Template은 JSON 또는 YAML 형식으로 작성할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CloudFormation Template
-          │
-          ▼
-         Stack
-          │
-          ├── EC2
-          ├── VPC
-          ├── Load Balancer
-          └── 기타 AWS Resource
-</code></pre></div></div>
-
-<p>CloudFormation은 AWS 환경을 대상으로 하는 서비스이므로 일반적인 Multi-Cloud IaC 도구와는 성격이 다르다.</p>
-
-<p>Template에는 조건에 따라 Resource를 생성하기 위한 Condition을 정의할 수 있으며, <code class="language-plaintext highlighter-rouge">AWS::LanguageExtensions</code>를 사용하는 경우 <code class="language-plaintext highlighter-rouge">Fn::ForEach</code>를 이용한 반복적인 Resource 정의도 사용할 수 있다.</p>
-
-<h3 id="iac의-장점"><strong>IaC의 장점</strong></h3>
-
-<h4 id="환경-간-일관성"><strong>환경 간 일관성</strong></h4>
-
-<p>동일한 코드를 기반으로 인프라를 생성하면 개발, 테스트, 운영 환경에서 설정 차이가 발생하는 문제를 줄일 수 있다.</p>
-
-<h4 id="변경-이력-추적"><strong>변경 이력 추적</strong></h4>
-
-<p>IaC 파일을 Git과 같은 Version Control System으로 관리하면 변경 이력을 확인할 수 있다.</p>
-
-<h4 id="반복-작업-자동화"><strong>반복 작업 자동화</strong></h4>
-
-<p>동일한 인프라 구성을 여러 번 반복해서 수행해야 할 때 수작업을 줄일 수 있다.</p>
-
-<h4 id="불필요한-자원-관리"><strong>불필요한 자원 관리</strong></h4>
-
-<p>실제 구성과 코드의 상태를 비교하면서 필요한 리소스를 체계적으로 관리할 수 있다.</p>
-
-<p>도구에 따라 인프라 삭제 작업도 코드와 자동화 과정에 포함할 수 있다.</p>
-
-<h4 id="클라우드-환경에-대한-통제력-향상"><strong>클라우드 환경에 대한 통제력 향상</strong></h4>
-
-<p>인프라 구성을 코드로 명시하면 현재 시스템이 어떤 형태로 구성되어야 하는지를 명확하게 표현할 수 있다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>IaC는 인프라의 원하는 상태를 코드로 정의하고 관리하는 방식이다.</li>
-  <li>Git과 결합하면 인프라 변경 이력을 관리할 수 있다.</li>
-  <li>Terraform은 인프라 프로비저닝과 수명 주기 관리에 주로 사용한다.</li>
-  <li>Ansible은 서버 구성과 IT 자동화에 주로 사용한다.</li>
-  <li>CloudFormation은 AWS Resource를 Template으로 정의하는 AWS의 IaC 서비스이다.</li>
-  <li>IaC는 반복 작업, 환경 간 불일치, 변경 추적 문제를 줄이는 데 도움이 된다.</li>
-</ul>
-
-<h2 id="3-보안과-접근-제어"><strong>3) 보안과 접근 제어</strong></h2>
-
-<hr />
-
-<h3 id="shared-responsibility-model"><strong>Shared Responsibility Model</strong></h3>
-
-<p>Shared Responsibility Model (공유 책임 모델)은 클라우드 보안의 모든 책임을 Cloud Service Provider가 담당하는 것이 아니라 <strong>Cloud Provider와 Customer가 역할을 나누어 담당하는 모델</strong>이다.</p>
-
-<p>Cloud Provider는 기본적으로 데이터센터, 물리 서버, 네트워크 등 클라우드 서비스를 제공하기 위한 기반 인프라를 보호한다.</p>
-
-<p>반면 사용자는 자신이 이용하는 서비스 유형에 따라 다음과 같은 영역에 책임을 가진다.</p>
-
-<ul>
-  <li>Account</li>
-  <li>Identity</li>
-  <li>Data</li>
-  <li>Application</li>
-  <li>Operating System</li>
-  <li>Network Configuration</li>
-  <li>Security Configuration</li>
-</ul>
-
-<p>서비스가 IaaS에서 PaaS, SaaS 방향으로 이동할수록 일반적으로 Cloud Provider가 관리하는 영역이 증가한다.</p>
-
-<h3 id="서비스-모델에-따른-책임-범위"><strong>서비스 모델에 따른 책임 범위</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구분</strong></th>
-      <th><strong>사용자 책임의 특징</strong></th>
-      <th><strong>Cloud Provider 책임의 특징</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>IaaS</td>
-      <td>Guest OS, Application, Data, 계정, 상당수 Network 및 Security 설정 관리</td>
-      <td>물리 Infrastructure, Virtualization 기반 관리</td>
-    </tr>
-    <tr>
-      <td>PaaS</td>
-      <td>Application, Data, Identity와 서비스 설정 중심</td>
-      <td>OS, Runtime, Platform 등의 관리 범위 증가</td>
-    </tr>
-    <tr>
-      <td>SaaS</td>
-      <td>Account, Data, 접근 권한 및 사용 설정 중심</td>
-      <td>Application을 포함한 대부분의 Platform과 Infrastructure 운영</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>구체적인 책임 범위는 사용하는 Cloud Service와 제품에 따라 달라질 수 있다.</p>
-
-<h3 id="iam"><strong>IAM</strong></h3>
-
-<p>IAM (Identity and Access Management)은 <strong>누가 어떤 Resource에 어떤 조건으로 접근할 수 있는지를 통제하고 관리하는 보안 체계</strong>이다.</p>
-
-<p>클라우드 보안에서 가장 기본적인 통제 수단 중 하나이다.</p>
-
-<h4 id="iam의-핵심-구성-요소"><strong>IAM의 핵심 구성 요소</strong></h4>
-
-<p><strong>Identification (식별)</strong></p>
-
-<p>접근 주체가 누구인지를 구분하는 과정이다.</p>
-
-<p>Identity는 반드시 사람만을 의미하지 않는다.</p>
-
-<ul>
-  <li>User</li>
-  <li>Application</li>
-  <li>Server</li>
-  <li>Service Account</li>
-  <li>Workload</li>
-</ul>
-
-<p>등도 Identity가 될 수 있다.</p>
-
-<p><strong>Authentication (인증)</strong></p>
-
-<p>접근하려는 주체가 주장하는 Identity가 실제로 맞는지 확인한다.</p>
-
-<p>예시는 다음과 같다.</p>
-
-<ul>
-  <li>ID / Password</li>
-  <li>MFA</li>
-  <li>Certificate</li>
-  <li>외부 Identity Provider를 이용한 로그인</li>
-</ul>
-
-<p><strong>Authorization (인가)</strong></p>
-
-<p>인증된 Identity가 특정 Resource에서 어떤 행동을 수행할 수 있는지 판단한다.</p>
-
-<p>예를 들어 다음과 같은 권한을 설정할 수 있다.</p>
-
-<ul>
-  <li>읽기만 허용</li>
-  <li>Resource 생성 허용</li>
-  <li>관리자 권한 부여</li>
-  <li>특정 Database만 접근 허용</li>
-</ul>
-
-<p><strong>Account Lifecycle Management (계정 수명 주기 관리)</strong></p>
-
-<p>계정은 생성 이후 계속 유지하는 것이 아니라 전체 수명 주기를 관리해야 한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>계정 생성
-   ↓
-권한 부여
-   ↓
-권한 변경
-   ↓
-비활성화
-   ↓
-삭제
-</code></pre></div></div>
-
-<h3 id="policy"><strong>Policy</strong></h3>
-
-<p>IAM에서는 Policy를 이용하여 Identity가 수행할 수 있는 작업을 정의할 수 있다.</p>
-
-<p>각 사용자에게 모든 권한을 부여하는 대신 실제 업무에 필요한 범위의 권한만 부여하는 것이 중요하다.</p>
-
-<h3 id="rbac와-abac"><strong>RBAC와 ABAC</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구분</strong></th>
-      <th><strong>RBAC (Role-Based Access Control)</strong></th>
-      <th><strong>ABAC (Attribute-Based Access Control)</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>기준</td>
-      <td>사용자의 역할(Role)</td>
-      <td>사용자, Resource, 환경 등의 Attribute</td>
-    </tr>
-    <tr>
-      <td>예</td>
-      <td>개발자, 관리자, 감사 담당자</td>
-      <td>부서, 시간, 위치, Resource Tag 등의 조건</td>
-    </tr>
-    <tr>
-      <td>특징</td>
-      <td>구조가 비교적 단순하고 관리하기 쉬움</td>
-      <td>조건을 이용한 세밀한 정책 표현 가능</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="iam이-필요한-이유"><strong>IAM이 필요한 이유</strong></h4>
-
-<p><strong>최소 권한 적용</strong></p>
-
-<p>사용자에게 업무 수행에 필요한 최소한의 권한만 부여한다.</p>
-
-<p><strong>중앙 집중식 관리</strong></p>
-
-<p>수많은 Account와 Permission을 중앙에서 관리할 수 있다.</p>
-
-<p><strong>Audit와 규정 준수</strong></p>
-
-<p>누가, 언제, 어떤 Resource에 접근하고 어떤 작업을 수행했는지 기록하여 Audit과 보안 규정 준수에 활용할 수 있다.</p>
-
-<h4 id="대표적인-iam-서비스와-솔루션"><strong>대표적인 IAM 서비스와 솔루션</strong></h4>
-
-<p><strong>Cloud IAM</strong></p>
-
-<ul>
-  <li>AWS IAM</li>
-  <li>Google Cloud IAM</li>
-  <li>Microsoft Entra ID</li>
-</ul>
-
-<p><strong>IAM / SSO Solution</strong></p>
-
-<ul>
-  <li>Okta</li>
-  <li>Ping Identity</li>
-  <li>Keycloak</li>
-</ul>
-
-<h3 id="최소-권한의-원칙"><strong>최소 권한의 원칙</strong></h3>
-
-<p>Principle of Least Privilege (최소 권한의 원칙)는 User, Process, Application 등에 <strong>주어진 업무를 수행하는 데 필요한 최소한의 권한만 부여하는 보안 원칙</strong>이다.</p>
-
-<p>필요 이상의 정보와 기능에 접근할 수 없도록 한다.</p>
-
-<p>관련 개념으로 다음과 같은 표현을 사용할 수 있다.</p>
-
-<ul>
-  <li>Need-to-Know</li>
-  <li>Need-to-Do</li>
-</ul>
-
-<h4 id="필요한-이유"><strong>필요한 이유</strong></h4>
-
-<ul>
-  <li>보안 사고 발생 시 피해 범위 최소화</li>
-  <li>내부자 위협 감소</li>
-  <li>실수로 인한 Resource 변경 및 Data 손실 방지</li>
-  <li>규정 준수</li>
-</ul>
-
-<h4 id="적용-사례"><strong>적용 사례</strong></h4>
-
-<p><strong>Root Account 사용 최소화</strong></p>
-
-<p>일반 작업에서는 일반 Account를 사용하고 필요한 경우에만 <code class="language-plaintext highlighter-rouge">sudo</code> 등으로 권한을 상승한다.</p>
-
-<p><strong>IAM Policy 세분화</strong></p>
-
-<p>개발자에게 모든 Resource에 대한 <code class="language-plaintext highlighter-rouge">*</code> 권한을 제공하는 대신 업무에 필요한 Resource와 Operation만 허용한다.</p>
-
-<p><strong>Smartphone Application 권한</strong></p>
-
-<p>Application이 실제 기능에 필요한 Camera, Location 등의 권한만 요청하도록 한다.</p>
-
-<p><strong>Database Account 분리</strong></p>
-
-<p>Database 또는 Table 단위로 Account와 Permission을 구분한다.</p>
-
-<h4 id="최소-권한-원칙-이행-방법"><strong>최소 권한 원칙 이행 방법</strong></h4>
-
-<p><strong>Default Deny</strong></p>
-
-<p>명시적으로 허용하지 않은 접근은 기본적으로 거부한다.</p>
-
-<p><strong>RBAC</strong></p>
-
-<p>사용자의 Role을 기준으로 필요한 권한을 부여한다.</p>
-
-<p><strong>Just-In-Time Access</strong></p>
-
-<p>항상 높은 권한을 보유하는 대신 필요한 순간에 일정 시간 동안만 권한을 부여한다.</p>
-
-<p><strong>Access Review</strong></p>
-
-<p>현재 사용자에게 부여된 권한이 계속 필요한지 정기적으로 점검한다.</p>
-
-<h3 id="비밀번호key와-secret-관리"><strong>비밀번호·Key와 Secret 관리</strong></h3>
-
-<p>Password와 API Key 등의 Secret을 Source Code에 직접 작성하면 코드가 외부에 노출되었을 때 Secret도 함께 유출될 수 있다.</p>
-
-<p>따라서 Secret과 Source Code를 분리하여 관리해야 한다.</p>
-
-<p>대표적인 방식에는 다음이 있다.</p>
-
-<ul>
-  <li>환경 변수</li>
-  <li>접근 권한이 제한된 외부 설정</li>
-  <li>Secret Management Service</li>
-</ul>
-
-<p>단, 환경 변수를 사용한다는 사실만으로 Secret이 안전해지는 것은 아니며 실행 환경과 접근 권한 역시 적절하게 관리해야 한다.</p>
-
-<h4 id="secret-management-service"><strong>Secret Management Service</strong></h4>
-
-<p>Cloud Provider는 Secret을 별도로 저장하고 관리하기 위한 서비스를 제공한다.</p>
-
-<p>대표적으로 다음과 같은 기능을 제공할 수 있다.</p>
-
-<ul>
-  <li>Secret 암호화 저장</li>
-  <li>접근 주체 제어</li>
-  <li>IAM과 연동</li>
-  <li>Audit</li>
-  <li>Secret Version 관리</li>
-  <li>Rotation 자동화</li>
-</ul>
-
-<p>대표적인 서비스는 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>Cloud</strong></th>
-      <th><strong>Service</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>AWS</td>
-      <td>AWS Secrets Manager</td>
-    </tr>
-    <tr>
-      <td>Azure</td>
-      <td>Azure Key Vault</td>
-    </tr>
-    <tr>
-      <td>Google Cloud</td>
-      <td>Secret Manager</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="key-rotation"><strong>Key Rotation</strong></h4>
-
-<p>Key Rotation은 암호화 Key 또는 Credential을 일정 주기나 특정 Event에 따라 새로운 값으로 교체하는 과정이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Old Key
-   ↓
-새 Key 생성
-   ↓
-Application 전환
-   ↓
-Old Key 폐기
-</code></pre></div></div>
-
-<p>Secret Management Service를 사용하면 Rotation 과정을 자동화할 수 있는 기능을 활용할 수 있다.</p>
-
-<p>다만 Cloud가 Secret을 암호화해준다고 해서 사용자의 보안 책임이 사라지는 것은 아니다.</p>
-
-<p>다음과 같은 설정은 여전히 중요하다.</p>
-
-<ul>
-  <li>누가 Secret에 접근할 수 있는가?</li>
-  <li>어떤 Application에서 사용할 수 있는가?</li>
-  <li>Rotation 정책은 어떻게 구성할 것인가?</li>
-  <li>Logging과 Audit은 어떻게 관리할 것인가?</li>
-</ul>
-
-<h3 id="인증-token"><strong>인증 Token</strong></h3>
-
-<p>Authentication 또는 Authorization 과정에서는 사용자가 매 요청마다 ID와 Password를 다시 전송하는 대신 Token을 사용할 수 있다.</p>
-
-<p>일반적인 흐름은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자
-  │
-  │ 인증
-  ▼
-인증 Server
-  │
-  │ Token 발급
-  ▼
-사용자
-  │
-  │ Token을 이용한 요청
-  ▼
-Resource Server
-</code></pre></div></div>
-
-<p>Token은 사용자의 Password 그 자체를 반복해서 전달하지 않고 일정한 자격 정보를 이용하여 Resource에 접근할 수 있도록 한다.</p>
-
-<h3 id="jwt"><strong>JWT</strong></h3>
-
-<p>JWT (JSON Web Token)는 두 주체 사이에서 Claim을 전달하기 위한 Compact하고 URL-Safe한 Token 형식이다.</p>
-
-<p>JWT는 흔히 서명을 이용하여 Token이 변조되지 않았음을 검증하도록 구성한다.</p>
-
-<p>중요한 점은 <strong>JWT 자체가 항상 암호화되어 있는 것은 아니라는 것</strong>이다.</p>
-
-<p>서명된 JWT의 Payload는 Base64URL Encoding된 형태이므로 기밀 정보를 아무 생각 없이 넣어서는 안 된다.</p>
-
-<p>필요한 경우 암호화된 형태의 JWT도 구성할 수 있다.</p>
-
-<h3 id="access-token과-refresh-token"><strong>Access Token과 Refresh Token</strong></h3>
-
-<h4 id="access-token"><strong>Access Token</strong></h4>
-
-<p>보호된 Resource에 접근할 때 사용하는 Token이다.</p>
-
-<p>보안상 일반적으로 비교적 짧은 유효 기간을 설정하는 전략을 사용할 수 있다.</p>
-
-<p>Token이 탈취되어도 사용할 수 있는 시간을 제한하기 위한 것이다.</p>
-
-<h4 id="refresh-token"><strong>Refresh Token</strong></h4>
-
-<p>Access Token이 만료된 후 새로운 Access Token을 발급받는 데 사용할 수 있다.</p>
-
-<p>일반적으로 Access Token보다 오래 유지될 수 있기 때문에 더욱 주의해서 저장하고 관리해야 한다.</p>
-
-<p>Refresh Token의 실제 저장 위치와 관리 방식은 인증 시스템의 설계에 따라 달라진다.</p>
-
-<h3 id="token-방식의-특징"><strong>Token 방식의 특징</strong></h3>
-
-<h4 id="장점-1"><strong>장점</strong></h4>
-
-<p><strong>분산 시스템과 API에서 활용하기 쉬움</strong></p>
-
-<p>API 요청에 Token을 포함하여 인증 및 인가 정보를 전달할 수 있다.</p>
-
-<p><strong>다양한 Client에서 사용할 수 있음</strong></p>
-
-<ul>
-  <li>Web</li>
-  <li>Mobile</li>
-  <li>Application</li>
-  <li>API Client</li>
-</ul>
-
-<p>등에서 활용할 수 있다.</p>
-
-<p><strong>Stateless 구조 구성 가능</strong></p>
-
-<p>검증에 필요한 정보를 Token 자체에 포함하는 방식에서는 서버에 Session State를 최소화하는 구조를 만들 수 있다.</p>
-
-<p>다만 모든 Token 시스템이 Stateless인 것은 아니다.</p>
-
-<h4 id="고려해야-할-문제"><strong>고려해야 할 문제</strong></h4>
-
-<p><strong>Token 탈취</strong></p>
-
-<p>Token이 탈취되면 유효 기간 동안 공격자가 이를 사용할 수 있으므로 안전한 저장과 전송이 중요하다.</p>
-
-<p><strong>XSS (Cross-Site Scripting)</strong></p>
-
-<p>공격자가 Web Page에서 악성 Script를 실행하도록 만드는 공격이다.</p>
-
-<p>Client 측에서 접근할 수 있는 위치에 Token을 저장한 경우 XSS 공격으로 Token이 노출될 가능성을 고려해야 한다.</p>
-
-<p><strong>CSRF (Cross-Site Request Forgery)</strong></p>
-
-<p>사용자가 이미 인증되어 있다는 점을 악용하여 사용자가 의도하지 않은 요청을 보내도록 만드는 공격이다.</p>
-
-<p>CSRF 위험은 Token을 어떤 방식으로 전달하고 저장하는지와도 관련된다.</p>
-
-<p><strong>Token 폐기</strong></p>
-
-<p>Self-Contained Token은 발급 이후 서버의 별도 State 없이 검증할 수 있다는 장점이 있지만, 만료 전에 즉시 폐기하려면 별도의 설계가 필요할 수 있다.</p>
-
-<p>예를 들어 다음과 같은 전략을 사용할 수 있다.</p>
-
-<ul>
-  <li>짧은 Access Token 만료 시간</li>
-  <li>Refresh Token 폐기</li>
-  <li>Token Revocation 목록</li>
-  <li>Server-side Token 상태 관리</li>
-</ul>
-
-<h3 id="mfa"><strong>MFA</strong></h3>
-
-<p>MFA (Multi-Factor Authentication)는 사용자의 신원을 확인할 때 서로 다른 종류의 인증 요소를 두 개 이상 사용하는 방식이다.</p>
-
-<p>일반적으로 인증 요소를 다음과 같이 구분할 수 있다.</p>
-
-<ul>
-  <li>사용자가 알고 있는 것</li>
-  <li>사용자가 가지고 있는 것</li>
-  <li>사용자 자신을 나타내는 것</li>
-</ul>
-
-<p>Password 하나만 사용하는 환경에서는 Password가 유출되면 계정을 탈취당할 수 있다.</p>
-
-<p>MFA를 사용하면 Password가 노출된 상황에서도 추가 인증 요소를 요구하여 계정 침해 가능성을 크게 낮출 수 있다.</p>
-
-<h4 id="mfa가-필요한-이유"><strong>MFA가 필요한 이유</strong></h4>
-
-<ul>
-  <li>Password 유출에 대한 추가 방어</li>
-  <li>Account 탈취 위험 감소</li>
-  <li>중요 시스템에 대한 접근 통제 강화</li>
-  <li>보안 정책 및 규정 준수</li>
-</ul>
-
-<p>MFA의 효과에 대한 수치는 조사 환경과 인증 방식에 따라 달라질 수 있으므로 특정 비율을 모든 시스템에 동일하게 적용해서는 안 된다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>Cloud Security는 Provider와 Customer가 책임을 나누는 Shared Responsibility Model을 따른다.</li>
-  <li>IAM은 Identity의 식별, 인증, 인가 및 수명 주기를 관리한다.</li>
-  <li>Least Privilege는 업무에 필요한 최소한의 Permission만 부여하는 원칙이다.</li>
-  <li>Password와 API Key는 Source Code와 분리하여 관리해야 한다.</li>
-  <li>JWT는 항상 암호화되는 것이 아니며 Claim을 전달하기 위한 Token 형식이다.</li>
-  <li>Access Token과 Refresh Token은 목적과 수명 주기가 다르다.</li>
-  <li>MFA는 Password가 유출된 경우에도 추가적인 인증 계층을 제공한다.</li>
-</ul>
-
-<h2 id="4-cloud-장애-대응"><strong>4) Cloud 장애 대응</strong></h2>
-
-<hr />
-
-<h3 id="장애의-원인"><strong>장애의 원인</strong></h3>
-
-<p>클라우드에서도 장애는 발생한다.</p>
-
-<p>대표적인 원인은 다음과 같다.</p>
-
-<ul>
-  <li>Human Error</li>
-  <li>서비스 간 의존성 문제</li>
-  <li>물리적 Resource 장애</li>
-  <li>Network 장애</li>
-  <li>Application 장애</li>
-  <li>Configuration 오류</li>
-</ul>
-
-<p>클라우드 환경은 여러 서비스와 계층이 연결되어 있기 때문에 문제가 발생했을 때 <strong>어느 계층에서 장애가 시작되었는지 빠르게 파악하는 것</strong>이 중요하다.</p>
-
-<p>장애 자체를 완전히 제거할 수 있다고 가정하기보다 장애가 발생할 것을 전제로 다음 전체 주기를 준비해야 한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>감지
- ↓
-대응
- ↓
-복구
- ↓
-사후 분석
- ↓
-재발 방지
-</code></pre></div></div>
-
-<h3 id="장애-대응-전략"><strong>장애 대응 전략</strong></h3>
-
-<p>대표적인 전략은 다음과 같다.</p>
-
-<ul>
-  <li>실시간 Monitoring과 Alert</li>
-  <li>자동 복구 및 Self-Healing</li>
-  <li>Region 또는 Zone 단위의 Redundancy</li>
-  <li>정기적인 Backup</li>
-  <li>Restore Scenario 준비</li>
-  <li>RPO와 RTO 설정</li>
-  <li>Postmortem</li>
-  <li>Root Cause Analysis</li>
-  <li>재발 방지 대책</li>
-</ul>
-
-<h3 id="monitoring과-log-수집"><strong>Monitoring과 Log 수집</strong></h3>
-
-<p>Monitoring은 시스템의 상태를 지속적으로 관찰하여 이상 상태를 빠르게 발견하기 위한 방법이다.</p>
-
-<p>예를 들어 다음 지표를 확인할 수 있다.</p>
-
-<ul>
-  <li>CPU Usage</li>
-  <li>Memory Usage</li>
-  <li>Disk Usage</li>
-  <li>Network Traffic</li>
-  <li>Request Latency</li>
-  <li>Error Rate</li>
-  <li>Application Response Time</li>
-</ul>
-
-<p>특정 기준을 초과하면 Alert을 발생시켜 운영자가 빠르게 확인할 수 있도록 구성한다.</p>
-
-<h3 id="중앙-집중식-logging"><strong>중앙 집중식 Logging</strong></h3>
-
-<p>클라우드 환경에서는 여러 Server, Container, Application에서 Log가 발생한다.</p>
-
-<p>각 Server에 직접 접속해서 Log를 확인하는 방식은 규모가 커질수록 관리하기 어렵다.</p>
-
-<p>따라서 여러 위치에서 발생한 Log를 중앙 시스템으로 수집하여 분석할 수 있도록 구성한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server A ─┐
-Server B ─┼──▶ Centralized Logging
-App C    ─┘
-</code></pre></div></div>
-
-<h3 id="distributed-tracing"><strong>Distributed Tracing</strong></h3>
-
-<p>Microservice처럼 하나의 요청이 여러 서비스를 거치는 시스템에서는 특정 요청이 어떤 서비스를 거쳐 처리되었는지 추적할 필요가 있다.</p>
-
-<p>이를 Distributed Tracing (분산 추적)이라고 한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
-  ↓
-Service A
-  ↓
-Service B
-  ↓
-Service C
-  ↓
-Database
-</code></pre></div></div>
-
-<p>Tracing을 이용하면 요청이 어느 구간에서 오래 걸렸거나 실패했는지 파악하는 데 도움을 받을 수 있다.</p>
-
-<h3 id="장애를-빠르게-감지하고-원인을-찾는-방법"><strong>장애를 빠르게 감지하고 원인을 찾는 방법</strong></h3>
-
-<ul>
-  <li>실시간 Monitoring으로 문제 발생 시 빠르게 Alert을 받는다.</li>
-  <li>Log를 이용하여 장애 발생 전후의 상황을 추적한다.</li>
-  <li>여러 Server의 데이터를 중앙에 모아 분석한다.</li>
-  <li>Distributed Tracing을 이용하여 서비스 간 요청 흐름을 추적한다.</li>
-</ul>
-
-<h2 id="5-high-availability"><strong>5) High Availability</strong></h2>
-
-<hr />
-
-<h3 id="개요-1"><strong>개요</strong></h3>
-
-<p>High Availability (고가용성)는 Server, Network, Application 등의 일부 구성 요소에 장애가 발생하더라도 서비스를 계속 제공하거나 중단 시간을 최소화할 수 있도록 시스템을 설계하는 개념이다.</p>
-
-<p>목표는 단순히 “서버를 항상 켜두는 것”이 아니라 <strong>일부 구성 요소의 실패가 전체 서비스 중단으로 이어지지 않도록 설계하는 것</strong>이다.</p>
-
-<h3 id="availability"><strong>Availability</strong></h3>
-
-<p>Availability는 일정 기간 동안 시스템이 정상적으로 서비스를 제공한 비율을 의미한다.</p>
-
-<p>대표적인 수치를 연간 Down Time으로 환산하면 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>Availability</strong></th>
-      <th><strong>연간 Down Time</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>99.9%</td>
-      <td>약 8시간 46분</td>
-    </tr>
-    <tr>
-      <td>99.99%</td>
-      <td>약 52분 34초</td>
-    </tr>
-    <tr>
-      <td>99.999%</td>
-      <td>약 5분 15초</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>이를 흔히 <code class="language-plaintext highlighter-rouge">Three Nines</code>, <code class="language-plaintext highlighter-rouge">Four Nines</code>, <code class="language-plaintext highlighter-rouge">Five Nines</code> 등으로 표현한다.</p>
-
-<p>필요한 Availability 수준은 서비스의 중요도, 비용, SLA (Service Level Agreement) 등에 따라 결정해야 한다.</p>
-
-<p>Availability가 높아질수록 일반적으로 이를 달성하기 위한 시스템 구성과 비용도 증가한다.</p>
-
-<h3 id="고가용성의-3가지-핵심-원칙"><strong>고가용성의 3가지 핵심 원칙</strong></h3>
-
-<h4 id="1-single-point-of-failure-제거">1. <strong>Single Point of Failure 제거</strong></h4>
-
-<p>SPOF (Single Point of Failure)는 하나의 구성 요소가 실패했을 때 전체 시스템이 중단되는 지점을 의미한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
-  │
-  ▼
-Single Server  ← 장애
-  │
-  X
-Service 전체 중단
-</code></pre></div></div>
-
-<p>가능하면 중요한 시스템에 SPOF가 존재하지 않도록 설계해야 한다.</p>
-
-<h4 id="2-redundancy">2. <strong>Redundancy</strong></h4>
-
-<p>Redundancy (이중화)는 동일한 기능을 수행할 수 있는 구성 요소를 여러 개 배치하는 방식이다.</p>
-
-<p>다음과 같은 대상을 이중화할 수 있다.</p>
-
-<ul>
-  <li>Server</li>
-  <li>Database</li>
-  <li>Network Device</li>
-  <li>Storage</li>
-  <li>Power Supply</li>
-  <li>Network Line</li>
-</ul>
-
-<p><strong>Active-Active</strong>
-여러 시스템이 동시에 요청을 처리한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>          Load Balancer
-          /           \
-         ▼             ▼
-     Active A       Active B
-</code></pre></div></div>
-
-<p>한 시스템에 장애가 발생하면 정상 상태의 다른 시스템이 계속 요청을 처리할 수 있도록 구성한다.</p>
-
-<p><strong>Active-Standby</strong>
-하나는 서비스를 제공하고 다른 하나는 대기한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Active
-  │
-  │ 장애
-  ▼
-Standby
-  │
-  ▼
-Active 전환
-</code></pre></div></div>
-
-<p>장애가 발생하면 Standby 시스템이 역할을 넘겨받는 Failover를 수행한다.</p>
-
-<h4 id="3-health-check와-failover">3. <strong>Health Check와 Failover</strong></h4>
-
-<p>Health Check는 Server나 Application이 정상적으로 동작하고 있는지 지속적으로 확인하는 방식이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Load Balancer
-   │
-   ├─ Health Check → Server A : 정상
-   └─ Health Check → Server B : 장애
-</code></pre></div></div>
-
-<p>장애가 감지되면 비정상 Server로의 Traffic을 차단하거나 Standby 시스템으로 전환할 수 있다.</p>
-
-<p>이 과정을 자동화하면 사람의 개입 없이 장애에 대응할 수 있다.</p>
-
-<h3 id="고가용성-관련-구성"><strong>고가용성 관련 구성</strong></h3>
-
-<h4 id="server와-database-이중화"><strong>Server와 Database 이중화</strong></h4>
-
-<p>서비스에 따라 다음과 같은 구성을 사용할 수 있다.</p>
-
-<ul>
-  <li>Primary / Replica</li>
-  <li>Read Replica</li>
-  <li>Cluster</li>
-  <li>Multi-Zone 구성</li>
-  <li>Multi-Region Deployment</li>
-</ul>
-
-<p><code class="language-plaintext highlighter-rouge">Master-Slave</code>라는 용어도 기존 시스템에서 사용되어 왔지만, 최근 제품과 문서에서는 <code class="language-plaintext highlighter-rouge">Primary-Replica</code> 등 다른 용어를 사용하는 경우가 많다.</p>
-
-<h4 id="load-balancer-1"><strong>Load Balancer</strong></h4>
-
-<p>Load Balancer는 여러 Server에 Traffic을 분산하며 Health Check와 결합하여 비정상 Server를 Traffic 대상에서 제외할 수 있다.</p>
-
-<h4 id="multi-region-deployment"><strong>Multi-Region Deployment</strong></h4>
-
-<p>서로 다른 Region에 시스템을 구성하여 특정 지역 또는 Region 단위의 장애에 대응할 수 있다.</p>
-
-<p>다만 Multi-Region을 구성했다고 해서 자동으로 완전한 재해 복구가 이루어지는 것은 아니며 다음 요소를 함께 설계해야 한다.</p>
-
-<ul>
-  <li>Data Replication</li>
-  <li>Traffic 전환</li>
-  <li>DNS</li>
-  <li>Failover</li>
-  <li>데이터 정합성</li>
-  <li>운영 절차</li>
-</ul>
-
-<h2 id="6-disaster-recovery"><strong>6) Disaster Recovery</strong></h2>
-
-<hr />
-
-<p>Disaster Recovery (DR)는 대규모 장애나 재해로 서비스가 정상적으로 운영되지 못하는 상황에서 시스템과 데이터를 복구하기 위한 전체 전략이다.</p>
-
-<p>단순히 장애가 발생한 Server를 자동으로 교체하는 것보다 넓은 개념이다.</p>
-
-<p>DR에서는 다음과 같은 요소를 고려할 수 있다.</p>
-
-<ul>
-  <li>Backup</li>
-  <li>Replication</li>
-  <li>Standby System</li>
-  <li>Region 장애 대응</li>
-  <li>Network 복구</li>
-  <li>Traffic 전환</li>
-  <li>Recovery Procedure</li>
-  <li>Recovery Test</li>
-</ul>
-
-<h3 id="rpo"><strong>RPO</strong></h3>
-
-<p>RPO (Recovery Point Objective, 복구 시점 목표)는 장애가 발생했을 때 <strong>최대 어느 시점까지의 데이터 손실을 허용할 것인가</strong>를 나타내는 목표이다.</p>
-
-<p>질문으로 표현하면 다음과 같다.</p>
-
-<p>어느 시점의 데이터까지 복구할 수 있어야 하는가?</p>
-
-<p>최대 얼마만큼의 데이터를 잃는 것을 허용할 수 있는가?</p>
-
-<p>예를 들어 RPO가 24시간이면 장애 상황에서 최대 24시간 범위의 데이터 손실을 허용한다는 목표이다.</p>
-
-<p>Backup 주기와 Replication 전략은 이러한 RPO를 만족하도록 설계해야 한다.</p>
-
-<p>RPO를 매우 작게 만들기 위해서는 보다 빈번한 Backup 또는 Replication이 필요할 수 있다.</p>
-
-<h3 id="rto"><strong>RTO</strong></h3>
-
-<p>RTO (Recovery Time Objective, 복구 시간 목표)는 장애가 발생한 이후 서비스를 복구하는 데 허용할 수 있는 최대 목표 시간을 의미한다.</p>
-
-<p>질문으로 표현하면 다음과 같다.</p>
-
-<p>서비스가 중단된 후 얼마 이내에 정상화되어야 하는가?</p>
-
-<p>예를 들어 RTO가 4시간이라면 장애를 감지한 후 정해진 복구 과정을 수행하여 목표상 4시간 이내에 서비스를 정상화할 수 있도록 시스템과 절차를 설계한다.</p>
-
-<h3 id="rpo와-rto"><strong>RPO와 RTO</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구분</strong></th>
-      <th><strong>RPO</strong></th>
-      <th><strong>RTO</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>의미</td>
-      <td>허용 가능한 데이터 손실 범위</td>
-      <td>허용 가능한 서비스 복구 시간</td>
-    </tr>
-    <tr>
-      <td>핵심 질문</td>
-      <td>얼마나 이전 데이터까지 돌아가도 되는가?</td>
-      <td>얼마나 빨리 다시 서비스해야 하는가?</td>
-    </tr>
-    <tr>
-      <td>관련 요소</td>
-      <td>Backup, Replication</td>
-      <td>Failover, 복구 자동화, 운영 절차</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>쉽게 구분하면 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>RPO → 데이터
-RTO → 시간
-</code></pre></div></div>
-
-<h3 id="backup-정책"><strong>Backup 정책</strong></h3>
-
-<p>Backup 정책을 설계할 때는 다음 사항을 고려해야 한다.</p>
-
-<ul>
-  <li>어떤 데이터를 Backup할 것인가?</li>
-  <li>얼마나 자주 Backup할 것인가?</li>
-  <li>Backup 데이터를 어디에 저장할 것인가?</li>
-  <li>Backup 데이터를 어떻게 암호화하고 보호할 것인가?</li>
-  <li>Backup을 얼마나 오래 보관할 것인가?</li>
-  <li>실제로 Restore가 가능한지 어떻게 검증할 것인가?</li>
-</ul>
-
-<p>중요한 데이터는 운영 시스템과 동일한 장애 영역에만 Backup을 보관하지 않는 것이 중요하다.</p>
-
-<p>필요에 따라 다른 Zone 또는 Region에 Backup을 보관하여 동일한 장애로 원본과 Backup이 동시에 손실되는 위험을 줄일 수 있다.</p>
-
-<p>Backup 파일이 존재한다는 것만으로 복구 가능성이 보장되는 것은 아니다.</p>
-
-<p>따라서 <strong>정기적인 Restore Test를 통해 실제 복구가 가능한지 확인해야 한다.</strong></p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>장애는 발생하지 않도록 하는 것뿐 아니라 발생했을 때 빠르게 감지하고 복구하도록 준비해야 한다.</li>
-  <li>Monitoring, Logging, Distributed Tracing을 이용하여 장애의 위치와 원인을 파악한다.</li>
-  <li>High Availability는 일부 구성 요소가 실패해도 서비스를 지속하도록 설계하는 것이다.</li>
-  <li>SPOF 제거, Redundancy, Health Check, Failover가 중요한 구성 원칙이다.</li>
-  <li>DR은 대규모 장애 이후 서비스와 데이터를 복구하기 위한 전략이다.</li>
-  <li>RPO는 허용 가능한 데이터 손실, RTO는 허용 가능한 복구 시간을 의미한다.</li>
-  <li>Backup은 생성하는 것뿐 아니라 실제 Restore Test까지 수행해야 한다.</li>
-</ul>
-
-<h2 id="7-주요-cloud-platform-비교"><strong>7) 주요 Cloud Platform 비교</strong></h2>
-
-<hr />
-
-<p>대표적인 Public Cloud Platform으로 AWS, Microsoft Azure, Google Cloud가 있다.</p>
-
-<p>세 Platform 모두 Compute, Storage, Network, Database, Container, Serverless, AI/ML 등 다양한 Cloud Service를 제공하지만 서비스 구성 방식과 생태계에는 차이가 있다.</p>
-
-<h3 id="공통점"><strong>공통점</strong></h3>
-
-<h4 id="다양한-cloud-service-model"><strong>다양한 Cloud Service Model</strong></h4>
-
-<p>다음과 같은 광범위한 Cloud Resource와 Managed Service를 제공한다.</p>
-
-<ul>
-  <li>Compute</li>
-  <li>Storage</li>
-  <li>Network</li>
-  <li>Database</li>
-  <li>Container</li>
-  <li>Serverless</li>
-  <li>AI / ML</li>
-  <li>Security</li>
-</ul>
-
-<h4 id="shared-responsibility-model-1"><strong>Shared Responsibility Model</strong></h4>
-
-<p>Cloud Provider와 사용자가 보안 책임을 나누어 가진다.</p>
-
-<p>책임 범위는 사용하는 서비스 유형과 제품에 따라 달라진다.</p>
-
-<h4 id="다양한-요금-모델"><strong>다양한 요금 모델</strong></h4>
-
-<p>대표적으로 사용량에 기반한 과금 방식과 일정 사용량 또는 기간을 약정하여 비용을 절감하는 방식 등을 제공한다.</p>
-
-<h4 id="global-infrastructure"><strong>Global Infrastructure</strong></h4>
-
-<p>여러 Region과 Availability Zone 등의 Infrastructure를 이용하여 지리적으로 분산된 시스템을 설계할 수 있다.</p>
-
-<h3 id="aws--azure--google-cloud-비교"><strong>AWS · Azure · Google Cloud 비교</strong></h3>
-
-<p>다음 표는 강의에서 각 Platform의 특징을 비교하기 위한 <strong>대표적인 경향</strong>을 정리한 것이다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구분</strong></th>
-      <th><strong>AWS</strong></th>
-      <th><strong>Azure</strong></th>
-      <th><strong>Google Cloud</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>주요 특징</td>
-      <td>폭넓은 Cloud Service와 생태계</td>
-      <td>Microsoft 생태계 및 Hybrid 환경과의 연계</td>
-      <td>Data, Kubernetes, AI 분야의 강점</td>
-    </tr>
-    <tr>
-      <td>Compute</td>
-      <td>EC2</td>
-      <td>Azure Virtual Machines</td>
-      <td>Compute Engine</td>
-    </tr>
-    <tr>
-      <td>Object Storage</td>
-      <td>Amazon S3</td>
-      <td>Azure Blob Storage</td>
-      <td>Cloud Storage</td>
-    </tr>
-    <tr>
-      <td>관계형 Database</td>
-      <td>Amazon RDS</td>
-      <td>Azure SQL 계열</td>
-      <td>Cloud SQL</td>
-    </tr>
-    <tr>
-      <td>Serverless</td>
-      <td>AWS Lambda</td>
-      <td>Azure Functions</td>
-      <td>Cloud Run / Cloud Functions 계열</td>
-    </tr>
-    <tr>
-      <td>Kubernetes</td>
-      <td>Amazon EKS</td>
-      <td>Azure Kubernetes Service (AKS)</td>
-      <td>Google Kubernetes Engine (GKE)</td>
-    </tr>
-    <tr>
-      <td>AI Platform</td>
-      <td>Amazon SageMaker, Amazon Bedrock</td>
-      <td>Azure AI 및 Azure OpenAI</td>
-      <td>Vertex AI</td>
-    </tr>
-    <tr>
-      <td>Data 분석</td>
-      <td>다양한 분석 서비스</td>
-      <td>Azure Data Platform</td>
-      <td>BigQuery 등</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>특정 서비스의 우열은 고정되어 있지 않으며 새로운 서비스가 지속적으로 추가되므로 실제 도입 시점의 요구 사항을 기준으로 비교해야 한다.</p>
-
-<h3 id="aws"><strong>AWS</strong></h3>
-
-<p>AWS는 다양한 분야의 Cloud Service와 광범위한 생태계를 제공한다.</p>
-
-<p>다양한 Resource를 세밀하게 조합하여 Infrastructure를 구성할 수 있다는 장점이 있지만, 사용할 수 있는 서비스와 옵션이 많기 때문에 처음 학습할 때 복잡하게 느껴질 수 있다.</p>
-
-<p>다음과 같은 상황에서 검토할 수 있다.</p>
-
-<ul>
-  <li>다양한 Cloud Service를 조합해야 하는 환경</li>
-  <li>광범위한 Reference와 Ecosystem이 필요한 환경</li>
-  <li>여러 유형의 Workload를 하나의 Cloud에서 운영해야 하는 환경</li>
-</ul>
-
-<h3 id="azure"><strong>Azure</strong></h3>
-
-<p>Azure는 Microsoft의 Enterprise Product와 연계하여 활용할 수 있다.</p>
-
-<p>다음과 같은 환경에서 검토하기 쉽다.</p>
-
-<ul>
-  <li>Windows Server 기반 Infrastructure</li>
-  <li>Microsoft Identity 환경</li>
-  <li>Microsoft 365를 사용하는 조직</li>
-  <li>.NET 기반 Application</li>
-  <li>On-Premise Microsoft 환경과 Cloud를 연결하는 Hybrid 환경</li>
-</ul>
-
-<h3 id="google-cloud"><strong>Google Cloud</strong></h3>
-
-<p>Google Cloud는 Data Analytics, Kubernetes, AI 등의 영역과 연결하여 활용할 수 있다.</p>
-
-<p>대표적인 서비스로 다음이 있다.</p>
-
-<ul>
-  <li>BigQuery</li>
-  <li>Google Kubernetes Engine (GKE)</li>
-  <li>Vertex AI</li>
-  <li>Cloud Spanner</li>
-  <li>Compute Engine</li>
-  <li>Cloud Storage</li>
-</ul>
-
-<p>다음과 같은 환경에서 검토할 수 있다.</p>
-
-<ul>
-  <li>대규모 Data 분석</li>
-  <li>Kubernetes 중심의 Container Platform</li>
-  <li>AI / ML Workload</li>
-  <li>Google Cloud의 Data Platform을 적극적으로 활용하는 환경</li>
-</ul>
-
-<p><strong>정리</strong></p>
-
-<p>Cloud Platform은 단순히 “어느 회사가 가장 좋은가”로 선택하기 어렵다.</p>
-
-<p>현재 조직에서 사용하는 기술, Data 특성, Network 구조, Security 요구 사항, 운영 인력 등을 함께 고려해야 한다.</p>
-
-<h3 id="국내-cloud-platform"><strong>국내 Cloud Platform</strong></h3>
-
-<p>국내에서도 여러 Cloud Service Provider가 서비스를 제공한다.</p>
-
-<p>강의에서는 다음 네 Platform의 특징을 중심으로 다루었다.</p>
-
-<h4 id="naver-cloud"><strong>NAVER Cloud</strong></h4>
-
-<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
-
-<ul>
-  <li>AI Ecosystem</li>
-  <li>국내 기업 및 공공 환경을 고려한 Cloud Service</li>
-  <li>Sovereign Cloud</li>
-  <li>HyperCLOVA X와 연계된 AI Service</li>
-  <li>IaaS / PaaS / SaaS</li>
-  <li>금융·의료·공공 분야를 고려한 Cloud 환경</li>
-</ul>
-
-<h4 id="nhn-cloud"><strong>NHN Cloud</strong></h4>
-
-<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
-
-<ul>
-  <li>Game Infrastructure</li>
-  <li>공공 Cloud</li>
-  <li>AI Data Center</li>
-  <li>SaaS 연계</li>
-  <li>게임 서비스 운영 경험을 활용한 Infrastructure</li>
-  <li>Dooray 등의 업무 서비스</li>
-</ul>
-
-<h4 id="kt-cloud"><strong>KT Cloud</strong></h4>
-
-<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
-
-<ul>
-  <li>IDC (Internet Data Center)</li>
-  <li>공공 Cloud</li>
-  <li>통신 Infrastructure 연계</li>
-  <li>Edge Computing</li>
-  <li>Enterprise Infrastructure</li>
-</ul>
-
-<h4 id="kakao-cloud"><strong>Kakao Cloud</strong></h4>
-
-<p>강의에서는 다음 영역을 주요 특징으로 다루었다.</p>
-
-<ul>
-  <li>개발자 중심의 Cloud 환경</li>
-  <li>Kubernetes</li>
-  <li>Cloud Native Infrastructure</li>
-  <li>AI Service</li>
-  <li>Mobile 및 Kakao Ecosystem과의 연계</li>
-</ul>
-
-<p>국내 Cloud 역시 특정 산업에 무조건 하나의 Provider가 적합하다고 단정하기보다는 실제 요구 사항과 인증, 규제, 서비스 지원 범위를 확인하여 선택해야 한다.</p>
-
-<h3 id="cloud-선택-기준"><strong>Cloud 선택 기준</strong></h3>
-
-<p>Cloud Platform을 선택할 때는 단순히 서비스 수나 가격만 비교해서는 안 된다.</p>
-
-<h4 id="기술적-적합성"><strong>기술적 적합성</strong></h4>
-
-<p>현재 Application과 Infrastructure에서 필요한 기술을 지원하는지 확인한다.</p>
-
-<h4 id="비용"><strong>비용</strong></h4>
-
-<p>다음 비용을 함께 고려해야 한다.</p>
-
-<ul>
-  <li>Compute</li>
-  <li>Storage</li>
-  <li>Network Traffic</li>
-  <li>Managed Service</li>
-  <li>운영 인력</li>
-  <li>Migration</li>
-</ul>
-
-<h4 id="지역성과-법적-요구-사항"><strong>지역성과 법적 요구 사항</strong></h4>
-
-<p>Data가 저장되는 Region과 해당 산업에서 요구하는 법률·규제·인증 조건을 확인한다.</p>
-
-<h4 id="기업의-전략-방향"><strong>기업의 전략 방향</strong></h4>
-
-<p>현재 기업이 사용하는 기술 Stack과 장기적인 Cloud 전략을 고려한다.</p>
-
-<h4 id="조직의-cloud-성숙도"><strong>조직의 Cloud 성숙도</strong></h4>
-
-<p>Cloud Platform 자체의 기능뿐 아니라 해당 Platform을 실제로 운영할 수 있는 인력이 있는지도 중요하다.</p>
-
-<h4 id="내부-security-policy"><strong>내부 Security Policy</strong></h4>
-
-<p>조직의 Security Policy와 Cloud Provider가 제공하는 Security 기능이 맞는지 검토한다.</p>
-
-<h4 id="sla"><strong>SLA</strong></h4>
-
-<p>SLA (Service Level Agreement)에서 보장하는 Availability와 보상 조건 등을 확인한다.</p>
-
-<h4 id="migration-난이도"><strong>Migration 난이도</strong></h4>
-
-<p>기존 On-Premise 또는 다른 Cloud 환경에서 Application과 Data를 이전하는 데 필요한 비용과 난이도를 고려한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cloud 선택
-
-기술 적합성
-    +
-비용
-    +
-Security
-    +
-법적 요구 사항
-    +
-조직 역량
-    +
-SLA
-    +
-Migration 난이도
-</code></pre></div></div>
-
-<h2 id="전체-정리"><strong>전체 정리</strong></h2>
-
-<hr />
-
-<blockquote>
-  <ul>
-    <li>
-      <p>VPN은 인터넷 등의 네트워크 위에 암호화된 사설 통신 경로를 구성하며, 전용선은 보다 안정적인 Cloud 연결을 구성할 때 사용할 수 있다.</p>
-    </li>
-    <li>
-      <p>Service Endpoint는 Client가 Service에 접근하는 접점이고 Load Balancer는 여러 Server에 Traffic을 분산하는 역할을 한다.</p>
-    </li>
-    <li>
-      <p>Cloud에서는 Server와 Container의 주소가 동적으로 변경될 수 있으므로 DNS와 Service Discovery 같은 이름 기반 접근 방식이 중요하다.</p>
-    </li>
-    <li>
-      <p>VPC와 VNet은 Cloud Resource를 배치하기 위한 논리적인 Network이며 Subnet, Routing, NAT, Security Policy 등을 구성할 수 있다.</p>
-    </li>
-    <li>
-      <p>IaC는 Infrastructure의 원하는 상태를 코드로 정의하여 반복적인 작업을 자동화하고 변경 이력을 관리하는 방식이다.</p>
-    </li>
-    <li>
-      <p>Terraform은 Infrastructure Provisioning에, Ansible은 Configuration Management와 IT Automation에 주로 사용하며 두 도구를 함께 사용할 수도 있다.</p>
-    </li>
-    <li>
-      <p>Shared Responsibility Model에서는 Cloud Provider와 Customer가 사용하는 서비스에 따라 Security 책임을 나누어 가진다.</p>
-    </li>
-    <li>
-      <p>IAM은 Identification, Authentication, Authorization과 Account Lifecycle을 관리하며 Least Privilege를 적용하는 기반이 된다.</p>
-    </li>
-    <li>
-      <p>Secret은 Source Code와 분리하여 관리하고 접근 권한, Rotation, Audit까지 함께 고려해야 한다.</p>
-    </li>
-    <li>
-      <p>JWT는 항상 암호화된 Token이 아니며 Claim을 전달하기 위해 서명 또는 암호화할 수 있는 Token 형식이다.</p>
-    </li>
-    <li>
-      <p>장애 대응에서는 Monitoring, Logging, Distributed Tracing을 통해 문제를 빠르게 발견하고 원인을 추적해야 한다.</p>
-    </li>
-    <li>
-      <p>High Availability는 SPOF를 제거하고 Redundancy, Health Check, Failover 등을 이용하여 서비스 중단을 최소화하는 방식이다.</p>
-    </li>
-    <li>
-      <p>RPO는 허용 가능한 데이터 손실 범위를, RTO는 허용 가능한 복구 시간을 의미한다.</p>
-    </li>
-    <li>
-      <p>Backup은 생성뿐 아니라 실제 Restore Test까지 수행해야 한다.</p>
-    </li>
-    <li>
-      <p>AWS, Azure, Google Cloud와 국내 Cloud Platform은 각각 다른 Ecosystem과 특성을 가지므로 기술, 비용, Security, 법적 요구 사항, 조직 역량, SLA, Migration 난이도를 종합하여 선택해야 한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="Cloud" /><category term="AutoEverSW" /><summary type="html"><![CDATA[클라우드 네트워크, IaC, 보안과 접근 제어, 장애 대응 및 고가용성, 재해 복구와 클라우드 플랫폼 선택 기준]]></summary></entry><entry><title type="html">Cloud Native와 DevOps</title><link href="https://kkr010128.github.io/cloud-native-01-overview/" rel="alternate" type="text/html" title="Cloud Native와 DevOps" /><published>2026-08-10T00:00:00+09:00</published><updated>2026-08-10T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-01-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-01-overview/"><![CDATA[<h2 id="1-cloud-native-개요">1) Cloud Native 개요</h2>
-<hr />
-
-<p>Cloud Native는 Public Cloud, Private Cloud, Hybrid Cloud와 같은 현대적이고 동적인 환경에서 <strong>확장 가능하고 탄력적인 애플리케이션을 개발하고 운영하기 위한 접근 방식</strong>이다.</p>
-
-<p>대표적인 기술과 설계 방식에는 다음과 같은 것들이 있다.</p>
-
-<ul>
-  <li>Container</li>
-  <li>Service Mesh</li>
-  <li>Microservices</li>
-  <li>Immutable Infrastructure</li>
-  <li>Declarative API</li>
-</ul>
-
-<p>이러한 기술을 자동화와 함께 활용하면 시스템을 느슨하게 결합하고, 변경에 유연하게 대응하며, 애플리케이션의 상태와 동작을 관찰하기 쉬운 환경을 구성할 수 있다.</p>
-
-<p>결과적으로 개발자는 큰 변경을 한 번에 적용하기보다 <strong>작은 변경을 반복적이고 예측 가능한 방식으로 배포하는 구조</strong>를 만들 수 있다.</p>
-
-<h3 id="cncf">CNCF</h3>
-
-<p>CNCF (Cloud Native Computing Foundation)는 Cloud Native 기술과 관련된 오픈 소스 프로젝트 생태계를 지원하는 재단이다.</p>
-
-<p>특정 Cloud Vendor에 종속되지 않는 생태계를 지원하며 Kubernetes를 비롯한 다양한 Cloud Native 프로젝트를 관리하고 육성한다.</p>
-
-<p>이를 통해 Cloud Native 기술과 운영 패턴이 특정 기업에만 제한되지 않고 다양한 조직과 개발자가 활용할 수 있는 생태계를 만드는 역할을 한다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>Cloud Native는 단순히 Cloud에서 Application을 실행하는 것을 의미하지 않는다.</li>
-    <li>Container, Microservices, Declarative API, 자동화 등을 활용하여 변화에 유연한 Application과 운영 환경을 만드는 접근 방식이다.</li>
-    <li>CNCF는 Cloud Native 관련 오픈 소스 프로젝트와 생태계를 지원한다.</li>
-  </ul>
-</blockquote>
-
-<h2 id="2-it-서비스-개발-및-구현-방식의-변화">2) IT 서비스 개발 및 구현 방식의 변화</h2>
-<hr />
-
-<p>Cloud Native의 등장에는 Application 개발 방식뿐 아니라 Architecture, 배포 방식, Infrastructure의 변화가 함께 영향을 주었다.</p>
-
-<h3 id="개발-방식">개발 방식</h3>
-
-<p>IT Service 개발에는 다음과 같은 다양한 방법론과 운영 방식이 사용된다.</p>
-
-<ul>
-  <li>Waterfall</li>
-  <li>Agile</li>
-  <li>Scrum</li>
-  <li>Kanban</li>
-  <li>Lean</li>
-  <li>DevOps</li>
-  <li>DevSecOps</li>
-  <li>Water-Scrum-Fall</li>
-</ul>
-
-<p>Waterfall은 과거부터 사용되어 온 전통적인 개발 방식이며, 이후 변화에 빠르게 대응하기 위한 Agile 방식과 개발·운영의 협업을 강조하는 DevOps 등이 등장하였다.</p>
-
-<h3 id="개발-프로세스의-변화">개발 프로세스의 변화</h3>
-
-<p>강의에서는 개발 및 운영 방식의 변화 흐름을 다음과 같이 정리하였다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Waterfall
-   ↓
-Agile
-   ↓
-DevOps
-   ↓
-DevSecOps
-</code></pre></div></div>
-
-<p>이는 이전 방식이 완전히 사라지고 새로운 방식으로 교체된다는 의미라기보다, <strong>빠른 변화와 지속적인 Delivery를 지원하기 위한 개발·운영 방식이 발전해 온 흐름</strong>으로 이해할 수 있다.</p>
-
-<h3 id="application-architecture의-변화"><strong>Application Architecture의 변화</strong></h3>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Monolithic
-   ↓
-N-Tier
-   ↓
-Microservices
-</code></pre></div></div>
-
-<p>초기의 Application은 하나의 큰 단위로 구성되는 Monolithic Architecture를 많이 사용했다.</p>
-
-<p>이후 Presentation, Business Logic, Data 등의 역할을 계층으로 분리하는 N-Tier Architecture가 사용되었으며, Cloud Native 환경에서는 기능을 독립적인 Service 단위로 분리하는 Microservices Architecture가 활용된다.</p>
-
-<h3 id="개발-및-packaging-방식의-변화"><strong>개발 및 Packaging 방식의 변화</strong></h3>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Physical Server
-      ↓
-Virtual Server
-      ↓
-Container
-</code></pre></div></div>
-
-<p>물리 Server에 Application을 직접 설치하는 방식에서 Virtualization을 이용하는 방식으로 변화했고, 이후 Application과 실행에 필요한 환경을 함께 Packaging하는 Container가 널리 사용되기 시작했다.</p>
-
-<p>Container는 Virtual Machine보다 Application 실행 단위를 작고 독립적으로 구성하기 쉬워 Cloud Native Architecture와 잘 결합된다.</p>
-
-<h3 id="infrastructure의-변화"><strong>Infrastructure의 변화</strong></h3>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Data Center
-    ↓
-Hosted Infrastructure
-    ↓
-Cloud
-</code></pre></div></div>
-
-<p>기업이 직접 Data Center와 Hardware를 운영하던 방식에서 외부 Hosting Infrastructure를 이용하는 방식으로 변화했고, 이후 필요한 Resource를 API와 자동화를 통해 사용할 수 있는 Cloud Infrastructure가 널리 사용되고 있다.</p>
-
-<p><strong>정리</strong></p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>영역</strong></th>
-      <th><strong>변화 흐름</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>개발·운영 방식</td>
-      <td>Waterfall → Agile → DevOps / DevSecOps</td>
-    </tr>
-    <tr>
-      <td>Architecture</td>
-      <td>Monolithic → N-Tier → Microservices</td>
-    </tr>
-    <tr>
-      <td>실행 환경</td>
-      <td>Physical Server → Virtual Server → Container</td>
-    </tr>
-    <tr>
-      <td>Infrastructure</td>
-      <td>Data Center → Hosted → Cloud</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="3-cloud-native-적용이-필요한-이유"><strong>3) Cloud Native 적용이 필요한 이유</strong></h2>
-
-<hr />
-
-<h3 id="서비스-배포-시간-단축"><strong>서비스 배포 시간 단축</strong></h3>
-
-<p>Cloud Native 환경에서는 Container, Microservices, CI/CD 등의 기술을 이용하여 Application을 작은 단위로 개발하고 배포할 수 있다.</p>
-
-<p>DevOps 문화와 자동화가 함께 적용되면 개발팀과 운영팀 사이의 협업 방식도 개선할 수 있다.</p>
-
-<ul>
-  <li>개발팀과 운영팀의 상호 이해 확대</li>
-  <li>DevOps 문화 정착</li>
-  <li>조직 내 Team 간 Hand-off 감소</li>
-  <li>지속적인 Delivery와 Deployment</li>
-  <li>변경 과정의 복잡성 감소</li>
-</ul>
-
-<p>Application 전체를 한 번에 변경해야 하는 구조보다 작은 Service 단위로 변경하고 배포할 수 있기 때문에 Release 주기를 단축하는 데 유리하다.</p>
-
-<h3 id="application-및-service-현대화"><strong>Application 및 Service 현대화</strong></h3>
-
-<p>Container를 이용하면 Application 실행 환경을 일정한 단위로 Packaging할 수 있다.</p>
-
-<p>이를 통해 Application이 특정 Server 환경에 직접 의존하는 문제를 줄일 수 있다.</p>
-
-<p>기존 On-Premise Application도 구조와 요구 사항에 따라 Container화하거나 Cloud 환경으로 이전할 수 있다.</p>
-
-<p>Kubernetes는 다양한 Infrastructure 환경에서 Container를 일관된 방식으로 배포하고 관리하기 위한 Platform을 제공한다.</p>
-
-<p>따라서 On-Premise와 Cloud 등 서로 다른 Infrastructure 환경에서도 Container 운영 방식을 일정하게 유지하는 데 활용할 수 있다.</p>
-
-<h3 id="신속한-신규-서비스-개발"><strong>신속한 신규 서비스 개발</strong></h3>
-
-<p>Cloud Native는 대규모 Open Source 생태계를 기반으로 발전하고 있다.</p>
-
-<p>대표적으로 Kubernetes와 CNCF 프로젝트에는 많은 개발자와 기업이 참여하고 있다.</p>
-
-<h4 id="풍부한-기술-생태계"><strong>풍부한 기술 생태계</strong></h4>
-
-<ul>
-  <li>Kubernetes</li>
-  <li>CNCF Project</li>
-  <li>Open Source Tool</li>
-  <li>Community</li>
-  <li>다양한 Vendor 및 Cloud Provider 지원</li>
-</ul>
-
-<h4 id="open-source-기반"><strong>Open Source 기반</strong></h4>
-
-<p>Open Source 생태계는 개발자들이 기술을 학습하고 도구를 활용하기 쉬운 환경을 제공한다.</p>
-
-<p>또한 특정 기업 내부에서만 사용되는 기술보다 관련 경험을 가진 개발자를 확보하기 쉬운 경우가 있다.</p>
-
-<h3 id="it-목표"><strong>IT 목표</strong></h3>
-
-<p>Cloud Native를 통해 추구하는 IT 측면의 목표는 다음과 같이 정리할 수 있다.</p>
-
-<ul>
-  <li>민첩성 (Agility)</li>
-  <li>생산성 (Productivity)</li>
-  <li>복원력 (Resilience)</li>
-  <li>확장성 (Scalability)</li>
-  <li>최적화 (Optimization)</li>
-  <li>효율성 (Efficiency)</li>
-</ul>
-
-<h3 id="사업-성과"><strong>사업 성과</strong></h3>
-
-<p>기술적인 변화는 최종적으로 다음과 같은 Business 목표와 연결될 수 있다.</p>
-
-<ul>
-  <li>새로운 시장 및 서비스 대응</li>
-  <li>Business Risk 감소</li>
-  <li>운영 비용 최적화</li>
-  <li>서비스 출시 속도 향상</li>
-</ul>
-
-<p>Cloud Native를 적용한다고 해서 이러한 결과가 자동으로 발생하는 것은 아니며, 조직의 Architecture와 운영 방식, 자동화 수준 등이 함께 변화해야 한다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>Cloud Native는 작은 단위의 변경과 지속적인 Delivery를 지원한다.</li>
-  <li>Container를 이용하여 Application과 Infrastructure 사이의 종속성을 줄일 수 있다.</li>
-  <li>Kubernetes는 다양한 Infrastructure에서 Container를 일관된 방식으로 운영할 수 있도록 한다.</li>
-  <li>기술 도입 자체보다 DevOps와 자동화, Architecture 변화가 함께 이루어지는 것이 중요하다.</li>
-</ul>
-
-<h2 id="4-cloud-native-운영-흐름"><strong>4) Cloud Native 운영 흐름</strong></h2>
-
-<hr />
-
-<p>강의에서는 Cloud Native 환경에서 제품을 개발하고 운영하는 전체 흐름을 다음과 같이 정리하였다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Product
-   ↓
-Development
-   ↓
-Capacity Planning
-   ↓
-Testing + Release Procedures
-   ↓
-Monitoring
-   ↓
-Incident Response
-   ↓
-Postmortem + Root Cause Analysis
-</code></pre></div></div>
-
-<h3 id="product"><strong>Product</strong></h3>
-
-<p>어떤 Service와 기능을 제공할 것인지 정의한다.</p>
-
-<h3 id="development"><strong>Development</strong></h3>
-
-<p>Application과 Service를 개발한다.</p>
-
-<h3 id="capacity-planning"><strong>Capacity Planning</strong></h3>
-
-<p>Service가 처리해야 하는 Traffic과 Resource 규모를 예측하고 필요한 Infrastructure Capacity를 계획한다.</p>
-
-<h3 id="testing--release-procedures"><strong>Testing &amp; Release Procedures</strong></h3>
-
-<p>Application을 검증하고 Production 환경에 Release하기 위한 절차를 구성한다.</p>
-
-<h3 id="monitoring"><strong>Monitoring</strong></h3>
-
-<p>Application과 Infrastructure의 상태를 지속적으로 관찰한다.</p>
-
-<h3 id="incident-response"><strong>Incident Response</strong></h3>
-
-<p>장애가 발생하면 문제를 감지하고 대응한다.</p>
-
-<h3 id="postmortem--root-cause-analysis"><strong>Postmortem &amp; Root Cause Analysis</strong></h3>
-
-<p>장애가 해결된 후 원인을 분석하고 재발 방지 대책을 마련한다.</p>
-
-<p>단순히 장애를 복구하는 데서 끝내지 않고 이후 동일한 문제가 다시 발생하지 않도록 개선하는 과정이 중요하다.</p>
-
-<h2 id="5-pillars-of-cloud-native"><strong>5) Pillars of Cloud Native</strong></h2>
-
-<hr />
-
-<p>강의에서는 Cloud Native를 구성하는 주요 요소를 다음 네 가지로 정리하였다.</p>
-
-<ul>
-  <li>DevOps</li>
-  <li>Microservices</li>
-  <li>Containers</li>
-  <li>Continuous Delivery</li>
-</ul>
-
-<p>각 요소는 독립적인 기술이라기보다 Cloud Native Application을 빠르고 안정적으로 개발하고 운영하기 위해 서로 연결된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>           Cloud Native
-               │
-     ┌─────────┼─────────┐
-     │         │         │
-   DevOps  Microservices Container
-     │
-Continuous Delivery
-</code></pre></div></div>
-
-<h3 id="devops"><strong>DevOps</strong></h3>
-
-<p>DevOps를 이해하기 위해서는 먼저 Agile과 IT Service Management의 변화 과정을 이해할 필요가 있다.</p>
-
-<h3 id="agile-방법론"><strong>Agile 방법론</strong></h3>
-
-<p>Waterfall은 Software Project를 요구 사항 분석부터 설계, 개발, 테스트, 배포까지 순차적으로 진행하는 방식이다.</p>
-
-<p>초기 계획을 기반으로 순서대로 진행하기 때문에 개발 중 요구 사항이 변경될 경우 대응하기 어렵다는 문제가 발생할 수 있다.</p>
-
-<p>Agile은 이러한 문제를 보완하기 위해 <strong>짧은 개발 주기와 반복적인 개선, Team의 협업과 변화 대응</strong>을 강조한다.</p>
-
-<h4 id="agile-manifesto"><strong>Agile Manifesto</strong></h4>
-
-<p>Agile Manifesto에서는 다음 네 가지 가치를 강조한다.</p>
-
-<p>프로세스와 도구보다 <strong>개인과 상호 작용</strong></p>
-
-<p>포괄적인 문서보다 <strong>작동하는 Software</strong></p>
-
-<p>계약 협상보다 <strong>고객과의 협업</strong></p>
-
-<p>계획을 따르는 것보다 <strong>변화에 대응하는 것</strong></p>
-
-<p>오른쪽의 요소도 가치가 있지만 왼쪽의 요소를 더 중요하게 본다는 의미이다.</p>
-
-<p>즉, Agile이 문서나 계획을 없애자는 의미는 아니다.</p>
-
-<p>변화하는 요구 사항에 맞춰 실제 동작하는 Software와 사람 사이의 협업을 더 중요하게 다루는 방식이다.</p>
-
-<h3 id="itil"><strong>ITIL</strong></h3>
-
-<p>ITIL (Information Technology Infrastructure Library)은 IT Service Management (ITSM)를 위한 Best Practice 체계이다.</p>
-
-<p>IT Service를 계획하고 제공하며 지속적으로 개선하기 위한 다양한 Practice를 제공한다.</p>
-
-<p>ITIL은 오랫동안 기업의 IT Service Management에 활용되어 왔다.</p>
-
-<p>ITIL 4에서는 기존의 절차 중심 접근을 확장하여 Agile, Lean, DevOps 등의 방식과 함께 사용할 수 있도록 Service Value System을 중심으로 체계가 구성되어 있다.</p>
-
-<h3 id="devops-개요"><strong>DevOps 개요</strong></h3>
-
-<p>DevOps는 <strong>Development와 Operations를 결합한 개념</strong>이다.</p>
-
-<p>Software 개발자와 운영 담당자가 서로 분리된 조직으로 동작하는 대신 Application의 개발부터 Release, Production 운영까지 전체 Life Cycle에서 협력하는 방식과 문화를 의미한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Plan
- ↓
-Code
- ↓
-Build
- ↓
-Test
- ↓
-Release
- ↓
-Operate
- ↓
-Monitor
- └──────────────→ 다시 Plan
-</code></pre></div></div>
-
-<p>DevOps에서는 하나의 Team이 Application 개발부터 Production 운영까지 더 넓은 범위를 책임지는 방향을 추구한다.</p>
-
-<p>단순히 특정 CI/CD Tool을 도입하는 것이 아니라 <strong>조직 문화, 개발 방식, 운영 Process를 함께 변화시키는 것</strong>이 중요하다.</p>
-
-<h4 id="hand-off-감소"><strong>Hand-off 감소</strong></h4>
-
-<p>전통적인 조직에서는 다음과 같이 역할이 분리될 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Developer
-    ↓
-Build Team
-    ↓
-QA
-    ↓
-Deployment Team
-    ↓
-Operations
-</code></pre></div></div>
-
-<p>업무가 Team 사이를 이동할 때 Context가 손실되거나 책임 소재가 불명확해지는 문제가 발생할 수 있다.</p>
-
-<p>DevOps에서는 개발과 운영 Team의 협업과 자동화를 통해 이러한 Hand-off를 줄이는 것을 중요하게 본다.</p>
-
-<h3 id="devops-tool-chain"><strong>DevOps Tool Chain</strong></h3>
-
-<p>DevOps는 Application의 전체 Life Cycle을 하나의 반복적인 흐름으로 관리한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>단계</strong></th>
-      <th><strong>주요 역할</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Plan</td>
-      <td>목표, 요구 사항, 개발 계획 수립</td>
-    </tr>
-    <tr>
-      <td>Code</td>
-      <td>Source Code 개발, Review, Version Control, Merge</td>
-    </tr>
-    <tr>
-      <td>Build</td>
-      <td>Source Code Build 및 Artifact 생성</td>
-    </tr>
-    <tr>
-      <td>Test</td>
-      <td>Application 기능과 품질 검증</td>
-    </tr>
-    <tr>
-      <td>Package</td>
-      <td>배포 가능한 Application Artifact 또는 Image 생성</td>
-    </tr>
-    <tr>
-      <td>Release / Deploy</td>
-      <td>변경 사항 승인 및 Production 환경 배포</td>
-    </tr>
-    <tr>
-      <td>Operate</td>
-      <td>실제 Service 운영</td>
-    </tr>
-    <tr>
-      <td>Monitoring</td>
-      <td>Application 및 Infrastructure 상태와 사용자 경험 확인</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="plan"><strong>Plan</strong></h4>
-
-<p>목표를 수행하기 위한 방법과 절차를 계획한다.</p>
-
-<h4 id="code"><strong>Code</strong></h4>
-
-<ul>
-  <li>Source Code 작성</li>
-  <li>Code Review</li>
-  <li>Version Control</li>
-  <li>Branch 및 Merge 관리</li>
-</ul>
-
-<h4 id="build"><strong>Build</strong></h4>
-
-<p>Application을 실행 가능한 형태로 Build한다.</p>
-
-<p>CI (Continuous Integration)를 통해 Code 변경 시 자동으로 Build와 검증을 수행할 수 있다.</p>
-
-<h4 id="test"><strong>Test</strong></h4>
-
-<p>Application이 요구 사항에 맞게 동작하는지 검증한다.</p>
-
-<h4 id="package"><strong>Package</strong></h4>
-
-<p>배포할 Application을 Package 형태로 생성한다.</p>
-
-<p>예를 들어 Container 환경에서는 Docker Image가 배포 단위가 될 수 있다.</p>
-
-<h4 id="release--deploy"><strong>Release / Deploy</strong></h4>
-
-<p>검증된 변경 사항을 실제 환경에 Release한다.</p>
-
-<ul>
-  <li>Release 승인</li>
-  <li>변경 관리</li>
-  <li>자동 Deployment</li>
-  <li>Rollback</li>
-</ul>
-
-<h4 id="operate"><strong>Operate</strong></h4>
-
-<p>Production 환경에서 Application과 Infrastructure를 운영한다.</p>
-
-<h4 id="monitoring-1"><strong>Monitoring</strong></h4>
-
-<p>Application과 Infrastructure의 상태를 지속적으로 확인한다.</p>
-
-<ul>
-  <li>Performance</li>
-  <li>Error</li>
-  <li>Resource 사용량</li>
-  <li>최종 사용자 경험</li>
-</ul>
-
-<h3 id="devops로의-변화"><strong>DevOps로의 변화</strong></h3>
-
-<p>강의에서는 DevOps로의 변화 흐름을 다음과 같이 제시하였다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Service Oriented Architecture
-            ↓
-       Microservices
-            ↓
-Functional Microservices
-</code></pre></div></div>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Agile Teams
-     ↓
-Mode 2 / DevOps / Agile Mindset
-     ↓
-Enterprise DevOps
-</code></pre></div></div>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Cloud Infrastructure Automation
-              ↓
-             CI/CD
-              ↓
-       DevOps Automation
-</code></pre></div></div>
-
-<p>이는 모든 조직이 반드시 동일한 단계를 거친다는 의미라기보다, Architecture와 조직 문화, 자동화 방식이 함께 변화하는 흐름을 설명한 것이다.</p>
-
-<h3 id="devops의-이점"><strong>DevOps의 이점</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>이점</strong></th>
-      <th><strong>관련 개념</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>개발 속도 향상</td>
-      <td>Agile, Microservices, Time to Market</td>
-    </tr>
-    <tr>
-      <td>신속한 배포</td>
-      <td>CI/CD</td>
-    </tr>
-    <tr>
-      <td>안정성 향상</td>
-      <td>Monitoring, Logging</td>
-    </tr>
-    <tr>
-      <td>Infrastructure 확장 및 표준화</td>
-      <td>IaC</td>
-    </tr>
-    <tr>
-      <td>협업 강화</td>
-      <td>개발·운영 협업 문화</td>
-    </tr>
-    <tr>
-      <td>Security 자동화</td>
-      <td>Policy as Code</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="속도"><strong>속도</strong></h4>
-
-<p>작은 단위로 개발하고 Release하여 새로운 기능을 빠르게 제공할 수 있다.</p>
-
-<h4 id="신속한-배포"><strong>신속한 배포</strong></h4>
-
-<p>CI/CD Pipeline을 통해 Build, Test, Deployment 과정을 자동화할 수 있다.</p>
-
-<h4 id="안정성"><strong>안정성</strong></h4>
-
-<p>Monitoring과 Logging을 이용하여 Application의 상태를 지속적으로 관찰하고 문제를 빠르게 확인할 수 있다.</p>
-
-<h4 id="확장성"><strong>확장성</strong></h4>
-
-<p>IaC를 이용하여 Infrastructure를 Code로 관리하고 반복적으로 구성할 수 있다.</p>
-
-<h4 id="협업-강화"><strong>협업 강화</strong></h4>
-
-<p>개발, 운영, 보안 등 서로 다른 역할을 가진 Team이 하나의 Service Life Cycle에 함께 참여한다.</p>
-
-<h4 id="security"><strong>Security</strong></h4>
-
-<p>Policy as Code 등의 방법을 이용하여 Security Policy 역시 자동화 과정에 포함할 수 있다.</p>
-
-<h2 id="6-devops-생태계"><strong>6) DevOps 생태계</strong></h2>
-
-<hr />
-
-<p>DevOps에서는 하나의 Tool이 모든 과정을 담당하는 것이 아니라 각 단계의 목적에 맞는 여러 Tool을 결합하여 Tool Chain을 구성한다.</p>
-
-<h3 id="source-code와-version-control"><strong>Source Code와 Version Control</strong></h3>
-
-<ul>
-  <li>Git</li>
-  <li>GitHub</li>
-  <li>GitLab</li>
-</ul>
-
-<p>Git을 이용하여 Source Code와 변경 이력을 관리하고 GitHub 또는 GitLab 등의 Platform을 이용하여 협업할 수 있다.</p>
-
-<h3 id="cicd"><strong>CI/CD</strong></h3>
-
-<ul>
-  <li>GitHub Actions</li>
-  <li>GitLab CI/CD</li>
-  <li>Jenkins</li>
-  <li>Argo CD</li>
-</ul>
-
-<p>GitHub Actions, GitLab CI/CD, Jenkins 등은 Build와 Test, Deployment Pipeline을 구성할 때 사용할 수 있다.</p>
-
-<p>Argo CD는 Kubernetes 환경에서 Git을 기준으로 Application 상태를 동기화하는 GitOps 기반 Continuous Delivery Tool로 사용된다.</p>
-
-<h3 id="test-1"><strong>Test</strong></h3>
-
-<h4 id="unit-test"><strong>Unit Test</strong></h4>
-
-<ul>
-  <li>JUnit</li>
-  <li>pytest</li>
-</ul>
-
-<h4 id="api-test"><strong>API Test</strong></h4>
-
-<ul>
-  <li>Postman</li>
-</ul>
-
-<h4 id="web-ui-test"><strong>Web UI Test</strong></h4>
-
-<ul>
-  <li>Selenium</li>
-</ul>
-
-<h4 id="performance--load-test"><strong>Performance / Load Test</strong></h4>
-
-<ul>
-  <li>JMeter</li>
-  <li>k6</li>
-</ul>
-
-<h4 id="mobile-test"><strong>Mobile Test</strong></h4>
-
-<ul>
-  <li>Appium</li>
-</ul>
-
-<h4 id="integration-test"><strong>Integration Test</strong></h4>
-
-<ul>
-  <li>Testcontainers</li>
-</ul>
-
-<h4 id="test-management"><strong>Test Management</strong></h4>
-
-<ul>
-  <li>Jira + Xray</li>
-</ul>
-
-<h4 id="static-code-analysis"><strong>Static Code Analysis</strong></h4>
-
-<ul>
-  <li>SonarQube</li>
-</ul>
-
-<h4 id="code-coverage"><strong>Code Coverage</strong></h4>
-
-<ul>
-  <li>JaCoCo</li>
-</ul>
-
-<h3 id="package-및-container"><strong>Package 및 Container</strong></h3>
-
-<ul>
-  <li>Docker</li>
-</ul>
-
-<p>Docker를 이용하여 Application과 실행에 필요한 환경을 Container Image로 Packaging할 수 있다.</p>
-
-<h3 id="deploy-및-orchestration"><strong>Deploy 및 Orchestration</strong></h3>
-
-<ul>
-  <li>Docker</li>
-  <li>Kubernetes</li>
-  <li>Argo CD</li>
-</ul>
-
-<p>Kubernetes는 Container Application의 배포, 확장, 상태 관리 등을 자동화하는 Orchestration Platform이다.</p>
-
-<h3 id="issue-및-project-management"><strong>Issue 및 Project Management</strong></h3>
-
-<ul>
-  <li>Jira</li>
-  <li>Mantis</li>
-</ul>
-
-<p>Issue와 Bug, 작업 진행 상태 등을 관리할 수 있다.</p>
-
-<h3 id="devops-tool-chain-예시"><strong>DevOps Tool Chain 예시</strong></h3>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Plan
- │
- ├─ Jira
- │
- ▼
-Code
- │
- ├─ Git
- ├─ GitHub
- └─ GitLab
- │
- ▼
-Build / CI
- │
- ├─ GitHub Actions
- ├─ GitLab CI/CD
- └─ Jenkins
- │
- ▼
-Test
- │
- ├─ JUnit
- ├─ pytest
- ├─ Postman
- ├─ Selenium
- ├─ JMeter
- ├─ k6
- ├─ SonarQube
- └─ JaCoCo
- │
- ▼
-Package
- │
- └─ Docker
- │
- ▼
-Deploy
- │
- ├─ Kubernetes
- └─ Argo CD
- │
- ▼
-Operate / Monitor
-</code></pre></div></div>
-
-<p>어떤 Tool을 사용하는지가 DevOps의 본질은 아니다.</p>
-
-<p>중요한 것은 개발부터 운영까지의 전체 과정을 연결하고 반복 가능한 자동화 Process를 구성하는 것이다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>DevOps는 Development와 Operations의 협업을 강조하는 문화이자 업무 방식이다.</li>
-  <li>단순히 CI/CD Tool을 도입하는 것만으로 DevOps가 되는 것은 아니다.</li>
-  <li>Plan → Code → Build → Test → Package → Release → Operate → Monitoring의 전체 Life Cycle을 지속적으로 반복한다.</li>
-  <li>Git, Jenkins, GitHub Actions, Docker, Kubernetes 등은 이러한 Process를 구현하기 위한 도구이다.</li>
-  <li>Tool 자체보다 조직 문화, 자동화, Feedback Cycle을 연결하는 것이 중요하다.</li>
-</ul>
-
-<h2 id="전체-정리"><strong>전체 정리</strong></h2>
-
-<hr />
-
-<blockquote>
-  <ul>
-    <li>
-      <p>Cloud Native는 현대적인 Cloud 환경에서 확장 가능하고 변화에 유연한 Application을 개발하고 운영하기 위한 접근 방식이다.</p>
-    </li>
-    <li>
-      <p>Container, Microservices, Service Mesh, Immutable Infrastructure, Declarative API 등이 Cloud Native를 구성하는 대표적인 기술과 설계 방식이다.</p>
-    </li>
-    <li>
-      <p>CNCF는 Cloud Native 관련 Open Source Project와 생태계를 지원한다.</p>
-    </li>
-    <li>
-      <p>IT Service는 개발 방식, Application Architecture, Packaging 방식, Infrastructure가 함께 변화해 왔다.</p>
-    </li>
-    <li>
-      <p>Cloud Native 환경에서는 Container와 자동화를 이용하여 Infrastructure에 대한 종속성을 줄이고 지속적인 Delivery를 구현할 수 있다.</p>
-    </li>
-    <li>
-      <p>Kubernetes는 다양한 Infrastructure에서 Container를 일관된 방식으로 운영하기 위한 Platform을 제공한다.</p>
-    </li>
-    <li>
-      <p>Cloud Native의 주요 요소로 DevOps, Microservices, Containers, Continuous Delivery를 볼 수 있다.</p>
-    </li>
-    <li>
-      <p>Agile은 짧은 개발 주기, 협업, 변화 대응을 중요하게 생각한다.</p>
-    </li>
-    <li>
-      <p>ITIL은 IT Service Management를 위한 Best Practice 체계이며 ITIL 4에서는 Agile, Lean, DevOps와의 연계를 강화하였다.</p>
-    </li>
-    <li>
-      <p>DevOps는 개발과 운영을 하나의 Service Life Cycle로 연결하고 Hand-off와 반복적인 수작업을 줄이는 것을 목표로 한다.</p>
-    </li>
-    <li>
-      <p>DevOps Tool Chain은 Plan → Code → Build → Test → Package → Release → Operate → Monitoring의 반복적인 Cycle로 구성할 수 있다.</p>
-    </li>
-    <li>
-      <p>Git, CI/CD, Testing Tool, Docker, Kubernetes 등의 Tool은 DevOps Process를 구현하기 위한 수단이며 Tool 자체가 DevOps를 의미하는 것은 아니다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Cloud Native의 개념과 적용 이유, CNCF, 개발 방식의 변화, DevOps와 Agile, CI/CD, Docker와 Kubernetes를 포함한 DevOps 생태계]]></summary></entry><entry><title type="html">Type 1 Hypervisor가 Type 2보다 빠른 이유</title><link href="https://kkr010128.github.io/notes-05-deepdive-virtualize/" rel="alternate" type="text/html" title="Type 1 Hypervisor가 Type 2보다 빠른 이유" /><published>2026-08-08T00:00:00+09:00</published><updated>2026-08-08T00:00:00+09:00</updated><id>https://kkr010128.github.io/notes-05-deepdive-virtualize</id><content type="html" xml:base="https://kkr010128.github.io/notes-05-deepdive-virtualize/"><![CDATA[<h3 id="q-type-1-hypervisor가-type-2보다-빠른-이유는-무엇일까">Q. Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까?</h3>
-<p>Type 1과 Type 2 Hypervisor는 모두 하나의 물리 서버에서 여러 가상 머신(Virtual Machine)을 실행하기 위한 기술이다.
-그런데 Type 1은 서버와 데이터센터에서 주로 사용하고, Type 2는 개인 PC의 개발·테스트 환경에서 많이 사용한다.
-이 차이는 어디에서 발생할까?</p>
-<h3 id="a-가장-큰-차이는-host-os를-거치는지-여부이다">A. 가장 큰 차이는 Host OS를 거치는지 여부이다.</h3>
-<p>Type 1 Hypervisor는 물리 하드웨어 위에서 직접 실행된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
-      ↓
-Hypervisor
-      ↓
-Hardware
-</code></pre></div></div>
-
-<p>반면 Type 2 Hypervisor는 기존 Host OS 위에서 실행된다.</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
-      ↓
-Hypervisor
-      ↓
-Host OS
-      ↓
-Hardware
-</code></pre></div></div>
-
-<p>Type 2에서는 Host OS 자체도 CPU, Memory, Disk 등의 자원을 사용한다.</p>
-
-<p>또한 가상화 소프트웨어가 Host OS 위에서 동작하기 때문에 Type 1보다 추가적인 처리 과정과 자원 소비가 발생할 수 있다.</p>
-
-<p>Bare-Metal 구조</p>
-
-<p>Type 1은 물리 하드웨어에 직접 Hypervisor가 실행되기 때문에 Bare-Metal Hypervisor라고도 한다.</p>
-
-<p>Hypervisor가 물리 자원을 직접 관리하여 각 VM에 할당한다.</p>
-
-<ul>
-  <li>Physical CPU → vCPU</li>
-  <li>Physical Memory → Virtual Memory</li>
-  <li>Physical Disk → Virtual Disk</li>
-  <li>Physical NIC → Virtual Network Adapter</li>
-</ul>
-
-<p>일반적인 Host OS가 따로 자원을 소비하지 않으므로 많은 VM을 운영해야 하는 서버 환경에서 자원 활용에 유리하다.</p>
-
-<p>그렇다면 Type 1은 항상 더 빠를까?</p>
-
-<p>반드시 압도적으로 빠른 것은 아니다.</p>
-
-<p>현대 CPU는 Intel VT-x, AMD-V와 같은 하드웨어 가상화 기능을 제공하므로 Type 2도 많은 작업을 하드웨어에서 직접 처리할 수 있다.</p>
-
-<p>따라서 단순한 개발이나 실습 환경에서는 성능 차이를 크게 느끼지 못할 수도 있다.</p>
-
-<p>핵심은 다음과 같다.</p>
-
-<p>Type 1은 가상화 전용 환경에서 하드웨어 자원을 직접 관리하고, 일반적인 Host OS에 사용되는 자원을 줄일 수 있기 때문에 서버 환경에서 더 유리하다.</p>
-
-<p>서버와 개인 실습 환경의 차이</p>
-
-<p>구분	Type 1	Type 2
-구조	Hardware 위에서 직접 실행	Host OS 위에서 실행
-다른 이름	Bare-Metal	Hosted
-오버헤드	상대적으로 적음	상대적으로 큼
-주요 환경	서버, 데이터센터	개발, 테스트, 개인 실습
-대표 예시	VMware ESXi, Xen	VMware Workstation, VirtualBox</p>
-
-<p>Type 1은 여러 VM을 장기간 안정적으로 실행해야 하는 서버 환경에 적합하다.</p>
-
-<p>반면 Type 2는 기존 Windows나 macOS를 그대로 사용하면서 필요할 때 VM을 실행할 수 있어 개인 실습 환경에서 편리하다.</p>
-
-<p>정리</p>
-
-<ul>
-  <li>Type 1은 하드웨어 위에서 Hypervisor가 직접 실행된다.</li>
-  <li>Type 2는 Host OS 위에서 Hypervisor가 실행된다.</li>
-  <li>Type 2는 Host OS가 자원을 함께 사용하므로 추가적인 오버헤드가 발생할 수 있다.</li>
-  <li>Type 1은 서버와 데이터센터 환경에 적합하다.</li>
-  <li>Type 2는 설치와 사용이 편리하여 개발 및 개인 실습에 적합하다.</li>
-  <li>성능 차이를 단순히 계층 수만으로 판단하기보다 자원 관리 구조의 차이로 이해하는 것이 좋다.</li>
-</ul>]]></content><author><name></name></author><category term="DeepDive" /><category term="CS" /><category term="Virtualization" /><category term="Hypervisor" /><summary type="html"><![CDATA[Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><summary type="html"><![CDATA[Cloud Native 환경에서 비즈니스 민첩성을 높이기 위한 애플리케이션 구조와 Micro Service Architecture의 핵심 원리, 운영 방식, 주요 패턴]]></summary></entry></feed>

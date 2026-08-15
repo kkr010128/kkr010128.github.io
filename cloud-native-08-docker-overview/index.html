@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Docker와 Container 가상화 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="가상화와 Container의 원리부터 Docker의 구성 요소, 설치 및 기본 사용법까지 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-08-docker-overview/">
+<meta property="og:title" content="Docker와 Container 가상화 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="가상화와 Container의 원리부터 Docker의 구성 요소, 설치 및 기본 사용법까지 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-08-docker-overview/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker와 Container 가상화 | renamed.log">
+<meta name="twitter:description" content="가상화와 Container의 원리부터 Docker의 구성 요소, 설치 및 기본 사용법까지 정리">
+
+  <meta property="article:published_time" content="2026-08-14T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1786801328" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786801328" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786801328">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786801328" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1786801328">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Docker와 Container 가상화 | renamed.log",
+    "description": "가상화와 Container의 원리부터 Docker의 구성 요소, 설치 및 기본 사용법까지 정리",
+    "url": "https://kkr010128.github.io/cloud-native-08-docker-overview/",
+    "datePublished": "2026-08-14T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Docker와 Container 가상화</h1>
+    
+      <p class="post-head__description">가상화와 Container의 원리부터 Docker의 구성 요소, 설치 및 기본 사용법까지 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 14일 · 8분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--가상화">1 ) 가상화</h2>
+
+<hr />
+
+<p>가상화(Virtualization)는 <strong>물리적 시스템의 CPU, Memory, Storage, Network 같은 자원을 추상화하여 여러 가상 환경에서 사용할 수 있게 하는 기술</strong>이다.</p>
+
+<p>가상화 소프트웨어는 물리적 Hardware의 기능을 논리적으로 분리한다. 하나의 물리적인 Computer에서도 여러 가상 System을 동시에 실행할 수 있으므로 Hardware Resource의 활용도를 높이고 Infrastructure를 유연하게 관리할 수 있다.</p>
+
+<pre><code class="language-mermaid">flowchart TB
+    A["물리적 컴퓨터"] --&gt; B["가상화 소프트웨어"]
+    B --&gt; C["가상 시스템 1"]
+    B --&gt; D["가상 시스템 2"]
+    B --&gt; E["가상 시스템 3"]
+</code></pre>
+
+<h3 id="가상화의-장점">가상화의 장점</h3>
+
+<ul>
+  <li><strong>효율적인 리소스 사용</strong>
+    <ul>
+      <li>하나의 물리적 System을 여러 환경이 공유하여 Resource를 효율적으로 사용한다.</li>
+    </ul>
+  </li>
+  <li><strong>자동화된 IT 관리</strong>
+    <ul>
+      <li>가상 환경의 생성, 배포 및 관리를 자동화하기 쉽다.</li>
+    </ul>
+  </li>
+  <li><strong>신속한 재해 복구</strong>
+    <ul>
+      <li>Snapshot과 복제된 환경을 이용하여 장애 발생 시 빠르게 복구할 수 있다.</li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="가상화-서비스">가상화 서비스</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Server 가상화</td>
+      <td>하나의 물리적 Server를 여러 가상 Server로 분리</td>
+    </tr>
+    <tr>
+      <td>Storage 가상화</td>
+      <td>여러 Storage Resource를 하나의 논리적 Storage처럼 구성</td>
+    </tr>
+    <tr>
+      <td>Network 가상화</td>
+      <td>물리적 Network를 논리적으로 분리하고 Software로 제어</td>
+    </tr>
+    <tr>
+      <td>Data 가상화</td>
+      <td>여러 위치의 Data를 하나의 Data Source처럼 제공</td>
+    </tr>
+    <tr>
+      <td>Application 가상화</td>
+      <td>Application을 운영체제와 분리된 환경에서 실행</td>
+    </tr>
+    <tr>
+      <td>Desktop 가상화</td>
+      <td>Desktop 환경을 중앙 Server에서 제공</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Network 가상화의 대표적인 기술로 SDN(Software-Defined Networking)이 있다. SDN은 물리적 장비가 담당하던 Traffic 제어 기능을 Software로 분리하여 Routing 정책을 중앙에서 관리한다. 예를 들어 영상 통화 Traffic을 일반 Application Traffic보다 우선 처리하도록 구성할 수 있다.</p>
+
+<h3 id="가상화-방식">가상화 방식</h3>
+
+<h4 id="host-os-가상화">Host OS 가상화</h4>
+
+<p>Host OS 위에 가상화 Software를 설치하고 그 위에서 Guest OS를 실행하는 방식이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
+Guest OS
+Virtualization Software
+Host OS
+Hardware
+</code></pre></div></div>
+
+<p>Host와 Guest 운영체제의 선택이 비교적 자유롭지만 운영체제 위에서 또 다른 운영체제를 실행하므로 Overhead가 클 수 있다.</p>
+
+<h4 id="hypervisor-가상화">Hypervisor 가상화</h4>
+
+<p>Host OS 없이 Hardware에 Hypervisor를 직접 설치하고 여러 Guest OS를 실행하는 방식이다. Hardware에 직접 설치하는 Hypervisor를 <strong>Bare Metal Hypervisor</strong>라고 하며 Server 가상화에서 주로 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
+Guest OS
+Hypervisor
+Hardware
+</code></pre></div></div>
+
+<p>Host OS를 거치지 않으므로 Host OS 방식보다 Overhead가 작다.</p>
+
+<h4 id="container-가상화">Container 가상화</h4>
+
+<p>Host OS 위에 Container Runtime을 설치하고 Application 실행 환경을 논리적으로 격리하는 방식이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container A        Container B
+App + Library      App + Library
+--------------------------------
+Container Runtime
+Host OS
+Hardware
+</code></pre></div></div>
+
+<p>Container는 Guest OS 전체를 포함하지 않고 Host OS의 Kernel을 공유한다. 따라서 Virtual Machine보다 가볍고 빠르지만 서로 다른 종류의 Kernel을 요구하는 운영체제를 동시에 실행하기 어렵고, 격리 수준도 완전한 Virtual Machine과 차이가 있다.</p>
+
+<p>Container 가상화 Software에는 OpenVZ, LXC, Linux VServer, Docker, Oracle Solaris Zones 등이 있다.</p>
+
+<h2 id="2--container">2 ) Container</h2>
+
+<hr />
+
+<p>Container는 <strong>Application Code와 실행에 필요한 Library 및 의존성을 하나의 격리된 단위로 묶은 실행 환경</strong>이다. Guest OS Layer가 없으므로 Image 크기가 작고 시작 시간이 빠르다.</p>
+
+<h3 id="container의-장점">Container의 장점</h3>
+
+<ul>
+  <li>Hypervisor와 Guest OS가 필요하지 않아 가볍다.</li>
+  <li>Image의 복제, 이관 및 배포가 쉽다.</li>
+  <li>Guest OS를 Booting하지 않으므로 Application 시작이 빠르다.</li>
+  <li>동일한 Hardware에서 Virtual Machine보다 많은 Application을 실행할 수 있다.</li>
+  <li>Application마다 의존성을 분리하여 Library와 설정의 충돌을 줄인다.</li>
+</ul>
+
+<p>Application 배포 방식은 다음과 같이 변화해 왔다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>운영체제에 직접 배포 → Virtual Machine 기반 배포 → Container 기반 배포
+</code></pre></div></div>
+
+<h2 id="3--docker">3 ) Docker</h2>
+
+<hr />
+
+<p>Docker는 <strong>Container형 가상화 기술을 구현하는 상주 애플리케이션과 이를 조작하는 명령행 도구</strong>로 구성된다. 애플리케이션과 데이터를 독립된 환경에 격리하여 실행할 수 있게 한다.</p>
+
+<h3 id="특징">특징</h3>
+
+<ul>
+  <li>Microservice, DevOps, Testing 등 다양한 분야에서 활용된다.</li>
+  <li>Linux Container 구현체의 사실상 표준(de facto)이다.</li>
+  <li>가상 머신보다 가볍고 실행 및 배포가 빠르다.</li>
+</ul>
+
+<h3 id="docker와-linux">Docker와 Linux</h3>
+
+<p>Docker는 Linux를 전제로 만들어졌다. Windows와 macOS에서도 Docker Desktop을 사용할 수 있지만 내부적으로 Linux 환경을 사용하며, Container에서 실행할 프로그램도 Linux용이다.</p>
+
+<h3 id="lxclinux-containers">LXC(Linux Containers)</h3>
+
+<p>LXC (Linux Containers)는 <strong>OS 수준의 가상화(OS-level Virtualization)</strong>를 구현하는 Linux Container 기술이다.
+하나의 Linux System에서 격리된 Container 환경을 실행하며, 이를 위해 여러 Linux 기능을 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>기술</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">chroot</code></td>
+      <td>특정 Directory를 Root처럼 인식시켜 File 영역을 격리</td>
+    </tr>
+    <tr>
+      <td>cgroups</td>
+      <td>CPU와 Memory 등의 Resource 사용량을 제한하고 격리</td>
+    </tr>
+    <tr>
+      <td>Namespace</td>
+      <td>Process Tree, Network, User ID, Mount 영역을 분리</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="chroot">chroot</h4>
+
+<p><code class="language-plaintext highlighter-rouge">chroot</code>는 특정 Directory를 최상위 Directory인 Root로 인식하도록 설정하는 Linux 기능이다.
+이를 통해 다음과 같은 영역을 격리할 수 있다.</p>
+
+<ul>
+  <li>User</li>
+  <li>File</li>
+  <li>Directory</li>
+</ul>
+
+<h4 id="cgroups">cgroups</h4>
+
+<p>cgroups (Control Groups)는 <strong>Resource를 제한하고 격리하는 Linux Kernel 기능</strong>이다.</p>
+
+<p>각 Container가 사용할 수 있는 CPU, Memory 등의 Resource를 제한하는 데 사용할 수 있다.</p>
+
+<h4 id="namespace">Namespace</h4>
+
+<p>Namespace는 <strong>Process를 독립시키기 위한 Linux Kernel의 격리 기술</strong>이다.</p>
+
+<p>각 Process가 서로 분리된 운영 환경을 바라볼 수 있도록 하며 다음과 같은 영역을 격리할 수 있다.</p>
+
+<ul>
+  <li>Process Tree</li>
+  <li>Network</li>
+  <li>User ID</li>
+  <li>Mount된 File System</li>
+</ul>
+
+<h3 id="프로그램과-데이터를-격리하는-이유">프로그램과 데이터를 격리하는 이유</h3>
+
+<p>여러 프로그램이 동일한 실행 환경을 사용하면 서로 영향을 줄 수 있다.</p>
+
+<p>예를 들어 여러 프로그램이 특정 Directory를 공유하거나 같은 경로의 설정 정보를 사용하는 경우, 하나의 프로그램을 Update했을 때 다른 프로그램에도 영향을 줄 수 있다.</p>
+
+<p>이러한 문제는 다음과 같은 부분에서 발생할 수 있다.</p>
+
+<ul>
+  <li>실행 환경</li>
+  <li>Library</li>
+  <li>Directory</li>
+  <li>설정 파일</li>
+</ul>
+
+<p>여러 프로그램이 같은 Directory, Library, 설정 파일을 공유하면 하나의 변경이 다른 프로그램에 영향을 줄 수 있다. Docker는 실행 환경을 Container 단위로 격리하여 이러한 충돌을 줄인다.</p>
+
+<h2 id="4--image와-container">4 ) Image와 Container</h2>
+
+<hr />
+
+<p>Image는 Container를 만들기 위한 <strong>설계도</strong>, Container는 Image를 실행한 <strong>Instance</strong>에 해당한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Image        → Class
+Container    → Instance
+</code></pre></div></div>
+
+<p>하나의 Image로 동일한 환경의 Container를 여러 개 생성할 수 있고, 실행 중인 Container를 새로운 Image로 만드는 것도 가능하다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>              ┌─ Container 1
+Docker Image ─┼─ Container 2
+              └─ Container 3
+</code></pre></div></div>
+<h3 id="docker-hub">Docker Hub</h3>
+
+<p>Docker Hub는 Docker가 제공하는 공식 Image Registry이다. 일반적으로 Docker Hub에서 Base Image를 내려받고 필요한 Layer를 추가하여 새로운 Image를 만든 뒤 배포한다.</p>
+
+<h3 id="다양한-형태로-구성할-수-있는-container">다양한 형태로 구성할 수 있는 Container</h3>
+
+<p>Container는 하나의 애플리케이션으로 구성할 수도 있고 여러 개의 애플리케이션을 묶어서 구성할 수도 있다.</p>
+<blockquote>
+  <p>WordPress를 Apache Web Server와 MySQL로 함께 구성한 사례</p>
+</blockquote>
+
+<h3 id="container와-데이터">Container와 데이터</h3>
+
+<p>Container는 삭제 후 복구할 수 없는 일회성 실행 환경이다. Container 내부에만 저장한 데이터도 함께 사라질 수 있다.</p>
+
+<p>따라서 Container의 Lifecycle과 저장해야 하는 데이터를 구분하여 다루어야 한다.</p>
+
+<p>보존할 데이터는 Host의 Disk나 Docker Volume을 Mount하여 저장한다.</p>
+
+<h2 id="5--docker의-장점과-구성-요소">5 ) Docker의 장점과 구성 요소</h2>
+
+<hr />
+
+<h3 id="장점">장점</h3>
+
+<ul>
+  <li>개발 환경과 운영 환경을 거의 동일하게 재현할 수 있다.</li>
+  <li>물리적 환경과 Server 구성 차이의 영향을 줄일 수 있다.</li>
+  <li>가상 머신보다 가볍고 Image의 복제·이관·배포가 쉽다.</li>
+  <li>Cloud Platform과 Container Orchestration 환경에서 활용할 수 있다.</li>
+</ul>
+
+<p>Linux 운영체제 자체의 동작이나 비 Linux 환경이 필요한 경우에는 완전한 Guest OS를 제공하는 Virtual Machine이 더 적합할 수 있다.</p>
+
+<p>Container는 완전한 Guest OS를 제공하는 Virtual Machine과는 구조적으로 차이가 있다.</p>
+
+<h3 id="주요-도구">주요 도구</h3>
+
+<p>| 도구 | 역할 |
+|—|—|
+| containerd | Image 전송·저장, Container 실행과 감독 등 Lifecycle 관리 |
+| BuildKit | Dockerfile을 기반으로 Docker Image Build |
+| Docker CLI | <code class="language-plaintext highlighter-rouge">docker</code> 명령을 통해 Docker Engine 조작 |
+| Docker Compose | YAML로 여러 Container를 하나의 Application처럼 관리 |
+| Docker Registry | Image 저장 및 Push/Pull 제공 |
+| Docker Swarm | 여러 Docker Host를 Cluster로 관리 |</p>
+<h4 id="containerd">containerd</h4>
+
+<p>containerd는 Container를 구동하고 관리하는 Runtime이다.</p>
+
+<p>Linux 및 Windows용 Daemon으로 동작하며 다음과 같은 Container Lifecycle을 관리한다.</p>
+
+<ul>
+  <li>Image 전송 및 저장</li>
+  <li>Container 실행</li>
+  <li>Container 감독</li>
+  <li>Network 연결</li>
+  <li>Container Lifecycle 관리</li>
+</ul>
+
+<p>강의에서는 Kubernetes를 학습할 때 Docker와 containerd의 관계를 주의해야 한다고 설명하였다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 Docker를 직접 Container Runtime으로 사용하는 방식이 제거되었으며 containerd와 같은 Container Runtime을 사용한다.</p>
+</blockquote>
+
+<h4 id="buildkit">BuildKit</h4>
+
+<p>BuildKit은 Dockerfile의 설정 정보를 이용하여 <strong>Docker Image를 Build하는 Open Source 도구</strong>이다.</p>
+
+<p>Image Build 과정에서 다양한 Architecture와 Build 기능을 제공한다.</p>
+
+<p>강의에서는 현재 Docker가 <strong>Docker Image를 만드는 도구로 많이 사용된다는 점</strong>을 강조하였다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dockerfile → BuildKit → Docker Image
+</code></pre></div></div>
+
+<h4 id="docker-cli">Docker CLI</h4>
+
+<p>Docker CLI (Command Line Interface)는 Docker 명령을 실행하기 위한 명령행 도구이다.</p>
+
+<p>Docker CLI를 이용하여 Docker Image와 Container 등을 조작할 수 있다.</p>
+
+<h3 id="container와-orchestration">Container와 Orchestration</h3>
+
+<p>Container 기술은 PaaS 서비스를 가능하게 하는 Software 개발 환경을 제공하는 데 활용할 수 있다.</p>
+
+<p>하지만 Container의 수가 증가하면 각각의 Container를 직접 관리하기 어려워진다.</p>
+
+<p>Container 수가 많아지면 자동 복구, Traffic Routing, Load Balancing 등을 직접 처리하기 어렵다. 이때 Kubernetes와 같은 Orchestration 도구를 사용한다.</p>
+
+<p>다음과 같은 작업을 자동화하고 관리하기 위해 <strong>Orchestration 도구</strong>가 필요하다.</p>
+
+<ul>
+  <li>Container 자동 관리</li>
+  <li>Traffic Routing</li>
+  <li>Load Balancing</li>
+</ul>
+
+<p>강의에서는 Container 기반 환경의 구성을 다음과 같이 연결하여 설명하였다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container로 구동되는 Application
+              ↓
+      LXC / Docker 기술
+              ↓
+ Orchestration Tool
+        Kubernetes
+              ↓
+             IaaS
+</code></pre></div></div>
+
+<p>즉, Docker와 같은 Container 기술을 이용하여 애플리케이션 실행 환경을 구성하고, 여러 Container를 운영해야 하는 환경에서는 Kubernetes와 같은 Orchestration 도구를 이용하여 이를 관리한다.</p>
+
+<h3 id="docker의-구성-요소">Docker의 구성 요소</h3>
+
+<p>Docker는 Client, Host, Engine을 중심으로 동작하며 Container 구성과 Image 관리, Cluster 관리 등을 위한 여러 도구로 구성된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Docker Client</td>
+      <td>Docker에 명령을 전달할 수 있는 CLI</td>
+    </tr>
+    <tr>
+      <td>Docker Host</td>
+      <td>Docker가 설치되어 실행되는 Server 또는 Virtual Machine</td>
+    </tr>
+    <tr>
+      <td>Docker Engine</td>
+      <td>Docker를 이용한 Application 실행 환경을 제공하는 핵심 요소</td>
+    </tr>
+    <tr>
+      <td>Docker Compose</td>
+      <td>여러 Container의 구성 정보를 YAML로 작성하여 하나의 Application처럼 관리하는 도구</td>
+    </tr>
+    <tr>
+      <td>Docker Registry</td>
+      <td>Docker Image를 Push/Pull할 수 있도록 Image를 저장하고 배포하는 Registry</td>
+    </tr>
+    <tr>
+      <td>Docker Swarm</td>
+      <td>여러 Docker Host를 Cluster로 구성하여 관리하는 Docker Orchestration 도구</td>
+    </tr>
+    <tr>
+      <td>Docker Hub</td>
+      <td>Docker Image를 공유할 수 있는 Cloud 기반 Registry Service</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="docker-client">Docker Client</h4>
+
+<p>Docker Client는 사용자가 Docker에 명령을 전달하기 위한 CLI (Command Line Interface)이다.</p>
+
+<p>사용자가 <code class="language-plaintext highlighter-rouge">docker</code> 명령을 실행하면 Docker Client를 통해 Docker Engine에 명령이 전달된다.</p>
+
+<h4 id="docker-host와-docker-engine">Docker Host와 Docker Engine</h4>
+
+<p>Docker Host는 Docker가 설치되어 있는 Server 또는 Virtual Machine이다.</p>
+
+<p>Docker Host 내부에서는 <strong>Docker Engine</strong>이 동작하며, Docker를 이용한 Application 실행 환경을 제공한다.</p>
+
+<p>Docker Engine은 Docker의 핵심 요소로 Container와 Image를 실행하고 관리한다.</p>
+
+<h4 id="docker-compose">Docker Compose</h4>
+
+<p>Docker Compose는 서로 의존성을 가지는 여러 Container의 구성 정보를 <strong>YAML 파일</strong>로 작성하여 일원화된 Application 관리가 가능하도록 하는 도구이다.</p>
+
+<p>여러 Container로 구성된 Application의 실행 환경을 하나의 설정 파일에서 관리할 수 있다.</p>
+
+<h4 id="docker-registry와-docker-hub">Docker Registry와 Docker Hub</h4>
+
+<p>Docker Registry는 Docker Image를 저장하고 <code class="language-plaintext highlighter-rouge">push</code>, <code class="language-plaintext highlighter-rouge">pull</code>할 수 있도록 하는 Image 저장소이다.</p>
+
+<p>Docker Hub는 Docker Image를 공유할 수 있도록 Docker에서 제공하는 Cloud Service이다.</p>
+
+<h4 id="docker-swarm">Docker Swarm</h4>
+
+<p>Docker Swarm은 여러 Docker Host를 하나의 Cluster로 구성하여 관리할 수 있도록 하는 <strong>Docker Orchestration 도구</strong>이다.</p>
+
+<p>여러 Docker Host에서 실행되는 Container를 하나의 Cluster 단위로 관리할 때 사용할 수 있다.</p>
+
+<h2 id="6--docker-설치">6 ) Docker 설치</h2>
+
+<hr />
+
+<p>Docker는 64-bit 운영체제에서 사용한다. Windows와 macOS에서는 Docker Desktop을 설치한다.</p>
+
+<h3 id="windows">Windows</h3>
+
+<p>WSL 2를 설치한 뒤 Docker Desktop을 설치한다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wsl</span><span class="w"> </span><span class="nt">--install</span><span class="w">
+</span><span class="n">wsl</span><span class="w"> </span><span class="nt">--set-default-version</span><span class="w"> </span><span class="nx">2</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="ubuntu">Ubuntu</h3>
+
+<p>Ubuntu에서는 Docker 공식 저장소를 등록한 뒤 Docker Engine과 관련 Plugin을 설치한다. 세부 명령은 버전에 따라 달라질 수 있으므로 <a href="https://docs.docker.com/engine/install/ubuntu/">Docker 공식 설치 문서</a>를 기준으로 진행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+</code></pre></div></div>
+
+<p>설치 후 Version과 Service 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker version
+<span class="nb">sudo </span>systemctl status docker
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> docker
+</code></pre></div></div>
+
+<p>현재 사용자가 <code class="language-plaintext highlighter-rouge">sudo</code> 없이 Docker를 실행하려면 <code class="language-plaintext highlighter-rouge">docker</code> Group에 추가한 뒤 다시 로그인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>usermod <span class="nt">-aG</span> docker <span class="s2">"</span><span class="si">$(</span><span class="nb">whoami</span><span class="si">)</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Docker Socket의 권한을 <code class="language-plaintext highlighter-rouge">666</code>으로 변경하면 모든 사용자가 Docker Daemon을 제어할 수 있으므로 사용하지 않는다.</p>
+</blockquote>
+
+<h2 id="7--기본-사용">7 ) 기본 사용</h2>
+
+<hr />
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Image 다운로드와 확인</span>
+docker pull hello-world
+docker images
+
+<span class="c"># Container 생성 및 실행</span>
+docker run hello-world
+
+<span class="c"># 실행 중인 Container 확인</span>
+docker ps
+
+<span class="c"># 모든 Container 확인</span>
+docker ps <span class="nt">-a</span>
+
+<span class="c"># Docker Version과 System 정보 확인</span>
+docker version
+docker info
+docker system <span class="nb">df</span>
+</code></pre></div></div>
+
+<p>대화형 Terminal이 필요한 Container는 <code class="language-plaintext highlighter-rouge">-it</code> Option으로 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">-it</span> IMAGE_NAME
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker run</code>은 Image가 없으면 내려받고, Container를 생성한 뒤 시작한다.</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-03-security/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">클라우드 보안</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-09-docker-commands/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Docker 명령어와 Registry</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1786801328"></script>
+    <script src="/assets/js/code-enhancements.js?v=1786801328"></script>
+  </body>
+</html>
