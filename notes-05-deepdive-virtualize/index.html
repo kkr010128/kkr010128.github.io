@@ -32,30 +32,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#ffffff" data-theme-color>
 <meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
-<title>int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? | renamed.log</title>
+<title>Type 1 Hypervisor가 Type 2보다 빠른 이유 | renamed.log</title>
 <meta name="generator" content="Jekyll v4.3.3">
-<meta name="description" content="char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유">
-<link rel="canonical" href="https://kkr010128.github.io/01-memo-int-vs-char/">
-<meta property="og:title" content="int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? | renamed.log">
+<meta name="description" content="Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이">
+<link rel="canonical" href="https://kkr010128.github.io/notes-05-deepdive-virtualize/">
+<meta property="og:title" content="Type 1 Hypervisor가 Type 2보다 빠른 이유 | renamed.log">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:description" content="char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유">
-<meta property="og:url" content="https://kkr010128.github.io/01-memo-int-vs-char/">
+<meta property="og:description" content="Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이">
+<meta property="og:url" content="https://kkr010128.github.io/notes-05-deepdive-virtualize/">
 <meta property="og:site_name" content="renamed.log">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? | renamed.log">
-<meta name="twitter:description" content="char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유">
+<meta name="twitter:title" content="Type 1 Hypervisor가 Type 2보다 빠른 이유 | renamed.log">
+<meta name="twitter:description" content="Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이">
 
-  <meta property="article:published_time" content="2026-08-05T00:00:00+09:00">
+  <meta property="article:published_time" content="2026-08-08T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1786764788" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786764788" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786764788">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1786764788" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1786798219" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786798219" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786798219">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786798219" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1786764788">
+<link rel="stylesheet" href="/assets/css/main.css?v=1786798219">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -96,10 +96,10 @@
     "@context": "https://schema.org",
     "@type": "BlogPosting",
     "name": "renamed.log",
-    "headline": "int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까? | renamed.log",
-    "description": "char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유",
-    "url": "https://kkr010128.github.io/01-memo-int-vs-char/",
-    "datePublished": "2026-08-05T00:00:00+09:00"
+    "headline": "Type 1 Hypervisor가 Type 2보다 빠른 이유 | renamed.log",
+    "description": "Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이",
+    "url": "https://kkr010128.github.io/notes-05-deepdive-virtualize/",
+    "datePublished": "2026-08-08T00:00:00+09:00"
   }
 </script>
 
@@ -210,9 +210,9 @@
     
       <p class="post-head__series">TechNotes</p>
     
-    <h1 class="post-head__title">int보다 char가 메모리를 덜 쓰는데 숫자는 char로 저장하는 것이 더 효율적일까?</h1>
+    <h1 class="post-head__title">Type 1 Hypervisor가 Type 2보다 빠른 이유</h1>
     
-      <p class="post-head__description">char와 int의 메모리 크기 차이만으로 자료형을 선택할 수 없는 이유</p>
+      <p class="post-head__description">Bare-Metal 구조와 Host OS 경유 여부에 따른 Hypervisor의 성능 차이</p>
     
 
     <div class="post-head__author">
@@ -228,7 +228,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 5일 · 2분 읽기
+          2026년 8월 8일 · 2분 읽기
         </span>
       </div>
     </div>
@@ -240,7 +240,9 @@
         
           <a class="tag-chip" href="/?tag=CS">CS</a>
         
-          <a class="tag-chip" href="/?tag=DataType">DataType</a>
+          <a class="tag-chip" href="/?tag=Virtualization">Virtualization</a>
+        
+          <a class="tag-chip" href="/?tag=Hypervisor">Hypervisor</a>
         
       </div>
     
@@ -249,112 +251,84 @@
   </header>
 
   <section class="prose">
-    <h3 id="q-char는-1byte이고-int는-4byte인데-숫자는-char로-저장하는-것이-더-효율적이지-않을까">Q. <code class="language-plaintext highlighter-rouge">char</code>는 1Byte이고 <code class="language-plaintext highlighter-rouge">int</code>는 4Byte인데, 숫자는 <code class="language-plaintext highlighter-rouge">char</code>로 저장하는 것이 더 효율적이지 않을까?</h3>
+    <h3 id="q-type-1-hypervisor가-type-2보다-빠른-이유는-무엇일까">Q. Type 1 Hypervisor가 Type 2보다 빠른 이유는 무엇일까?</h3>
+<p>Type 1과 Type 2 Hypervisor는 모두 하나의 물리 서버에서 여러 가상 머신(Virtual Machine)을 실행하기 위한 기술이다.
+그런데 Type 1은 서버와 데이터센터에서 주로 사용하고, Type 2는 개인 PC의 개발·테스트 환경에서 많이 사용한다.
+이 차이는 어디에서 발생할까?</p>
+<h3 id="a-가장-큰-차이는-host-os를-거치는지-여부이다">A. 가장 큰 차이는 Host OS를 거치는지 여부이다.</h3>
+<p>Type 1 Hypervisor는 물리 하드웨어 위에서 직접 실행된다.</p>
 
-<p><code class="language-plaintext highlighter-rouge">char</code>는 1Byte, <code class="language-plaintext highlighter-rouge">int</code>는 4Byte이다.</p>
-
-<p>그렇다면 메모리를 아끼기 위해 숫자도 <code class="language-plaintext highlighter-rouge">char</code>로 저장하는 것이 더 좋은 선택 아닐까?</p>
-
-<h3 id="a-자료형은-메모리-크기보다-cpu의-처리-방식과-저장할-데이터의-범위를-고려해서-선택해야-한다">A. 자료형은 메모리 크기보다 CPU의 처리 방식과 저장할 데이터의 범위를 고려해서 선택해야 한다.</h3>
-
-<p>직관적으로는 <code class="language-plaintext highlighter-rouge">char</code>가 메모리를 4배 적게 사용하므로 더 효율적으로 보인다.</p>
-
-<p>하지만 현대 컴퓨터에서는 대부분 그렇지 않다.</p>
-
-<h3 id="cpu는-작은-자료형도-그대로-계산하지-않는다">CPU는 작은 자료형도 그대로 계산하지 않는다.</h3>
-
-<p>현대 CPU는 64비트(8Byte) 레지스터를 기준으로 연산한다.</p>
-
-<p>따라서 <code class="language-plaintext highlighter-rouge">char</code>나 <code class="language-plaintext highlighter-rouge">short</code>와 같은 작은 자료형도 대부분 연산 전에 <code class="language-plaintext highlighter-rouge">int</code> 또는 CPU가 사용하는 내부 연산 크기로 자동 승격(Integer Promotion)된다.</p>
-
-<p>예를 들어</p>
-
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">char</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">10</span><span class="p">;</span>
-<span class="kt">char</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">20</span><span class="p">;</span>
-
-<span class="kt">char</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
+      ↓
+Hypervisor
+      ↓
+Hardware
 </code></pre></div></div>
 
-<p>개념적으로는 다음과 같은 과정을 거친다.</p>
+<p>반면 Type 2 Hypervisor는 기존 Host OS 위에서 실행된다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>char → int(또는 CPU 내부 연산 크기)로 승격
-                ↓
-            연산 수행
-                ↓
-      결과를 다시 char에 저장
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Virtual Machine
+      ↓
+Hypervisor
+      ↓
+Host OS
+      ↓
+Hardware
 </code></pre></div></div>
 
-<p>즉, <code class="language-plaintext highlighter-rouge">char</code>를 사용한다고 해서 CPU의 연산량이 줄어드는 것은 아니다.</p>
+<p>Type 2에서는 Host OS 자체도 CPU, Memory, Disk 등의 자원을 사용한다.</p>
 
-<h3 id="메모리도-항상-절약되는-것은-아니다">메모리도 항상 절약되는 것은 아니다.</h3>
+<p>또한 가상화 소프트웨어가 Host OS 위에서 동작하기 때문에 Type 1보다 추가적인 처리 과정과 자원 소비가 발생할 수 있다.</p>
 
-<p>CPU는 메모리에 빠르게 접근하기 위해 데이터를 일정한 단위로 정렬(Alignment)한다.</p>
+<p>Bare-Metal 구조</p>
 
-<p>예를 들어</p>
+<p>Type 1은 물리 하드웨어에 직접 Hypervisor가 실행되기 때문에 Bare-Metal Hypervisor라고도 한다.</p>
 
-<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">Data</span> <span class="p">{</span>
-    <span class="kt">char</span> <span class="n">a</span><span class="p">;</span>
-    <span class="kt">int</span> <span class="n">b</span><span class="p">;</span>
-<span class="p">};</span>
-</code></pre></div></div>
-
-<p>메모리는 다음과 같이 배치될 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>a        1Byte
-padding  3Byte
-b        4Byte
-
-총 8Byte
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">char</code>는 1Byte이지만 <code class="language-plaintext highlighter-rouge">int</code>를 정렬하기 위해 중간에 Padding이 추가된다.</p>
-
-<p>따라서 <code class="language-plaintext highlighter-rouge">char</code>를 사용해도 기대만큼 메모리를 절약하지 못하는 경우가 많다.</p>
-
-<h3 id="그렇다면-언제-char를-사용할까">그렇다면 언제 char를 사용할까?</h3>
-
-<p><code class="language-plaintext highlighter-rouge">char</code>는 단순히 메모리를 아끼기 위한 자료형이 아니다.</p>
-
-<p>다음과 같은 경우에 적합하다.</p>
+<p>Hypervisor가 물리 자원을 직접 관리하여 각 VM에 할당한다.</p>
 
 <ul>
-  <li>문자 저장</li>
-  <li>ASCII 코드 처리</li>
-  <li>바이트 단위 데이터 처리</li>
-  <li>네트워크 패킷 처리</li>
-  <li>파일 입출력</li>
+  <li>Physical CPU → vCPU</li>
+  <li>Physical Memory → Virtual Memory</li>
+  <li>Physical Disk → Virtual Disk</li>
+  <li>Physical NIC → Virtual Network Adapter</li>
 </ul>
 
-<p>반대로 일반적인 정수 계산은 대부분 <code class="language-plaintext highlighter-rouge">int</code>를 사용하는 것이 자연스럽다.</p>
+<p>일반적인 Host OS가 따로 자원을 소비하지 않으므로 많은 VM을 운영해야 하는 서버 환경에서 자원 활용에 유리하다.</p>
 
-<h3 id="자주-하는-오해">자주 하는 오해</h3>
+<p>그렇다면 Type 1은 항상 더 빠를까?</p>
+
+<p>반드시 압도적으로 빠른 것은 아니다.</p>
+
+<p>현대 CPU는 Intel VT-x, AMD-V와 같은 하드웨어 가상화 기능을 제공하므로 Type 2도 많은 작업을 하드웨어에서 직접 처리할 수 있다.</p>
+
+<p>따라서 단순한 개발이나 실습 환경에서는 성능 차이를 크게 느끼지 못할 수도 있다.</p>
+
+<p>핵심은 다음과 같다.</p>
+
+<p>Type 1은 가상화 전용 환경에서 하드웨어 자원을 직접 관리하고, 일반적인 Host OS에 사용되는 자원을 줄일 수 있기 때문에 서버 환경에서 더 유리하다.</p>
+
+<p>서버와 개인 실습 환경의 차이</p>
+
+<p>구분	Type 1	Type 2
+구조	Hardware 위에서 직접 실행	Host OS 위에서 실행
+다른 이름	Bare-Metal	Hosted
+오버헤드	상대적으로 적음	상대적으로 큼
+주요 환경	서버, 데이터센터	개발, 테스트, 개인 실습
+대표 예시	VMware ESXi, Xen	VMware Workstation, VirtualBox</p>
+
+<p>Type 1은 여러 VM을 장기간 안정적으로 실행해야 하는 서버 환경에 적합하다.</p>
+
+<p>반면 Type 2는 기존 Windows나 macOS를 그대로 사용하면서 필요할 때 VM을 실행할 수 있어 개인 실습 환경에서 편리하다.</p>
+
+<p>정리</p>
 
 <ul>
-  <li><strong>char가 1Byte이므로 항상 int보다 효율적이다.</strong>
-    <ul>
-      <li>아니다. 연산 시 대부분 <code class="language-plaintext highlighter-rouge">int</code> 크기로 승격된다.</li>
-    </ul>
-  </li>
-  <li><strong>char를 사용하면 연산도 더 빨라진다.</strong>
-    <ul>
-      <li>아니다. 현대 CPU에서는 성능 차이가 거의 없으며 오히려 형 변환이 발생할 수 있다.</li>
-    </ul>
-  </li>
-  <li><strong>자료형은 크기만 보고 선택하면 된다.</strong>
-    <ul>
-      <li>아니다. 저장할 값의 범위와 CPU의 처리 방식을 함께 고려해야 한다.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="정리">정리</h3>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">char</code>는 1Byte, <code class="language-plaintext highlighter-rouge">int</code>는 일반적으로 4Byte이다.</li>
-  <li>작은 자료형이 항상 성능상 유리한 것은 아니다.</li>
-  <li>CPU는 작은 자료형도 대부분 <code class="language-plaintext highlighter-rouge">int</code> 크기로 변환하여 연산한다.</li>
-  <li>메모리 정렬 때문에 <code class="language-plaintext highlighter-rouge">char</code>를 사용해도 메모리가 절약되지 않는 경우가 있다.</li>
-  <li>자료형은 메모리 크기보다 <strong>저장할 값의 범위와 CPU의 처리 방식</strong>을 기준으로 선택하는 것이 바람직하다.</li>
+  <li>Type 1은 하드웨어 위에서 Hypervisor가 직접 실행된다.</li>
+  <li>Type 2는 Host OS 위에서 Hypervisor가 실행된다.</li>
+  <li>Type 2는 Host OS가 자원을 함께 사용하므로 추가적인 오버헤드가 발생할 수 있다.</li>
+  <li>Type 1은 서버와 데이터센터 환경에 적합하다.</li>
+  <li>Type 2는 설치와 사용이 편리하여 개발 및 개인 실습에 적합하다.</li>
+  <li>성능 차이를 단순히 계층 수만으로 판단하기보다 자원 관리 구조의 차이로 이해하는 것이 좋다.</li>
 </ul>
 
   </section>
@@ -362,7 +336,7 @@ b        4Byte
   
     <nav class="post-navigation" aria-label="이전 다음 글">
       
-        <a class="post-navigation__item" href="/08-network-lab1/">
+        <a class="post-navigation__item" href="/cloud-01-overview/">
           <span class="post-navigation__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
@@ -370,15 +344,15 @@ b        4Byte
           </span>
           <span class="post-navigation__content">
             <span class="post-navigation__label">이전 포스트</span>
-            <strong class="post-navigation__title">네트워크 라우터 및 스위치 실습 1</strong>
+            <strong class="post-navigation__title">클라우드의 이해</strong>
           </span>
         </a>
       
       
-        <a class="post-navigation__item post-navigation__item--next" href="/08-network-lab2/">
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-02-technology/">
           <span class="post-navigation__content">
             <span class="post-navigation__label">다음 포스트</span>
-            <strong class="post-navigation__title">네트워크 라우터 및 스위치 실습 2</strong>
+            <strong class="post-navigation__title">Cloud에 필요한 기술</strong>
           </span>
           <span class="post-navigation__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
@@ -461,7 +435,7 @@ b        4Byte
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1786764788"></script>
-    <script src="/assets/js/code-enhancements.js?v=1786764788"></script>
+    <script src="/assets/js/site.js?v=1786798219"></script>
+    <script src="/assets/js/code-enhancements.js?v=1786798219"></script>
   </body>
 </html>
