@@ -2,11 +2,12 @@
 title: Kafka를 활용한 CQRS 구현
 description: Spring Boot, MySQL, MongoDB와 Kafka를 이용하여 쓰기와 읽기 모델을 분리한 CQRS 구조 구현
 date: 2026-08-12
-updated_at: 2026-08-13
+updated_at: 2026-08-14
 series: CloudNative
 tags:
   - CloudNative
   - AutoEverSW
+  - Kafka
 ---
 ## 1 ) Spring Boot 기반 CQRS 구현
 
@@ -60,27 +61,27 @@ Query
 - Spring Web
 - Spring Data JPA
 - MySQL
-- Kafka
+- Spring for Apache Kafka (Messaging)
 
 ### application.yml 설정
 
 ```yaml
 server:
-  port: 7000
+  port: 8080
 
 spring:
   application:
     name: Write
 
   datasource:
-    url: jdbc:mysql://localhost:3306/mysql
+    url: jdbc:mysql://localhost:3306/cqrs # cqrs DB
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
-    password: wnddkd
+    password: password
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update # Entity 클래스를 기준으로 테이블이 자동 생성 및 수정됨
     properties:
       hibernate:
         format_sql: true
@@ -91,7 +92,7 @@ logging:
     org.hibernate.type.description.sql: trace
 ```
 
-7000번 포트로 실행되고, MySQL의 mysql 데이터베이스에 연결한다.
+8080번 포트로 실행되고, MySQL의 `cqrs` 데이터베이스에 연결한다.
 
 `ddl-auto: update` 설정 때문에 Entity 클래스를 기준으로 테이블이 자동으로 생성되거나 수정된다.
 
@@ -250,7 +251,7 @@ public class BookController {
 | GET | `/health` | Health Check |
 | POST | `/cqrs/book` | 도서 데이터 저장 |
 
-서버를 실행하고 `localhost:7000`으로 접속해서 동작을 확인한다.
+서버를 실행하고 `localhost:8080`으로 접속해서 동작을 확인한다.
 
 데이터 저장이 잘 되는지는 POSTMAN으로 테스트한다. (4번에서 자세히 다룬다.)
 
@@ -269,9 +270,31 @@ public class BookController {
 - Spring Boot DevTools
 - Lombok
 - Spring Web
-- Spring Data JPA
 - Spring Data MongoDB
-- Kafka
+- Spring for Apache Kafka (Messaging)
+
+읽기 프로젝트는 MongoDB만 사용하므로 **Spring Data JPA는 추가하지 않는다.** JPA를 추가하면 사용하지 않는 DataSource의 자동 설정이 동작하여 MySQL 접속 정보가 없을 때 애플리케이션 시작 오류가 발생할 수 있다.
+
+### application.yml 설정
+
+Reader의 `BookController`는 MongoDB 주소를 코드에서 직접 지정하므로 초기 조회 단계에서는 MongoDB 접속 설정이 없어도 된다.
+
+```java
+MongoClients.create("mongodb://localhost:27017");
+```
+
+그러나 Write와 Reader의 기본 포트는 모두 8080이므로 두 프로젝트를 동시에 실행하면 포트가 충돌한다. Reader에는 최소한 다음 설정을 작성한다.
+
+```yaml
+server:
+  port: 8081
+
+spring:
+  application:
+    name: Reader
+```
+
+따라서 Write는 8080번 포트, Reader는 8081번 포트에서 실행한다.
 
 ### BookController
 
@@ -294,7 +317,7 @@ public class BookController {
     @GetMapping("/cqrs/book")
     public ResponseEntity<List> getBooks(){
         MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
-        MongoDatabase database = mongoClient.getDatabase("mymongo");
+        MongoDatabase database = mongoClient.getDatabase("cqrs");
         MongoCollection<Document> mongo_books =
                 database.getCollection("books");
         List<Document> list = new ArrayList<Document>();
@@ -317,13 +340,19 @@ public class BookController {
 }
 ```
 
-`MongoClients.create()`로 MongoDB에 연결하고 `mymongo` 데이터베이스의 `books` Collection을 가져온다.
+`MongoClients.create()`로 MongoDB에 연결하고 `cqrs` 데이터베이스의 `books` Collection을 가져온다.
 
 `find()`로 전체 Document를 조회하고, `MongoCursor`를 순회하면서 `List`에 담는다.
 
 조회가 끝나면 `mongoClient.close()`로 연결을 닫고 결과를 응답으로 반환한다.
 
-프로젝트를 실행해서 정상적으로 동작하는지 확인한다.
+MongoDB를 실행한 뒤 Reader 프로젝트를 실행하고 다음 주소에서 정상적으로 조회되는지 확인한다.
+
+```text
+http://localhost:8081/cqrs/book
+```
+
+이 단계에서는 Kafka Consumer를 아직 작성하지 않았으므로 `spring.kafka` 설정이 없어도 된다.
 
 **중간 정리**
 
@@ -341,13 +370,13 @@ public class BookController {
 ### 요청 설정
 
 - Method: `POST`
-- URL: `http://localhost:7000/cqrs/book`
+- URL: `http://localhost:8080/cqrs/book`
 - Headers: `Content-Type: application/json`
 - Body: `raw` / `JSON`
 
 ```json
 {
-    "title": "오딧세이",
+    "title": "오디세이",
     "author": "호메로스",
     "category": "신화",
     "description": "크리스토퍼 놀란",
@@ -403,7 +432,7 @@ POSTMAN
 
 #### 라이브러리 추가
 
-`build.gradle`의 `dependencies`에 다음을 추가한다.
+라이브러리를 프로젝트 생성 당시 추가하지 않았다면 `build.gradle`의 `dependencies`에 다음을 추가한다.
 
 ```gradle
 implementation 'org.springframework.boot:spring-boot-starter-kafka'
@@ -420,7 +449,7 @@ spring:
   kafka:
     bootstrap-servers: 127.0.0.1:9092
     consumer:
-      group-id: adamsoft
+      group-id: hyeon
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -430,6 +459,13 @@ spring:
 ```
 
 Message를 문자열로 처리하기 위해 `StringSerializer`, `StringDeserializer`를 사용한다.
+
+> Kafka의 동작 흐름만 확인할 목적으로 실습을 진행하므로, Docker 컨테이너 하나에 브로커를 하나만 올린 상태이다. (고가용성 없음)
+> 
+> 실제 서비스에서는 브로커가 여러 개일 경우 `bootstrap-servers` 부분에 IP를 `,`로 구분하여 나열한다.
+> 
+> 이럴 경우 Producer/Consumer가 처음 연결할 때 이 목록 중 하나에 붙어 전체 클러스터 정보를 받아오고, 그다음부터는 어느 브로커가 Leader인지 알게 되는 구조다.
+
 
 #### KafkaConfiguration
 
@@ -592,7 +628,7 @@ POSTMAN으로 책을 저장하면 Console Consumer에 다음과 같은 Message�
 ```json
 {"bid":"1"}
 ```
-
+![](../../assets/post/2026-08-12-cloud-native-07-kafka-cqrs/02.webp)
 이 Message가 보이면 쓰기 프로젝트에서 Kafka까지 연결이 정상적으로 동작하는 것이다.
 
 ### 읽기 프로젝트에 Kafka 연결
@@ -607,14 +643,20 @@ implementation 'org.json:json:20190722'
 
 #### Kafka 설정
 
-`application.yaml`에 쓰기 프로젝트와 동일한 Kafka 설정을 추가한다.
+Reader의 기존 `application.yml`에 Kafka Consumer 설정을 추가한다. `server`와 `spring.application`을 유지한 상태에서 `spring.kafka`를 같은 `spring` 아래에 병합한다.
 
 ```yaml
+server:
+  port: 8081
+
 spring:
+  application:
+    name: Reader
+
   kafka:
     bootstrap-servers: 127.0.0.1:9092
     consumer:
-      group-id: adamsoft
+      group-id: hyeon
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
@@ -622,6 +664,8 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
 ```
+
+Reader 컨트롤러만 확인하는 단계에는 위 Kafka 설정이 필요하지 않지만, `@KafkaListener`를 작성하여 Consumer를 실행할 때부터 필요하다.
 
 #### KafkaConfiguration
 
@@ -676,8 +720,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 
 @Service
-public class kafkaConsumer {
-    @KafkaListener(topics="cqrs-topic", groupId = "adamsoft")
+public class KafkaConsumer {
+    @KafkaListener(topics="cqrs-topic", groupId = "hyeon")
     public void consumer(String message) throws IOException{
         System.out.println("message:" + message);
         //JSON 파싱: JSON문자열로 온 것을 자바 객체로 변환
@@ -685,7 +729,7 @@ public class kafkaConsumer {
 		
 		//JSON 파싱: JSON문자열로 온 것을 자바 객체로 변환
         MongoClient mongoClient = MongoClients.create("mongodb://localhost:27017");
-        MongoDatabase database = mongoClient.getDatabase("mymongo");
+        MongoDatabase database = mongoClient.getDatabase("cqrs");
         MongoCollection<Document> mongo_books =
                 database.getCollection("books");
 		//받은 데이터로 삽입할 데이터를 생성
@@ -699,9 +743,18 @@ public class kafkaConsumer {
 
 `@KafkaListener`로 `cqrs-topic`을 구독하고 있다가 Message가 오면 동작한다.
 
-받은 문자열을 `JSONObject`로 파싱해서 `bid`를 꺼내고, MongoDB의 `mymongo` 데이터베이스, `books` Collection에 저장한다.
+받은 문자열을 `JSONObject`로 파싱해서 `bid`를 꺼내고, MongoDB의 `cqrs` 데이터베이스, `books` Collection에 저장한다.
 
-### 전체 실행
+### 전체 구조 및 실행
+
+```mermaid
+flowchart LR
+    A[Client] --> B[Write Project]
+    B --> C[(MySQL)]
+    B --> D[Kafka]
+    D --> E[Read Project]
+    E --> F[(MongoDB)]
+```
 
 두 프로젝트를 모두 실행한 상태에서 POSTMAN으로 쓰기 프로젝트에 데이터를 보내면 다음 순서로 처리된다.
 
@@ -722,14 +775,8 @@ MongoDB 저장
 ```
 
 읽기 프로젝트의 `GET /cqrs/book`으로 조회하면 방금 저장된 `bid`가 MongoDB에 들어있는 것을 확인할 수 있다.
-```mermaid
-flowchart LR
-    A[Client] --> B[Write Project]
-    B --> C[(MySQL)]
-    B --> D[Kafka]
-    D --> E[Read Project]
-    E --> F[(MongoDB)]
-```
+![](../../assets/post/2026-08-12-cloud-native-07-kafka-cqrs/04.webp)
+
 
 ### 실습 메모
 

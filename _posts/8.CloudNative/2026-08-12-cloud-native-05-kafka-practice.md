@@ -6,6 +6,7 @@ series: CloudNative
 tags:
   - CloudNative
   - AutoEverSW
+  - Kafka
 ---
 ## 1 ) Docker를 이용한 Kafka 실습
 

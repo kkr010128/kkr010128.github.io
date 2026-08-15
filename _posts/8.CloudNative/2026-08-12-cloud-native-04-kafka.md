@@ -6,6 +6,7 @@ series: CloudNative
 tags:
   - CloudNative
   - AutoEverSW
+  - Kafka
 ---
 ## 1 ) Apache Kafka
 
