@@ -240,6 +240,7 @@ Container는 완전한 Guest OS를 제공하는 Virtual Machine과는 구조적�
 | Docker Compose | YAML로 여러 Container를 하나의 Application처럼 관리 |
 | Docker Registry | Image 저장 및 Push/Pull 제공 |
 | Docker Swarm | 여러 Docker Host를 Cluster로 관리 |
+
 #### containerd
 
 containerd는 Container를 구동하고 관리하는 Runtime이다.
