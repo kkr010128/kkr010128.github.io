@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-08-14T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1786851237" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786851237" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786851237">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1786851237" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1786885085" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786885085" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786885085">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786885085" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1786851237">
+<link rel="stylesheet" href="/assets/css/main.css?v=1786885085">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -534,14 +534,41 @@ Docker Image ─┼─ Container 2
 
 <h3 id="주요-도구">주요 도구</h3>
 
-<p>| 도구 | 역할 |
-|—|—|
-| containerd | Image 전송·저장, Container 실행과 감독 등 Lifecycle 관리 |
-| BuildKit | Dockerfile을 기반으로 Docker Image Build |
-| Docker CLI | <code class="language-plaintext highlighter-rouge">docker</code> 명령을 통해 Docker Engine 조작 |
-| Docker Compose | YAML로 여러 Container를 하나의 Application처럼 관리 |
-| Docker Registry | Image 저장 및 Push/Pull 제공 |
-| Docker Swarm | 여러 Docker Host를 Cluster로 관리 |</p>
+<table>
+  <thead>
+    <tr>
+      <th>도구</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>containerd</td>
+      <td>Image 전송·저장, Container 실행과 감독 등 Lifecycle 관리</td>
+    </tr>
+    <tr>
+      <td>BuildKit</td>
+      <td>Dockerfile을 기반으로 Docker Image Build</td>
+    </tr>
+    <tr>
+      <td>Docker CLI</td>
+      <td><code class="language-plaintext highlighter-rouge">docker</code> 명령을 통해 Docker Engine 조작</td>
+    </tr>
+    <tr>
+      <td>Docker Compose</td>
+      <td>YAML로 여러 Container를 하나의 Application처럼 관리</td>
+    </tr>
+    <tr>
+      <td>Docker Registry</td>
+      <td>Image 저장 및 Push/Pull 제공</td>
+    </tr>
+    <tr>
+      <td>Docker Swarm</td>
+      <td>여러 Docker Host를 Cluster로 관리</td>
+    </tr>
+  </tbody>
+</table>
+
 <h4 id="containerd">containerd</h4>
 
 <p>containerd는 Container를 구동하고 관리하는 Runtime이다.</p>
@@ -856,7 +883,7 @@ docker system <span class="nb">df</span>
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1786851237"></script>
-    <script src="/assets/js/code-enhancements.js?v=1786851237"></script>
+    <script src="/assets/js/site.js?v=1786885085"></script>
+    <script src="/assets/js/code-enhancements.js?v=1786885085"></script>
   </body>
 </html>

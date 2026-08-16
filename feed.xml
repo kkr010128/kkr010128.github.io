@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-16T12:33:57+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker와 Container 가상화</title><link href="https://kkr010128.github.io/cloud-native-08-docker-overview/" rel="alternate" type="text/html" title="Docker와 Container 가상화" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-08-docker-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-08-docker-overview/"><![CDATA[<h2 id="1--가상화">1 ) 가상화</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-16T21:58:05+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker와 Container 가상화</title><link href="https://kkr010128.github.io/cloud-native-08-docker-overview/" rel="alternate" type="text/html" title="Docker와 Container 가상화" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-08-docker-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-08-docker-overview/"><![CDATA[<h2 id="1--가상화">1 ) 가상화</h2>
 
 <hr />
 
@@ -283,14 +283,41 @@ Docker Image ─┼─ Container 2
 
 <h3 id="주요-도구">주요 도구</h3>
 
-<p>| 도구 | 역할 |
-|—|—|
-| containerd | Image 전송·저장, Container 실행과 감독 등 Lifecycle 관리 |
-| BuildKit | Dockerfile을 기반으로 Docker Image Build |
-| Docker CLI | <code class="language-plaintext highlighter-rouge">docker</code> 명령을 통해 Docker Engine 조작 |
-| Docker Compose | YAML로 여러 Container를 하나의 Application처럼 관리 |
-| Docker Registry | Image 저장 및 Push/Pull 제공 |
-| Docker Swarm | 여러 Docker Host를 Cluster로 관리 |</p>
+<table>
+  <thead>
+    <tr>
+      <th>도구</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>containerd</td>
+      <td>Image 전송·저장, Container 실행과 감독 등 Lifecycle 관리</td>
+    </tr>
+    <tr>
+      <td>BuildKit</td>
+      <td>Dockerfile을 기반으로 Docker Image Build</td>
+    </tr>
+    <tr>
+      <td>Docker CLI</td>
+      <td><code class="language-plaintext highlighter-rouge">docker</code> 명령을 통해 Docker Engine 조작</td>
+    </tr>
+    <tr>
+      <td>Docker Compose</td>
+      <td>YAML로 여러 Container를 하나의 Application처럼 관리</td>
+    </tr>
+    <tr>
+      <td>Docker Registry</td>
+      <td>Image 저장 및 Push/Pull 제공</td>
+    </tr>
+    <tr>
+      <td>Docker Swarm</td>
+      <td>여러 Docker Host를 Cluster로 관리</td>
+    </tr>
+  </tbody>
+</table>
+
 <h4 id="containerd">containerd</h4>
 
 <p>containerd는 Container를 구동하고 관리하는 Runtime이다.</p>
