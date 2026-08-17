@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Docker 컨테이너",
+        "url": "/cloud-native-11-docker-container/",
+        "description": "Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 17일",
+        "reading_time_label": "10분 읽기",
+        "search": "docker 컨테이너 docker container의 생명주기와 실행 방법, port 공개, 명령 실행, 파일 복사 및 volume mount cloudnative autoeversw docker cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Docker 이미지와 Union File System",
         "url": "/cloud-native-10-docker-images/",
         "description": "Docker Image 검색과 다운로드, Layer 구조, Tag 및 Docker Hub 배포 방법",
@@ -12,7 +27,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 14일",
-        "reading_time_label": "3분 읽기",
+        "reading_time_label": "4분 읽기",
         "search": "docker 이미지와 union file system docker image 검색과 다운로드, layer 구조, tag 및 docker hub 배포 방법 cloudnative autoeversw docker cloudnative"
       },
     
@@ -68,12 +83,12 @@
         "url": "/cloud-native-07-kafka-cqrs/",
         "description": "Spring Boot, MySQL, MongoDB와 Kafka를 이용하여 쓰기와 읽기 모델을 분리한 CQRS 구조 구현",
         "thumbnail": null,
-        "tags": ["CloudNative","AutoEverSW","Kafka"],
+        "tags": ["CloudNative","AutoEverSW","Kafka","CQRS"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 12일",
         "reading_time_label": "9분 읽기",
-        "search": "kafka를 활용한 cqrs 구현 spring boot, mysql, mongodb와 kafka를 이용하여 쓰기와 읽기 모델을 분리한 cqrs 구조 구현 cloudnative autoeversw kafka cloudnative"
+        "search": "kafka를 활용한 cqrs 구현 spring boot, mysql, mongodb와 kafka를 이용하여 쓰기와 읽기 모델을 분리한 cqrs 구조 구현 cloudnative autoeversw kafka cqrs cloudnative"
       },
     
       
@@ -83,12 +98,12 @@
         "url": "/cloud-native-06-cqrs/",
         "description": "CQRS의 개념과 기존 데이터 모델의 문제점, Command와 Query 분리 구조 및 적용 기준",
         "thumbnail": null,
-        "tags": ["CloudNative","AutoEverSW"],
+        "tags": ["CloudNative","AutoEverSW","CQRS"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 12일",
         "reading_time_label": "6분 읽기",
-        "search": "cqrs와 읽기 · 쓰기 · 책임의 분리 cqrs의 개념과 기존 데이터 모델의 문제점, command와 query 분리 구조 및 적용 기준 cloudnative autoeversw cloudnative"
+        "search": "cqrs와 읽기 · 쓰기 · 책임의 분리 cqrs의 개념과 기존 데이터 모델의 문제점, command와 query 분리 구조 및 적용 기준 cloudnative autoeversw cqrs cloudnative"
       },
     
       

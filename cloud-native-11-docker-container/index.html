@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Docker 컨테이너 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-11-docker-container/">
+<meta property="og:title" content="Docker 컨테이너 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-11-docker-container/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker 컨테이너 | renamed.log">
+<meta name="twitter:description" content="Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount">
+
+  <meta property="article:published_time" content="2026-08-17T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1786973424" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1786973424" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1786973424">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1786973424" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1786973424">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Docker 컨테이너 | renamed.log",
+    "description": "Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount",
+    "url": "https://kkr010128.github.io/cloud-native-11-docker-container/",
+    "datePublished": "2026-08-17T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Docker 컨테이너</h1>
+    
+      <p class="post-head__description">Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 17일 · 10분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--docker-container">1 ) Docker Container</h2>
+
+<hr />
+
+<p>Docker Image는 Application 실행에 필요한 File System을 담은 읽기 전용 Template이다. Docker Engine은 Image Layer 위에 읽고 쓸 수 있는 Container Layer를 추가하여 Container를 생성한다.</p>
+
+<p>Container는 독립된 Virtual Machine이 아니라 Host의 Kernel을 공유하면서 격리된 공간에서 실행되는 Process이다. Image가 실행에 필요한 Content를 제공하고, Container의 주 Process가 실제 Application을 실행한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container Layer     ← Read / Write
+-----------------
+Image Layer         ← Read Only
+Image Layer         ← Read Only
+Base Image Layer    ← Read Only
+</code></pre></div></div>
+
+<p>Container Format과 Runtime의 개방형 업계 표준은 OCI(Open Container Initiative)에서 정의한다. OCI는 Linux Foundation 산하 Project이며, Docker를 포함한 여러 Container 도구가 상호 운용될 수 있는 기반을 제공한다.</p>
+
+<h2 id="2--container-생성과-수동-제어">2 ) Container 생성과 수동 제어</h2>
+
+<hr />
+
+<p>Image 다운로드, Container 생성, 시작은 각각 별도의 명령으로 수행할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Image 다운로드</span>
+docker image pull ubuntu:24.04
+
+<span class="c"># Container 생성</span>
+docker container create <span class="nt">-it</span> <span class="nt">--name</span> container-test1 ubuntu:24.04
+
+<span class="c"># 정지된 Container까지 모두 확인</span>
+docker container <span class="nb">ls</span> <span class="nt">-a</span>
+
+<span class="c"># Container 시작</span>
+docker container start container-test1
+
+<span class="c"># 실행 중인 Container 확인</span>
+docker container <span class="nb">ls</span>
+
+<span class="c"># Container의 표준 입출력에 연결</span>
+docker container attach container-test1
+
+<span class="c"># 정지된 Container 삭제</span>
+docker container <span class="nb">rm </span>container-test1
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker ps</code>는 <code class="language-plaintext highlighter-rouge">docker container ls</code>와 같은 역할을 한다. 기본 출력에는 실행 중인 Container만 표시되고, <code class="language-plaintext highlighter-rouge">-a</code>를 사용하면 정지된 Container도 함께 표시된다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">attach</code>는 Container의 주 Process에 연결한다. 연결한 Terminal에서 종료 명령을 실행하면 주 Process와 Container가 함께 종료될 수 있다. 실행 중인 Container에서 별도의 Shell을 사용하려면 <code class="language-plaintext highlighter-rouge">docker container exec</code>가 더 적합하다.</p>
+
+<h2 id="3--container-생명주기">3 ) Container 생명주기</h2>
+
+<hr />
+
+<p>Container의 기본 생명주기는 생성, 실행, 중지, 삭제 단계로 구분할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Image
+  ↓ create
+Created
+  ↓ start
+Running
+  ↓ stop 또는 Process 종료
+Stopped
+  ↓ rm
+Removed
+</code></pre></div></div>
+
+<h3 id="생성">생성</h3>
+
+<p><code class="language-plaintext highlighter-rouge">docker container create</code>는 Image를 기반으로 Container를 만들지만 주 Process를 시작하지는 않는다. 생성된 Container에는 이름, Network 설정, Mount 정보와 쓰기 가능한 Container Layer가 준비된다.</p>
+
+<h3 id="실행">실행</h3>
+
+<p><code class="language-plaintext highlighter-rouge">docker container start</code> 또는 <code class="language-plaintext highlighter-rouge">docker container run</code>으로 Container를 시작하면 Image에 정의된 <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>와 <code class="language-plaintext highlighter-rouge">CMD</code>를 바탕으로 주 Process가 실행된다.</p>
+
+<p>Web Server처럼 계속 동작하는 Process가 실행되면 Container도 실행 상태를 유지한다. 반면 명령을 한 번 수행하고 끝나는 Process라면 해당 Process가 종료될 때 Container도 정지한다.</p>
+
+<h3 id="중지">중지</h3>
+
+<p>사용자가 Container를 중지하거나 주 Process가 정상 또는 오류 상태로 종료되면 Container는 정지 상태가 된다. 정지된 Container의 쓰기 Layer와 설정은 남아 있으므로 다시 시작할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop CONTAINER
+docker container start CONTAINER
+</code></pre></div></div>
+
+<h3 id="삭제">삭제</h3>
+
+<p>정지된 Container는 명시적으로 삭제하기 전까지 Disk에 남는다. 삭제하면 해당 Container는 다시 시작할 수 없고 쓰기 Layer의 데이터도 사라진다. 보존해야 하는 데이터는 Volume 또는 Bind Mount에 저장한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">rm </span>CONTAINER
+docker container <span class="nb">rm</span> <span class="nt">--force</span> CONTAINER
+</code></pre></div></div>
+
+<h2 id="4--application-실행">4 ) Application 실행</h2>
+
+<hr />
+
+<h3 id="docker-run">docker run</h3>
+
+<p><code class="language-plaintext highlighter-rouge">docker container run</code>은 필요한 Image가 Local에 없으면 내려받고, 새 Container를 생성한 뒤 바로 시작한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image pull
+        +
+docker container create
+        +
+docker container start
+        ↓
+docker container run
+</code></pre></div></div>
+
+<p>기본 형식은 다음과 같다.</p>
+
+<pre><code class="language-txt">docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
+</code></pre>
+
+<p>자주 사용하는 Option은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--name NAME</code></td>
+      <td>Container 이름 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-d</code>, <code class="language-plaintext highlighter-rouge">--detach</code></td>
+      <td>Background에서 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-i</code>, <code class="language-plaintext highlighter-rouge">--interactive</code></td>
+      <td>표준 입력을 열린 상태로 유지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-t</code>, <code class="language-plaintext highlighter-rouge">--tty</code></td>
+      <td>가상 Terminal 할당</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-e</code>, <code class="language-plaintext highlighter-rouge">--env</code></td>
+      <td>환경 변수 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-p HOST:CONTAINER</code></td>
+      <td>Host Port와 Container Port 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-P</code>, <code class="language-plaintext highlighter-rouge">--publish-all</code></td>
+      <td>Image가 공개한 Port를 임의의 Host Port에 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-v</code>, <code class="language-plaintext highlighter-rouge">--volume</code></td>
+      <td>Volume 또는 Host 경로 Mount</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--network NETWORK</code></td>
+      <td>Container가 연결될 Network 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--hostname NAME</code></td>
+      <td>Container Hostname 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--restart POLICY</code></td>
+      <td>Container 재시작 정책 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--rm</code></td>
+      <td>Container 종료 시 자동 삭제</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">-i</code>와 <code class="language-plaintext highlighter-rouge">-t</code>는 역할이 다르지만 대화형 Shell을 사용할 때 보통 <code class="language-plaintext highlighter-rouge">-it</code>로 함께 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--rm</span> <span class="nt">-it</span> ubuntu:24.04 /bin/bash
+</code></pre></div></div>
+
+<p>Server Application은 Terminal을 점유하지 않도록 주로 <code class="language-plaintext highlighter-rouge">-d</code>로 실행한다. 다만 <code class="language-plaintext highlighter-rouge">-d</code>가 Process를 Daemon으로 바꾸는 것은 아니며, Docker가 Container를 Background에서 실행하고 ID를 반환하는 Option이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> nginx <span class="nt">-d</span> nginx:1.18
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--restart</code>에는 다음과 같은 정책을 지정할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>정책</th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">no</code></td>
+      <td>자동으로 다시 시작하지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">on-failure[:N]</code></td>
+      <td>Process가 오류 상태로 끝나면 지정 횟수까지 재시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">always</code></td>
+      <td>종료되면 항상 재시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">unless-stopped</code></td>
+      <td>사용자가 직접 중지하지 않았다면 재시작</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="5--container-조회와-관리">5 ) Container 조회와 관리</h2>
+
+<hr />
+
+<h3 id="container-목록">Container 목록</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">ls
+</span>docker ps
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-08-17-cloud-native-11-docker-container/02.webp" alt="" /></p>
+
+<p>출력 항목의 의미는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">CONTAINER ID</code></td>
+      <td>Container 식별자의 축약 값</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">IMAGE</code></td>
+      <td>Container 생성에 사용한 Image</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">COMMAND</code></td>
+      <td>Container의 주 Process를 시작한 명령</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">CREATED</code></td>
+      <td>Container를 생성한 뒤 지난 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">STATUS</code></td>
+      <td>실행, 종료 등 현재 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">PORTS</code></td>
+      <td>공개 및 연결된 Port 정보</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">NAMES</code></td>
+      <td>Container 이름</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>주요 Option은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-a</code>, <code class="language-plaintext highlighter-rouge">--all</code></td>
+      <td>정지된 Container까지 모두 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-q</code>, <code class="language-plaintext highlighter-rouge">--quiet</code></td>
+      <td>Container ID만 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-l</code>, <code class="language-plaintext highlighter-rouge">--latest</code></td>
+      <td>가장 최근에 생성한 Container 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-n NUMBER</code>, <code class="language-plaintext highlighter-rouge">--last NUMBER</code></td>
+      <td>최근에 생성한 Container를 지정한 수만큼 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-s</code>, <code class="language-plaintext highlighter-rouge">--size</code></td>
+      <td>Container File System 크기 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--no-trunc</code></td>
+      <td>ID와 명령을 줄이지 않고 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--filter</code></td>
+      <td>조건에 맞는 Container만 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--format</code></td>
+      <td>출력 형식 지정</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">ls</span> <span class="nt">-a</span>
+docker container <span class="nb">ls</span> <span class="nt">-aq</span>
+docker container <span class="nb">ls</span> <span class="nt">--filter</span> <span class="nv">status</span><span class="o">=</span>running
+docker container <span class="nb">ls</span> <span class="nt">--format</span> <span class="s1">' '</span>
+</code></pre></div></div>
+
+<p>여러 Container ID를 명령 치환으로 전달할 수도 있다. 다음 명령은 실행 중인 모든 Container를 중지한 뒤 모든 Container를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop <span class="si">$(</span>docker container <span class="nb">ls</span> <span class="nt">-q</span><span class="si">)</span>
+docker container <span class="nb">rm</span> <span class="si">$(</span>docker container <span class="nb">ls</span> <span class="nt">-aq</span><span class="si">)</span>
+</code></pre></div></div>
+
+<p>대상이 없으면 명령에 인수가 전달되지 않아 오류가 발생할 수 있다. 실제 환경에서는 목록을 먼저 확인한 뒤 일괄 작업을 수행한다.</p>
+
+<h3 id="resource와-log-확인">Resource와 Log 확인</h3>
+
+<p><code class="language-plaintext highlighter-rouge">docker container stats</code>는 CPU, Memory, Network I/O 등 Container의 Resource 사용량을 실시간으로 보여준다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stats
+docker container stats webserver
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker container logs</code>는 Container Process가 표준 출력과 표준 오류에 기록한 Log를 확인한다. <code class="language-plaintext highlighter-rouge">-f</code>를 사용하면 새 Log를 계속 따라간다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container logs webserver
+docker container logs <span class="nt">-f</span> webserver
+</code></pre></div></div>
+
+<h2 id="6--port-공개와-web-server-실습">6 ) Port 공개와 Web Server 실습</h2>
+
+<hr />
+
+<p>Container는 격리된 Network 공간에서 실행되므로 Container 내부의 Port가 Host에 자동으로 공개되지는 않는다. 외부에서 Service에 접근하려면 <code class="language-plaintext highlighter-rouge">-p</code>로 Host Port를 Container Port에 연결한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client → Host:9000 → Container:80 → Web Server
+</code></pre></div></div>
+
+<h3 id="nginx-실행">Nginx 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> webserver <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>Browser에서 <code class="language-plaintext highlighter-rouge">http://localhost:9000</code>에 접속하면 Container의 80번 Port로 요청이 전달된다.</p>
+
+<h3 id="apache-http-server-실행">Apache HTTP Server 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apacheweb <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  httpd
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-p 9000:80</code>의 왼쪽은 Host Port이고 오른쪽은 Container Port이다. 동일한 Host의 같은 Port를 여러 Container에 동시에 연결할 수는 없다.</p>
+
+<h2 id="7--base-image">7 ) Base Image</h2>
+
+<hr />
+
+<p>Dockerfile은 목적에 맞는 Base Image에서 시작한다. 필요한 Runtime과 배포 환경을 고려해 적절한 Image와 Version Tag를 선택한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>분류</th>
+      <th>대표 Image</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Operating System</td>
+      <td><code class="language-plaintext highlighter-rouge">ubuntu</code>, <code class="language-plaintext highlighter-rouge">debian</code>, <code class="language-plaintext highlighter-rouge">fedora</code>, <code class="language-plaintext highlighter-rouge">alpine</code>, <code class="language-plaintext highlighter-rouge">busybox</code></td>
+    </tr>
+    <tr>
+      <td>Web Server</td>
+      <td><code class="language-plaintext highlighter-rouge">httpd</code>, <code class="language-plaintext highlighter-rouge">nginx</code></td>
+    </tr>
+    <tr>
+      <td>Database</td>
+      <td><code class="language-plaintext highlighter-rouge">mysql</code>, <code class="language-plaintext highlighter-rouge">postgres</code>, <code class="language-plaintext highlighter-rouge">mariadb</code>, <code class="language-plaintext highlighter-rouge">redis</code>, <code class="language-plaintext highlighter-rouge">mongo</code></td>
+    </tr>
+    <tr>
+      <td>Language Runtime</td>
+      <td><code class="language-plaintext highlighter-rouge">eclipse-temurin</code>, <code class="language-plaintext highlighter-rouge">python</code>, <code class="language-plaintext highlighter-rouge">php</code>, <code class="language-plaintext highlighter-rouge">ruby</code>, <code class="language-plaintext highlighter-rouge">golang</code>, <code class="language-plaintext highlighter-rouge">node</code></td>
+    </tr>
+    <tr>
+      <td>Service</td>
+      <td><code class="language-plaintext highlighter-rouge">registry</code>, <code class="language-plaintext highlighter-rouge">nextcloud</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Alpine과 BusyBox는 크기가 작은 Linux 환경이지만, Library와 Package 구성이 Ubuntu나 Debian과 다르다. 단순히 크기만 비교하지 않고 Application 호환성도 함께 확인한다.</p>
+
+<h2 id="8--host와-container-사이의-파일-복사">8 ) Host와 Container 사이의 파일 복사</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">docker container cp</code>는 Host와 Container 사이에서 File 또는 Directory를 복사한다. 앞의 경로가 원본이고 뒤의 경로가 목적지이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Host에서 Container로 복사</span>
+docker container <span class="nb">cp </span>HOST_PATH CONTAINER:CONTAINER_PATH
+
+<span class="c"># Container에서 Host로 복사</span>
+docker container <span class="nb">cp </span>CONTAINER:CONTAINER_PATH HOST_PATH
+</code></pre></div></div>
+
+<h3 id="apache-기본-page-변경">Apache 기본 Page 변경</h3>
+
+<p>Apache HTTP Server Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/local/apache2/htdocs</code>이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Container 실행</span>
+docker container run <span class="nt">--name</span> webserver <span class="nt">-d</span> <span class="nt">-p</span> 9000:80 httpd
+
+<span class="c"># 기존 Page를 Host로 복사</span>
+docker container <span class="nb">cp</span> <span class="se">\</span>
+  webserver:/usr/local/apache2/htdocs/index.html <span class="se">\</span>
+  index.html
+
+<span class="c"># Host에서 수정한 Page를 다시 Container로 복사</span>
+docker container <span class="nb">cp</span> <span class="se">\</span>
+  index.html <span class="se">\</span>
+  webserver:/usr/local/apache2/htdocs/index.html
+</code></pre></div></div>
+
+<h3 id="nginx-기본-page-변경">Nginx 기본 Page 변경</h3>
+
+<p>Nginx Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> nginx <span class="nt">-d</span> <span class="nt">-p</span> 9001:80 nginx
+
+docker container <span class="nb">cp</span> <span class="se">\</span>
+  nginx:/usr/share/nginx/html/index.html <span class="se">\</span>
+  nginx.html
+
+docker container <span class="nb">cp</span> <span class="se">\</span>
+  nginx.html <span class="se">\</span>
+  nginx:/usr/share/nginx/html/index.html
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker cp</code>로 변경한 File은 Container의 쓰기 Layer에 저장되므로 Container를 삭제하면 사라진다. 개발 중 File을 반복해서 수정하거나 데이터를 영구 보관해야 한다면 Bind Mount 또는 Volume을 사용한다.</p>
+
+<h2 id="9--실행-중인-container에서-명령-수행">9 ) 실행 중인 Container에서 명령 수행</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">docker container exec</code>는 실행 중인 Container 안에서 새로운 명령을 실행한다.</p>
+
+<pre><code class="language-txt">docker container exec [OPTIONS] CONTAINER COMMAND [ARG...]
+</code></pre>
+
+<p>Container 안에서 대화형 Shell을 실행하는 예시는 다음과 같다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> ubuntu-server <span class="nt">-dit</span> ubuntu:24.04
+docker container <span class="nb">exec</span> <span class="nt">-it</span> ubuntu-server /bin/bash
+</code></pre></div></div>
+
+<h3 id="attach와-exec의-차이-">attach와 exec의 차이 ?</h3>
+
+<blockquote>
+  <p>두 명령 모두 실행 중인 Container와 상호작용하지만 연결되는 Process가 다르다.</p>
+</blockquote>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th><code class="language-plaintext highlighter-rouge">docker attach</code></th>
+      <th><code class="language-plaintext highlighter-rouge">docker exec</code></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>동작</td>
+      <td>기존 주 Process의 표준 입력·출력·오류에 Terminal을 연결</td>
+      <td>Container 안에서 새로운 Process 실행</td>
+    </tr>
+    <tr>
+      <td>대상</td>
+      <td><code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>와 <code class="language-plaintext highlighter-rouge">CMD</code>로 시작된 주 Process</td>
+      <td>사용자가 지정한 Shell 또는 명령</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">exit</code>의 영향</td>
+      <td>주 Process가 Shell이라면 Shell과 Container가 함께 종료</td>
+      <td>새로 실행한 Shell만 종료되고 주 Process는 계속 실행</td>
+    </tr>
+    <tr>
+      <td>주요 용도</td>
+      <td>주 Process와 직접 대화하거나 현재 출력을 확인</td>
+      <td>점검, Debugging, File 확인, 관리 명령 수행</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Container가 다음과 같이 실행되었다고 가정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> attach-test <span class="nt">-dit</span> ubuntu:24.04 /bin/bash
+</code></pre></div></div>
+
+<p>이때 <code class="language-plaintext highlighter-rouge">/bin/bash</code>는 Container를 유지하는 주 Process, 즉 Container 내부의 PID 1이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container attach attach-test
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">attach</code>는 새 Shell을 만들지 않고 이미 PID 1로 실행 중인 <code class="language-plaintext highlighter-rouge">/bin/bash</code>에 현재 Terminal을 연결한다. 여기에서 <code class="language-plaintext highlighter-rouge">exit</code>를 입력하면 PID 1인 Bash가 종료되고, 주 Process가 사라졌으므로 Container도 정지한다. Container를 계속 실행하면서 Terminal만 분리하려면 일반적으로 <code class="language-plaintext highlighter-rouge">Ctrl-p</code>, <code class="language-plaintext highlighter-rouge">Ctrl-q</code>를 차례로 입력한다. <code class="language-plaintext highlighter-rouge">Ctrl-c</code>는 설정과 주 Process의 Signal 처리 방식에 따라 Container를 종료할 수 있으므로 주의한다.</p>
+
+<p>반면 다음 명령은 같은 Container 안에 새로운 Bash Process를 하나 더 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec</span> <span class="nt">-it</span> attach-test /bin/bash
+</code></pre></div></div>
+
+<p>이 Shell은 PID 1이 아니다. 따라서 여기서 <code class="language-plaintext highlighter-rouge">exit</code>를 입력하면 <code class="language-plaintext highlighter-rouge">exec</code>로 만든 Bash만 종료되고 원래의 PID 1은 계속 실행되므로 Container도 실행 상태를 유지한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>attach
+Terminal ─────────→ PID 1: /bin/bash
+                         └─ exit → 주 Process 종료 → Container 정지
+
+exec
+PID 1: /bin/bash   ← 계속 실행
+└─ 새 Process: /bin/bash ← Terminal 연결
+                         └─ exit → 새 Process만 종료
+</code></pre></div></div>
+
+<p>Web Server Container도 같은 원리로 동작한다. <code class="language-plaintext highlighter-rouge">attach</code>를 실행하면 Nginx나 Apache 주 Process의 입출력에 연결될 뿐 Shell이 생기지 않는다. 반면 <code class="language-plaintext highlighter-rouge">exec -it CONTAINER sh</code>는 점검에 사용할 별도의 Shell을 실행한다. 이 때문에 운영 중인 Service를 중단할 위험이 비교적 작고 원하는 명령을 바로 실행할 수 있는 <code class="language-plaintext highlighter-rouge">exec</code>를 실무에서 더 자주 사용한다고 한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Nginx 주 Process에 연결</span>
+docker container attach webserver
+
+<span class="c"># Nginx Container 내부에 점검용 Shell을 별도로 실행</span>
+docker container <span class="nb">exec</span> <span class="nt">-it</span> webserver /bin/sh
+
+<span class="c"># Shell 없이 설정 File만 확인</span>
+docker container <span class="nb">exec </span>webserver nginx <span class="nt">-T</span>
+</code></pre></div></div>
+
+<p>다만 <code class="language-plaintext highlighter-rouge">exec</code>는 Container의 주 Process가 실행 중일 때만 사용할 수 있다. Container가 이미 정지했다면 먼저 <code class="language-plaintext highlighter-rouge">docker logs</code>나 <code class="language-plaintext highlighter-rouge">docker inspect</code>로 종료 원인을 확인하고 필요에 따라 Container를 다시 시작해야 한다. 단순히 Application Log를 확인하려는 목적이라면 주 Process에 직접 연결하는 <code class="language-plaintext highlighter-rouge">attach</code>보다 <code class="language-plaintext highlighter-rouge">docker logs</code>가 안전하고 편리하다.</p>
+
+<h3 id="python-program-실행">Python Program 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> python-test <span class="nt">-dit</span> python:3
+docker container <span class="nb">cp </span>lotto.py python-test:/lotto.py
+docker container <span class="nb">exec</span> <span class="nt">-it</span> python-test python /lotto.py
+</code></pre></div></div>
+
+<h3 id="nodejs-program-실행">Node.js Program 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> nodejs <span class="nt">-dit</span> node
+docker container <span class="nb">cp </span>index.js nodejs:/app-node.js
+docker container <span class="nb">exec</span> <span class="nt">-it</span> nodejs node /app-node.js
+</code></pre></div></div>
+
+<p>일회성 Program이라면 Container를 계속 실행해 두고 <code class="language-plaintext highlighter-rouge">exec</code>하는 대신 Source Code를 Mount하고 <code class="language-plaintext highlighter-rouge">docker run --rm</code>으로 실행하는 방식도 사용할 수 있다.</p>
+
+<h2 id="10--container를-image로-저장">10 ) Container를 Image로 저장</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">docker container commit</code>은 Container의 변경된 File System을 새 Image로 저장한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container commit CONTAINER REPOSITORY[:TAG]
+docker container commit nodejs my-node-app:1.0
+docker image <span class="nb">ls </span>my-node-app
+</code></pre></div></div>
+
+<p>실습 중 변경 사항을 임시로 보관하거나 상태를 분석할 때 사용할 수 있지만, 실행한 명령과 변경 이유를 재현하기 어렵다. 배포용 Image는 변경 과정을 코드로 관리할 수 있도록 Dockerfile로 Build하는 것이 좋다.</p>
+
+<p>Mount에 저장된 데이터는 Container File System에 포함되지 않으므로 <code class="language-plaintext highlighter-rouge">commit</code>으로 만든 Image에도 포함되지 않는다.</p>
+
+<h2 id="11--docker-volume">11 ) Docker Volume</h2>
+
+<hr />
+
+<p>Container의 쓰기 Layer는 Container 생명주기에 종속된다. Container를 삭제해도 보존해야 하는 Database, Upload File과 같은 데이터는 Container 밖의 Storage에 저장해야 한다.</p>
+
+<p>Docker에서 주로 사용하는 Mount 방식은 Volume Mount와 Bind Mount이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>저장 위치</th>
+      <th>관리 주체</th>
+      <th>주요 용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Volume Mount</td>
+      <td>Docker가 관리하는 영역</td>
+      <td>Docker Engine</td>
+      <td>Application Data의 영속적 저장</td>
+    </tr>
+    <tr>
+      <td>Bind Mount</td>
+      <td>Host의 지정된 File 또는 Directory</td>
+      <td>사용자</td>
+      <td>Source Code, 설정 File 공유</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="volume-생성과-연결">Volume 생성과 연결</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Volume 생성과 조회</span>
+docker volume create my-app-vol-1
+docker volume <span class="nb">ls
+</span>docker volume inspect my-app-vol-1
+
+<span class="c"># Volume을 Mount한 Container 실행</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> vol-test <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-v</span> my-app-vol-1:/data <span class="se">\</span>
+  alpine <span class="se">\</span>
+  <span class="nb">tail</span> <span class="nt">-f</span> /dev/null
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-v VOLUME_NAME:CONTAINER_PATH</code> 형식으로 이름이 있는 Volume을 Container 경로에 연결한다. 동일한 Volume은 새 Container에 다시 Mount할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec </span>vol-test sh <span class="nt">-c</span> <span class="s1">'echo hello &gt; /data/message.txt'</span>
+
+docker container stop vol-test
+docker container <span class="nb">rm </span>vol-test
+
+docker container run <span class="nt">--rm</span> <span class="se">\</span>
+  <span class="nt">-v</span> my-app-vol-1:/data <span class="se">\</span>
+  alpine <span class="se">\</span>
+  <span class="nb">cat</span> /data/message.txt
+</code></pre></div></div>
+
+<p>Container를 삭제한 뒤에도 <code class="language-plaintext highlighter-rouge">hello</code>가 출력되므로 데이터가 Volume에 남아 있음을 확인할 수 있다.</p>
+
+<p>사용 중인 Volume은 삭제할 수 없다. Volume을 연결한 Container를 먼저 제거한 뒤 Volume을 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume <span class="nb">rm </span>my-app-vol-1
+docker volume prune
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker volume prune</code>은 사용하지 않는 Volume을 일괄 삭제하므로 대상을 확인한 뒤 실행한다.</p>
+
+<h2 id="12--bind-mount">12 ) Bind Mount</h2>
+
+<hr />
+
+<p>Bind Mount는 Host의 기존 File 또는 Directory를 Container 경로에 직접 연결한다. Host에서 File을 수정하면 Container에서도 같은 변경 사항을 바로 확인할 수 있어 개발 중 Source Code나 설정을 공유할 때 유용하다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apache <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs <span class="se">\</span>
+  httpd
+</code></pre></div></div>
+
+<p>짧은 <code class="language-plaintext highlighter-rouge">-v</code> 형식도 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apache <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  <span class="nt">-v</span> /home/user/apache:/usr/local/apache2/htdocs <span class="se">\</span>
+  httpd
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--mount</code>를 사용할 때 Host 경로가 존재하지 않으면 오류가 발생한다. <code class="language-plaintext highlighter-rouge">-v</code>는 존재하지 않는 Host 경로를 Directory로 만들 수 있으므로 오타가 새 Directory 생성으로 이어질 수 있다. Bind Mount 전에는 절대 경로와 권한을 확인한다.</p>
+
+<p>Container를 삭제해도 Host의 원본 File과 Directory는 유지된다. 반대로 Container Process도 Mount된 Host File을 변경할 수 있으므로, 읽기만 허용하려면 <code class="language-plaintext highlighter-rouge">readonly</code> 또는 <code class="language-plaintext highlighter-rouge">ro</code> Option을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> readonly-web <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9001:80 <span class="se">\</span>
+  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs,readonly <span class="se">\</span>
+  httpd
+</code></pre></div></div>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-10-docker-images/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Docker 이미지와 Union File System</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1786973424"></script>
+    <script src="/assets/js/code-enhancements.js?v=1786973424"></script>
+  </body>
+</html>
