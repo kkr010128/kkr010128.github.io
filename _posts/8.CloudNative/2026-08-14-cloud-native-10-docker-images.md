@@ -154,3 +154,88 @@ docker push USERNAME/myapache:1.0
 docker image tag httpd:latest USERNAME/myapache:2.0
 docker push USERNAME/myapache:2.0
 ```
+
+## 6 ) Docker Image를 파일로 관리
+
+---
+
+Docker Image는 Registry를 거치지 않고 `tar` Archive로 저장하고 다른 Docker 환경에서 다시 불러올 수 있다. `docker image save`는 Image의 Layer와 Tag 정보를 함께 보존하므로, Network를 사용할 수 없는 환경으로 Image를 옮기거나 특정 Image를 보관할 때 유용하다.
+
+### Image 저장
+
+```txt
+docker image save [OPTIONS] IMAGE [IMAGE...]
+```
+
+`-o` 또는 `--output` Option을 사용하면 출력 파일을 직접 지정할 수 있다.
+
+```bash
+# Image 다운로드
+docker image pull eclipse-mosquitto:latest
+
+# Local Image 확인
+docker image ls
+
+# tar Archive로 저장
+docker image save -o eclipse-mosquitto.tar eclipse-mosquitto:latest
+```
+
+Shell의 출력 Redirection을 사용해도 같은 방식으로 저장할 수 있다.
+
+```bash
+docker image save eclipse-mosquitto:latest > eclipse-mosquitto.tar
+```
+
+### Image 불러오기
+
+`docker image load`는 `save`로 만든 Archive에서 Image와 Tag 정보를 복원한다.
+
+```bash
+docker image load -i eclipse-mosquitto.tar
+docker image ls
+```
+
+입력 Redirection을 사용할 수도 있다.
+
+```bash
+docker image load < eclipse-mosquitto.tar
+```
+
+Container의 File System을 `docker export`와 `docker import`로 옮기는 방식과 달리, `save`와 `load`는 Image Layer와 Metadata를 유지한다.
+
+### Image 삭제와 정리
+
+Image 이름과 Tag 또는 Image ID를 지정해 Local Image를 삭제할 수 있다. `docker rmi`는 `docker image rm`의 단축 명령이다.
+
+```bash
+docker image rm IMAGE[:TAG]
+docker image rm IMAGE_ID
+docker rmi IMAGE[:TAG]
+```
+
+주요 Option은 다음과 같다.
+
+| Option | 설명 |
+|---|---|
+| `--force`, `-f` | 충돌이 발생해도 Image를 강제로 삭제 |
+| `--no-prune` | 기본적으로 함께 정리되는 Tag가 없는 Parent Image를 보존 |
+
+Local Image ID 전체를 명령 치환으로 전달하면 모든 Local Image의 삭제를 시도한다.
+
+```bash
+docker image rm $(docker image ls -q)
+```
+
+실행 중인 Container가 사용하거나 다른 Image가 참조하는 Image는 삭제되지 않을 수 있다. `-f`를 사용하기 전에 Container와 Image의 사용 관계를 먼저 확인한다.
+
+사용하지 않는 Image만 정리하려면 `prune`을 사용한다.
+
+```bash
+# Dangling Image만 제거
+docker image prune
+
+# Container가 사용하지 않는 모든 Image 제거
+docker image prune -a
+```
+
+`docker image prune -a`는 다시 필요할 수 있는 Local Image도 삭제할 수 있으므로, 표시되는 삭제 대상을 확인한 뒤 실행한다.
