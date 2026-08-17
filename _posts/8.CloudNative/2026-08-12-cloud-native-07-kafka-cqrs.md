@@ -8,6 +8,7 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kafka
+  - CQRS
 ---
 ## 1 ) Spring Boot 기반 CQRS 구현
 

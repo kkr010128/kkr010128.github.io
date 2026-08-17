@@ -6,6 +6,7 @@ series: CloudNative
 tags:
   - CloudNative
   - AutoEverSW
+  - CQRS
 ---
 ## **1 ) CQRS**
 
