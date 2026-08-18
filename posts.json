@@ -4,16 +4,46 @@
       
       
       {
+        "title": "Dockerfile",
+        "url": "/cloud-native-13-dockerfile/",
+        "description": "Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 18일",
+        "reading_time_label": "7분 읽기",
+        "search": "dockerfile dockerfile의 주요 instruction과 image build 방법 및 작성 시 주의 사항 cloudnative autoeversw docker cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Docker Volume",
+        "url": "/cloud-native-12-docker-volume/",
+        "description": "Docker Volume, Bind Mount, tmpfs의 차이와 데이터 영속화 및 공유 방법",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 18일",
+        "reading_time_label": "7분 읽기",
+        "search": "docker volume docker volume, bind mount, tmpfs의 차이와 데이터 영속화 및 공유 방법 cloudnative autoeversw docker cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Docker 컨테이너",
         "url": "/cloud-native-11-docker-container/",
-        "description": "Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount",
+        "description": "Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행 및 파일 복사",
         "thumbnail": null,
         "tags": ["CloudNative","AutoEverSW","Docker"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 17일",
-        "reading_time_label": "10분 읽기",
-        "search": "docker 컨테이너 docker container의 생명주기와 실행 방법, port 공개, 명령 실행, 파일 복사 및 volume mount cloudnative autoeversw docker cloudnative"
+        "reading_time_label": "9분 읽기",
+        "search": "docker 컨테이너 docker container의 생명주기와 실행 방법, port 공개, 명령 실행 및 파일 복사 cloudnative autoeversw docker cloudnative"
       },
     
       

@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Dockerfile | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-13-dockerfile/">
+<meta property="og:title" content="Dockerfile | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-13-dockerfile/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dockerfile | renamed.log">
+<meta name="twitter:description" content="Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항">
+
+  <meta property="article:published_time" content="2026-08-18T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787048701" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787048701" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787048701">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787048701" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787048701">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Dockerfile | renamed.log",
+    "description": "Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항",
+    "url": "https://kkr010128.github.io/cloud-native-13-dockerfile/",
+    "datePublished": "2026-08-18T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Dockerfile</h1>
+    
+      <p class="post-head__description">Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 18일 · 7분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--infrastructure-as-code-iac">1 ) Infrastructure as Code, IaC</h2>
+
+<hr />
+
+<p>Infrastructure를 CLI로 직접 구성하면 설치 순서, Package의 의존 관계, 환경 설정을 모두 사람이 관리해야 한다. APM(Apache, PHP, MySQL)처럼 여러 Software가 연동되는 환경은 작업 누락과 설정 오류가 발생하기 쉽고, 동일한 환경을 다시 만드는 데에도 많은 시간이 든다.</p>
+
+<p>IaC(Infrastructure as Code)는 Infrastructure의 구성과 절차를 Code로 정의하고 Version을 관리하는 방식이다. Dockerfile 역시 Application 실행 환경과 Image 생성 과정을 Text로 기록하므로 동일한 Image를 반복해서 Build하고 배포할 수 있다.</p>
+
+<h2 id="2--dockerfile-개요">2 ) Dockerfile 개요</h2>
+
+<hr />
+
+<p>Dockerfile은 Docker Image를 생성하기 위한 Instruction을 순서대로 작성한 Text File이다.</p>
+
+<ul>
+  <li>
+    <p>Image를 어떤 Base Image와 명령으로 만들었는지 기록할 수 있다.</p>
+  </li>
+  <li>
+    <p>동일한 실행 환경을 반복해서 생성할 수 있다.</p>
+  </li>
+  <li>
+    <p>Source Code와 함께 Version을 관리하고 배포할 수 있다.</p>
+  </li>
+  <li>
+    <p>Container가 시작될 때 실행할 명령과 기본 설정을 정의할 수 있다.</p>
+  </li>
+</ul>
+
+<p>Dockerfile의 각 Instruction은 Image Layer와 Build Cache에 영향을 준다. 변경 빈도가 낮은 작업을 앞에, Source Code처럼 자주 변경되는 작업을 뒤에 배치하면 Cache를 효율적으로 재사용할 수 있다.</p>
+
+<h2 id="3--dockerfile-주요-instruction">3 ) Dockerfile 주요 Instruction</h2>
+
+<hr />
+
+<h3 id="from">FROM</h3>
+
+<p>Build의 기반이 되는 Base Image를 지정한다. 일반적인 Dockerfile은 <code class="language-plaintext highlighter-rouge">FROM</code>으로 시작하며 Multi-stage Build에서는 여러 번 사용할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:24.04</span>
+<span class="k">FROM</span><span class="s"> python:3.13-slim</span>
+</code></pre></div></div>
+
+<p>Tag를 생략하면 기본적으로 <code class="language-plaintext highlighter-rouge">latest</code>가 사용되지만 Build 결과를 예측하기 어려워질 수 있으므로 Version Tag나 Digest를 명시하는 편이 좋다. <code class="language-plaintext highlighter-rouge">slim</code>이나 <code class="language-plaintext highlighter-rouge">alpine</code>은 Image 크기를 줄이는 데 도움이 되지만 C Library와 Package 구성이 다르므로 Application 호환성을 먼저 확인한다.</p>
+
+<h3 id="maintainer">MAINTAINER</h3>
+
+<p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>는 Image 작성자 정보를 기록하던 Instruction이다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">MAINTAINER</span><span class="s"> adam.park &lt;itstudy@example.com&gt;</span>
+</code></pre></div></div>
+
+<p>현재 <code class="language-plaintext highlighter-rouge">MAINTAINER</code>는 사용이 중단된 Deprecated Instruction이다. 새 Dockerfile에서는 OCI Annotation에 해당하는 <code class="language-plaintext highlighter-rouge">LABEL</code>을 사용한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">LABEL</span><span class="s"> org.opencontainers.image.authors="adam.park &lt;itstudy@example.com&gt;"</span>
+</code></pre></div></div>
+
+<h3 id="label">LABEL</h3>
+
+<p>Image의 Version, 설명, License와 같은 Metadata를 Key-Value 형식으로 기록한다. 여러 개를 지정할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">LABEL</span><span class="s"> org.opencontainers.image.version="1.0"</span>
+<span class="k">LABEL</span><span class="s"> org.opencontainers.image.description="web service"</span>
+<span class="k">LABEL</span><span class="s"> org.opencontainers.image.licenses="MIT"</span>
+</code></pre></div></div>
+
+<h3 id="run">RUN</h3>
+
+<p>Image를 Build하는 동안 Package를 설치하거나 File을 변경하는 명령을 실행한다. Shell 형식과 Exec 형식을 사용할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Shell 형식</span>
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
+</span>      curl <span class="se">\
+</span>      nginx <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
+
+<span class="c"># Exec 형식</span>
+<span class="k">RUN </span><span class="o">[</span><span class="s2">"/bin/bash"</span>, <span class="s2">"-c"</span>, <span class="s2">"echo build-complete &gt; /build.txt"</span><span class="o">]</span>
+</code></pre></div></div>
+
+<p>각 <code class="language-plaintext highlighter-rouge">RUN</code>은 Layer를 만들므로 관련 작업은 하나의 <code class="language-plaintext highlighter-rouge">RUN</code>에서 수행하고 Package 목록도 같은 Layer에서 제거한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">apt autoclean</code>, <code class="language-plaintext highlighter-rouge">apt autoremove</code> 명령은 현재도 사용할 수 있지만 Container Image Build에서는 설치 직후 <code class="language-plaintext highlighter-rouge">/var/lib/apt/lists/*</code>를 제거하고 불필요한 Package를 처음부터 설치하지 않는 방식이 더 명확하다.</p>
+
+<p>Multi-stage Build는 Compiler와 Build 도구가 들어 있는 Stage에서 결과물을 만든 뒤 실행에 필요한 File만 최종 Stage로 복사하여 Image 크기와 공격 표면을 줄이는 방식이다.</p>
+
+<h3 id="cmd">CMD</h3>
+
+<p>Container가 시작될 때 실행할 기본 명령 또는 <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>의 기본 인자를 지정한다. 여러 번 작성해도 마지막 <code class="language-plaintext highlighter-rouge">CMD</code>만 적용된다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CMD</span><span class="s"> ["nginx", "-g", "daemon off;"]</span>
+<span class="k">CMD</span><span class="s"> ["python", "app.py"]</span>
+</code></pre></div></div>
+
+<p>Exec 형식은 불필요한 Shell을 거치지 않아 Signal 전달을 예측하기 쉬우므로 일반적으로 권장된다. <code class="language-plaintext highlighter-rouge">docker run IMAGE COMMAND</code>처럼 Image 뒤에 명령을 전달하면 <code class="language-plaintext highlighter-rouge">CMD</code>를 대체할 수 있다.</p>
+
+<h3 id="entrypoint">ENTRYPOINT</h3>
+
+<p>Container의 주 실행 명령을 지정한다. <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>를 실행 파일로, <code class="language-plaintext highlighter-rouge">CMD</code>를 기본 인자로 조합할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ENTRYPOINT</span><span class="s"> ["python"]</span>
+<span class="k">CMD</span><span class="s"> ["runapp.py"]</span>
+</code></pre></div></div>
+
+<p>이 Image를 인자 없이 실행하면 <code class="language-plaintext highlighter-rouge">python runapp.py</code>가 실행된다. <code class="language-plaintext highlighter-rouge">docker run IMAGE other.py</code>로 실행하면 <code class="language-plaintext highlighter-rouge">CMD</code>만 바뀌어 <code class="language-plaintext highlighter-rouge">python other.py</code>가 실행된다. <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>도 <code class="language-plaintext highlighter-rouge">docker run --entrypoint</code>로 변경할 수 있으므로 절대 변경할 수 없는 명령이라는 의미는 아니다.</p>
+
+<p>초기화 Script를 사용하는 예시는 다음과 같다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> entrypoint.sh /usr/local/bin/entrypoint.sh</span>
+<span class="k">RUN </span><span class="nb">chmod</span> +x /usr/local/bin/entrypoint.sh
+<span class="k">ENTRYPOINT</span><span class="s"> ["/usr/local/bin/entrypoint.sh"]</span>
+</code></pre></div></div>
+
+<h3 id="copy">COPY</h3>
+
+<p>Build Context의 File이나 Directory를 Image에 복사한다. Build Context 밖의 경로는 복사할 수 없다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> index.html /usr/share/nginx/html/index.html</span>
+<span class="k">COPY</span><span class="s"> runapp.py /app/runapp.py</span>
+</code></pre></div></div>
+
+<p>단순한 Local File 복사에는 동작이 명확한 <code class="language-plaintext highlighter-rouge">COPY</code>를 우선 사용한다.</p>
+
+<h3 id="add">ADD</h3>
+
+<p><code class="language-plaintext highlighter-rouge">COPY</code>처럼 File을 복사하며 Local Tar Archive의 자동 압축 해제와 Remote URL 등의 추가 기능을 제공한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ADD</span><span class="s"> application.tar.gz /app/</span>
+<span class="k">ADD</span><span class="s"> https://example.com/data.json /app/data.json</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ADD</code>는 현재도 사용되는 Instruction이지만 자동 압축 해제 같은 동작이 필요할 때만 사용한다. Remote File은 <code class="language-plaintext highlighter-rouge">RUN curl</code> 또는 <code class="language-plaintext highlighter-rouge">RUN wget</code>으로 내려받으면 검증과 권한 설정 과정을 더 명시적으로 작성할 수 있다.</p>
+
+<h3 id="env">ENV</h3>
+
+<p>Build 과정과 실행될 Container에서 사용할 환경 변수를 설정한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ENV</span><span class="s"> JAVA_HOME=/usr/lib/jvm/java-21-openjdk</span>
+<span class="k">ENV</span><span class="s"> PATH="${JAVA_HOME}/bin:${PATH}"</span>
+</code></pre></div></div>
+
+<h3 id="expose">EXPOSE</h3>
+
+<p>Container가 어떤 Port와 Protocol에서 요청을 받을지 문서화한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">EXPOSE</span><span class="s"> 80</span>
+<span class="k">EXPOSE</span><span class="s"> 8080/tcp</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">EXPOSE</code>만으로 Host Port가 공개되지는 않는다. 외부에서 접근하려면 Container 실행 시 <code class="language-plaintext highlighter-rouge">-p HOST_PORT:CONTAINER_PORT</code> 또는 <code class="language-plaintext highlighter-rouge">-P</code>를 사용해야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>역할</th>
+      <th>실제 Listen 여부</th>
+      <th>Host 외부 접근</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>애플리케이션</td>
+      <td>Nginx, Spring Boot 등이 Container 내부 Port에서 요청을 대기한다.</td>
+      <td>O</td>
+      <td>X</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">EXPOSE 80</code></td>
+      <td>Container가 <code class="language-plaintext highlighter-rouge">80</code> Port를 사용한다는 것을 명시하는 메타데이터이다.</td>
+      <td>X</td>
+      <td>X</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-p 8080:80</code></td>
+      <td>Host의 <code class="language-plaintext highlighter-rouge">8080</code> Port를 Container의 <code class="language-plaintext highlighter-rouge">80</code> Port에 직접 연결한다.</td>
+      <td>X</td>
+      <td>O</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-P</code></td>
+      <td><code class="language-plaintext highlighter-rouge">EXPOSE</code>로 명시된 Port를 Host의 임의 Port에 자동으로 연결한다.</td>
+      <td>X</td>
+      <td>O</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">EXPOSE</code>는 Port를 실제로 열거나 Listen 상태로 만드는 명령이 아니다.</p>
+    </li>
+    <li>
+      <p>실제 Listen은 Container 내부의 Application이 수행한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">-p</code>는 <code class="language-plaintext highlighter-rouge">EXPOSE</code> 여부와 관계없이 Host와 Container의 Port를 직접 연결한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">-P</code>는 <code class="language-plaintext highlighter-rouge">EXPOSE</code>에 명시된 Port를 기준으로 Host의 임의 Port에 연결한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h3 id="volume">VOLUME</h3>
+
+<p>Container에서 Volume으로 사용할 Mount Point를 지정한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">VOLUME</span><span class="s"> ["/var/log"]</span>
+<span class="k">VOLUME</span><span class="s"> ["/var/www/html"]</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">VOLUME</code>은 해당 경로를 Host의 <code class="language-plaintext highlighter-rouge">/var/lib/docker</code>와 문자 그대로 Bind Mount하는 명령이 아니다. Container 실행 시 Docker가 관리하는 Anonymous Volume의 Mount Point를 선언한다. Volume 이름, Host Bind Mount 경로 등 구체적인 연결은 <code class="language-plaintext highlighter-rouge">docker run --mount</code>나 Compose File에서 지정하는 편이 관리하기 쉽다.</p>
+
+<h3 id="user">USER</h3>
+
+<p>이후의 <code class="language-plaintext highlighter-rouge">RUN</code>과 Container 실행 시 사용할 사용자 또는 Group을 지정한다. 기본 사용자는 <code class="language-plaintext highlighter-rouge">root</code>이므로 Application에 관리자 권한이 필요하지 않다면 별도 사용자를 만드는 것이 안전하다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">RUN </span>useradd <span class="nt">--create-home</span> appuser
+<span class="k">USER</span><span class="s"> appuser</span>
+</code></pre></div></div>
+
+<h3 id="workdir">WORKDIR</h3>
+
+<p>이후 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">CMD</code>, <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>, <code class="language-plaintext highlighter-rouge">COPY</code>, <code class="language-plaintext highlighter-rouge">ADD</code>의 기준 Directory를 지정한다. 경로가 없으면 자동으로 생성된다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">WORKDIR</span><span class="s"> /workspace</span>
+<span class="k">COPY</span><span class="s"> . .</span>
+</code></pre></div></div>
+
+<h3 id="arg">ARG</h3>
+
+<p>Build할 때만 사용할 변수를 선언하고 <code class="language-plaintext highlighter-rouge">--build-arg</code>로 값을 전달한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ARG</span><span class="s"> DB_NAME=itstudy</span>
+<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"database=</span><span class="k">${</span><span class="nv">DB_NAME</span><span class="k">}</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">--build-arg</span> <span class="nv">DB_NAME</span><span class="o">=</span>production <span class="nt">-t</span> my-app:1.0 <span class="nb">.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ARG</code>는 비밀번호나 Secret을 안전하게 숨기는 기능이 아니다. 값이 Image History나 Build Cache에 남을 수 있으므로 민감 정보를 전달하는 용도로 사용하지 않는다.</p>
+
+<h3 id="onbuild">ONBUILD</h3>
+
+<p>현재 Image가 다른 Dockerfile의 Base Image로 사용될 때 실행할 Trigger Instruction을 등록한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ONBUILD</span><span class="w"> </span><span class="k">COPY</span><span class="s"> . /app/src</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ONBUILD</code>는 현재도 지원되지만 상속된 동작이 눈에 잘 드러나지 않아 예상하지 못한 Build 실패를 만들 수 있다. 전용 Base Image처럼 사용 목적이 명확한 경우에 제한적으로 사용한다.</p>
+
+<h3 id="stopsignal">STOPSIGNAL</h3>
+
+<p>Container를 중지할 때 주 Process에 전달할 System Call Signal을 지정한다. 기본값은 일반적으로 <code class="language-plaintext highlighter-rouge">SIGTERM</code>이다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">STOPSIGNAL</span><span class="s"> SIGTERM</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">STOPSIGNAL SIGKILL</code>도 문법상 지정할 수 있지만 Process가 종료 작업을 수행할 기회를 잃으므로 일반적인 설정으로는 권장하지 않는다.</p>
+
+<h3 id="shell">SHELL</h3>
+
+<p>Shell 형식의 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">CMD</code>, <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>에 사용할 기본 Shell을 변경한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SHELL</span><span class="s"> ["/bin/bash", "-c"]</span>
+</code></pre></div></div>
+
+<h3 id="healthcheck">HEALTHCHECK</h3>
+
+<p>Container 내부에서 명령을 주기적으로 실행하여 Application의 상태를 확인한다. 여러 번 작성하면 마지막 하나만 적용된다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">HEALTHCHECK</span><span class="s"> --interval=1m --timeout=3s --retries=5 \</span>
+  CMD curl --fail http://localhost/ || exit 1
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>종료 Code</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td>정상 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td>비정상 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">2</code></td>
+      <td>예약된 값이므로 사용하지 않음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>기본 <code class="language-plaintext highlighter-rouge">interval</code>과 <code class="language-plaintext highlighter-rouge">timeout</code>은 각각 30초이며 기본 <code class="language-plaintext highlighter-rouge">retries</code>는 3회이다.</p>
+
+<h2 id="4--dockerfile-작성-방법">4 ) Dockerfile 작성 방법</h2>
+
+<hr />
+
+<p>Dockerfile은 보통 다음 원칙으로 작성한다.</p>
+
+<ul>
+  <li>
+    <p>필요한 Application이나 Runtime이 이미 설치된 신뢰할 수 있는 Base Image를 선택한다.</p>
+  </li>
+  <li>
+    <p>Version Tag를 명시하여 Build 결과를 일정하게 유지한다.</p>
+  </li>
+  <li>
+    <p>변경 빈도가 낮은 Instruction을 먼저 배치하여 Build Cache를 활용한다.</p>
+  </li>
+  <li>
+    <p>Package 설치와 Cache 삭제를 같은 <code class="language-plaintext highlighter-rouge">RUN</code>에서 처리한다.</p>
+  </li>
+  <li>
+    <p>가능한 경우 권한이 제한된 사용자로 Application을 실행한다.</p>
+  </li>
+  <li>
+    <p>Compiler가 필요한 Application은 Multi-stage Build를 고려한다.</p>
+  </li>
+</ul>
+
+<h2 id="5--image-build">5 ) Image Build</h2>
+
+<hr />
+
+<p>기본 형식은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build [OPTIONS] PATH | URL | -
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 현재 Directory를 Build Context로 사용하고 이름과 Tag 지정</span>
+docker build <span class="nt">-t</span> apache-example:1.0 <span class="nb">.</span>
+
+<span class="c"># 다른 이름의 Dockerfile 지정</span>
+docker build <span class="nt">-f</span> Dockerfile.dev <span class="nt">-t</span> apache-example:dev <span class="nb">.</span>
+
+<span class="c"># Git Repository를 Build Context로 사용</span>
+docker build <span class="nt">-t</span> php-server:2.0 <span class="se">\</span>
+  https://github.com/example/docker-phpserver.git
+
+<span class="c"># 표준 입력으로 전달한 Tar Archive를 Build Context로 사용</span>
+docker build - &lt; context.tar.gz
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-t</code>는 Image의 이름과 Tag를 지정하고 <code class="language-plaintext highlighter-rouge">-f</code>는 Dockerfile의 경로 또는 이름을 지정한다. 마지막 인자인 <code class="language-plaintext highlighter-rouge">PATH</code>, <code class="language-plaintext highlighter-rouge">URL</code>, <code class="language-plaintext highlighter-rouge">-</code>는 Dockerfile 자체가 아니라 Build Context를 뜻한다. 압축된 Build Context는 <code class="language-plaintext highlighter-rouge">-f</code>가 아니라 표준 입력으로 전달한다.</p>
+
+<h2 id="6--apache-main-page-image">6 ) Apache Main Page Image</h2>
+
+<hr />
+
+<h3 id="indexhtml">index.html</h3>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!doctype html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"ko"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Docker Image Build<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;h1&gt;</span>Apache Web Server<span class="nt">&lt;/h1&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div></div>
+
+<h3 id="dockerfile">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> httpd:2.4</span>
+<span class="k">COPY</span><span class="s"> index.html /usr/local/apache2/htdocs/index.html</span>
+</code></pre></div></div>
+
+<h3 id="build-및-실행">Build 및 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> apache-example:1.0 <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apache-example <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
+  apache-example:1.0
+</code></pre></div></div>
+
+<p>Browser 또는 <code class="language-plaintext highlighter-rouge">curl http://localhost:8000</code>으로 변경된 Page를 확인한다.</p>
+
+<h2 id="7--nginx-main-page-image">7 ) Nginx Main Page Image</h2>
+
+<hr />
+
+<p>Nginx 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
+
+<p>본 실습의 <code class="language-plaintext highlighter-rouge">/var/www/html</code>은 Ubuntu 등에 Package로 설치한 Nginx에서 자주 사용하는 경로이며 공식 Docker Image의 기본 경로와 다르다.</p>
+
+<h3 id="dockerfile-1">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> nginx</span>
+<span class="k">COPY</span><span class="s"> index.html /usr/share/nginx/html/index.html</span>
+</code></pre></div></div>
+
+<h3 id="build-및-실행-1">Build 및 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> nginx-example:1.0 <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> nginx-example <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  nginx-example:1.0
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Dockerfile과 <code class="language-plaintext highlighter-rouge">index.html</code>을 같은 Build Context에 두고 Image를 Build한다.</p>
+    </li>
+    <li>
+      <p>Apache 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/local/apache2/htdocs</code>이다.</p>
+    </li>
+    <li>
+      <p>Nginx 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
+    </li>
+    <li>
+      <p>Build한 Image를 Container로 실행하고 Host Port를 연결하여 Page를 확인한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h2 id="8--dockerfile을-사용하는-이유">8 ) Dockerfile을 사용하는 이유</h2>
+
+<hr />
+
+<p>Host에 Apache와 PHP를 직접 설치하려면 Package 설치, Service 시작, 설정 변경, Web Page 배치 과정을 순서대로 반복해야 한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> apache2 php
+<span class="nb">sudo </span>service apache2 start
+<span class="nb">sudo </span>service apache2 status
+curl http://localhost:80
+</code></pre></div></div>
+
+<p>이러한 명령을 수동으로 실행하면 환경이 커질수록 누락과 차이가 누적된다. Dockerfile로 필요한 Package, 설정, Source Code, 실행 명령을 정의하면 변경 이력을 Version Control로 관리하고 동일한 Image를 반복해서 만들 수 있다.</p>
+
+<p>다만 Dockerfile만으로 Database와 Web Application처럼 여러 Container의 실행 관계까지 모두 정의하지는 않는다. 여러 Service의 Network, Volume, 환경 변수와 실행 순서는 Docker Compose 같은 도구로 함께 관리한다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Dockerfile은 Image 생성 과정을 Code로 기록하여 동일한 환경을 반복해서 Build할 수 있게 한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">FROM</code>으로 Base Image를 지정하고 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">COPY</code>, <code class="language-plaintext highlighter-rouge">ENV</code> 등으로 실행 환경을 구성한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>는 주 실행 명령을, <code class="language-plaintext highlighter-rouge">CMD</code>는 기본 명령이나 기본 인자를 정의한다.</p>
+    </li>
+    <li>
+      <p>Dockerfile의 Instruction 순서는 Image Layer와 Build Cache에 영향을 준다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker build</code>는 Dockerfile과 Build Context를 사용하여 새로운 Image를 생성한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>처럼 현재 Deprecated된 Instruction은 그대로 이해하되 새 Dockerfile에서는 대체 방법을 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-12-docker-volume/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Docker Volume</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787048701"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787048701"></script>
+  </body>
+</html>

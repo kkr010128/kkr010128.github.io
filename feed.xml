@@ -1,4 +1,938 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-18T12:31:50+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker 컨테이너</title><link href="https://kkr010128.github.io/cloud-native-11-docker-container/" rel="alternate" type="text/html" title="Docker 컨테이너" /><published>2026-08-17T00:00:00+09:00</published><updated>2026-08-17T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-11-docker-container</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-11-docker-container/"><![CDATA[<h2 id="1--docker-container">1 ) Docker Container</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-18T19:25:01+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker Volume</title><link href="https://kkr010128.github.io/cloud-native-12-docker-volume/" rel="alternate" type="text/html" title="Docker Volume" /><published>2026-08-18T00:00:00+09:00</published><updated>2026-08-18T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-12-docker-volume</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-12-docker-volume/"><![CDATA[<h2 id="1--docker-volume">1 ) Docker Volume</h2>
+
+<hr />
+
+<p>Container의 쓰기 Layer는 Container의 생명주기에 종속된다. Container를 삭제하면 쓰기 Layer에 저장된 데이터도 함께 사라지므로 Database, Upload File, Log처럼 보존해야 하는 데이터는 Container 밖에 저장해야 한다.</p>
+
+<p>Docker는 Container와 분리하여 데이터를 관리할 수 있도록 세 가지 Mount 방식을 제공한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>저장 위치</th>
+      <th>관리 주체</th>
+      <th>주요 용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Volume Mount</td>
+      <td>Docker가 관리하는 Host 영역</td>
+      <td>Docker Engine</td>
+      <td>Database 등 영속 데이터</td>
+    </tr>
+    <tr>
+      <td>Bind Mount</td>
+      <td>사용자가 지정한 Host File 또는 Directory</td>
+      <td>사용자</td>
+      <td>Source Code, 설정, Log 공유</td>
+    </tr>
+    <tr>
+      <td>tmpfs Mount</td>
+      <td>Host Memory</td>
+      <td>Host OS</td>
+      <td>일시적인 데이터, 민감 정보</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Volume은 Container를 삭제해도 유지되며 다른 Container에 다시 연결할 수 있다. 직접 Host 경로를 지정하지 않기 때문에 일반적으로 영속 데이터를 저장할 때 권장된다.</p>
+
+<h2 id="2--volume-생성과-연결">2 ) Volume 생성과 연결</h2>
+
+<hr />
+
+<h3 id="volume-생성-및-조회">Volume 생성 및 조회</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create my-app-vol-1
+docker volume <span class="nb">ls
+</span>docker volume inspect my-app-vol-1
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker volume inspect</code>를 실행하면 Driver, 생성 시각, Host의 실제 저장 위치인 <code class="language-plaintext highlighter-rouge">Mountpoint</code> 등을 확인할 수 있다. Docker가 관리하는 경로의 File을 Host에서 직접 수정하기보다는 Container를 통해 다루는 것이 안전하다.</p>
+
+<h3 id="container에-volume-mount">Container에 Volume Mount</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> vol-test <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-v</span> my-app-vol-1:/var/log <span class="se">\</span>
+  ubuntu:24.04 <span class="se">\</span>
+  <span class="nb">sleep </span>infinity
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-v VOLUME_NAME:CONTAINER_PATH</code> 형식으로 Volume을 Container의 경로에 연결한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">--mount</code>를 사용하면 같은 설정을 더 명확하게 표현할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> vol-test-mount <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span>volume,src<span class="o">=</span>my-app-vol-1,dst<span class="o">=</span>/var/log <span class="se">\</span>
+  ubuntu:24.04 <span class="se">\</span>
+  <span class="nb">sleep </span>infinity
+</code></pre></div></div>
+
+<h3 id="데이터-영속성-확인">데이터 영속성 확인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec </span>vol-test <span class="se">\</span>
+  sh <span class="nt">-c</span> <span class="s1">'echo "volume data" &gt; /var/log/message.txt'</span>
+
+docker container stop vol-test vol-test-mount
+docker container <span class="nb">rm </span>vol-test vol-test-mount
+
+docker container run <span class="nt">--rm</span> <span class="se">\</span>
+  <span class="nt">-v</span> my-app-vol-1:/data <span class="se">\</span>
+  ubuntu:24.04 <span class="se">\</span>
+  <span class="nb">cat</span> /data/message.txt
+</code></pre></div></div>
+
+<p>기존 Container를 삭제한 뒤 새 Container에 같은 Volume을 연결해도 <code class="language-plaintext highlighter-rouge">volume data</code>가 출력된다. Container와 Volume의 생명주기가 서로 분리되어 있기 때문이다.</p>
+
+<h3 id="volume-삭제">Volume 삭제</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume <span class="nb">rm </span>my-app-vol-1
+
+<span class="c"># 사용하지 않는 Volume 일괄 삭제</span>
+docker volume prune
+</code></pre></div></div>
+
+<p>실행 여부와 관계없이 Volume을 참조하는 Container가 남아 있으면 Volume을 삭제할 수 없다. 해당 Container를 먼저 제거해야 한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">docker volume prune</code>은 사용하지 않는 Volume을 한꺼번에 삭제하므로 삭제 대상을 확인한 뒤 실행한다.</p>
+
+<h2 id="3--bind-mount">3 ) Bind Mount</h2>
+
+<hr />
+
+<p>Bind Mount는 Host의 기존 File 또는 Directory를 Container 경로에 직접 연결한다. Host와 Container가 같은 내용을 바로 확인할 수 있어 개발 중 Source Code나 설정 File을 공유하거나 Container의 Log를 Host에 저장할 때 유용하다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> /home/user/apache
+
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apache <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs <span class="se">\</span>
+  httpd:2
+</code></pre></div></div>
+
+<p>짧은 <code class="language-plaintext highlighter-rouge">-v</code> 형식도 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apache-volume <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9001:80 <span class="se">\</span>
+  <span class="nt">-v</span> /home/user/apache:/usr/local/apache2/htdocs <span class="se">\</span>
+  httpd:2
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--mount</code>는 Host 경로가 없으면 오류를 반환한다. 반면 <code class="language-plaintext highlighter-rouge">-v</code>는 존재하지 않는 Host 경로를 Directory로 자동 생성할 수 있으며, 생성된 Directory의 소유자가 <code class="language-plaintext highlighter-rouge">root</code>가 될 수 있다. 경로 오타와 권한 문제를 줄이려면 Mount 전에 Host 경로를 만들고 절대 경로를 확인한다.</p>
+
+<p>Container Process도 Mount된 Host File을 변경할 수 있다. 읽기만 허용하려면 <code class="language-plaintext highlighter-rouge">readonly</code> 또는 <code class="language-plaintext highlighter-rouge">ro</code> Option을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> readonly-web <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs,readonly <span class="se">\</span>
+  httpd:2
+</code></pre></div></div>
+
+<p>Container를 제거하면 Bind Mount 연결은 해제되지만 Host의 원본 File과 Directory는 그대로 유지된다.</p>
+
+<h2 id="4--tmpfs-mount">4 ) tmpfs Mount</h2>
+
+<hr />
+
+<p>tmpfs Mount는 데이터를 Host의 Memory에만 저장한다. Container가 중지되거나 제거되면 데이터가 사라지므로 영속화가 목적이 아닌 임시 작업 File이나 민감한 Runtime Data에 적합하다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> webserver <span class="se">\</span>
+  <span class="nt">-dit</span> <span class="se">\</span>
+  <span class="nt">--tmpfs</span> /var/www/html <span class="se">\</span>
+  httpd:2
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--mount type=tmpfs,dst=/var/www/html</code> 형식으로도 지정할 수 있다. tmpfs는 Linux Container에서 사용할 수 있으며 Host의 Memory를 사용하므로 크기 제한 등 Resource 설정을 함께 고려해야 한다.</p>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Volume Mount는 Docker Engine이 관리하는 영역에 데이터를 저장한다.</p>
+    </li>
+    <li>
+      <p>Bind Mount는 Host의 File이나 Directory를 Container에 직접 연결한다.</p>
+    </li>
+    <li>
+      <p>tmpfs Mount는 Host Memory를 사용하며 Container가 제거되면 데이터가 사라진다.</p>
+    </li>
+    <li>
+      <p>보존 목적과 Host에서의 직접 관리 여부에 따라 Mount 방식을 선택한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h2 id="5--mysql-데이터-영속화">5 ) MySQL 데이터 영속화</h2>
+
+<hr />
+
+<p>MySQL 공식 Image는 <code class="language-plaintext highlighter-rouge">/var/lib/mysql</code>에 Database Data를 저장한다. 이 경로에 이름이 있는 Volume을 연결하면 Image나 Container를 삭제하고 다시 생성해도 데이터를 유지할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>값</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Image</td>
+      <td><code class="language-plaintext highlighter-rouge">mysql</code></td>
+    </tr>
+    <tr>
+      <td>기본 Port</td>
+      <td><code class="language-plaintext highlighter-rouge">3306</code></td>
+    </tr>
+    <tr>
+      <td>데이터 Directory</td>
+      <td><code class="language-plaintext highlighter-rouge">/var/lib/mysql</code></td>
+    </tr>
+    <tr>
+      <td>Root 비밀번호 환경 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">MYSQL_ROOT_PASSWORD</code></td>
+    </tr>
+    <tr>
+      <td>기본 Database 환경 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">MYSQL_DATABASE</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">docker search mysql</code>로 Docker Hub의 관련 Repository를 검색할 수 있으며 <code class="language-plaintext highlighter-rouge">OFFICIAL</code> 항목에서 공식 Image 여부를 확인할 수 있다.</p>
+
+<p><img src="../../assets/post/2026-08-18-cloud-native-12-docker-volume/06.webp" alt="" /></p>
+
+<h3 id="container-생성">Container 생성</h3>
+
+<p>MySQL Container를 생성하고 Named Volume을 <code class="language-plaintext highlighter-rouge">/var/lib/mysql</code>에 Mount한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> mysql-volume <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>1234 <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_DATABASE</span><span class="o">=</span>itstudy <span class="se">\</span>
+  <span class="nt">-v</span> mysql-data-vol:/var/lib/mysql <span class="se">\</span>
+  mysql
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--name mysql-volume</code></td>
+      <td>Container 이름을 <code class="language-plaintext highlighter-rouge">mysql-volume</code>으로 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-d</code></td>
+      <td>Container를 Background에서 실행한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-e MYSQL_ROOT_PASSWORD=1234</code></td>
+      <td>MySQL <code class="language-plaintext highlighter-rouge">root</code> 계정의 비밀번호를 설정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-e MYSQL_DATABASE=itstudy</code></td>
+      <td>Container 최초 실행 시 <code class="language-plaintext highlighter-rouge">itstudy</code> Database를 생성한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-v mysql-data-vol:/var/lib/mysql</code></td>
+      <td><code class="language-plaintext highlighter-rouge">mysql-data-vol</code> Named Volume을 MySQL Data 저장 경로에 Mount한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">mysql</code></td>
+      <td>MySQL Image를 사용한다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="architecture-확인">Architecture 확인</h4>
+
+<p>Apple Silicon처럼 Host Architecture와 Image가 지원하는 Architecture가 다른 경우에는 Image Tag의 Architecture 지원 여부를 먼저 확인한다.</p>
+
+<p>필요한 경우 다음과 같이 <code class="language-plaintext highlighter-rouge">--platform</code> Option을 지정할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">--platform</span> linux/amd64
+</code></pre></div></div>
+
+<p>다만 Host와 다른 Architecture를 지정하면 Emulation으로 실행될 수 있어 성능이 낮아질 수 있다.</p>
+
+<p>현재 MySQL 공식 Image에는 여러 Architecture를 지원하는 Tag가 있으므로, Mac을 사용한다는 이유만으로 <code class="language-plaintext highlighter-rouge">--platform linux/amd64</code> Option을 항상 추가할 필요는 없다.</p>
+
+<h4 id="비밀번호-관리">비밀번호 관리</h4>
+
+<p>실제 운영 환경에서는 다음과 같이 비밀번호를 명령어나 Source Code에 평문으로 직접 기록하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>1234
+</code></pre></div></div>
+
+<p>운영 환경에서는 비밀번호와 같은 민감한 정보를 별도의 Secret 관리 수단을 통해 관리한다.</p>
+
+<p>Container와 Volume의 연결 정보는 다음과 같이 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+docker container <span class="nb">ls</span> <span class="nt">-a</span>
+docker volume <span class="nb">ls
+</span>docker volume inspect mysql-data-vol
+docker container inspect mysql-volume <span class="se">\</span>
+  <span class="nt">--format</span> <span class="s1">'{{json .Mounts}}'</span> | jq
+
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">-v mysql-data-vol:/var/lib/mysql</code>을 통해 MySQL Data를 Named Volume에 저장한다.</p>
+    </li>
+    <li>
+      <p>Host와 Image의 Architecture가 다르다면 Image의 지원 Architecture를 먼저 확인한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">--platform linux/amd64</code>는 필요한 경우에만 사용하며, Emulation에 따른 성능 저하가 발생할 수 있다.</p>
+    </li>
+    <li>
+      <p>운영 환경에서는 비밀번호를 명령어나 Source Code에 평문으로 기록하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h3 id="sample-data-생성">Sample Data 생성</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec</span> <span class="nt">-it</span> mysql-volume <span class="se">\</span>
+  mysql <span class="nt">-uroot</span> <span class="nt">-p</span> itstudy
+</code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">mytable</span> <span class="p">(</span>
+  <span class="n">num</span> <span class="nb">INT</span><span class="p">,</span>
+  <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="p">);</span>
+
+<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">mytable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'adam'</span><span class="p">);</span>
+<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">mytable</span><span class="p">;</span>
+</code></pre></div></div>
+
+<h3 id="container-재생성-후-확인">Container 재생성 후 확인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop mysql-volume
+docker container <span class="nb">rm </span>mysql-volume
+
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> mysql-volume <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>1234 <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_DATABASE</span><span class="o">=</span>itstudy <span class="se">\</span>
+  <span class="nt">-v</span> mysql-data-vol:/var/lib/mysql <span class="se">\</span>
+  mysql
+
+docker container <span class="nb">exec</span> <span class="nt">-it</span> mysql-volume <span class="se">\</span>
+  mysql <span class="nt">-uroot</span> <span class="nt">-p</span> itstudy
+</code></pre></div></div>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">mytable</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>새 Container에서도 앞에서 추가한 Row가 조회되면 데이터가 Volume에 영속적으로 저장된 것이다.</p>
+
+<h2 id="6--nginx-log를-host에-저장">6 ) Nginx Log를 Host에 저장</h2>
+
+<hr />
+
+<p>Nginx의 Log Directory인 <code class="language-plaintext highlighter-rouge">/var/log/nginx</code>를 Host Directory에 Bind Mount하면 Container를 삭제한 뒤에도 Access Log와 Error Log를 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> /home/user/logs
+
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> nginx-volume <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  <span class="nt">-v</span> /home/user/logs:/var/log/nginx <span class="se">\</span>
+  nginx
+
+curl http://localhost:9000
+<span class="nb">cat</span> /home/user/logs/access.log
+</code></pre></div></div>
+
+<p>Host Directory에는 Container의 Nginx Process가 File을 생성하고 쓸 수 있는 권한이 필요하다.</p>
+
+<h2 id="7--container-간-데이터-공유">7 ) Container 간 데이터 공유</h2>
+
+<hr />
+
+<p>하나의 Volume을 여러 Container에 Mount하면 File을 공유할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create shared-data
+
+docker container run <span class="nt">--rm</span> <span class="se">\</span>
+  <span class="nt">-v</span> shared-data:/data <span class="se">\</span>
+  ubuntu:24.04 <span class="se">\</span>
+  sh <span class="nt">-c</span> <span class="s1">'echo "container-1" &gt; /data/message.txt'</span>
+
+docker container run <span class="nt">--rm</span> <span class="se">\</span>
+  <span class="nt">-v</span> shared-data:/data:ro <span class="se">\</span>
+  ubuntu:24.04 <span class="se">\</span>
+  <span class="nb">cat</span> /data/message.txt
+</code></pre></div></div>
+
+<p>두 번째 Container는 동일한 Volume을 읽기 전용으로 연결한다. 동시에 여러 Container가 같은 데이터를 수정한다면 Application 차원의 동시성 제어가 필요하다.</p>
+
+<p>기존 Container의 Mount 설정을 그대로 물려받는 <code class="language-plaintext highlighter-rouge">--volumes-from</code>도 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container create <span class="se">\</span>
+  <span class="nt">--name</span> datavol <span class="se">\</span>
+  <span class="nt">-v</span> /data-volume <span class="se">\</span>
+  ubuntu:24.04
+
+docker container run <span class="nt">--rm</span> <span class="se">\</span>
+  <span class="nt">--volumes-from</span> datavol <span class="se">\</span>
+  ubuntu:24.04 <span class="se">\</span>
+  sh <span class="nt">-c</span> <span class="s1">'echo "shared data" &gt; /data-volume/message.txt'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--volumes-from</code>은 현재도 지원되지만, Volume 보관만을 위한 Data Volume Container Pattern은 이름이 있는 Volume이 도입되기 전에 주로 사용하던 방식이다. 새 구성에서는 이름이 있는 Volume을 각 Container에 명시적으로 Mount하는 편이 데이터의 위치와 연결 관계를 이해하기 쉽다.</p>
+
+<h2 id="8--mount-시-주의-사항">8 ) Mount 시 주의 사항</h2>
+
+<hr />
+
+<p>Container의 Mount 대상 Directory에 Image가 제공하는 File이 이미 존재하더라도 Volume이나 Bind Mount를 연결하면 해당 File은 Mount 내용에 가려진다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Image의 /app
+├── config.yml
+└── default.txt
+
+빈 Volume을 /app에 Mount
+└── Mount된 Volume의 내용만 표시
+</code></pre></div></div>
+
+<p>가려진 Image File이 삭제된 것은 아니지만 Mount를 해제한 새 Container를 만들기 전에는 해당 경로에서 볼 수 없다. 설정 Directory나 Application Directory 전체를 Mount할 때는 Image의 기본 File이 필요한지 먼저 확인해야 한다.</p>
+
+<p>Host의 File 하나를 Container의 특정 File 경로에 Bind Mount하면 그 File만 Mount 내용으로 대체되고 같은 Directory의 다른 File은 그대로 보인다. Host File을 Container Directory 자체에 Mount하면 File과 Directory Type이 달라 오류가 발생할 수 있으므로 대상에도 File 경로를 명시해야 한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--rm</span> <span class="se">\</span>
+  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/nginx.conf,dst<span class="o">=</span>/etc/nginx/nginx.conf,readonly <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Volume Mount는 Docker가 관리하는 저장 영역을 사용하며 Container를 삭제해도 데이터를 유지한다.</p>
+    </li>
+    <li>
+      <p>Bind Mount는 Host의 File이나 Directory를 직접 연결하며 Container를 제거해도 Host 데이터는 남는다.</p>
+    </li>
+    <li>
+      <p>tmpfs Mount는 Host Memory를 사용하므로 Container가 제거되면 데이터도 사라진다.</p>
+    </li>
+    <li>
+      <p>MySQL 데이터와 Nginx Log처럼 보존해야 하는 데이터는 목적에 맞는 Mount 방식으로 Container 밖에 저장한다.</p>
+    </li>
+    <li>
+      <p>여러 Container가 같은 Volume을 연결하면 데이터를 공유할 수 있다.</p>
+    </li>
+    <li>
+      <p>기존 File이 있는 Container Directory에 Mount하면 Image의 File이 Mount 내용에 가려질 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Volume, Bind Mount, tmpfs의 차이와 데이터 영속화 및 공유 방법]]></summary></entry><entry><title type="html">Dockerfile</title><link href="https://kkr010128.github.io/cloud-native-13-dockerfile/" rel="alternate" type="text/html" title="Dockerfile" /><published>2026-08-18T00:00:00+09:00</published><updated>2026-08-18T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-13-dockerfile</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-13-dockerfile/"><![CDATA[<h2 id="1--infrastructure-as-code-iac">1 ) Infrastructure as Code, IaC</h2>
+
+<hr />
+
+<p>Infrastructure를 CLI로 직접 구성하면 설치 순서, Package의 의존 관계, 환경 설정을 모두 사람이 관리해야 한다. APM(Apache, PHP, MySQL)처럼 여러 Software가 연동되는 환경은 작업 누락과 설정 오류가 발생하기 쉽고, 동일한 환경을 다시 만드는 데에도 많은 시간이 든다.</p>
+
+<p>IaC(Infrastructure as Code)는 Infrastructure의 구성과 절차를 Code로 정의하고 Version을 관리하는 방식이다. Dockerfile 역시 Application 실행 환경과 Image 생성 과정을 Text로 기록하므로 동일한 Image를 반복해서 Build하고 배포할 수 있다.</p>
+
+<h2 id="2--dockerfile-개요">2 ) Dockerfile 개요</h2>
+
+<hr />
+
+<p>Dockerfile은 Docker Image를 생성하기 위한 Instruction을 순서대로 작성한 Text File이다.</p>
+
+<ul>
+  <li>
+    <p>Image를 어떤 Base Image와 명령으로 만들었는지 기록할 수 있다.</p>
+  </li>
+  <li>
+    <p>동일한 실행 환경을 반복해서 생성할 수 있다.</p>
+  </li>
+  <li>
+    <p>Source Code와 함께 Version을 관리하고 배포할 수 있다.</p>
+  </li>
+  <li>
+    <p>Container가 시작될 때 실행할 명령과 기본 설정을 정의할 수 있다.</p>
+  </li>
+</ul>
+
+<p>Dockerfile의 각 Instruction은 Image Layer와 Build Cache에 영향을 준다. 변경 빈도가 낮은 작업을 앞에, Source Code처럼 자주 변경되는 작업을 뒤에 배치하면 Cache를 효율적으로 재사용할 수 있다.</p>
+
+<h2 id="3--dockerfile-주요-instruction">3 ) Dockerfile 주요 Instruction</h2>
+
+<hr />
+
+<h3 id="from">FROM</h3>
+
+<p>Build의 기반이 되는 Base Image를 지정한다. 일반적인 Dockerfile은 <code class="language-plaintext highlighter-rouge">FROM</code>으로 시작하며 Multi-stage Build에서는 여러 번 사용할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:24.04</span>
+<span class="k">FROM</span><span class="s"> python:3.13-slim</span>
+</code></pre></div></div>
+
+<p>Tag를 생략하면 기본적으로 <code class="language-plaintext highlighter-rouge">latest</code>가 사용되지만 Build 결과를 예측하기 어려워질 수 있으므로 Version Tag나 Digest를 명시하는 편이 좋다. <code class="language-plaintext highlighter-rouge">slim</code>이나 <code class="language-plaintext highlighter-rouge">alpine</code>은 Image 크기를 줄이는 데 도움이 되지만 C Library와 Package 구성이 다르므로 Application 호환성을 먼저 확인한다.</p>
+
+<h3 id="maintainer">MAINTAINER</h3>
+
+<p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>는 Image 작성자 정보를 기록하던 Instruction이다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">MAINTAINER</span><span class="s"> adam.park &lt;itstudy@example.com&gt;</span>
+</code></pre></div></div>
+
+<p>현재 <code class="language-plaintext highlighter-rouge">MAINTAINER</code>는 사용이 중단된 Deprecated Instruction이다. 새 Dockerfile에서는 OCI Annotation에 해당하는 <code class="language-plaintext highlighter-rouge">LABEL</code>을 사용한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">LABEL</span><span class="s"> org.opencontainers.image.authors="adam.park &lt;itstudy@example.com&gt;"</span>
+</code></pre></div></div>
+
+<h3 id="label">LABEL</h3>
+
+<p>Image의 Version, 설명, License와 같은 Metadata를 Key-Value 형식으로 기록한다. 여러 개를 지정할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">LABEL</span><span class="s"> org.opencontainers.image.version="1.0"</span>
+<span class="k">LABEL</span><span class="s"> org.opencontainers.image.description="web service"</span>
+<span class="k">LABEL</span><span class="s"> org.opencontainers.image.licenses="MIT"</span>
+</code></pre></div></div>
+
+<h3 id="run">RUN</h3>
+
+<p>Image를 Build하는 동안 Package를 설치하거나 File을 변경하는 명령을 실행한다. Shell 형식과 Exec 형식을 사용할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Shell 형식</span>
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
+</span>      curl <span class="se">\
+</span>      nginx <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
+
+<span class="c"># Exec 형식</span>
+<span class="k">RUN </span><span class="o">[</span><span class="s2">"/bin/bash"</span>, <span class="s2">"-c"</span>, <span class="s2">"echo build-complete &gt; /build.txt"</span><span class="o">]</span>
+</code></pre></div></div>
+
+<p>각 <code class="language-plaintext highlighter-rouge">RUN</code>은 Layer를 만들므로 관련 작업은 하나의 <code class="language-plaintext highlighter-rouge">RUN</code>에서 수행하고 Package 목록도 같은 Layer에서 제거한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">apt autoclean</code>, <code class="language-plaintext highlighter-rouge">apt autoremove</code> 명령은 현재도 사용할 수 있지만 Container Image Build에서는 설치 직후 <code class="language-plaintext highlighter-rouge">/var/lib/apt/lists/*</code>를 제거하고 불필요한 Package를 처음부터 설치하지 않는 방식이 더 명확하다.</p>
+
+<p>Multi-stage Build는 Compiler와 Build 도구가 들어 있는 Stage에서 결과물을 만든 뒤 실행에 필요한 File만 최종 Stage로 복사하여 Image 크기와 공격 표면을 줄이는 방식이다.</p>
+
+<h3 id="cmd">CMD</h3>
+
+<p>Container가 시작될 때 실행할 기본 명령 또는 <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>의 기본 인자를 지정한다. 여러 번 작성해도 마지막 <code class="language-plaintext highlighter-rouge">CMD</code>만 적용된다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CMD</span><span class="s"> ["nginx", "-g", "daemon off;"]</span>
+<span class="k">CMD</span><span class="s"> ["python", "app.py"]</span>
+</code></pre></div></div>
+
+<p>Exec 형식은 불필요한 Shell을 거치지 않아 Signal 전달을 예측하기 쉬우므로 일반적으로 권장된다. <code class="language-plaintext highlighter-rouge">docker run IMAGE COMMAND</code>처럼 Image 뒤에 명령을 전달하면 <code class="language-plaintext highlighter-rouge">CMD</code>를 대체할 수 있다.</p>
+
+<h3 id="entrypoint">ENTRYPOINT</h3>
+
+<p>Container의 주 실행 명령을 지정한다. <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>를 실행 파일로, <code class="language-plaintext highlighter-rouge">CMD</code>를 기본 인자로 조합할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ENTRYPOINT</span><span class="s"> ["python"]</span>
+<span class="k">CMD</span><span class="s"> ["runapp.py"]</span>
+</code></pre></div></div>
+
+<p>이 Image를 인자 없이 실행하면 <code class="language-plaintext highlighter-rouge">python runapp.py</code>가 실행된다. <code class="language-plaintext highlighter-rouge">docker run IMAGE other.py</code>로 실행하면 <code class="language-plaintext highlighter-rouge">CMD</code>만 바뀌어 <code class="language-plaintext highlighter-rouge">python other.py</code>가 실행된다. <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>도 <code class="language-plaintext highlighter-rouge">docker run --entrypoint</code>로 변경할 수 있으므로 절대 변경할 수 없는 명령이라는 의미는 아니다.</p>
+
+<p>초기화 Script를 사용하는 예시는 다음과 같다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> entrypoint.sh /usr/local/bin/entrypoint.sh</span>
+<span class="k">RUN </span><span class="nb">chmod</span> +x /usr/local/bin/entrypoint.sh
+<span class="k">ENTRYPOINT</span><span class="s"> ["/usr/local/bin/entrypoint.sh"]</span>
+</code></pre></div></div>
+
+<h3 id="copy">COPY</h3>
+
+<p>Build Context의 File이나 Directory를 Image에 복사한다. Build Context 밖의 경로는 복사할 수 없다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> index.html /usr/share/nginx/html/index.html</span>
+<span class="k">COPY</span><span class="s"> runapp.py /app/runapp.py</span>
+</code></pre></div></div>
+
+<p>단순한 Local File 복사에는 동작이 명확한 <code class="language-plaintext highlighter-rouge">COPY</code>를 우선 사용한다.</p>
+
+<h3 id="add">ADD</h3>
+
+<p><code class="language-plaintext highlighter-rouge">COPY</code>처럼 File을 복사하며 Local Tar Archive의 자동 압축 해제와 Remote URL 등의 추가 기능을 제공한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ADD</span><span class="s"> application.tar.gz /app/</span>
+<span class="k">ADD</span><span class="s"> https://example.com/data.json /app/data.json</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ADD</code>는 현재도 사용되는 Instruction이지만 자동 압축 해제 같은 동작이 필요할 때만 사용한다. Remote File은 <code class="language-plaintext highlighter-rouge">RUN curl</code> 또는 <code class="language-plaintext highlighter-rouge">RUN wget</code>으로 내려받으면 검증과 권한 설정 과정을 더 명시적으로 작성할 수 있다.</p>
+
+<h3 id="env">ENV</h3>
+
+<p>Build 과정과 실행될 Container에서 사용할 환경 변수를 설정한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ENV</span><span class="s"> JAVA_HOME=/usr/lib/jvm/java-21-openjdk</span>
+<span class="k">ENV</span><span class="s"> PATH="${JAVA_HOME}/bin:${PATH}"</span>
+</code></pre></div></div>
+
+<h3 id="expose">EXPOSE</h3>
+
+<p>Container가 어떤 Port와 Protocol에서 요청을 받을지 문서화한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">EXPOSE</span><span class="s"> 80</span>
+<span class="k">EXPOSE</span><span class="s"> 8080/tcp</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">EXPOSE</code>만으로 Host Port가 공개되지는 않는다. 외부에서 접근하려면 Container 실행 시 <code class="language-plaintext highlighter-rouge">-p HOST_PORT:CONTAINER_PORT</code> 또는 <code class="language-plaintext highlighter-rouge">-P</code>를 사용해야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>역할</th>
+      <th>실제 Listen 여부</th>
+      <th>Host 외부 접근</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>애플리케이션</td>
+      <td>Nginx, Spring Boot 등이 Container 내부 Port에서 요청을 대기한다.</td>
+      <td>O</td>
+      <td>X</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">EXPOSE 80</code></td>
+      <td>Container가 <code class="language-plaintext highlighter-rouge">80</code> Port를 사용한다는 것을 명시하는 메타데이터이다.</td>
+      <td>X</td>
+      <td>X</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-p 8080:80</code></td>
+      <td>Host의 <code class="language-plaintext highlighter-rouge">8080</code> Port를 Container의 <code class="language-plaintext highlighter-rouge">80</code> Port에 직접 연결한다.</td>
+      <td>X</td>
+      <td>O</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-P</code></td>
+      <td><code class="language-plaintext highlighter-rouge">EXPOSE</code>로 명시된 Port를 Host의 임의 Port에 자동으로 연결한다.</td>
+      <td>X</td>
+      <td>O</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">EXPOSE</code>는 Port를 실제로 열거나 Listen 상태로 만드는 명령이 아니다.</p>
+    </li>
+    <li>
+      <p>실제 Listen은 Container 내부의 Application이 수행한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">-p</code>는 <code class="language-plaintext highlighter-rouge">EXPOSE</code> 여부와 관계없이 Host와 Container의 Port를 직접 연결한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">-P</code>는 <code class="language-plaintext highlighter-rouge">EXPOSE</code>에 명시된 Port를 기준으로 Host의 임의 Port에 연결한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h3 id="volume">VOLUME</h3>
+
+<p>Container에서 Volume으로 사용할 Mount Point를 지정한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">VOLUME</span><span class="s"> ["/var/log"]</span>
+<span class="k">VOLUME</span><span class="s"> ["/var/www/html"]</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">VOLUME</code>은 해당 경로를 Host의 <code class="language-plaintext highlighter-rouge">/var/lib/docker</code>와 문자 그대로 Bind Mount하는 명령이 아니다. Container 실행 시 Docker가 관리하는 Anonymous Volume의 Mount Point를 선언한다. Volume 이름, Host Bind Mount 경로 등 구체적인 연결은 <code class="language-plaintext highlighter-rouge">docker run --mount</code>나 Compose File에서 지정하는 편이 관리하기 쉽다.</p>
+
+<h3 id="user">USER</h3>
+
+<p>이후의 <code class="language-plaintext highlighter-rouge">RUN</code>과 Container 실행 시 사용할 사용자 또는 Group을 지정한다. 기본 사용자는 <code class="language-plaintext highlighter-rouge">root</code>이므로 Application에 관리자 권한이 필요하지 않다면 별도 사용자를 만드는 것이 안전하다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">RUN </span>useradd <span class="nt">--create-home</span> appuser
+<span class="k">USER</span><span class="s"> appuser</span>
+</code></pre></div></div>
+
+<h3 id="workdir">WORKDIR</h3>
+
+<p>이후 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">CMD</code>, <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>, <code class="language-plaintext highlighter-rouge">COPY</code>, <code class="language-plaintext highlighter-rouge">ADD</code>의 기준 Directory를 지정한다. 경로가 없으면 자동으로 생성된다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">WORKDIR</span><span class="s"> /workspace</span>
+<span class="k">COPY</span><span class="s"> . .</span>
+</code></pre></div></div>
+
+<h3 id="arg">ARG</h3>
+
+<p>Build할 때만 사용할 변수를 선언하고 <code class="language-plaintext highlighter-rouge">--build-arg</code>로 값을 전달한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ARG</span><span class="s"> DB_NAME=itstudy</span>
+<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"database=</span><span class="k">${</span><span class="nv">DB_NAME</span><span class="k">}</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">--build-arg</span> <span class="nv">DB_NAME</span><span class="o">=</span>production <span class="nt">-t</span> my-app:1.0 <span class="nb">.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ARG</code>는 비밀번호나 Secret을 안전하게 숨기는 기능이 아니다. 값이 Image History나 Build Cache에 남을 수 있으므로 민감 정보를 전달하는 용도로 사용하지 않는다.</p>
+
+<h3 id="onbuild">ONBUILD</h3>
+
+<p>현재 Image가 다른 Dockerfile의 Base Image로 사용될 때 실행할 Trigger Instruction을 등록한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ONBUILD</span><span class="w"> </span><span class="k">COPY</span><span class="s"> . /app/src</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ONBUILD</code>는 현재도 지원되지만 상속된 동작이 눈에 잘 드러나지 않아 예상하지 못한 Build 실패를 만들 수 있다. 전용 Base Image처럼 사용 목적이 명확한 경우에 제한적으로 사용한다.</p>
+
+<h3 id="stopsignal">STOPSIGNAL</h3>
+
+<p>Container를 중지할 때 주 Process에 전달할 System Call Signal을 지정한다. 기본값은 일반적으로 <code class="language-plaintext highlighter-rouge">SIGTERM</code>이다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">STOPSIGNAL</span><span class="s"> SIGTERM</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">STOPSIGNAL SIGKILL</code>도 문법상 지정할 수 있지만 Process가 종료 작업을 수행할 기회를 잃으므로 일반적인 설정으로는 권장하지 않는다.</p>
+
+<h3 id="shell">SHELL</h3>
+
+<p>Shell 형식의 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">CMD</code>, <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>에 사용할 기본 Shell을 변경한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SHELL</span><span class="s"> ["/bin/bash", "-c"]</span>
+</code></pre></div></div>
+
+<h3 id="healthcheck">HEALTHCHECK</h3>
+
+<p>Container 내부에서 명령을 주기적으로 실행하여 Application의 상태를 확인한다. 여러 번 작성하면 마지막 하나만 적용된다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">HEALTHCHECK</span><span class="s"> --interval=1m --timeout=3s --retries=5 \</span>
+  CMD curl --fail http://localhost/ || exit 1
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>종료 Code</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">0</code></td>
+      <td>정상 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td>비정상 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">2</code></td>
+      <td>예약된 값이므로 사용하지 않음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>기본 <code class="language-plaintext highlighter-rouge">interval</code>과 <code class="language-plaintext highlighter-rouge">timeout</code>은 각각 30초이며 기본 <code class="language-plaintext highlighter-rouge">retries</code>는 3회이다.</p>
+
+<h2 id="4--dockerfile-작성-방법">4 ) Dockerfile 작성 방법</h2>
+
+<hr />
+
+<p>Dockerfile은 보통 다음 원칙으로 작성한다.</p>
+
+<ul>
+  <li>
+    <p>필요한 Application이나 Runtime이 이미 설치된 신뢰할 수 있는 Base Image를 선택한다.</p>
+  </li>
+  <li>
+    <p>Version Tag를 명시하여 Build 결과를 일정하게 유지한다.</p>
+  </li>
+  <li>
+    <p>변경 빈도가 낮은 Instruction을 먼저 배치하여 Build Cache를 활용한다.</p>
+  </li>
+  <li>
+    <p>Package 설치와 Cache 삭제를 같은 <code class="language-plaintext highlighter-rouge">RUN</code>에서 처리한다.</p>
+  </li>
+  <li>
+    <p>가능한 경우 권한이 제한된 사용자로 Application을 실행한다.</p>
+  </li>
+  <li>
+    <p>Compiler가 필요한 Application은 Multi-stage Build를 고려한다.</p>
+  </li>
+</ul>
+
+<h2 id="5--image-build">5 ) Image Build</h2>
+
+<hr />
+
+<p>기본 형식은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build [OPTIONS] PATH | URL | -
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 현재 Directory를 Build Context로 사용하고 이름과 Tag 지정</span>
+docker build <span class="nt">-t</span> apache-example:1.0 <span class="nb">.</span>
+
+<span class="c"># 다른 이름의 Dockerfile 지정</span>
+docker build <span class="nt">-f</span> Dockerfile.dev <span class="nt">-t</span> apache-example:dev <span class="nb">.</span>
+
+<span class="c"># Git Repository를 Build Context로 사용</span>
+docker build <span class="nt">-t</span> php-server:2.0 <span class="se">\</span>
+  https://github.com/example/docker-phpserver.git
+
+<span class="c"># 표준 입력으로 전달한 Tar Archive를 Build Context로 사용</span>
+docker build - &lt; context.tar.gz
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-t</code>는 Image의 이름과 Tag를 지정하고 <code class="language-plaintext highlighter-rouge">-f</code>는 Dockerfile의 경로 또는 이름을 지정한다. 마지막 인자인 <code class="language-plaintext highlighter-rouge">PATH</code>, <code class="language-plaintext highlighter-rouge">URL</code>, <code class="language-plaintext highlighter-rouge">-</code>는 Dockerfile 자체가 아니라 Build Context를 뜻한다. 압축된 Build Context는 <code class="language-plaintext highlighter-rouge">-f</code>가 아니라 표준 입력으로 전달한다.</p>
+
+<h2 id="6--apache-main-page-image">6 ) Apache Main Page Image</h2>
+
+<hr />
+
+<h3 id="indexhtml">index.html</h3>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!doctype html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"ko"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Docker Image Build<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;h1&gt;</span>Apache Web Server<span class="nt">&lt;/h1&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div></div>
+
+<h3 id="dockerfile">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> httpd:2.4</span>
+<span class="k">COPY</span><span class="s"> index.html /usr/local/apache2/htdocs/index.html</span>
+</code></pre></div></div>
+
+<h3 id="build-및-실행">Build 및 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> apache-example:1.0 <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apache-example <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
+  apache-example:1.0
+</code></pre></div></div>
+
+<p>Browser 또는 <code class="language-plaintext highlighter-rouge">curl http://localhost:8000</code>으로 변경된 Page를 확인한다.</p>
+
+<h2 id="7--nginx-main-page-image">7 ) Nginx Main Page Image</h2>
+
+<hr />
+
+<p>Nginx 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
+
+<p>본 실습의 <code class="language-plaintext highlighter-rouge">/var/www/html</code>은 Ubuntu 등에 Package로 설치한 Nginx에서 자주 사용하는 경로이며 공식 Docker Image의 기본 경로와 다르다.</p>
+
+<h3 id="dockerfile-1">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> nginx</span>
+<span class="k">COPY</span><span class="s"> index.html /usr/share/nginx/html/index.html</span>
+</code></pre></div></div>
+
+<h3 id="build-및-실행-1">Build 및 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> nginx-example:1.0 <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> nginx-example <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
+  nginx-example:1.0
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Dockerfile과 <code class="language-plaintext highlighter-rouge">index.html</code>을 같은 Build Context에 두고 Image를 Build한다.</p>
+    </li>
+    <li>
+      <p>Apache 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/local/apache2/htdocs</code>이다.</p>
+    </li>
+    <li>
+      <p>Nginx 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
+    </li>
+    <li>
+      <p>Build한 Image를 Container로 실행하고 Host Port를 연결하여 Page를 확인한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h2 id="8--dockerfile을-사용하는-이유">8 ) Dockerfile을 사용하는 이유</h2>
+
+<hr />
+
+<p>Host에 Apache와 PHP를 직접 설치하려면 Package 설치, Service 시작, 설정 변경, Web Page 배치 과정을 순서대로 반복해야 한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> apache2 php
+<span class="nb">sudo </span>service apache2 start
+<span class="nb">sudo </span>service apache2 status
+curl http://localhost:80
+</code></pre></div></div>
+
+<p>이러한 명령을 수동으로 실행하면 환경이 커질수록 누락과 차이가 누적된다. Dockerfile로 필요한 Package, 설정, Source Code, 실행 명령을 정의하면 변경 이력을 Version Control로 관리하고 동일한 Image를 반복해서 만들 수 있다.</p>
+
+<p>다만 Dockerfile만으로 Database와 Web Application처럼 여러 Container의 실행 관계까지 모두 정의하지는 않는다. 여러 Service의 Network, Volume, 환경 변수와 실행 순서는 Docker Compose 같은 도구로 함께 관리한다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Dockerfile은 Image 생성 과정을 Code로 기록하여 동일한 환경을 반복해서 Build할 수 있게 한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">FROM</code>으로 Base Image를 지정하고 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">COPY</code>, <code class="language-plaintext highlighter-rouge">ENV</code> 등으로 실행 환경을 구성한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>는 주 실행 명령을, <code class="language-plaintext highlighter-rouge">CMD</code>는 기본 명령이나 기본 인자를 정의한다.</p>
+    </li>
+    <li>
+      <p>Dockerfile의 Instruction 순서는 Image Layer와 Build Cache에 영향을 준다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker build</code>는 Dockerfile과 Build Context를 사용하여 새로운 Image를 생성한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>처럼 현재 Deprecated된 Instruction은 그대로 이해하되 새 Dockerfile에서는 대체 방법을 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항]]></summary></entry><entry><title type="html">Docker 컨테이너</title><link href="https://kkr010128.github.io/cloud-native-11-docker-container/" rel="alternate" type="text/html" title="Docker 컨테이너" /><published>2026-08-17T00:00:00+09:00</published><updated>2026-08-17T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-11-docker-container</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-11-docker-container/"><![CDATA[<h2 id="1--docker-container">1 ) Docker Container</h2>
 
 <hr />
 
@@ -159,6 +1093,10 @@ docker container run
       <td>Container가 연결될 Network 지정</td>
     </tr>
     <tr>
+      <td><code class="language-plaintext highlighter-rouge">--link CONTAINER[:ALIAS]</code></td>
+      <td>다른 Container의 정보를 연결하는 Legacy Option</td>
+    </tr>
+    <tr>
       <td><code class="language-plaintext highlighter-rouge">--hostname NAME</code></td>
       <td>Container Hostname 지정</td>
     </tr>
@@ -211,6 +1149,27 @@ docker container run
     </tr>
   </tbody>
 </table>
+
+<p><code class="language-plaintext highlighter-rouge">--link</code>는 현재도 호환성을 위해 남아 있지만 Legacy 기능이다. 새 구성에서는 사용자 정의 Network에 Container를 연결하고 내장 DNS를 통해 Container 이름으로 통신하는 방식을 사용한다.</p>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Container는 생성, 실행, 중지, 삭제의 생명주기를 가진다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker run</code>은 Image를 준비하고 새 Container를 생성한 뒤 시작한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">-it</code>는 대화형 Terminal에, <code class="language-plaintext highlighter-rouge">-d</code>는 Background 실행에 사용한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">--link</code>는 Legacy 기능이므로 새 구성에서는 사용자 정의 Network를 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>
 
 <h2 id="5--container-조회와-관리">5 ) Container 조회와 관리</h2>
 
@@ -310,10 +1269,12 @@ docker container run
   </tbody>
 </table>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">ls</span> <span class="nt">-a</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+docker container <span class="nb">ls</span> <span class="nt">-a</span>
 docker container <span class="nb">ls</span> <span class="nt">-aq</span>
 docker container <span class="nb">ls</span> <span class="nt">--filter</span> <span class="nv">status</span><span class="o">=</span>running
-docker container <span class="nb">ls</span> <span class="nt">--format</span> <span class="s1">' '</span>
+docker container <span class="nb">ls</span> <span class="nt">--format</span> <span class="s1">'{{.ID}} {{.Names}}'</span>
+
 </code></pre></div></div>
 
 <p>여러 Container ID를 명령 치환으로 전달할 수도 있다. 다음 명령은 실행 중인 모든 Container를 중지한 뒤 모든 Container를 삭제한다.</p>
@@ -471,7 +1432,7 @@ docker container <span class="nb">cp</span> <span class="se">\</span>
 docker container <span class="nb">exec</span> <span class="nt">-it</span> ubuntu-server /bin/bash
 </code></pre></div></div>
 
-<h3 id="attach와-exec의-차이-">attach와 exec의 차이 ?</h3>
+<h3 id="attach와-exec의-차이">attach와 exec의 차이</h3>
 
 <blockquote>
   <p>두 명령 모두 실행 중인 Container와 상호작용하지만 연결되는 Process가 다르다.</p>
@@ -552,6 +1513,25 @@ docker container <span class="nb">exec </span>webserver nginx <span class="nt">-
 
 <p>다만 <code class="language-plaintext highlighter-rouge">exec</code>는 Container의 주 Process가 실행 중일 때만 사용할 수 있다. Container가 이미 정지했다면 먼저 <code class="language-plaintext highlighter-rouge">docker logs</code>나 <code class="language-plaintext highlighter-rouge">docker inspect</code>로 종료 원인을 확인하고 필요에 따라 Container를 다시 시작해야 한다. 단순히 Application Log를 확인하려는 목적이라면 주 Process에 직접 연결하는 <code class="language-plaintext highlighter-rouge">attach</code>보다 <code class="language-plaintext highlighter-rouge">docker logs</code>가 안전하고 편리하다.</p>
 
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">attach</code>는 Container의 기존 주 Process에 Terminal을 연결한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">exec</code>는 실행 중인 Container 안에서 새로운 Process를 실행한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">attach</code>로 연결한 주 Process를 종료하면 Container도 정지할 수 있다.</p>
+    </li>
+    <li>
+      <p>점검 명령이나 별도 Shell 실행에는 <code class="language-plaintext highlighter-rouge">exec</code>를 주로 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
 <h3 id="python-program-실행">Python Program 실행</h3>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> python-test <span class="nt">-dit</span> python:3
@@ -583,113 +1563,30 @@ docker image <span class="nb">ls </span>my-node-app
 
 <p>Mount에 저장된 데이터는 Container File System에 포함되지 않으므로 <code class="language-plaintext highlighter-rouge">commit</code>으로 만든 Image에도 포함되지 않는다.</p>
 
-<h2 id="11--docker-volume">11 ) Docker Volume</h2>
+<blockquote>
+  <p><strong>최종 정리</strong></p>
 
-<hr />
-
-<p>Container의 쓰기 Layer는 Container 생명주기에 종속된다. Container를 삭제해도 보존해야 하는 Database, Upload File과 같은 데이터는 Container 밖의 Storage에 저장해야 한다.</p>
-
-<p>Docker에서 주로 사용하는 Mount 방식은 Volume Mount와 Bind Mount이다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>저장 위치</th>
-      <th>관리 주체</th>
-      <th>주요 용도</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Volume Mount</td>
-      <td>Docker가 관리하는 영역</td>
-      <td>Docker Engine</td>
-      <td>Application Data의 영속적 저장</td>
-    </tr>
-    <tr>
-      <td>Bind Mount</td>
-      <td>Host의 지정된 File 또는 Directory</td>
-      <td>사용자</td>
-      <td>Source Code, 설정 File 공유</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="volume-생성과-연결">Volume 생성과 연결</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Volume 생성과 조회</span>
-docker volume create my-app-vol-1
-docker volume <span class="nb">ls
-</span>docker volume inspect my-app-vol-1
-
-<span class="c"># Volume을 Mount한 Container 실행</span>
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> vol-test <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-v</span> my-app-vol-1:/data <span class="se">\</span>
-  alpine <span class="se">\</span>
-  <span class="nb">tail</span> <span class="nt">-f</span> /dev/null
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">-v VOLUME_NAME:CONTAINER_PATH</code> 형식으로 이름이 있는 Volume을 Container 경로에 연결한다. 동일한 Volume은 새 Container에 다시 Mount할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec </span>vol-test sh <span class="nt">-c</span> <span class="s1">'echo hello &gt; /data/message.txt'</span>
-
-docker container stop vol-test
-docker container <span class="nb">rm </span>vol-test
-
-docker container run <span class="nt">--rm</span> <span class="se">\</span>
-  <span class="nt">-v</span> my-app-vol-1:/data <span class="se">\</span>
-  alpine <span class="se">\</span>
-  <span class="nb">cat</span> /data/message.txt
-</code></pre></div></div>
-
-<p>Container를 삭제한 뒤에도 <code class="language-plaintext highlighter-rouge">hello</code>가 출력되므로 데이터가 Volume에 남아 있음을 확인할 수 있다.</p>
-
-<p>사용 중인 Volume은 삭제할 수 없다. Volume을 연결한 Container를 먼저 제거한 뒤 Volume을 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume <span class="nb">rm </span>my-app-vol-1
-docker volume prune
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker volume prune</code>은 사용하지 않는 Volume을 일괄 삭제하므로 대상을 확인한 뒤 실행한다.</p>
-
-<h2 id="12--bind-mount">12 ) Bind Mount</h2>
-
-<hr />
-
-<p>Bind Mount는 Host의 기존 File 또는 Directory를 Container 경로에 직접 연결한다. Host에서 File을 수정하면 Container에서도 같은 변경 사항을 바로 확인할 수 있어 개발 중 Source Code나 설정을 공유할 때 유용하다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> apache <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
-  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs <span class="se">\</span>
-  httpd
-</code></pre></div></div>
-
-<p>짧은 <code class="language-plaintext highlighter-rouge">-v</code> 형식도 사용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> apache <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
-  <span class="nt">-v</span> /home/user/apache:/usr/local/apache2/htdocs <span class="se">\</span>
-  httpd
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">--mount</code>를 사용할 때 Host 경로가 존재하지 않으면 오류가 발생한다. <code class="language-plaintext highlighter-rouge">-v</code>는 존재하지 않는 Host 경로를 Directory로 만들 수 있으므로 오타가 새 Directory 생성으로 이어질 수 있다. Bind Mount 전에는 절대 경로와 권한을 확인한다.</p>
-
-<p>Container를 삭제해도 Host의 원본 File과 Directory는 유지된다. 반대로 Container Process도 Mount된 Host File을 변경할 수 있으므로, 읽기만 허용하려면 <code class="language-plaintext highlighter-rouge">readonly</code> 또는 <code class="language-plaintext highlighter-rouge">ro</code> Option을 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> readonly-web <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9001:80 <span class="se">\</span>
-  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs,readonly <span class="se">\</span>
-  httpd
-</code></pre></div></div>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount]]></summary></entry><entry><title type="html">Docker와 Container 가상화</title><link href="https://kkr010128.github.io/cloud-native-08-docker-overview/" rel="alternate" type="text/html" title="Docker와 Container 가상화" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-08-docker-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-08-docker-overview/"><![CDATA[<h2 id="1--가상화">1 ) 가상화</h2>
+  <ul>
+    <li>
+      <p>Container는 Image에 쓰기 가능한 Layer를 추가하여 생성한 격리된 Process 실행 환경이다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker run</code>은 Image Pull, Container 생성, 시작 과정을 한 번에 수행한다.</p>
+    </li>
+    <li>
+      <p>Container의 주 Process가 종료되면 Container도 정지하며, 삭제 전에는 다시 시작할 수 있다.</p>
+    </li>
+    <li>
+      <p>외부에서 Service에 접근하려면 Host Port와 Container Port를 연결한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker cp</code>는 Host와 Container 사이에서 File을 복사하고 <code class="language-plaintext highlighter-rouge">docker exec</code>는 실행 중인 Container에서 새 Process를 실행한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker commit</code>으로 Container 상태를 Image로 저장할 수 있지만 반복 가능한 Image 생성에는 Dockerfile을 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행 및 파일 복사]]></summary></entry><entry><title type="html">Docker와 Container 가상화</title><link href="https://kkr010128.github.io/cloud-native-08-docker-overview/" rel="alternate" type="text/html" title="Docker와 Container 가상화" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-08-docker-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-08-docker-overview/"><![CDATA[<h2 id="1--가상화">1 ) 가상화</h2>
 
 <hr />
 
@@ -4519,1112 +5416,4 @@ Read Database 갱신
       <p>CQRS는 복잡한 Domain이나 읽기와 쓰기의 요구사항이 크게 다른 시스템에서 고려할 수 있으며, 단순 CRUD 애플리케이션에서는 불필요한 복잡성을 만들 수 있다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="CQRS" /><summary type="html"><![CDATA[CQRS의 개념과 기존 데이터 모델의 문제점, Command와 Query 분리 구조 및 적용 기준]]></summary></entry><entry><title type="html">Kafka를 활용한 CQRS 구현</title><link href="https://kkr010128.github.io/cloud-native-07-kafka-cqrs/" rel="alternate" type="text/html" title="Kafka를 활용한 CQRS 구현" /><published>2026-08-12T00:00:00+09:00</published><updated>2026-08-12T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-07-kafka-cqrs</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-07-kafka-cqrs/"><![CDATA[<h2 id="1--spring-boot-기반-cqrs-구현">1 ) Spring Boot 기반 CQRS 구현</h2>
-
-<hr />
-
-<p>CQRS(Command Query Responsibility Segregation)는 데이터를 변경하는 책임과 조회하는 책임을 분리하는 패턴이다.</p>
-
-<p>이번 실습에서는 이 책임을 두 개의 Spring Boot 프로젝트로 나눠서 구현한다.</p>
-
-<p>쓰기 프로젝트는 MySQL을 사용해서 데이터를 저장하고, 읽기 프로젝트는 MongoDB를 사용해서 데이터를 조회한다.</p>
-
-<p>두 프로젝트는 서로 독립적으로 동작하지만, 나중에 Kafka를 연결해서 쓰기 프로젝트에서 발생한 변경 사항이 읽기 프로젝트로 전달되도록 확장한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Command
-   ↓
-Write (MySQL)
-   ↓
- Kafka
-   ↓
-Read (MongoDB)
-   ↓
-Query
-</code></pre></div></div>
-
-<h3 id="실습-준비">실습 준비</h3>
-
-<p>실습을 시작하기 전에 다음을 준비한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>준비 항목</th>
-      <th>내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>MySQL / MariaDB</td>
-      <td>설치 후 접속 확인</td>
-    </tr>
-    <tr>
-      <td>Kafka</td>
-      <td>설치</td>
-    </tr>
-    <tr>
-      <td>JDK</td>
-      <td>설치</td>
-    </tr>
-    <tr>
-      <td>IntelliJ IDEA</td>
-      <td>설치</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="2--쓰기-프로젝트-write-project">2 ) <strong>쓰기 프로젝트 (Write Project)</strong></h2>
-
-<hr />
-
-<p>쓰기 프로젝트는 CQRS에서 Command 영역을 담당한다.</p>
-
-<p>사용자로부터 도서 정보를 받아서 MySQL에 저장하는 역할을 한다.</p>
-
-<h3 id="프로젝트-생성">프로젝트 생성</h3>
-
-<p>다음 의존성을 포함해서 Spring Boot 프로젝트를 생성한다.</p>
-
-<ul>
-  <li>Spring Boot DevTools</li>
-  <li>Lombok</li>
-  <li>Spring Web</li>
-  <li>Spring Data JPA</li>
-  <li>MySQL</li>
-  <li>Spring for Apache Kafka (Messaging)</li>
-</ul>
-
-<h3 id="applicationyml-설정">application.yml 설정</h3>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">server</span><span class="pi">:</span>
-  <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-
-<span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">Write</span>
-
-  <span class="na">datasource</span><span class="pi">:</span>
-    <span class="na">url</span><span class="pi">:</span> <span class="s">jdbc:mysql://localhost:3306/cqrs</span> <span class="c1"># cqrs DB</span>
-    <span class="na">driver-class-name</span><span class="pi">:</span> <span class="s">com.mysql.cj.jdbc.Driver</span>
-    <span class="na">username</span><span class="pi">:</span> <span class="s">root</span>
-    <span class="na">password</span><span class="pi">:</span> <span class="s">password</span>
-
-  <span class="na">jpa</span><span class="pi">:</span>
-    <span class="na">hibernate</span><span class="pi">:</span>
-      <span class="na">ddl-auto</span><span class="pi">:</span> <span class="s">update</span> <span class="c1"># Entity 클래스를 기준으로 테이블이 자동 생성 및 수정됨</span>
-    <span class="na">properties</span><span class="pi">:</span>
-      <span class="na">hibernate</span><span class="pi">:</span>
-        <span class="na">format_sql</span><span class="pi">:</span> <span class="no">true</span>
-        <span class="na">show_sql</span><span class="pi">:</span> <span class="no">true</span>
-
-<span class="na">logging</span><span class="pi">:</span>
-  <span class="na">level</span><span class="pi">:</span>
-    <span class="na">org.hibernate.type.description.sql</span><span class="pi">:</span> <span class="s">trace</span>
-</code></pre></div></div>
-
-<p>8080번 포트로 실행되고, MySQL의 <code class="language-plaintext highlighter-rouge">cqrs</code> 데이터베이스에 연결한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">ddl-auto: update</code> 설정 때문에 Entity 클래스를 기준으로 테이블이 자동으로 생성되거나 수정된다.</p>
-
-<h3 id="book-entity">Book Entity</h3>
-
-<p><code class="language-plaintext highlighter-rouge">Book</code>은 MySQL의 <code class="language-plaintext highlighter-rouge">book</code> 테이블과 매핑되는 Entity 클래스다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">jakarta.persistence.*</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">lombok.*</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.util.Date</span><span class="o">;</span>
-
-<span class="nd">@Entity</span>
-<span class="nd">@Table</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"book"</span><span class="o">)</span>
-<span class="nd">@ToString</span>
-<span class="nd">@Getter</span>
-<span class="nd">@Builder</span>
-<span class="nd">@AllArgsConstructor</span>
-<span class="nd">@NoArgsConstructor</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Book</span> <span class="o">{</span>
-    <span class="nd">@Id</span>
-    <span class="nd">@GeneratedValue</span><span class="o">(</span><span class="n">strategy</span> <span class="o">=</span> <span class="nc">GenerationType</span><span class="o">.</span><span class="na">AUTO</span><span class="o">)</span>
-    <span class="kd">private</span> <span class="nc">Long</span> <span class="n">bid</span><span class="o">;</span>
-
-    <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">title</span><span class="o">;</span>
-    <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">author</span><span class="o">;</span>
-    <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">category</span><span class="o">;</span>
-    <span class="nd">@Column</span>
-    <span class="kd">private</span> <span class="kt">int</span> <span class="n">pages</span><span class="o">;</span>
-    <span class="nd">@Column</span>
-    <span class="kd">private</span> <span class="kt">int</span> <span class="n">price</span><span class="o">;</span>
-    <span class="nd">@Column</span>
-    <span class="kd">private</span> <span class="nc">Date</span> <span class="n">published_date</span><span class="o">;</span>
-    <span class="nd">@Column</span><span class="o">(</span><span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="o">,</span> <span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="o">)</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">description</span><span class="o">;</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">bid</code>는 <code class="language-plaintext highlighter-rouge">@GeneratedValue(strategy = GenerationType.AUTO)</code>로 설정되어 있어서 저장할 때 자동으로 생성된다.</p>
-
-<h3 id="bookdto">BookDTO</h3>
-
-<p>DTO는 계층 사이에서 데이터를 주고받기 위한 객체다.</p>
-
-<p>클라이언트가 보낸 도서 정보를 <code class="language-plaintext highlighter-rouge">BookDTO</code>로 받는다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.Data</span><span class="o">;</span>
-
-<span class="nd">@Data</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookDTO</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">title</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">author</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">category</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kt">int</span> <span class="n">pages</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kt">int</span> <span class="n">price</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">published_date</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">description</span><span class="o">;</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p>이 시점에는 아직 <code class="language-plaintext highlighter-rouge">bid</code> 필드가 없다.</p>
-
-<h3 id="bookrepository">BookRepository</h3>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.data.jpa.repository.JpaRepository</span><span class="o">;</span>
-
-<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">BookRepository</span> <span class="kd">extends</span> <span class="nc">JpaRepository</span><span class="o">&lt;</span><span class="nc">Book</span><span class="o">,</span> <span class="nc">Long</span><span class="o">&gt;</span> <span class="o">{</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">JpaRepository</code>를 상속받는 것만으로 기본적인 CRUD 기능을 사용할 수 있다.</p>
-
-<h3 id="bookservice">BookService</h3>
-
-<p><code class="language-plaintext highlighter-rouge">BookDTO</code>를 <code class="language-plaintext highlighter-rouge">Book</code> Entity로 변환해서 MySQL에 저장한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">published_date</code>는 문자열로 들어오기 때문에 <code class="language-plaintext highlighter-rouge">SimpleDateFormat</code>으로 <code class="language-plaintext highlighter-rouge">Date</code> 타입으로 변환해야 한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.text.SimpleDateFormat</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Date</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Locale</span><span class="o">;</span>
-
-<span class="nd">@Service</span>
-<span class="nd">@RequiredArgsConstructor</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookService</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">BookRepository</span> <span class="n">bookRepository</span><span class="o">;</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
-        <span class="k">try</span> <span class="o">{</span>
-            <span class="nc">SimpleDateFormat</span> <span class="n">formatter</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span>
-                    <span class="s">"yyyy-MM-dd"</span><span class="o">,</span> <span class="nc">Locale</span><span class="o">.</span><span class="na">ENGLISH</span><span class="o">);</span>
-            <span class="nc">Date</span> <span class="n">published_date</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPublished_date</span><span class="o">());</span>
-            <span class="nc">Book</span> <span class="n">book</span> <span class="o">=</span> <span class="nc">Book</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
-                    <span class="o">.</span><span class="na">title</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getTitle</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">author</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">category</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getCategory</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">pages</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPages</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">price</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPrice</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">published_date</span><span class="o">(</span><span class="n">published_date</span><span class="o">)</span>
-                    <span class="o">.</span><span class="na">description</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getDescription</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-            <span class="n">bookRepository</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
-        <span class="o">}</span>
-        <span class="k">catch</span><span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">){</span>
-            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<h3 id="bookcontroller">BookController</h3>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.GetMapping</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.PostMapping</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RequestBody</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
-
-<span class="nd">@RestController</span>
-<span class="nd">@RequiredArgsConstructor</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookController</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">BookService</span> <span class="n">bookService</span><span class="o">;</span>
-
-    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">index</span><span class="o">(){</span>
-        <span class="k">return</span> <span class="s">"homepage"</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/health"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">healthCheck</span><span class="o">(){</span>
-        <span class="k">return</span> <span class="s">"success"</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@PostMapping</span><span class="o">(</span><span class="s">"/cqrs/book"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nd">@RequestBody</span> <span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
-        <span class="n">bookService</span><span class="o">.</span><span class="na">saveBook</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">);</span>
-        <span class="k">return</span> <span class="s">"success"</span><span class="o">;</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Method</th>
-      <th>Endpoint</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>GET</td>
-      <td><code class="language-plaintext highlighter-rouge">/</code></td>
-      <td>서버 동작 확인</td>
-    </tr>
-    <tr>
-      <td>GET</td>
-      <td><code class="language-plaintext highlighter-rouge">/health</code></td>
-      <td>Health Check</td>
-    </tr>
-    <tr>
-      <td>POST</td>
-      <td><code class="language-plaintext highlighter-rouge">/cqrs/book</code></td>
-      <td>도서 데이터 저장</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>서버를 실행하고 <code class="language-plaintext highlighter-rouge">localhost:8080</code>으로 접속해서 동작을 확인한다.</p>
-
-<p>데이터 저장이 잘 되는지는 POSTMAN으로 테스트한다. (4번에서 자세히 다룬다.)</p>
-
-<h2 id="3--읽기-프로젝트-read-project">3 ) <strong>읽기 프로젝트 (Read Project)</strong></h2>
-
-<hr />
-
-<p>읽기 프로젝트는 CQRS에서 Query 영역을 담당한다.</p>
-
-<p>쓰기 프로젝트가 MySQL을 사용한 것과 다르게, 읽기 프로젝트는 MongoDB를 사용한다.</p>
-
-<h3 id="프로젝트-생성-1">프로젝트 생성</h3>
-
-<p>다음 의존성을 포함해서 Spring Boot 프로젝트를 생성한다.</p>
-
-<ul>
-  <li>Spring Boot DevTools</li>
-  <li>Lombok</li>
-  <li>Spring Web</li>
-  <li>Spring Data MongoDB</li>
-  <li>Spring for Apache Kafka (Messaging)</li>
-</ul>
-
-<p>읽기 프로젝트는 MongoDB만 사용하므로 <strong>Spring Data JPA는 추가하지 않는다.</strong> JPA를 추가하면 사용하지 않는 DataSource의 자동 설정이 동작하여 MySQL 접속 정보가 없을 때 애플리케이션 시작 오류가 발생할 수 있다.</p>
-
-<h3 id="applicationyml-설정-1">application.yml 설정</h3>
-
-<p>Reader의 <code class="language-plaintext highlighter-rouge">BookController</code>는 MongoDB 주소를 코드에서 직접 지정하므로 초기 조회 단계에서는 MongoDB 접속 설정이 없어도 된다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">MongoClients</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"mongodb://localhost:27017"</span><span class="o">);</span>
-</code></pre></div></div>
-
-<p>그러나 Write와 Reader의 기본 포트는 모두 8080이므로 두 프로젝트를 동시에 실행하면 포트가 충돌한다. Reader에는 최소한 다음 설정을 작성한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">server</span><span class="pi">:</span>
-  <span class="na">port</span><span class="pi">:</span> <span class="m">8081</span>
-
-<span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">Reader</span>
-</code></pre></div></div>
-
-<p>따라서 Write는 8080번 포트, Reader는 8081번 포트에서 실행한다.</p>
-
-<h3 id="bookcontroller-1">BookController</h3>
-
-<p><code class="language-plaintext highlighter-rouge">/cqrs/book</code>으로 요청이 들어오면 MongoDB의 <code class="language-plaintext highlighter-rouge">books</code> Collection을 조회해서 반환한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">com.mongodb.client.*</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.bson.Document</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.http.HttpStatus</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.http.ResponseEntity</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.GetMapping</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.ArrayList</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.List</span><span class="o">;</span>
-
-<span class="nd">@RestController</span>
-<span class="nd">@RequiredArgsConstructor</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookController</span> <span class="o">{</span>
-    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/cqrs/book"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">ResponseEntity</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&gt;</span> <span class="nf">getBooks</span><span class="o">(){</span>
-        <span class="nc">MongoClient</span> <span class="n">mongoClient</span> <span class="o">=</span> <span class="nc">MongoClients</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"mongodb://localhost:27017"</span><span class="o">);</span>
-        <span class="nc">MongoDatabase</span> <span class="n">database</span> <span class="o">=</span> <span class="n">mongoClient</span><span class="o">.</span><span class="na">getDatabase</span><span class="o">(</span><span class="s">"cqrs"</span><span class="o">);</span>
-        <span class="nc">MongoCollection</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">mongo_books</span> <span class="o">=</span>
-                <span class="n">database</span><span class="o">.</span><span class="na">getCollection</span><span class="o">(</span><span class="s">"books"</span><span class="o">);</span>
-        <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">list</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;();</span>
-
-        <span class="k">try</span><span class="o">{</span>
-            <span class="k">try</span><span class="o">(</span><span class="nc">MongoCursor</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">cur</span> <span class="o">=</span> <span class="n">mongo_books</span><span class="o">.</span><span class="na">find</span><span class="o">().</span><span class="na">iterator</span><span class="o">()){</span>
-                <span class="k">while</span><span class="o">(</span><span class="n">cur</span><span class="o">.</span><span class="na">hasNext</span><span class="o">()){</span>
-                    <span class="nc">Document</span> <span class="n">doc</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="na">next</span><span class="o">();</span>
-                    <span class="n">list</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">doc</span><span class="o">);</span>
-                <span class="o">}</span>
-            <span class="o">}</span>
-        <span class="o">}</span><span class="k">catch</span><span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">){</span>
-            <span class="n">e</span><span class="o">.</span><span class="na">printStackTrace</span><span class="o">();</span>
-        <span class="o">}</span>
-        <span class="k">finally</span><span class="o">{</span>
-            <span class="n">mongoClient</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="nc">ResponseEntity</span><span class="o">.</span><span class="na">status</span><span class="o">(</span><span class="nc">HttpStatus</span><span class="o">.</span><span class="na">OK</span><span class="o">).</span><span class="na">body</span><span class="o">(</span><span class="n">list</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">MongoClients.create()</code>로 MongoDB에 연결하고 <code class="language-plaintext highlighter-rouge">cqrs</code> 데이터베이스의 <code class="language-plaintext highlighter-rouge">books</code> Collection을 가져온다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">find()</code>로 전체 Document를 조회하고, <code class="language-plaintext highlighter-rouge">MongoCursor</code>를 순회하면서 <code class="language-plaintext highlighter-rouge">List</code>에 담는다.</p>
-
-<p>조회가 끝나면 <code class="language-plaintext highlighter-rouge">mongoClient.close()</code>로 연결을 닫고 결과를 응답으로 반환한다.</p>
-
-<p>MongoDB를 실행한 뒤 Reader 프로젝트를 실행하고 다음 주소에서 정상적으로 조회되는지 확인한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://localhost:8081/cqrs/book
-</code></pre></div></div>
-
-<p>이 단계에서는 Kafka Consumer를 아직 작성하지 않았으므로 <code class="language-plaintext highlighter-rouge">spring.kafka</code> 설정이 없어도 된다.</p>
-
-<p><strong>중간 정리</strong></p>
-
-<ul>
-  <li>쓰기 프로젝트는 MySQL에 도서 데이터를 저장하는 Command 영역을 담당한다.</li>
-  <li>읽기 프로젝트는 MongoDB에서 도서 데이터를 조회하는 Query 영역을 담당한다.</li>
-  <li>현재까지는 두 프로젝트가 완전히 분리되어 있어서, 쓰기 프로젝트에 저장된 데이터가 읽기 프로젝트로 자동으로 전달되지 않는다.</li>
-  <li>이 문제는 이후 Kafka를 연결해서 해결한다.</li>
-</ul>
-
-<h2 id="4--쓰기-프로젝트-데이터-삽입-테스트-postman">4 ) <strong>쓰기 프로젝트 데이터 삽입 테스트 (POSTMAN)</strong></h2>
-
-<hr />
-
-<p>쓰기 프로젝트가 MySQL에 정상적으로 데이터를 저장하는지 POSTMAN으로 확인한다.</p>
-
-<h3 id="요청-설정">요청 설정</h3>
-
-<ul>
-  <li>Method: <code class="language-plaintext highlighter-rouge">POST</code></li>
-  <li>URL: <code class="language-plaintext highlighter-rouge">http://localhost:8080/cqrs/book</code></li>
-  <li>Headers: <code class="language-plaintext highlighter-rouge">Content-Type: application/json</code></li>
-  <li>Body: <code class="language-plaintext highlighter-rouge">raw</code> / <code class="language-plaintext highlighter-rouge">JSON</code></li>
-</ul>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"오디세이"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"author"</span><span class="p">:</span><span class="w"> </span><span class="s2">"호메로스"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"category"</span><span class="p">:</span><span class="w"> </span><span class="s2">"신화"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"크리스토퍼 놀란"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"pages"</span><span class="p">:</span><span class="w"> </span><span class="mi">356</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"price"</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"published_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-08-13"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">Send</code>를 눌러서 요청을 전송한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POSTMAN
-   ↓
-BookController
-   ↓
-BookService
-   ↓
-BookRepository
-   ↓
-MySQL
-</code></pre></div></div>
-
-<p>요청이 성공하면 MySQL의 <code class="language-plaintext highlighter-rouge">book</code> 테이블에 데이터가 저장된다.</p>
-
-<p>데이터베이스를 직접 확인해서 저장 여부를 검증한다.</p>
-
-<h2 id="5--kafka를-이용한-cqrs-연결">5 ) <strong>Kafka를 이용한 CQRS 연결</strong></h2>
-
-<hr />
-
-<p>쓰기 프로젝트와 읽기 프로젝트는 각각 MySQL, MongoDB를 사용하지만 서로 분리되어 있다.</p>
-
-<p>그래서 쓰기 프로젝트에서 데이터가 바뀌어도 읽기 프로젝트는 그 사실을 알 수 없다.</p>
-
-<p>이 문제를 해결하기 위해 두 프로젝트 사이에 Kafka를 연결한다.</p>
-
-<p>쓰기 프로젝트가 MySQL 저장을 완료하면 Kafka로 Message를 발행하고, 읽기 프로젝트가 그 Message를 받아서 MongoDB에 반영하는 구조다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POSTMAN
-   ↓
-Write Project → MySQL
-   ↓
-Kafka Producer → cqrs-topic → Kafka Consumer
-   ↓
-Read Project → MongoDB
-   ↓
-POSTMAN
-</code></pre></div></div>
-
-<h3 id="쓰기-프로젝트에-kafka-연결">쓰기 프로젝트에 Kafka 연결</h3>
-
-<h4 id="라이브러리-추가">라이브러리 추가</h4>
-
-<p>라이브러리를 프로젝트 생성 당시 추가하지 않았다면 <code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">dependencies</code>에 다음을 추가한다.</p>
-
-<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-kafka'</span>
-</code></pre></div></div>
-
-<p>추가한 뒤에는 IntelliJ에서 코끼리 아이콘을 눌러서 Gradle을 다시 Build한다.</p>
-
-<h4 id="kafka-설정">Kafka 설정</h4>
-
-<p><code class="language-plaintext highlighter-rouge">application.yaml</code>에 Kafka 연결 정보를 추가한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">kafka</span><span class="pi">:</span>
-    <span class="na">bootstrap-servers</span><span class="pi">:</span> <span class="s">127.0.0.1:9092</span>
-    <span class="na">consumer</span><span class="pi">:</span>
-      <span class="na">group-id</span><span class="pi">:</span> <span class="s">hyeon</span>
-      <span class="na">auto-offset-reset</span><span class="pi">:</span> <span class="s">earliest</span>
-      <span class="na">key-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
-      <span class="na">value-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
-    <span class="na">producer</span><span class="pi">:</span>
-      <span class="na">key-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
-      <span class="na">value-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
-</code></pre></div></div>
-
-<p>Message를 문자열로 처리하기 위해 <code class="language-plaintext highlighter-rouge">StringSerializer</code>, <code class="language-plaintext highlighter-rouge">StringDeserializer</code>를 사용한다.</p>
-
-<blockquote>
-  <p>Kafka의 동작 흐름만 확인할 목적으로 실습을 진행하므로, Docker 컨테이너 하나에 브로커를 하나만 올린 상태이다. (고가용성 없음)</p>
-
-  <p>실제 서비스에서는 브로커가 여러 개일 경우 <code class="language-plaintext highlighter-rouge">bootstrap-servers</code> 부분에 IP를 <code class="language-plaintext highlighter-rouge">,</code>로 구분하여 나열한다.</p>
-
-  <p>이럴 경우 Producer/Consumer가 처음 연결할 때 이 목록 중 하나에 붙어 전체 클러스터 정보를 받아오고, 그다음부터는 어느 브로커가 Leader인지 알게 되는 구조다.</p>
-</blockquote>
-
-<h4 id="kafkaconfiguration">KafkaConfiguration</h4>
-
-<p><code class="language-plaintext highlighter-rouge">KafkaTemplate</code>을 생성하기 위한 설정 클래스를 작성한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.ProducerConfig</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Value</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Bean</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Configuration</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.DefaultKafkaProducerFactory</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.KafkaTemplate</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.ProducerFactory</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.StringSerializer</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
-
-<span class="nd">@Configuration</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaConfiguration</span> <span class="o">{</span>
-    <span class="nd">@Value</span><span class="o">(</span><span class="s">"${spring.kafka.bootstrap-servers}"</span><span class="o">)</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">bootStrapServers</span><span class="o">;</span>
-
-    <span class="nd">@Bean</span>
-    <span class="kd">public</span> <span class="nc">ProducerFactory</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">producerFactory</span><span class="o">(){</span>
-        <span class="nc">Map</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">Object</span><span class="o">&gt;</span> <span class="n">configs</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">&lt;&gt;();</span>
-        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">BOOTSTRAP_SERVERS_CONFIG</span><span class="o">,</span> <span class="n">bootStrapServers</span><span class="o">);</span>
-        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">KEY_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">VALUE_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-        <span class="k">return</span> <span class="k">new</span> <span class="nc">DefaultKafkaProducerFactory</span><span class="o">&lt;&gt;(</span><span class="n">configs</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Bean</span>
-    <span class="kd">public</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">kafkaTemplate</span><span class="o">(){</span>
-        <span class="k">return</span> <span class="k">new</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;&gt;(</span><span class="n">producerFactory</span><span class="o">());</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ProducerFactory</code>는 Kafka Producer를 만들기 위한 설정이고, <code class="language-plaintext highlighter-rouge">KafkaTemplate</code>은 실제로 Topic에 Message를 보낼 때 사용한다.</p>
-
-<h4 id="bookdto-수정">BookDTO 수정</h4>
-
-<p><code class="language-plaintext highlighter-rouge">bid</code> 필드를 추가한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookDTO</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="nc">Long</span> <span class="n">bid</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">title</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">author</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">category</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kt">int</span> <span class="n">pages</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kt">int</span> <span class="n">price</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">published_date</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">description</span><span class="o">;</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p>클라이언트가 <code class="language-plaintext highlighter-rouge">bid</code>를 직접 보내는 게 아니라, MySQL에 저장한 뒤 생성된 <code class="language-plaintext highlighter-rouge">bid</code>를 여기에 다시 담아서 Kafka Message에 포함시킨다.</p>
-
-<h4 id="kafkaproducer">KafkaProducer</h4>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.slf4j.Logger</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.slf4j.LoggerFactory</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Autowired</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.KafkaTemplate</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
-
-<span class="nd">@Service</span>
-<span class="nd">@RequiredArgsConstructor</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaProducer</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">String</span> <span class="no">TOPIC</span> <span class="o">=</span> <span class="s">"cqrs-topic"</span><span class="o">;</span>
-
-    <span class="nd">@Autowired</span>
-    <span class="kd">private</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">kafkaTemplate</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Logger</span> <span class="n">log</span> <span class="o">=</span> <span class="nc">LoggerFactory</span><span class="o">.</span><span class="na">getLogger</span><span class="o">(</span><span class="n">getClass</span><span class="o">());</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">sendMessage</span><span class="o">(</span><span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
-        <span class="nc">String</span> <span class="n">message</span> <span class="o">=</span> <span class="s">"{\"bid\":"</span> <span class="o">+</span> <span class="s">"\""</span> <span class="o">+</span> <span class="n">bookDTO</span><span class="o">.</span><span class="na">getBid</span><span class="o">()</span> <span class="o">+</span> <span class="s">"\"}"</span><span class="o">;</span>
-        <span class="c1">//메시지 전송</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">kafkaTemplate</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="no">TOPIC</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">bid</code>를 <code class="language-plaintext highlighter-rouge">{"bid":"1"}</code> 형태의 JSON 문자열로 만들어서 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>으로 전송한다.</p>
-
-<p>여기서는 <code class="language-plaintext highlighter-rouge">bid</code>만 보낸다. 제목이나 저자 같은 나머지 정보는 Message에 포함되지 않는다.</p>
-
-<h4 id="bookservice-수정">BookService 수정</h4>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Service</span>
-<span class="nd">@RequiredArgsConstructor</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">BookService</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">BookRepository</span> <span class="n">bookRepository</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">KafkaProducer</span> <span class="n">kafkaProducer</span><span class="o">;</span>
-
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">saveBook</span><span class="o">(</span><span class="nc">BookDTO</span> <span class="n">bookDTO</span><span class="o">){</span>
-        <span class="k">try</span> <span class="o">{</span>
-            <span class="nc">SimpleDateFormat</span> <span class="n">formatter</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SimpleDateFormat</span><span class="o">(</span>
-                    <span class="s">"yyyy-MM-dd"</span><span class="o">,</span> <span class="nc">Locale</span><span class="o">.</span><span class="na">ENGLISH</span><span class="o">);</span>
-            <span class="nc">Date</span> <span class="n">published_date</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="na">parse</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPublished_date</span><span class="o">());</span>
-            <span class="nc">Book</span> <span class="n">book</span> <span class="o">=</span> <span class="nc">Book</span><span class="o">.</span><span class="na">builder</span><span class="o">()</span>
-                    <span class="o">.</span><span class="na">title</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getTitle</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">author</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getAuthor</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">category</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getCategory</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">pages</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPages</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">price</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getPrice</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">published_date</span><span class="o">(</span><span class="n">published_date</span><span class="o">)</span>
-                    <span class="o">.</span><span class="na">description</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">.</span><span class="na">getDescription</span><span class="o">())</span>
-                    <span class="o">.</span><span class="na">build</span><span class="o">();</span>
-            <span class="n">bookRepository</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
-            <span class="n">bookDTO</span><span class="o">.</span><span class="na">setBid</span><span class="o">(</span><span class="n">book</span><span class="o">.</span><span class="na">getBid</span><span class="o">());</span>
-            <span class="c1">//쓰기 작업을 완료할 때 카프카에게 메시지를 전송</span>
-            <span class="n">kafkaProducer</span><span class="o">.</span><span class="na">sendMessage</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">);</span> 
-        <span class="o">}</span>
-        <span class="k">catch</span><span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">){</span>
-            <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p>MySQL 저장 이후 코드 3줄이 Kafka 연결의 핵심이다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">bookRepository</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
-<span class="n">bookDTO</span><span class="o">.</span><span class="na">setBid</span><span class="o">(</span><span class="n">book</span><span class="o">.</span><span class="na">getBid</span><span class="o">());</span>
-<span class="c1">//쓰기 작업을 완료할 때 카프카에게 메시지를 전송</span>
-<span class="n">kafkaProducer</span><span class="o">.</span><span class="na">sendMessage</span><span class="o">(</span><span class="n">bookDTO</span><span class="o">);</span>
-</code></pre></div></div>
-
-<p>저장하고, 생성된 <code class="language-plaintext highlighter-rouge">bid</code>를 받아오고, 그 <code class="language-plaintext highlighter-rouge">bid</code>를 Kafka로 보낸다.</p>
-
-<h4 id="cqrs-topic-생성-및-확인">cqrs-topic 생성 및 확인</h4>
-
-<p>Kafka 컨테이너에 접속한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker <span class="nb">exec</span> <span class="nt">-it</span> kafka /bin/bash
-</code></pre></div></div>
-
-<p>Topic을 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kafka-topics.sh <span class="nt">--create</span> <span class="nt">--zookeeper</span> zookeeper:2181 <span class="nt">--replication-factor</span> 1 <span class="nt">--partitions</span> 1 <span class="nt">--topic</span> cqrs-topic
-</code></pre></div></div>
-
-<p>Console Consumer로 Message를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kafka-console-consumer.sh <span class="nt">--topic</span> cqrs-topic <span class="nt">--bootstrap-server</span> localhost:9092 <span class="nt">--from-beginning</span>
-</code></pre></div></div>
-
-<p>POSTMAN으로 책을 저장하면 Console Consumer에 다음과 같은 Message가 찍힌다.</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="nl">"bid"</span><span class="p">:</span><span class="s2">"1"</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-<p><img src="../../assets/post/2026-08-12-cloud-native-07-kafka-cqrs/02.webp" alt="" />
-이 Message가 보이면 쓰기 프로젝트에서 Kafka까지 연결이 정상적으로 동작하는 것이다.</p>
-
-<h3 id="읽기-프로젝트에-kafka-연결">읽기 프로젝트에 Kafka 연결</h3>
-
-<h4 id="라이브러리-추가-1">라이브러리 추가</h4>
-
-<p>Kafka에서 받은 JSON 문자열을 처리하기 위해 <code class="language-plaintext highlighter-rouge">build.gradle</code>에 추가한다.</p>
-
-<div class="language-gradle highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.json:json:20190722'</span>
-</code></pre></div></div>
-
-<h4 id="kafka-설정-1">Kafka 설정</h4>
-
-<p>Reader의 기존 <code class="language-plaintext highlighter-rouge">application.yml</code>에 Kafka Consumer 설정을 추가한다. <code class="language-plaintext highlighter-rouge">server</code>와 <code class="language-plaintext highlighter-rouge">spring.application</code>을 유지한 상태에서 <code class="language-plaintext highlighter-rouge">spring.kafka</code>를 같은 <code class="language-plaintext highlighter-rouge">spring</code> 아래에 병합한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">server</span><span class="pi">:</span>
-  <span class="na">port</span><span class="pi">:</span> <span class="m">8081</span>
-
-<span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">Reader</span>
-
-  <span class="na">kafka</span><span class="pi">:</span>
-    <span class="na">bootstrap-servers</span><span class="pi">:</span> <span class="s">127.0.0.1:9092</span>
-    <span class="na">consumer</span><span class="pi">:</span>
-      <span class="na">group-id</span><span class="pi">:</span> <span class="s">hyeon</span>
-      <span class="na">auto-offset-reset</span><span class="pi">:</span> <span class="s">earliest</span>
-      <span class="na">key-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
-      <span class="na">value-deserializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringDeserializer</span>
-    <span class="na">producer</span><span class="pi">:</span>
-      <span class="na">key-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
-      <span class="na">value-serializer</span><span class="pi">:</span> <span class="s">org.apache.kafka.common.serialization.StringSerializer</span>
-</code></pre></div></div>
-
-<p>Reader 컨트롤러만 확인하는 단계에는 위 Kafka 설정이 필요하지 않지만, <code class="language-plaintext highlighter-rouge">@KafkaListener</code>를 작성하여 Consumer를 실행할 때부터 필요하다.</p>
-
-<h4 id="kafkaconfiguration-1">KafkaConfiguration</h4>
-
-<p>읽기 프로젝트에도 쓰기 프로젝트와 동일한 <code class="language-plaintext highlighter-rouge">KafkaConfiguration</code> 클래스를 작성한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.ProducerConfig</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Value</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Bean</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.context.annotation.Configuration</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.DefaultKafkaProducerFactory</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.KafkaTemplate</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.core.ProducerFactory</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.StringSerializer</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.util.HashMap</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">java.util.Map</span><span class="o">;</span>
-
-<span class="nd">@Configuration</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaConfiguration</span> <span class="o">{</span>
-    <span class="nd">@Value</span><span class="o">(</span><span class="s">"${spring.kafka.bootstrap-servers}"</span><span class="o">)</span>
-    <span class="kd">private</span> <span class="nc">String</span> <span class="n">bootStrapServers</span><span class="o">;</span>
-
-    <span class="nd">@Bean</span>
-    <span class="kd">public</span> <span class="nc">ProducerFactory</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">producerFactory</span><span class="o">(){</span>
-        <span class="nc">Map</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">Object</span><span class="o">&gt;</span> <span class="n">configs</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">HashMap</span><span class="o">&lt;&gt;();</span>
-        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">BOOTSTRAP_SERVERS_CONFIG</span><span class="o">,</span> <span class="n">bootStrapServers</span><span class="o">);</span>
-        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">KEY_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-        <span class="n">configs</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="nc">ProducerConfig</span><span class="o">.</span><span class="na">VALUE_SERIALIZER_CLASS_CONFIG</span><span class="o">,</span> <span class="nc">StringSerializer</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-        <span class="k">return</span> <span class="k">new</span> <span class="nc">DefaultKafkaProducerFactory</span><span class="o">&lt;&gt;(</span><span class="n">configs</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Bean</span>
-    <span class="kd">public</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="nf">kafkaTemplate</span><span class="o">(){</span>
-        <span class="k">return</span> <span class="k">new</span> <span class="nc">KafkaTemplate</span><span class="o">&lt;&gt;(</span><span class="n">producerFactory</span><span class="o">());</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<h4 id="kafkaconsumer">KafkaConsumer</h4>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">com.mongodb.client.MongoClient</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">com.mongodb.client.MongoClients</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">com.mongodb.client.MongoCollection</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">com.mongodb.client.MongoDatabase</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.bson.Document</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.json.JSONObject</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.kafka.annotation.KafkaListener</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">java.io.IOException</span><span class="o">;</span>
-
-<span class="nd">@Service</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaConsumer</span> <span class="o">{</span>
-    <span class="nd">@KafkaListener</span><span class="o">(</span><span class="n">topics</span><span class="o">=</span><span class="s">"cqrs-topic"</span><span class="o">,</span> <span class="n">groupId</span> <span class="o">=</span> <span class="s">"hyeon"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">consumer</span><span class="o">(</span><span class="nc">String</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">IOException</span><span class="o">{</span>
-        <span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"message:"</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
-        <span class="c1">//JSON 파싱: JSON문자열로 온 것을 자바 객체로 변환</span>
-        <span class="nc">JSONObject</span> <span class="n">messageObj</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">JSONObject</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
-		
-		<span class="c1">//JSON 파싱: JSON문자열로 온 것을 자바 객체로 변환</span>
-        <span class="nc">MongoClient</span> <span class="n">mongoClient</span> <span class="o">=</span> <span class="nc">MongoClients</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"mongodb://localhost:27017"</span><span class="o">);</span>
-        <span class="nc">MongoDatabase</span> <span class="n">database</span> <span class="o">=</span> <span class="n">mongoClient</span><span class="o">.</span><span class="na">getDatabase</span><span class="o">(</span><span class="s">"cqrs"</span><span class="o">);</span>
-        <span class="nc">MongoCollection</span><span class="o">&lt;</span><span class="nc">Document</span><span class="o">&gt;</span> <span class="n">mongo_books</span> <span class="o">=</span>
-                <span class="n">database</span><span class="o">.</span><span class="na">getCollection</span><span class="o">(</span><span class="s">"books"</span><span class="o">);</span>
-		<span class="c1">//받은 데이터로 삽입할 데이터를 생성</span>
-        <span class="nc">Document</span> <span class="n">book</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Document</span><span class="o">();</span>
-        <span class="n">book</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">"bid"</span><span class="o">,</span> <span class="n">messageObj</span><span class="o">.</span><span class="na">getLong</span><span class="o">(</span><span class="s">"bid"</span><span class="o">));</span>
-        <span class="n">mongo_books</span><span class="o">.</span><span class="na">insertOne</span><span class="o">(</span><span class="n">book</span><span class="o">);</span>
-        <span class="n">mongoClient</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">@KafkaListener</code>로 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>을 구독하고 있다가 Message가 오면 동작한다.</p>
-
-<p>받은 문자열을 <code class="language-plaintext highlighter-rouge">JSONObject</code>로 파싱해서 <code class="language-plaintext highlighter-rouge">bid</code>를 꺼내고, MongoDB의 <code class="language-plaintext highlighter-rouge">cqrs</code> 데이터베이스, <code class="language-plaintext highlighter-rouge">books</code> Collection에 저장한다.</p>
-
-<h3 id="전체-구조-및-실행">전체 구조 및 실행</h3>
-
-<pre><code class="language-mermaid">flowchart LR
-    A[Client] --&gt; B[Write Project]
-    B --&gt; C[(MySQL)]
-    B --&gt; D[Kafka]
-    D --&gt; E[Read Project]
-    E --&gt; F[(MongoDB)]
-</code></pre>
-
-<p>두 프로젝트를 모두 실행한 상태에서 POSTMAN으로 쓰기 프로젝트에 데이터를 보내면 다음 순서로 처리된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>POSTMAN
-   ↓
-BookController (Write)
-   ↓
-BookService
-   ↓
-MySQL 저장 → bid 생성
-   ↓
-KafkaProducer → cqrs-topic
-   ↓
-KafkaConsumer (Read)
-   ↓
-MongoDB 저장
-</code></pre></div></div>
-
-<p>읽기 프로젝트의 <code class="language-plaintext highlighter-rouge">GET /cqrs/book</code>으로 조회하면 방금 저장된 <code class="language-plaintext highlighter-rouge">bid</code>가 MongoDB에 들어있는 것을 확인할 수 있다.
-<img src="../../assets/post/2026-08-12-cloud-native-07-kafka-cqrs/04.webp" alt="" /></p>
-
-<h3 id="실습-메모">실습 메모</h3>
-
-<p>지금 구조는 CQRS를 구현해보는 실습 구조로, Kafka로 전달되는 정보는 <code class="language-plaintext highlighter-rouge">bid</code> 하나뿐이다.</p>
-
-<p>읽기 프로젝트가 나중에 도서의 상세 정보를 조회하려면, <code class="language-plaintext highlighter-rouge">KafkaProducer</code>에서 <code class="language-plaintext highlighter-rouge">bid</code>뿐만 아니라 도서 정보 전체를 JSON으로 보내도록 수정해야 한다.</p>
-
-<hr />
-
-<blockquote>
-  <p><strong>정리</strong></p>
-
-  <ul>
-    <li>
-      <p>이번 실습은 CQRS 패턴에 따라 쓰기와 읽기 책임을 두 개의 Spring Boot 프로젝트로 분리하는 것이다. 쓰기 프로젝트는 MySQL에, 읽기 프로젝트는 MongoDB에 도서 데이터를 저장하거나 조회한다.</p>
-    </li>
-    <li>
-      <p>쓰기 프로젝트는 <code class="language-plaintext highlighter-rouge">BookController → BookService → BookRepository</code> 순서로 요청을 처리해서 MySQL에 <code class="language-plaintext highlighter-rouge">Book</code> Entity를 저장한다.</p>
-    </li>
-    <li>
-      <p>읽기 프로젝트는 <code class="language-plaintext highlighter-rouge">BookController</code>에서 <code class="language-plaintext highlighter-rouge">MongoClient</code>로 MongoDB에 직접 연결해서 <code class="language-plaintext highlighter-rouge">books</code> Collection을 조회한다.</p>
-    </li>
-    <li>
-      <p>두 프로젝트가 분리되어 있어서 쓰기 프로젝트의 변경 사항이 읽기 프로젝트에 자동으로 전달되지 않는데, 이 문제를 Kafka로 해결한다.</p>
-    </li>
-    <li>
-      <p>쓰기 프로젝트는 MySQL 저장 후 생성된 <code class="language-plaintext highlighter-rouge">bid</code>를 <code class="language-plaintext highlighter-rouge">KafkaProducer</code>를 통해 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>으로 전송한다.</p>
-    </li>
-    <li>
-      <p>읽기 프로젝트는 <code class="language-plaintext highlighter-rouge">@KafkaListener</code>로 <code class="language-plaintext highlighter-rouge">cqrs-topic</code>을 구독하고, 받은 <code class="language-plaintext highlighter-rouge">bid</code>를 MongoDB의 <code class="language-plaintext highlighter-rouge">books</code> Collection에 저장한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kafka" /><category term="CQRS" /><summary type="html"><![CDATA[Spring Boot, MySQL, MongoDB와 Kafka를 이용하여 쓰기와 읽기 모델을 분리한 CQRS 구조 구현]]></summary></entry><entry><title type="html">클라우드 네이티브의 핵심 요소 CI/CD와 Container</title><link href="https://kkr010128.github.io/cloud-native-02-pillars/" rel="alternate" type="text/html" title="클라우드 네이티브의 핵심 요소 CI/CD와 Container" /><published>2026-08-11T00:00:00+09:00</published><updated>2026-08-11T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-02-pillars</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-02-pillars/"><![CDATA[<h2 id="pillars-of-cloud-native">Pillars of Cloud Native</h2>
-
-<hr />
-
-<h3 id="cicd">CI/CD</h3>
-
-<h4 id="개요">개요</h4>
-
-<p>CI/CD는 애플리케이션 개발 단계를 자동화하여 애플리케이션을 더 짧은 주기로 고객에게 제공하기 위한 방법이다.</p>
-
-<p>새로운 코드를 기존 코드에 통합하는 과정에서 개발 및 운영에 발생할 수 있는 <strong>Integration Hell</strong> 문제를 줄이는 데 목적이 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>CI (Continuous Integration)</td>
-      <td>지속적 통합</td>
-    </tr>
-    <tr>
-      <td>CD (Continuous Delivery)</td>
-      <td>지속적 제공</td>
-    </tr>
-    <tr>
-      <td>CD (Continuous Deployment)</td>
-      <td>지속적 배포</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="흐름">흐름</h4>
-
-<p>개발자가 코드를 작성한 뒤 저장소에 Push 또는 Upload하면 이후 Build, Test, Merge 등의 과정이 CI 파이프라인에서 수행된다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Development</th>
-      <th>CI</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Coding → Push / Upload</td>
-      <td>Build → Test → Merge</td>
-    </tr>
-    <tr>
-      <td>Coding은 수동</td>
-      <td>대부분 자동화되며 일부 과정은 Manual일 수 있음</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>CI 이후에는 Acceptance Test와 Staging 배포를 거쳐 Production 환경에 배포한다.</p>
-
-<p><strong>Continuous Delivery</strong></p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Coding
-  ↓
-Push / Upload
-  ↓
-Build
-  ↓
-Test
-  ↓
-Merge
-  ↓
-Acceptance Test
-  ↓
-Deploy to Staging
-  ↓
-Deploy to Production (Manual)
-  ↓
-Smoke Test
-</code></pre></div></div>
-
-<p>Continuous Delivery에서는 Production에 배포할 수 있는 상태까지 자동화하지만, 실제 Production 배포는 수동으로 수행한다.</p>
-
-<p><strong>Continuous Deployment</strong></p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Coding
-  ↓
-Push / Upload
-  ↓
-Build
-  ↓
-Test
-  ↓
-Merge
-  ↓
-Acceptance Test
-  ↓
-Deploy to Staging
-  ↓
-Deploy to Production
-  ↓
-Smoke Test
-</code></pre></div></div>
-
-<p>Continuous Deployment에서는 검증을 통과한 변경 사항을 Production 환경까지 자동으로 배포한다.</p>
-
-<h4 id="테스트-종류"><strong>테스트 종류</strong></h4>
-
-<p><strong>CI 단계의 테스트</strong></p>
-
-<p>CI에서 수행하는 테스트는 코드 검증과 정적 테스트를 포함한다.</p>
-
-<p>예를 들어 다음 항목을 점검할 수 있다.</p>
-
-<ul>
-  <li>사용하지 않는 변수</li>
-  <li>사용하지 않는 패키지</li>
-  <li>코드 및 로직 문제</li>
-</ul>
-
-<p><strong>Acceptance Test</strong></p>
-
-<p>인수 테스트(Acceptance Test)는 개발된 애플리케이션이 고객의 요구사항에 부합하는지 확인하는 테스트이다.</p>
-
-<p><strong>Smoke Test</strong></p>
-
-<p>Smoke Test는 새로운 빌드나 배포판이 생성되었을 때 기본적인 기능이 정상적으로 동작하는지 빠르게 확인하는 테스트이다.</p>
-
-<h3 id="ci-continuous-integration"><strong>CI (Continuous Integration)</strong></h3>
-
-<p>CI는 개발팀이 작은 변경 사항을 구현하고 코드를 버전 제어 저장소(Repository)에 자주 체크인하도록 하는 코딩 철학이자 일련의 관행이다.</p>
-
-<p>최신 애플리케이션은 다양한 플랫폼과 도구를 이용하여 개발되기 때문에 여러 개발자가 만든 변경 사항을 지속적으로 통합하고 검증하기 위한 메커니즘이 필요하다.</p>
-
-<p>CI의 기술적 목표는 애플리케이션을 <strong>빌드, 패키징, 테스트하는 일관되고 자동화된 방법을 구축하는 것</strong>이다.</p>
-
-<p>통합 프로세스의 일관성을 유지하면 개발자가 코드 변경을 더 자주 커밋할 수 있고, 공동 작업과 소프트웨어 품질을 향상시킬 수 있다.</p>
-
-<p>소프트웨어 공학에서 지속적 통합은 품질 관리를 마지막 단계에서 한 번 수행하는 방식이 아니라, 작은 단위로 자주 통합하면서 지속적으로 품질 관리를 수행하는 프로세스이다.</p>
-
-<p>이를 통해 소프트웨어의 품질을 높이고 배포에 걸리는 시간을 줄이는 데 초점을 맞춘다.</p>
-
-<h3 id="continuous-delivery"><strong>Continuous Delivery</strong></h3>
-
-<p>Continuous Delivery는 개발자가 애플리케이션에 적용한 변경 사항을 테스트한 뒤 Repository에 자동으로 업로드하고, 언제든 Production 환경에 배포할 수 있는 상태로 유지하는 방식이다.</p>
-
-<p>Repository에는 Git 저장소나 Image Registry 등이 사용될 수 있다.</p>
-
-<p>운영팀은 이 Repository에 저장된 결과물을 가져와 실제 Production 환경에 배포한다.</p>
-
-<p><strong>목적</strong></p>
-
-<ul>
-  <li>개발팀과 비즈니스팀 간의 가시성 부족 문제 완화</li>
-  <li>개발팀과 운영팀 간의 커뮤니케이션 문제 감소</li>
-  <li>최소한의 노력으로 새로운 코드를 배포할 수 있는 상태 유지</li>
-</ul>
-
-<p>Continuous Delivery에서는 Production 배포가 가능한 상태까지 자동화하지만 실제 배포 시점은 사람이 결정한다.</p>
-
-<h3 id="continuous-deployment"><strong>Continuous Deployment</strong></h3>
-
-<p>Continuous Deployment는 개발자의 변경 사항을 Repository에서 고객이 실제로 사용할 수 있는 Production 환경까지 자동으로 릴리즈하는 방식이다.</p>
-
-<p>수동 배포 과정으로 인해 운영팀에 프로세스 과부하가 발생하거나, 애플리케이션 제공 속도가 늦어지는 문제를 줄이는 데 목적이 있다.</p>
-
-<p>Continuous Deployment는 Continuous Delivery에서 제공하는 자동화 기반을 활용하고, 그 다음 단계인 Production 배포까지 자동화한다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>CI는 코드 변경 사항을 자주 통합하고 Build와 Test를 자동화하는 방식이다.</li>
-  <li>Continuous Delivery는 Production에 배포 가능한 상태까지 자동화한다.</li>
-  <li>Continuous Deployment는 Production 배포까지 자동화한다.</li>
-  <li>Acceptance Test는 고객 요구사항 충족 여부를 확인한다.</li>
-  <li>Smoke Test는 새로운 빌드나 배포 이후 기본 기능의 정상 동작 여부를 빠르게 확인한다.</li>
-</ul>
-
-<h3 id="containers"><strong>Containers</strong></h3>
-
-<h4 id="개요-1"><strong>개요</strong></h4>
-
-<p>Linux Container는 애플리케이션 실행에 필요한 파일과 실행 환경을 하나의 단위로 패키징하고, 다른 애플리케이션과 분리하여 실행할 수 있도록 하는 기술이다.</p>
-
-<p>컨테이너화된 애플리케이션은 기능을 유지하면서 개발, 테스트, Production 환경 사이를 쉽게 이동할 수 있다.</p>
-
-<p>또한 컨테이너 파이프라인에 보안을 적용하고 인프라를 보호함으로써 컨테이너 환경의 안정성, 확장성, 신뢰성을 확보할 수 있다.</p>
-
-<h4 id="실행-구조-비교"><strong>실행 구조 비교</strong></h4>
-
-<p><strong>가상화를 사용하지 않는 경우</strong></p>
-
-<p>하나의 운영체제 위에 여러 애플리케이션을 직접 배치하여 실행한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
-Application
-Application
-    ↓
-Operating System
-    ↓
-Hardware
-</code></pre></div></div>
-
-<p>각 애플리케이션이 동일한 운영체제 환경을 공유한다.</p>
-
-<p><strong>KVM 가상화를 이용하는 경우</strong></p>
-
-<p>운영체제 위에 Hypervisor를 배치하고, 그 위에 Guest OS를 설치한 뒤 애플리케이션을 실행한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application      Application
-    ↓                ↓
-Guest OS         Guest OS
-    ↓                ↓
-      Hypervisor
-          ↓
-    Operating System
-          ↓
-       Hardware
-</code></pre></div></div>
-
-<p>애플리케이션을 서로 분리하려면 여러 Guest OS를 구성해야 한다.</p>
-
-<p><strong>Linux Container를 이용하는 경우</strong></p>
-
-<p>운영체제 위에 여러 Container를 직접 배치하지만, 각 Container는 서로 격리된 환경에서 실행된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container
-Container
-Container
-    ↓
-Operating System
-    ↓
-Hardware
-</code></pre></div></div>
-
-<p>Guest OS를 각각 설치하지 않고도 애플리케이션을 분리할 수 있다는 점이 가상 머신 방식과의 주요 차이이다.</p>
-
-<h3 id="devops와-cicd에서의-container-활용"><strong>DevOps와 CI/CD에서의 Container 활용</strong></h3>
-
-<p>Container는 DevOps와 CI/CD를 구현하는 주요 기술 요소 중 하나로 활용된다.</p>
-
-<p>개발자가 코드를 Push하면 다음과 같은 흐름으로 배포가 진행될 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Developer
-    ↓
-Push
-    ↓
-Code Repository
-    ↓
-Build Tool
-    ↓
-Docker Build
-    ↓
-Image Registry
-    ↓
-Kubernetes Deploy
-</code></pre></div></div>
-
-<p>개발자가 Code Repository에 코드를 Push하면 Build Tool이 애플리케이션을 빌드하고, Docker Image를 생성한다.</p>
-
-<p>생성된 이미지는 Image Registry에 저장되고, 이후 Kubernetes 환경에 배포된다.</p>
-
-<blockquote>
-  <p><strong>정리</strong></p>
-  <ul>
-    <li>
-      <p>Cloud Native의 주요 요소에는 CI/CD와 Container가 포함된다.</p>
-    </li>
-    <li>
-      <p>CI는 코드 변경 사항을 지속적으로 통합하고 검증하는 과정이다.</p>
-    </li>
-    <li>
-      <p>Continuous Delivery는 Production에 배포 가능한 상태까지 자동화하고, 실제 Production 배포는 수동으로 수행한다.</p>
-    </li>
-    <li>
-      <p>Continuous Deployment는 Production 환경까지 자동으로 배포한다.</p>
-    </li>
-    <li>
-      <p>Acceptance Test는 고객 요구사항 충족 여부를 확인하고, Smoke Test는 배포 이후 기본 기능의 정상 동작 여부를 빠르게 확인한다.</p>
-    </li>
-    <li>
-      <p>Container는 애플리케이션과 실행 환경을 패키징하고 서로 격리하여 실행할 수 있도록 한다.</p>
-    </li>
-    <li>
-      <p>가상 머신은 Guest OS를 각각 구성하지만, Container는 동일한 운영체제 환경을 공유하면서 격리된다.</p>
-    </li>
-    <li>
-      <p>CI/CD 파이프라인에서는 Code Repository, Build Tool, Docker Build, Image Registry, Kubernetes 등을 연결하여 배포 과정을 자동화할 수 있다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><summary type="html"><![CDATA[CI, Continuous Delivery, Continuous Deployment의 차이와 Container 기반 배포 흐름]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="CQRS" /><summary type="html"><![CDATA[CQRS의 개념과 기존 데이터 모델의 문제점, Command와 Query 분리 구조 및 적용 기준]]></summary></entry></feed>
