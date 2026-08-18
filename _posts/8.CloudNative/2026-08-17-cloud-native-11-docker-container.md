@@ -1,6 +1,6 @@
 ---
 title: Docker 컨테이너
-description: Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행, 파일 복사 및 Volume Mount
+description: Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행 및 파일 복사
 date: 2026-08-17
 series: CloudNative
 tags:
@@ -142,6 +142,7 @@ docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
 | `-P`, `--publish-all` | Image가 공개한 Port를 임의의 Host Port에 연결 |
 | `-v`, `--volume` | Volume 또는 Host 경로 Mount |
 | `--network NETWORK` | Container가 연결될 Network 지정 |
+| `--link CONTAINER[:ALIAS]` | 다른 Container의 정보를 연결하는 Legacy Option |
 | `--hostname NAME` | Container Hostname 지정 |
 | `--restart POLICY` | Container 재시작 정책 지정 |
 | `--rm` | Container 종료 시 자동 삭제 |
@@ -167,6 +168,18 @@ docker container run --name nginx -d nginx:1.18
 | `always` | 종료되면 항상 재시작 |
 | `unless-stopped` | 사용자가 직접 중지하지 않았다면 재시작 |
 
+`--link`는 현재도 호환성을 위해 남아 있지만 Legacy 기능이다. 새 구성에서는 사용자 정의 Network에 Container를 연결하고 내장 DNS를 통해 Container 이름으로 통신하는 방식을 사용한다.
+
+> **중간 정리**
+>
+> - Container는 생성, 실행, 중지, 삭제의 생명주기를 가진다.
+>
+> - `docker run`은 Image를 준비하고 새 Container를 생성한 뒤 시작한다.
+>
+> - `-it`는 대화형 Terminal에, `-d`는 Background 실행에 사용한다.
+>
+> - `--link`는 Legacy 기능이므로 새 구성에서는 사용자 정의 Network를 사용한다.
+
 ## 5 ) Container 조회와 관리
 
 ---
@@ -182,16 +195,15 @@ docker ps
 
 출력 항목의 의미는 다음과 같다.
 
-| 항목             | 설명                           |
-| -------------- | ---------------------------- |
-| `CONTAINER ID` | Container 식별자의 축약 값          |
-| `IMAGE`        | Container 생성에 사용한 Image      |
-| `COMMAND`      | Container의 주 Process를 시작한 명령 |
-| `CREATED`      | Container를 생성한 뒤 지난 시간       |
-| `STATUS`       | 실행, 종료 등 현재 상태               |
-| `PORTS`        | 공개 및 연결된 Port 정보             |
-| `NAMES`        | Container 이름                 |
-
+| 항목 | 설명 |
+|---|---|
+| `CONTAINER ID` | Container 식별자의 축약 값 |
+| `IMAGE` | Container 생성에 사용한 Image |
+| `COMMAND` | Container의 주 Process를 시작한 명령 |
+| `CREATED` | Container를 생성한 뒤 지난 시간 |
+| `STATUS` | 실행, 종료 등 현재 상태 |
+| `PORTS` | 공개 및 연결된 Port 정보 |
+| `NAMES` | Container 이름 |
 
 주요 Option은 다음과 같다.
 
@@ -207,10 +219,12 @@ docker ps
 | `--format` | 출력 형식 지정 |
 
 ```bash
+{% raw %}
 docker container ls -a
 docker container ls -aq
 docker container ls --filter status=running
 docker container ls --format '{{.ID}} {{.Names}}'
+{% endraw %}
 ```
 
 여러 Container ID를 명령 치환으로 전달할 수도 있다. 다음 명령은 실행 중인 모든 Container를 중지한 뒤 모든 Container를 삭제한다.
@@ -356,16 +370,16 @@ docker container run --name ubuntu-server -dit ubuntu:24.04
 docker container exec -it ubuntu-server /bin/bash
 ```
 
-### attach와 exec의 차이 ?
+### attach와 exec의 차이
 
 > 두 명령 모두 실행 중인 Container와 상호작용하지만 연결되는 Process가 다르다.
 
-| 구분         | `docker attach`                             | `docker exec`                       |
-| ---------- | ------------------------------------------- | ----------------------------------- |
-| 동작         | 기존 주 Process의 표준 입력·출력·오류에 Terminal을 연결     | Container 안에서 새로운 Process 실행        |
-| 대상         | `ENTRYPOINT`와 `CMD`로 시작된 주 Process          | 사용자가 지정한 Shell 또는 명령                |
+| 구분 | `docker attach` | `docker exec` |
+|---|---|---|
+| 동작 | 기존 주 Process의 표준 입력·출력·오류에 Terminal을 연결 | Container 안에서 새로운 Process 실행 |
+| 대상 | `ENTRYPOINT`와 `CMD`로 시작된 주 Process | 사용자가 지정한 Shell 또는 명령 |
 | `exit`의 영향 | 주 Process가 Shell이라면 Shell과 Container가 함께 종료 | 새로 실행한 Shell만 종료되고 주 Process는 계속 실행 |
-| 주요 용도      | 주 Process와 직접 대화하거나 현재 출력을 확인               | 점검, Debugging, File 확인, 관리 명령 수행    |
+| 주요 용도 | 주 Process와 직접 대화하거나 현재 출력을 확인 | 점검, Debugging, File 확인, 관리 명령 수행 |
 
 Container가 다음과 같이 실행되었다고 가정한다.
 
@@ -415,6 +429,16 @@ docker container exec webserver nginx -T
 
 다만 `exec`는 Container의 주 Process가 실행 중일 때만 사용할 수 있다. Container가 이미 정지했다면 먼저 `docker logs`나 `docker inspect`로 종료 원인을 확인하고 필요에 따라 Container를 다시 시작해야 한다. 단순히 Application Log를 확인하려는 목적이라면 주 Process에 직접 연결하는 `attach`보다 `docker logs`가 안전하고 편리하다.
 
+> **중간 정리**
+>
+> - `attach`는 Container의 기존 주 Process에 Terminal을 연결한다.
+>
+> - `exec`는 실행 중인 Container 안에서 새로운 Process를 실행한다.
+>
+> - `attach`로 연결한 주 Process를 종료하면 Container도 정지할 수 있다.
+>
+> - 점검 명령이나 별도 Shell 실행에는 `exec`를 주로 사용한다.
+
 ### Python Program 실행
 
 ```bash
@@ -449,96 +473,16 @@ docker image ls my-node-app
 
 Mount에 저장된 데이터는 Container File System에 포함되지 않으므로 `commit`으로 만든 Image에도 포함되지 않는다.
 
-## 11 ) Docker Volume
-
----
-
-Container의 쓰기 Layer는 Container 생명주기에 종속된다. Container를 삭제해도 보존해야 하는 Database, Upload File과 같은 데이터는 Container 밖의 Storage에 저장해야 한다.
-
-Docker에서 주로 사용하는 Mount 방식은 Volume Mount와 Bind Mount이다.
-
-| 방식 | 저장 위치 | 관리 주체 | 주요 용도 |
-|---|---|---|---|
-| Volume Mount | Docker가 관리하는 영역 | Docker Engine | Application Data의 영속적 저장 |
-| Bind Mount | Host의 지정된 File 또는 Directory | 사용자 | Source Code, 설정 File 공유 |
-
-### Volume 생성과 연결
-
-```bash
-# Volume 생성과 조회
-docker volume create my-app-vol-1
-docker volume ls
-docker volume inspect my-app-vol-1
-
-# Volume을 Mount한 Container 실행
-docker container run \
-  --name vol-test \
-  -d \
-  -v my-app-vol-1:/data \
-  alpine \
-  tail -f /dev/null
-```
-
-`-v VOLUME_NAME:CONTAINER_PATH` 형식으로 이름이 있는 Volume을 Container 경로에 연결한다. 동일한 Volume은 새 Container에 다시 Mount할 수 있다.
-
-```bash
-docker container exec vol-test sh -c 'echo hello > /data/message.txt'
-
-docker container stop vol-test
-docker container rm vol-test
-
-docker container run --rm \
-  -v my-app-vol-1:/data \
-  alpine \
-  cat /data/message.txt
-```
-
-Container를 삭제한 뒤에도 `hello`가 출력되므로 데이터가 Volume에 남아 있음을 확인할 수 있다.
-
-사용 중인 Volume은 삭제할 수 없다. Volume을 연결한 Container를 먼저 제거한 뒤 Volume을 삭제한다.
-
-```bash
-docker volume rm my-app-vol-1
-docker volume prune
-```
-
-`docker volume prune`은 사용하지 않는 Volume을 일괄 삭제하므로 대상을 확인한 뒤 실행한다.
-
-## 12 ) Bind Mount
-
----
-
-Bind Mount는 Host의 기존 File 또는 Directory를 Container 경로에 직접 연결한다. Host에서 File을 수정하면 Container에서도 같은 변경 사항을 바로 확인할 수 있어 개발 중 Source Code나 설정을 공유할 때 유용하다.
-
-```bash
-docker container run \
-  --name apache \
-  -d \
-  -p 9000:80 \
-  --mount type=bind,src=/home/user/apache,dst=/usr/local/apache2/htdocs \
-  httpd
-```
-
-짧은 `-v` 형식도 사용할 수 있다.
-
-```bash
-docker container run \
-  --name apache \
-  -d \
-  -p 9000:80 \
-  -v /home/user/apache:/usr/local/apache2/htdocs \
-  httpd
-```
-
-`--mount`를 사용할 때 Host 경로가 존재하지 않으면 오류가 발생한다. `-v`는 존재하지 않는 Host 경로를 Directory로 만들 수 있으므로 오타가 새 Directory 생성으로 이어질 수 있다. Bind Mount 전에는 절대 경로와 권한을 확인한다.
-
-Container를 삭제해도 Host의 원본 File과 Directory는 유지된다. 반대로 Container Process도 Mount된 Host File을 변경할 수 있으므로, 읽기만 허용하려면 `readonly` 또는 `ro` Option을 지정한다.
-
-```bash
-docker container run \
-  --name readonly-web \
-  -d \
-  -p 9001:80 \
-  --mount type=bind,src=/home/user/apache,dst=/usr/local/apache2/htdocs,readonly \
-  httpd
-```
+> **최종 정리**
+>
+> - Container는 Image에 쓰기 가능한 Layer를 추가하여 생성한 격리된 Process 실행 환경이다.
+>
+> - `docker run`은 Image Pull, Container 생성, 시작 과정을 한 번에 수행한다.
+>
+> - Container의 주 Process가 종료되면 Container도 정지하며, 삭제 전에는 다시 시작할 수 있다.
+>
+> - 외부에서 Service에 접근하려면 Host Port와 Container Port를 연결한다.
+>
+> - `docker cp`는 Host와 Container 사이에서 File을 복사하고 `docker exec`는 실행 중인 Container에서 새 Process를 실행한다.
+>
+> - `docker commit`으로 Container 상태를 Image로 저장할 수 있지만 반복 가능한 Image 생성에는 Dockerfile을 사용한다.
