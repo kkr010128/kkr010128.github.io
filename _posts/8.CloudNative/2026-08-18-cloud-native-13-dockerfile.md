@@ -2,6 +2,7 @@
 title: Dockerfile
 description: Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항
 date: 2026-08-18
+updated_at: 2026-08-19
 series: CloudNative
 tags:
   - CloudNative
@@ -87,7 +88,7 @@ RUN apt-get update && \
 RUN ["/bin/bash", "-c", "echo build-complete > /build.txt"]
 ```
 
-각 `RUN`은 Layer를 만들므로 관련 작업은 하나의 `RUN`에서 수행하고 Package 목록도 같은 Layer에서 제거한다. 
+각 `RUN`은 Layer를 만들므로 관련 작업은 하나의 `RUN`에서 수행하고 Package 목록도 같은 Layer에서 제거한다.
 
 `apt autoclean`, `apt autoremove` 명령은 현재도 사용할 수 있지만 Container Image Build에서는 설치 직후 `/var/lib/apt/lists/*`를 제거하고 불필요한 Package를 처음부터 설치하지 않는 방식이 더 명확하다.
 
@@ -395,19 +396,239 @@ docker container run \
 
 ---
 
-Host에 Apache와 PHP를 직접 설치하려면 Package 설치, Service 시작, 설정 변경, Web Page 배치 과정을 순서대로 반복해야 한다.
+Dockerfile을 사용하지 않아도 실행 중인 Container를 수정한 뒤 `docker commit`으로 Image를 만들 수 있다. 다음 실습은 Ubuntu Container에 Apache와 PHP를 직접 설치하고 그 결과를 Image로 저장한다.
 
-```bash
-sudo apt update
-sudo apt install -y apache2 php
-sudo service apache2 start
-sudo service apache2 status
-curl http://localhost:80
+### Container를 직접 수정하여 Image 생성
+
+1. Ubuntu Container를 생성하고 Terminal에 접속한다.
+
+   ```bash
+   docker container run \
+     --name myweb \
+     -p 8000:80 \
+     -it \
+     ubuntu:20.04
+   ```
+
+2. Package 정보를 갱신하고 Apache와 PHP를 설치한다. Base Image는 실행에 필요한 최소 Package만 포함하므로 설치 전에 Package Index를 갱신해야 한다.
+
+   ```bash
+   apt-get update
+   DEBIAN_FRONTEND=noninteractive apt-get install -y apache2 php
+   service apache2 start
+   ```
+
+3. 기본 Page를 보관하고 새로운 HTML 및 PHP Page를 작성한다.
+
+   ```bash
+   mv /var/www/html/index.html /var/www/html/index.html.org
+   echo '<h1>Hello Docker Application</h1>' > /var/www/html/index.html
+   printf '%s\n' '<?php phpinfo(); ?>' > /var/www/html/index.php
+   ```
+
+4. 다른 Terminal에서 두 Page에 접속한다.
+
+   ```bash
+   curl http://localhost:8000
+   curl http://localhost:8000/index.php
+   ```
+
+5. 실행 중인 Container를 새로운 Image로 저장한다.
+
+   ```bash
+   docker container commit myweb myphpapp:1.0
+   ```
+
+6. 저장한 Image로 새로운 Container를 실행한다. 기존 `myweb`이 Host의 8000번 Port를 사용하고 있다면 먼저 중지하거나 다른 Host Port를 선택한다.
+
+   ```bash
+   docker container stop myweb
+   docker container run \
+     --name myphpapp \
+     -d \
+     -p 8000:80 \
+     myphpapp:1.0
+   ```
+
+`docker commit`은 현재 Container의 File System 변경 사항을 빠르게 Image로 저장한다. 하지만 설치 명령과 수정 순서가 Image만으로는 드러나지 않으므로 같은 환경을 검토하고 반복해서 만들기 어렵다.
+
+강의에서 사용한 `ubuntu:14.04`와 `php5` 조합은 과거 환경을 재현하는 Legacy 예제이다. Ubuntu 14.04의 일반 지원은 종료되었으며 PHP 5도 공식 지원이 종료되었다. 실습의 수동 구성 흐름은 유지하되, 실행 가능한 예제에는 `ubuntu:20.04`와 해당 배포판에서 제공하는 `php` Package를 사용한다.
+
+### Dockerfile로 동일한 과정 자동화
+
+수동 작업을 Dockerfile로 옮기면 Image 생성 절차를 Source Code와 함께 관리할 수 있다.
+
+```dockerfile
+FROM ubuntu:20.04
+
+LABEL org.opencontainers.image.authors="adam <itstudy@kakao.com>"
+LABEL org.opencontainers.image.title="IaC PHP Web Application"
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      apache2 \
+      php && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV APACHE2_RUN_USER=www-data \
+    APACHE2_RUN_GROUP=www-data \
+    APACHE2_LOG_DIR=/var/log/apache2 \
+    APACHE2_WEB_DIR=/var/www/html \
+    APACHE2_PID_FILE=/var/run/apache2/apache2.pid
+
+RUN echo 'Hello Docker Application.' > /var/www/html/index.html && \
+    printf '%s\n' '<?php phpinfo(); ?>' > /var/www/html/index.php
+
+WORKDIR /var/www/html
+
+EXPOSE 80
+
+CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
 ```
 
-이러한 명령을 수동으로 실행하면 환경이 커질수록 누락과 차이가 누적된다. Dockerfile로 필요한 Package, 설정, Source Code, 실행 명령을 정의하면 변경 이력을 Version Control로 관리하고 동일한 Image를 반복해서 만들 수 있다.
+Image를 Build하고 Container로 실행한다.
+
+```bash
+docker build -t myphpapp:latest .
+docker container run \
+  --name myphpapp \
+  -d \
+  -p 8000:80 \
+  myphpapp:latest
+```
+
+두 방식의 차이는 다음과 같다.
+
+| 구분 | Container 수정 후 `commit` | Dockerfile Build |
+|---|---|---|
+| 작업 기록 | 별도로 기록해야 함 | Instruction으로 남음 |
+| 반복 생성 | 수동 작업을 다시 수행 | 같은 명령으로 재Build |
+| 변경 검토 | Image 결과만으로 확인하기 어려움 | Text 변경 이력으로 검토 가능 |
+| 주요 용도 | 임시 상태 저장, 조사 | 반복 가능한 Image 제작 |
+
+Dockerfile은 Package, 설정, Source Code와 실행 명령을 선언하므로 다음 장점이 있다.
+
+- 누락하기 쉬운 설치 및 설정 순서를 Code로 고정한다.
+
+- 동일한 실행 환경을 반복해서 생성한다.
+
+- 변경 이력을 Version Control로 관리한다.
+
+- CI/CD Pipeline에서 대화 없이 Image를 자동으로 Build한다.
 
 다만 Dockerfile만으로 Database와 Web Application처럼 여러 Container의 실행 관계까지 모두 정의하지는 않는다. 여러 Service의 Network, Volume, 환경 변수와 실행 순서는 Docker Compose 같은 도구로 함께 관리한다.
+
+## 9 ) Image Build 과정과 주의 사항
+
+---
+
+Dockerfile Build는 사용자와 대화하면서 명령을 처리하지 않는다. Docker는 Dockerfile의 Instruction을 위에서 아래로 읽고 각 단계를 자동으로 실행하므로 Package 설치와 설정 명령도 비대화식으로 완료되어야 한다.
+
+### Package 설치 오류
+
+다음 Dockerfile은 Package Index를 갱신하지 않아 `Unable to locate package` 오류가 발생할 수 있다.
+
+```dockerfile
+FROM ubuntu:20.04
+
+RUN apt-get install -y python3
+```
+
+Package Index를 먼저 갱신하더라도 `-y`가 없으면 설치 확인 질문에 답할 수 없어 Build가 중단될 수 있다. 두 작업은 같은 `RUN`에서 수행한다.
+
+```dockerfile
+FROM ubuntu:20.04
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 && \
+    rm -rf /var/lib/apt/lists/*
+```
+
+이 형식에는 다음 이유가 있다.
+
+- `apt-get update`로 현재 Package Index를 내려받는다.
+
+- `-y`로 설치 확인 질문에 자동으로 동의한다.
+
+- `--no-install-recommends`로 필수적이지 않은 권장 Package 설치를 줄인다.
+
+- 같은 Layer에서 `/var/lib/apt/lists`를 삭제하여 불필요한 Package Index가 Image에 남지 않게 한다.
+
+원문의 `apt install python`은 Ubuntu 20.04에서 의도한 Python 3 Package를 정확히 가리키지 않으므로 `apt-get install python3`로 정리했다. Script와 Dockerfile에서는 사용자용 CLI인 `apt`보다 안정적인 Interface를 제공하는 `apt-get`을 사용한다.
+
+### Build Context와 `.dockerignore`
+
+`docker build`의 마지막 인자는 Build Context이다.
+
+```bash
+docker build -t myapp:1.0 .
+```
+
+`.`을 지정하면 현재 Directory가 Build Context가 된다. 불필요한 File이 많으면 Builder로 전송되는 범위가 커지고 `COPY . .`에 의도하지 않은 File이 포함될 수 있으므로 다음 순서로 준비한다.
+
+1. Application Build에 필요한 File만 별도 Directory에 모은다.
+
+2. Dockerfile을 해당 Directory에 작성한다.
+
+3. Log, 가상 환경, Build 산출물과 Secret File을 `.dockerignore`에 등록한다.
+
+4. 해당 Directory를 Build Context로 지정한다.
+
+Dockerfile의 이름이나 위치가 기본값과 다르면 `-f`로 지정한다.
+
+```bash
+docker build \
+  -f docker/Dockerfile.dev \
+  -t myapp:dev \
+  .
+```
+
+여기서 `docker/Dockerfile.dev`는 Dockerfile 경로이고 마지막 `.`은 Build Context이다.
+
+### Build Cache
+
+Docker는 이전 Build 결과를 Cache로 저장하고 Dockerfile의 각 단계에서 재사용할 수 있는지 판단한다. Cache를 효율적으로 사용하려면 변경 빈도가 낮은 File을 먼저 복사하고 자주 변경되는 Source Code는 뒤에서 복사한다.
+
+```dockerfile
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+
+COPY . .
+```
+
+이 순서에서는 Source Code만 변경된 경우 Package 설치 Layer를 다시 사용할 수 있다.
+
+주요 Cache Option은 다음과 같다.
+
+| Option | 용도 |
+|---|---|
+| `--no-cache` | 기존 Build Cache를 사용하지 않고 모든 단계를 다시 실행 |
+| `--cache-from` | 지정한 외부 Cache Source에서 Cache 가져오기 |
+| `--cache-to` | Build Cache를 지정한 위치로 내보내기 |
+
+```bash
+docker build --no-cache -t myapp:clean .
+docker build --cache-from myapp:cache -t myapp:latest .
+```
+
+### Build Secret
+
+비밀번호, Token, 인증서 같은 민감 정보는 `ARG`, `ENV`, `COPY`로 Image에 넣지 않는다. 값이 Image Metadata, History 또는 Layer에 남을 수 있기 때문이다. Build 중에만 필요한 Secret은 BuildKit의 Secret Mount로 전달한다.
+
+```dockerfile
+# syntax=docker/dockerfile:1
+RUN --mount=type=secret,id=github_token \
+    GITHUB_TOKEN="$(cat /run/secrets/github_token)" ./download-private-source.sh
+```
+
+```bash
+docker build \
+  --secret id=github_token,src=github-token.txt \
+  -t myapp:latest \
+  .
+```
+
+Secret을 Mount하면 해당 Build Step에서만 `/run/secrets/github_token`으로 읽을 수 있으며 최종 Image에 File로 복사되지 않는다.
 
 > **최종 정리**
 >
@@ -420,5 +641,9 @@ curl http://localhost:80
 > - Dockerfile의 Instruction 순서는 Image Layer와 Build Cache에 영향을 준다.
 >
 > - `docker build`는 Dockerfile과 Build Context를 사용하여 새로운 Image를 생성한다.
+>
+> - Package 설치와 같은 Build 명령은 사용자의 입력 없이 끝나도록 비대화식으로 작성한다.
+>
+> - `.dockerignore`로 불필요한 Build Context를 제외하고 Build Secret은 전용 Secret Mount로 전달한다.
 >
 > - `MAINTAINER`처럼 현재 Deprecated된 Instruction은 그대로 이해하되 새 Dockerfile에서는 대체 방법을 사용한다.
