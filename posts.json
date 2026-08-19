@@ -4,6 +4,21 @@
       
       
       {
+        "title": "애플리케이션별 Docker 이미지 빌드",
+        "url": "/cloud-native-14-application-image/",
+        "description": "Django, FastAPI, Spring Boot, Node.js, Go 애플리케이션을 Docker 이미지로 빌드하고 실행하는 방법",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 19일",
+        "reading_time_label": "7분 읽기",
+        "search": "애플리케이션별 docker 이미지 빌드 django, fastapi, spring boot, node.js, go 애플리케이션을 docker 이미지로 빌드하고 실행하는 방법 cloudnative autoeversw docker cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Dockerfile",
         "url": "/cloud-native-13-dockerfile/",
         "description": "Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항",
@@ -12,7 +27,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 18일",
-        "reading_time_label": "7분 읽기",
+        "reading_time_label": "10분 읽기",
         "search": "dockerfile dockerfile의 주요 instruction과 image build 방법 및 작성 시 주의 사항 cloudnative autoeversw docker cloudnative"
       },
     

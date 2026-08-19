@@ -49,13 +49,15 @@
   <meta property="article:published_time" content="2026-08-18T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1787110387" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787110387" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787110387">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1787110387" color="#495057">
+  <meta property="article:modified_time" content="2026-08-19T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787135059" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787135059" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787135059">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787135059" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1787110387">
+<link rel="stylesheet" href="/assets/css/main.css?v=1787135059">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -99,7 +101,8 @@
     "headline": "Dockerfile | renamed.log",
     "description": "Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항",
     "url": "https://kkr010128.github.io/cloud-native-13-dockerfile/",
-    "datePublished": "2026-08-18T00:00:00+09:00"
+    "datePublished": "2026-08-18T00:00:00+09:00",
+    "dateModified": "2026-08-19T00:00:00+09:00"
   }
 </script>
 
@@ -228,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 18일 · 7분 읽기
+          2026년 8월 18일 · 10분 읽기 · 수정 2026년 8월 19일
         </span>
       </div>
     </div>
@@ -689,18 +692,295 @@ docker container run <span class="se">\</span>
 
 <hr />
 
-<p>Host에 Apache와 PHP를 직접 설치하려면 Package 설치, Service 시작, 설정 변경, Web Page 배치 과정을 순서대로 반복해야 한다.</p>
+<p>Dockerfile을 사용하지 않아도 실행 중인 Container를 수정한 뒤 <code class="language-plaintext highlighter-rouge">docker commit</code>으로 Image를 만들 수 있다. 다음 실습은 Ubuntu Container에 Apache와 PHP를 직접 설치하고 그 결과를 Image로 저장한다.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
-<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> apache2 php
-<span class="nb">sudo </span>service apache2 start
-<span class="nb">sudo </span>service apache2 status
-curl http://localhost:80
+<h3 id="container를-직접-수정하여-image-생성">Container를 직접 수정하여 Image 생성</h3>
+
+<ol>
+  <li>
+    <p>Ubuntu Container를 생성하고 Terminal에 접속한다.</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> myweb <span class="se">\</span>
+  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
+  <span class="nt">-it</span> <span class="se">\</span>
+  ubuntu:20.04
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Package 정보를 갱신하고 Apache와 PHP를 설치한다. Base Image는 실행에 필요한 최소 Package만 포함하므로 설치 전에 Package Index를 갱신해야 한다.</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt-get update
+<span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> apache2 php
+service apache2 start
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>기본 Page를 보관하고 새로운 HTML 및 PHP Page를 작성한다.</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mv</span> /var/www/html/index.html /var/www/html/index.html.org
+<span class="nb">echo</span> <span class="s1">'&lt;h1&gt;Hello Docker Application&lt;/h1&gt;'</span> <span class="o">&gt;</span> /var/www/html/index.html
+<span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s1">'&lt;?php phpinfo(); ?&gt;'</span> <span class="o">&gt;</span> /var/www/html/index.php
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>다른 Terminal에서 두 Page에 접속한다.</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:8000
+curl http://localhost:8000/index.php
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>실행 중인 Container를 새로운 Image로 저장한다.</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container commit myweb myphpapp:1.0
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>저장한 Image로 새로운 Container를 실행한다. 기존 <code class="language-plaintext highlighter-rouge">myweb</code>이 Host의 8000번 Port를 사용하고 있다면 먼저 중지하거나 다른 Host Port를 선택한다.</p>
+
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop myweb
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> myphpapp <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
+  myphpapp:1.0
+</code></pre></div>    </div>
+  </li>
+</ol>
+
+<p><code class="language-plaintext highlighter-rouge">docker commit</code>은 현재 Container의 File System 변경 사항을 빠르게 Image로 저장한다. 하지만 설치 명령과 수정 순서가 Image만으로는 드러나지 않으므로 같은 환경을 검토하고 반복해서 만들기 어렵다.</p>
+
+<p>강의에서 사용한 <code class="language-plaintext highlighter-rouge">ubuntu:14.04</code>와 <code class="language-plaintext highlighter-rouge">php5</code> 조합은 과거 환경을 재현하는 Legacy 예제이다. Ubuntu 14.04의 일반 지원은 종료되었으며 PHP 5도 공식 지원이 종료되었다. 실습의 수동 구성 흐름은 유지하되, 실행 가능한 예제에는 <code class="language-plaintext highlighter-rouge">ubuntu:20.04</code>와 해당 배포판에서 제공하는 <code class="language-plaintext highlighter-rouge">php</code> Package를 사용한다.</p>
+
+<h3 id="dockerfile로-동일한-과정-자동화">Dockerfile로 동일한 과정 자동화</h3>
+
+<p>수동 작업을 Dockerfile로 옮기면 Image 생성 절차를 Source Code와 함께 관리할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
+
+<span class="k">LABEL</span><span class="s"> org.opencontainers.image.authors="adam &lt;itstudy@kakao.com&gt;"</span>
+<span class="k">LABEL</span><span class="s"> org.opencontainers.image.title="IaC PHP Web Application"</span>
+
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
+</span>      apache2 <span class="se">\
+</span>      php <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
+
+<span class="k">ENV</span><span class="s"> APACHE2_RUN_USER=www-data \</span>
+    APACHE2_RUN_GROUP=www-data \
+    APACHE2_LOG_DIR=/var/log/apache2 \
+    APACHE2_WEB_DIR=/var/www/html \
+    APACHE2_PID_FILE=/var/run/apache2/apache2.pid
+
+<span class="k">RUN </span><span class="nb">echo</span> <span class="s1">'Hello Docker Application.'</span> <span class="o">&gt;</span> /var/www/html/index.html <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s1">'&lt;?php phpinfo(); ?&gt;'</span> <span class="o">&gt;</span> /var/www/html/index.php
+
+<span class="k">WORKDIR</span><span class="s"> /var/www/html</span>
+
+<span class="k">EXPOSE</span><span class="s"> 80</span>
+
+<span class="k">CMD</span><span class="s"> ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]</span>
 </code></pre></div></div>
 
-<p>이러한 명령을 수동으로 실행하면 환경이 커질수록 누락과 차이가 누적된다. Dockerfile로 필요한 Package, 설정, Source Code, 실행 명령을 정의하면 변경 이력을 Version Control로 관리하고 동일한 Image를 반복해서 만들 수 있다.</p>
+<p>Image를 Build하고 Container로 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> myphpapp:latest <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> myphpapp <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
+  myphpapp:latest
+</code></pre></div></div>
+
+<p>두 방식의 차이는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Container 수정 후 <code class="language-plaintext highlighter-rouge">commit</code></th>
+      <th>Dockerfile Build</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>작업 기록</td>
+      <td>별도로 기록해야 함</td>
+      <td>Instruction으로 남음</td>
+    </tr>
+    <tr>
+      <td>반복 생성</td>
+      <td>수동 작업을 다시 수행</td>
+      <td>같은 명령으로 재Build</td>
+    </tr>
+    <tr>
+      <td>변경 검토</td>
+      <td>Image 결과만으로 확인하기 어려움</td>
+      <td>Text 변경 이력으로 검토 가능</td>
+    </tr>
+    <tr>
+      <td>주요 용도</td>
+      <td>임시 상태 저장, 조사</td>
+      <td>반복 가능한 Image 제작</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Dockerfile은 Package, 설정, Source Code와 실행 명령을 선언하므로 다음 장점이 있다.</p>
+
+<ul>
+  <li>
+    <p>누락하기 쉬운 설치 및 설정 순서를 Code로 고정한다.</p>
+  </li>
+  <li>
+    <p>동일한 실행 환경을 반복해서 생성한다.</p>
+  </li>
+  <li>
+    <p>변경 이력을 Version Control로 관리한다.</p>
+  </li>
+  <li>
+    <p>CI/CD Pipeline에서 대화 없이 Image를 자동으로 Build한다.</p>
+  </li>
+</ul>
 
 <p>다만 Dockerfile만으로 Database와 Web Application처럼 여러 Container의 실행 관계까지 모두 정의하지는 않는다. 여러 Service의 Network, Volume, 환경 변수와 실행 순서는 Docker Compose 같은 도구로 함께 관리한다.</p>
+
+<h2 id="9--image-build-과정과-주의-사항">9 ) Image Build 과정과 주의 사항</h2>
+
+<hr />
+
+<p>Dockerfile Build는 사용자와 대화하면서 명령을 처리하지 않는다. Docker는 Dockerfile의 Instruction을 위에서 아래로 읽고 각 단계를 자동으로 실행하므로 Package 설치와 설정 명령도 비대화식으로 완료되어야 한다.</p>
+
+<h3 id="package-설치-오류">Package 설치 오류</h3>
+
+<p>다음 Dockerfile은 Package Index를 갱신하지 않아 <code class="language-plaintext highlighter-rouge">Unable to locate package</code> 오류가 발생할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
+
+<span class="k">RUN </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> python3
+</code></pre></div></div>
+
+<p>Package Index를 먼저 갱신하더라도 <code class="language-plaintext highlighter-rouge">-y</code>가 없으면 설치 확인 질문에 답할 수 없어 Build가 중단될 수 있다. 두 작업은 같은 <code class="language-plaintext highlighter-rouge">RUN</code>에서 수행한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
+
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> python3 <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
+</code></pre></div></div>
+
+<p>이 형식에는 다음 이유가 있다.</p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">apt-get update</code>로 현재 Package Index를 내려받는다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">-y</code>로 설치 확인 질문에 자동으로 동의한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">--no-install-recommends</code>로 필수적이지 않은 권장 Package 설치를 줄인다.</p>
+  </li>
+  <li>
+    <p>같은 Layer에서 <code class="language-plaintext highlighter-rouge">/var/lib/apt/lists</code>를 삭제하여 불필요한 Package Index가 Image에 남지 않게 한다.</p>
+  </li>
+</ul>
+
+<p>원문의 <code class="language-plaintext highlighter-rouge">apt install python</code>은 Ubuntu 20.04에서 의도한 Python 3 Package를 정확히 가리키지 않으므로 <code class="language-plaintext highlighter-rouge">apt-get install python3</code>로 정리했다. Script와 Dockerfile에서는 사용자용 CLI인 <code class="language-plaintext highlighter-rouge">apt</code>보다 안정적인 Interface를 제공하는 <code class="language-plaintext highlighter-rouge">apt-get</code>을 사용한다.</p>
+
+<h3 id="build-context와-dockerignore">Build Context와 <code class="language-plaintext highlighter-rouge">.dockerignore</code></h3>
+
+<p><code class="language-plaintext highlighter-rouge">docker build</code>의 마지막 인자는 Build Context이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> myapp:1.0 <span class="nb">.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">.</code>을 지정하면 현재 Directory가 Build Context가 된다. 불필요한 File이 많으면 Builder로 전송되는 범위가 커지고 <code class="language-plaintext highlighter-rouge">COPY . .</code>에 의도하지 않은 File이 포함될 수 있으므로 다음 순서로 준비한다.</p>
+
+<ol>
+  <li>
+    <p>Application Build에 필요한 File만 별도 Directory에 모은다.</p>
+  </li>
+  <li>
+    <p>Dockerfile을 해당 Directory에 작성한다.</p>
+  </li>
+  <li>
+    <p>Log, 가상 환경, Build 산출물과 Secret File을 <code class="language-plaintext highlighter-rouge">.dockerignore</code>에 등록한다.</p>
+  </li>
+  <li>
+    <p>해당 Directory를 Build Context로 지정한다.</p>
+  </li>
+</ol>
+
+<p>Dockerfile의 이름이나 위치가 기본값과 다르면 <code class="language-plaintext highlighter-rouge">-f</code>로 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="se">\</span>
+  <span class="nt">-f</span> docker/Dockerfile.dev <span class="se">\</span>
+  <span class="nt">-t</span> myapp:dev <span class="se">\</span>
+  <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>여기서 <code class="language-plaintext highlighter-rouge">docker/Dockerfile.dev</code>는 Dockerfile 경로이고 마지막 <code class="language-plaintext highlighter-rouge">.</code>은 Build Context이다.</p>
+
+<h3 id="build-cache">Build Cache</h3>
+
+<p>Docker는 이전 Build 결과를 Cache로 저장하고 Dockerfile의 각 단계에서 재사용할 수 있는지 판단한다. Cache를 효율적으로 사용하려면 변경 빈도가 낮은 File을 먼저 복사하고 자주 변경되는 Source Code는 뒤에서 복사한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> requirements.txt ./</span>
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">-r</span> requirements.txt
+
+<span class="k">COPY</span><span class="s"> . .</span>
+</code></pre></div></div>
+
+<p>이 순서에서는 Source Code만 변경된 경우 Package 설치 Layer를 다시 사용할 수 있다.</p>
+
+<p>주요 Cache Option은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--no-cache</code></td>
+      <td>기존 Build Cache를 사용하지 않고 모든 단계를 다시 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--cache-from</code></td>
+      <td>지정한 외부 Cache Source에서 Cache 가져오기</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--cache-to</code></td>
+      <td>Build Cache를 지정한 위치로 내보내기</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">--no-cache</span> <span class="nt">-t</span> myapp:clean <span class="nb">.</span>
+docker build <span class="nt">--cache-from</span> myapp:cache <span class="nt">-t</span> myapp:latest <span class="nb">.</span>
+</code></pre></div></div>
+
+<h3 id="build-secret">Build Secret</h3>
+
+<p>비밀번호, Token, 인증서 같은 민감 정보는 <code class="language-plaintext highlighter-rouge">ARG</code>, <code class="language-plaintext highlighter-rouge">ENV</code>, <code class="language-plaintext highlighter-rouge">COPY</code>로 Image에 넣지 않는다. 값이 Image Metadata, History 또는 Layer에 남을 수 있기 때문이다. Build 중에만 필요한 Secret은 BuildKit의 Secret Mount로 전달한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># syntax=docker/dockerfile:1</span>
+<span class="k">RUN </span><span class="nt">--mount</span><span class="o">=</span><span class="nb">type</span><span class="o">=</span>secret,id<span class="o">=</span>github_token <span class="se">\
+</span>    <span class="nv">GITHUB_TOKEN</span><span class="o">=</span><span class="s2">"</span><span class="si">$(</span><span class="nb">cat</span> /run/secrets/github_token<span class="si">)</span><span class="s2">"</span> ./download-private-source.sh
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="se">\</span>
+  <span class="nt">--secret</span> <span class="nb">id</span><span class="o">=</span>github_token,src<span class="o">=</span>github-token.txt <span class="se">\</span>
+  <span class="nt">-t</span> myapp:latest <span class="se">\</span>
+  <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>Secret을 Mount하면 해당 Build Step에서만 <code class="language-plaintext highlighter-rouge">/run/secrets/github_token</code>으로 읽을 수 있으며 최종 Image에 File로 복사되지 않는다.</p>
 
 <blockquote>
   <p><strong>최종 정리</strong></p>
@@ -720,6 +1000,12 @@ curl http://localhost:80
     </li>
     <li>
       <p><code class="language-plaintext highlighter-rouge">docker build</code>는 Dockerfile과 Build Context를 사용하여 새로운 Image를 생성한다.</p>
+    </li>
+    <li>
+      <p>Package 설치와 같은 Build 명령은 사용자의 입력 없이 끝나도록 비대화식으로 작성한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">.dockerignore</code>로 불필요한 Build Context를 제외하고 Build Secret은 전용 Secret Mount로 전달한다.</p>
     </li>
     <li>
       <p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>처럼 현재 Deprecated된 Instruction은 그대로 이해하되 새 Dockerfile에서는 대체 방법을 사용한다.</p>
@@ -744,6 +1030,18 @@ curl http://localhost:80
           </span>
         </a>
       
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-14-application-image/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">애플리케이션별 Docker 이미지 빌드</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
       
     </nav>
   
@@ -819,7 +1117,7 @@ curl http://localhost:80
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1787110387"></script>
-    <script src="/assets/js/code-enhancements.js?v=1787110387"></script>
+    <script src="/assets/js/site.js?v=1787135059"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787135059"></script>
   </body>
 </html>
