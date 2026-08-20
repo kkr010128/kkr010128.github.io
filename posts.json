@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Docker Compose",
+        "url": "/cloud-native-16-docker-compose/",
+        "description": "Docker Compose의 역할과 Compose File 작성 방법 및 Apache와 MariaDB 실행 실습",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker","DockerCompose"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 20일",
+        "reading_time_label": "5분 읽기",
+        "search": "docker compose docker compose의 역할과 compose file 작성 방법 및 apache와 mariadb 실행 실습 cloudnative autoeversw docker dockercompose cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "애플리케이션별 Docker Multi-stage Build",
+        "url": "/cloud-native-15-multi-stage-build/",
+        "description": "Node.js, Spring Boot, Go, Python, React 애플리케이션의 Multi-stage Image Build 방법",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 20일",
+        "reading_time_label": "5분 읽기",
+        "search": "애플리케이션별 docker multi-stage build node.js, spring boot, go, python, react 애플리케이션의 multi-stage image build 방법 cloudnative autoeversw docker cloudnative"
+      },
+    
+      
+      
+      {
         "title": "애플리케이션별 Docker 이미지 빌드",
         "url": "/cloud-native-14-application-image/",
         "description": "Django, FastAPI, Spring Boot, Node.js, Go 애플리케이션을 Docker 이미지로 빌드하고 실행하는 방법",
@@ -27,7 +57,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 18일",
-        "reading_time_label": "10분 읽기",
+        "reading_time_label": "13분 읽기",
         "search": "dockerfile dockerfile의 주요 instruction과 image build 방법 및 작성 시 주의 사항 cloudnative autoeversw docker cloudnative"
       },
     

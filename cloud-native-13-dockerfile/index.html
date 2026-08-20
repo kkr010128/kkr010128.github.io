@@ -49,15 +49,15 @@
   <meta property="article:published_time" content="2026-08-18T00:00:00+09:00">
 
 
-  <meta property="article:modified_time" content="2026-08-19T00:00:00+09:00">
+  <meta property="article:modified_time" content="2026-08-20T00:00:00+09:00">
 
-<link rel="icon" href="/assets/images/favicon.png?v=1787196775" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787196775" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787196775">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1787196775" color="#495057">
+<link rel="icon" href="/assets/images/favicon.png?v=1787229601" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787229601" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787229601">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787229601" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1787196775">
+<link rel="stylesheet" href="/assets/css/main.css?v=1787229601">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -102,7 +102,7 @@
     "description": "Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항",
     "url": "https://kkr010128.github.io/cloud-native-13-dockerfile/",
     "datePublished": "2026-08-18T00:00:00+09:00",
-    "dateModified": "2026-08-19T00:00:00+09:00"
+    "dateModified": "2026-08-20T00:00:00+09:00"
   }
 </script>
 
@@ -231,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 18일 · 10분 읽기 · 수정 2026년 8월 19일
+          2026년 8월 18일 · 13분 읽기 · 수정 2026년 8월 20일
         </span>
       </div>
     </div>
@@ -982,6 +982,214 @@ docker build <span class="nt">--cache-from</span> myapp:cache <span class="nt">-
 
 <p>Secret을 Mount하면 해당 Build Step에서만 <code class="language-plaintext highlighter-rouge">/run/secrets/github_token</code>으로 읽을 수 있으며 최종 Image에 File로 복사되지 않는다.</p>
 
+<h2 id="10--image-용량-절감">10 ) Image 용량 절감</h2>
+
+<hr />
+
+<p>Image가 커지면 Registry에 저장하는 공간이 늘고 Network를 통한 Push와 Pull에도 시간이 더 걸린다. Ubuntu 같은 OS Base Image에서 Package를 설치할 때는 실행에 필요하지 않은 Package와 Package Manager의 Cache가 최종 Image에 남지 않도록 관리한다.</p>
+
+<h3 id="package-설치와-cache-정리">Package 설치와 Cache 정리</h3>
+
+<p>다음 예제는 Ubuntu에 PHP와 Apache를 설치하고 <code class="language-plaintext highlighter-rouge">index.html</code>을 배치한다.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;h1&gt;</span>Hello Docker<span class="nt">&lt;/h1&gt;</span>
+</code></pre></div></div>
+
+<p>Package 설치와 정리를 여러 <code class="language-plaintext highlighter-rouge">RUN</code>으로 분리하면 앞선 Layer에 저장된 File이 그대로 남을 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
+
+<span class="k">RUN </span>apt-get update
+<span class="k">RUN </span><span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> tzdata php apache2
+<span class="k">RUN </span>apt-get clean
+<span class="k">RUN </span><span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span> /tmp/<span class="k">*</span> /var/tmp/<span class="k">*</span>
+
+<span class="k">WORKDIR</span><span class="s"> /var/www/html</span>
+<span class="k">COPY</span><span class="s"> index.html ./</span>
+
+<span class="k">EXPOSE</span><span class="s"> 80</span>
+
+<span class="k">CMD</span><span class="s"> ["apachectl", "-D", "FOREGROUND"]</span>
+</code></pre></div></div>
+
+<p>Image Layer의 크기를 줄이려면 Package 설치와 Cache 삭제를 하나의 <code class="language-plaintext highlighter-rouge">RUN</code>에서 처리한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
+
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
+</span>      tzdata <span class="se">\
+</span>      php <span class="se">\
+</span>      apache2 <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get clean <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span> /tmp/<span class="k">*</span> /var/tmp/<span class="k">*</span>
+
+<span class="k">WORKDIR</span><span class="s"> /var/www/html</span>
+<span class="k">COPY</span><span class="s"> index.html ./</span>
+
+<span class="k">EXPOSE</span><span class="s"> 80</span>
+
+<span class="k">CMD</span><span class="s"> ["apachectl", "-D", "FOREGROUND"]</span>
+</code></pre></div></div>
+
+<p>관련 명령의 역할은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>역할</th>
+      <th>Dockerfile에서의 주의 사항</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">apt-get clean</code></td>
+      <td>내려받은 Package File 정리</td>
+      <td>Package 설치와 같은 Layer에서 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">apt-get autoclean</code></td>
+      <td>더 이상 내려받을 수 없는 오래된 Package File 정리</td>
+      <td>Build에 필요한 명령은 아님</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">apt-get autoremove</code></td>
+      <td>자동 설치된 뒤 불필요해진 의존 Package 제거</td>
+      <td>필요한 Runtime 의존성까지 제거하지 않는지 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">rm -rf /var/lib/apt/lists/*</code></td>
+      <td><code class="language-plaintext highlighter-rouge">apt-get update</code>로 받은 Package Index 삭제</td>
+      <td>이후 Package 설치가 필요하면 다시 <code class="language-plaintext highlighter-rouge">apt-get update</code> 실행</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Host OS에서는 이미 저장된 File을 삭제하면 사용 가능한 Disk 공간이 늘어난다. 반면 Docker Image는 이전 Layer가 보존되므로 후속 Layer에서 File을 삭제하는 것만으로는 앞선 Layer의 크기가 줄지 않는다. 생성한 Layer 안에서 불필요한 File을 함께 제거해야 효과가 있다.</p>
+
+<h2 id="11--dockerfile-작성-시-유의사항">11 ) Dockerfile 작성 시 유의사항</h2>
+
+<hr />
+
+<h3 id="작은-image-구성">작은 Image 구성</h3>
+
+<ul>
+  <li>
+    <p>Application 실행에 필요한 Runtime을 포함한 <code class="language-plaintext highlighter-rouge">slim</code>, <code class="language-plaintext highlighter-rouge">alpine</code> 등의 Base Image를 검토한다.</p>
+  </li>
+  <li>
+    <p>불필요한 Package를 설치하지 않고 <code class="language-plaintext highlighter-rouge">--no-install-recommends</code> 같은 Option을 활용한다.</p>
+  </li>
+  <li>
+    <p>서로 관련된 Package 설치와 정리 작업은 하나의 <code class="language-plaintext highlighter-rouge">RUN</code>에서 수행한다.</p>
+  </li>
+  <li>
+    <p>Build 도구가 실행 단계에 필요하지 않다면 Multi-stage Build로 분리한다.</p>
+  </li>
+</ul>
+
+<p>경량 Base Image는 크기를 줄이는 데 도움이 되지만 Library와 Package 구성이 다를 수 있으므로 Application 호환성을 함께 확인한다.</p>
+
+<h3 id="build-cache-활용">Build Cache 활용</h3>
+
+<p>Docker는 변경되지 않은 Layer를 재사용한다. 변경 빈도가 낮은 의존성 File을 먼저 복사하고 자주 변경되는 Source Code를 나중에 복사한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> package*.json ./</span>
+<span class="k">RUN </span>npm <span class="nb">install</span>
+
+<span class="k">COPY</span><span class="s"> . .</span>
+</code></pre></div></div>
+
+<p>Build Context에는 Image 생성에 필요한 File만 포함한다. <code class="language-plaintext highlighter-rouge">.dockerignore</code>에는 다음과 같은 대상을 등록할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.git/
+node_modules/
+*.log
+.env
+</code></pre></div></div>
+
+<h3 id="보안과-관리">보안과 관리</h3>
+
+<ul>
+  <li>
+    <p>Container Process를 항상 <code class="language-plaintext highlighter-rouge">root</code>로 실행하지 않고 <code class="language-plaintext highlighter-rouge">USER</code>로 일반 사용자를 지정한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">latest</code>에만 의존하지 않고 용도를 확인할 수 있는 Version Tag를 사용한다.</p>
+  </li>
+  <li>
+    <p>비밀번호와 Token은 Dockerfile의 <code class="language-plaintext highlighter-rouge">ARG</code>, <code class="language-plaintext highlighter-rouge">ENV</code>, <code class="language-plaintext highlighter-rouge">COPY</code>에 직접 기록하지 않는다.</p>
+  </li>
+  <li>
+    <p>하나의 Container에는 하나의 주요 관심사를 배치하여 Application 간 결합을 낮춘다.</p>
+  </li>
+</ul>
+
+<p>하나의 관심사가 반드시 하나의 Process만을 의미하는 것은 아니다. 핵심은 Web Server, Database, Message Broker처럼 독립적으로 배포하고 확장해야 하는 구성 요소를 서로 다른 Container로 분리하는 것이다.</p>
+
+<h3 id="directory-단위의-build-context">Directory 단위의 Build Context</h3>
+
+<p>Image Build는 지정한 Directory를 Build Context로 사용한다. 다음 순서로 작업 Directory를 구성하면 불필요한 File이 Image에 포함되는 것을 줄일 수 있다.</p>
+
+<ol>
+  <li>
+    <p>Application마다 별도의 Directory를 생성한다.</p>
+  </li>
+  <li>
+    <p>Source Code, 의존성 File과 Dockerfile을 함께 관리한다.</p>
+  </li>
+  <li>
+    <p>Build에 필요하지 않은 File을 <code class="language-plaintext highlighter-rouge">.dockerignore</code>로 제외한다.</p>
+  </li>
+  <li>
+    <p>해당 Directory를 Build Context로 지정한다.</p>
+  </li>
+</ol>
+
+<p>Dockerfile로 만든 Image는 Container 기반 Serverless Platform에도 배포할 수 있다. 다만 Dockerfile 자체가 Serverless 환경을 생성하거나 Server의 배포·확장·고가용성을 자동으로 관리하는 것은 아니다. 이러한 기능은 Image를 실행하는 Cloud Platform이 제공한다.</p>
+
+<h2 id="12--multi-stage-build">12 ) Multi-stage Build</h2>
+
+<hr />
+
+<p>Multi-stage Build는 Dockerfile을 여러 Build Stage로 나누는 방식이다. 각 Stage는 <code class="language-plaintext highlighter-rouge">FROM</code>으로 시작하며 <code class="language-plaintext highlighter-rouge">AS</code>로 이름을 지정할 수 있다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="w"> </span><span class="s">build-image</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="c"># 의존성 설치와 Application Build</span>
+
+<span class="k">FROM</span><span class="s"> runtime-image</span>
+
+<span class="k">COPY</span><span class="s"> --from=builder /path/to/artifact /app/artifact</span>
+
+<span class="c"># Application 실행</span>
+</code></pre></div></div>
+
+<p>동작 순서는 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p>Builder Stage에서 Compiler, Package Manager와 Build 도구를 사용한다.</p>
+  </li>
+  <li>
+    <p>Source Code를 Build하여 JAR, 실행 Binary 또는 정적 File 같은 산출물을 생성한다.</p>
+  </li>
+  <li>
+    <p>Runtime Stage를 새로운 <code class="language-plaintext highlighter-rouge">FROM</code>으로 시작한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">COPY --from=builder</code>로 실행에 필요한 산출물만 가져온다.</p>
+  </li>
+  <li>
+    <p>최종 Image에는 Builder와 중간 File을 포함하지 않는다.</p>
+  </li>
+</ol>
+
+<p>각 Stage는 독립된 File System을 사용하지만 앞선 Stage의 File을 선택적으로 복사할 수 있다. 최종 Image는 마지막 Stage를 기준으로 생성되므로 Compiler와 Build Cache를 제외하여 Image 크기와 공격 표면을 줄일 수 있다.</p>
+
+<p>Node.js, Spring Boot, Go, Python, React에 Multi-stage Build를 적용하는 구체적인 차이는 다음 문서에서 다룬다.</p>
+
 <blockquote>
   <p><strong>최종 정리</strong></p>
 
@@ -999,13 +1207,16 @@ docker build <span class="nt">--cache-from</span> myapp:cache <span class="nt">-
       <p>Dockerfile의 Instruction 순서는 Image Layer와 Build Cache에 영향을 준다.</p>
     </li>
     <li>
-      <p><code class="language-plaintext highlighter-rouge">docker build</code>는 Dockerfile과 Build Context를 사용하여 새로운 Image를 생성한다.</p>
-    </li>
-    <li>
-      <p>Package 설치와 같은 Build 명령은 사용자의 입력 없이 끝나도록 비대화식으로 작성한다.</p>
+      <p>Package 설치와 Cache 삭제를 같은 Layer에서 수행해야 Image 용량을 줄이는 데 효과가 있다.</p>
     </li>
     <li>
       <p><code class="language-plaintext highlighter-rouge">.dockerignore</code>로 불필요한 Build Context를 제외하고 Build Secret은 전용 Secret Mount로 전달한다.</p>
+    </li>
+    <li>
+      <p>Multi-stage Build는 Build 환경과 Runtime 환경을 분리하여 최종 Image에 필요한 산출물만 남긴다.</p>
+    </li>
+    <li>
+      <p>Dockerfile은 Serverless Platform에 배포할 Image를 만들 수 있지만 확장과 운영 자동화는 실행 Platform의 역할이다.</p>
     </li>
     <li>
       <p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>처럼 현재 Deprecated된 Instruction은 그대로 이해하되 새 Dockerfile에서는 대체 방법을 사용한다.</p>
@@ -1117,7 +1328,7 @@ docker build <span class="nt">--cache-from</span> myapp:cache <span class="nt">-
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1787196775"></script>
-    <script src="/assets/js/code-enhancements.js?v=1787196775"></script>
+    <script src="/assets/js/site.js?v=1787229601"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787229601"></script>
   </body>
 </html>

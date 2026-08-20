@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>애플리케이션별 Docker Multi-stage Build | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Node.js, Spring Boot, Go, Python, React 애플리케이션의 Multi-stage Image Build 방법">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-15-multi-stage-build/">
+<meta property="og:title" content="애플리케이션별 Docker Multi-stage Build | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Node.js, Spring Boot, Go, Python, React 애플리케이션의 Multi-stage Image Build 방법">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-15-multi-stage-build/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="애플리케이션별 Docker Multi-stage Build | renamed.log">
+<meta name="twitter:description" content="Node.js, Spring Boot, Go, Python, React 애플리케이션의 Multi-stage Image Build 방법">
+
+  <meta property="article:published_time" content="2026-08-20T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787229601" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787229601" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787229601">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787229601" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787229601">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "애플리케이션별 Docker Multi-stage Build | renamed.log",
+    "description": "Node.js, Spring Boot, Go, Python, React 애플리케이션의 Multi-stage Image Build 방법",
+    "url": "https://kkr010128.github.io/cloud-native-15-multi-stage-build/",
+    "datePublished": "2026-08-20T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">애플리케이션별 Docker Multi-stage Build</h1>
+    
+      <p class="post-head__description">Node.js, Spring Boot, Go, Python, React 애플리케이션의 Multi-stage Image Build 방법</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 20일 · 5분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--애플리케이션과-multi-stage-build">1 ) 애플리케이션과 Multi-stage Build</h2>
+
+<hr />
+
+<p>애플리케이션의 언어와 Framework가 달라도 Multi-stage Build의 기본 흐름은 같다.</p>
+
+<ol>
+  <li>
+    <p>Builder Stage에서 의존성을 설치한다.</p>
+  </li>
+  <li>
+    <p>Source Code를 Build하거나 실행에 필요한 환경을 준비한다.</p>
+  </li>
+  <li>
+    <p>Runtime Stage를 별도의 Base Image로 시작한다.</p>
+  </li>
+  <li>
+    <p>Builder Stage에서 만든 산출물만 Runtime Stage로 복사한다.</p>
+  </li>
+  <li>
+    <p>최종 Image에서 Application을 실행한다.</p>
+  </li>
+</ol>
+
+<p>언어별 차이는 최종 산출물과 실행 환경에 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>애플리케이션</th>
+      <th>Builder Stage의 작업</th>
+      <th>Runtime Stage로 전달하는 대상</th>
+      <th>Runtime</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Node.js</td>
+      <td>Package 설치</td>
+      <td>Source Code와 설치된 Package</td>
+      <td>Node.js</td>
+    </tr>
+    <tr>
+      <td>Spring Boot</td>
+      <td>Gradle Build</td>
+      <td>JAR</td>
+      <td>JRE</td>
+    </tr>
+    <tr>
+      <td>Go</td>
+      <td>Source Code Compile</td>
+      <td>실행 Binary</td>
+      <td>Alpine Linux</td>
+    </tr>
+    <tr>
+      <td>Python</td>
+      <td>가상 환경에 Package 설치</td>
+      <td>Python 가상 환경</td>
+      <td>Python</td>
+    </tr>
+    <tr>
+      <td>React</td>
+      <td>정적 File Build</td>
+      <td><code class="language-plaintext highlighter-rouge">dist</code> Directory</td>
+      <td>Nginx</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Spring Boot, Go, React는 Build 산출물이 명확하므로 Builder의 Build 도구를 최종 Image에서 제외하기 쉽다. Node.js와 Python은 Source Code를 Runtime에서 실행하므로 의존성 설치 결과를 별도 Stage로 전달한다.</p>
+
+<h2 id="2--nodejs-multi-stage-build">2 ) Node.js Multi-stage Build</h2>
+
+<hr />
+
+<p>Node.js 예제는 Builder Stage에서 Package를 설치하고 Runtime Stage에서는 더 작은 Alpine 기반 Node.js Image로 Application을 실행한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="w"> </span><span class="s">node:20-slim</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> package*.json ./</span>
+<span class="k">RUN </span>npm <span class="nb">install</span>
+
+<span class="k">COPY</span><span class="s"> . .</span>
+
+<span class="k">FROM</span><span class="s"> node:20-alpine</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> --from=builder /app ./</span>
+
+<span class="k">EXPOSE</span><span class="s"> 3000</span>
+
+<span class="k">USER</span><span class="s"> node</span>
+
+<span class="k">CMD</span><span class="s"> ["node", "app.js"]</span>
+</code></pre></div></div>
+
+<p>Build 과정은 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">node:20-slim</code>에서 <code class="language-plaintext highlighter-rouge">package.json</code>을 먼저 복사하고 Package를 설치한다.</p>
+  </li>
+  <li>
+    <p>Source Code를 <code class="language-plaintext highlighter-rouge">/app</code>에 복사한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">node:20-alpine</code>으로 Runtime Stage를 시작한다.</p>
+  </li>
+  <li>
+    <p>Builder의 <code class="language-plaintext highlighter-rouge">/app</code>을 Runtime Stage로 복사한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">node</code> 사용자로 <code class="language-plaintext highlighter-rouge">app.js</code>를 실행한다.</p>
+  </li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> nodeapp:2.0 <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>이 예제는 Builder의 Application Directory 전체를 복사하므로 Source Code와 <code class="language-plaintext highlighter-rouge">node_modules</code>가 모두 Runtime Stage로 전달된다. 두 Stage를 분리하는 흐름과 더 작은 Runtime Base Image를 사용하는 방법을 보여주는 예제이다.</p>
+
+<h2 id="3--spring-boot-gradle-multi-stage-build">3 ) Spring Boot Gradle Multi-stage Build</h2>
+
+<hr />
+
+<p>Spring Boot는 JDK와 Gradle이 필요한 Build 환경과 JAR 실행에 필요한 JRE 환경을 분리한다.</p>
+
+<h3 id="프로젝트-준비">프로젝트 준비</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/itggangpae/spring_docker.git
+<span class="nb">cd </span>spring_docker
+</code></pre></div></div>
+
+<h3 id="dockerfile">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="w"> </span><span class="s">eclipse-temurin:21-jdk</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> gradlew ./</span>
+<span class="k">COPY</span><span class="s"> gradle ./gradle</span>
+<span class="k">RUN </span><span class="nb">chmod</span> +x gradlew
+
+<span class="k">COPY</span><span class="s"> build.gradle ./</span>
+<span class="k">COPY</span><span class="s"> settings.gradle ./</span>
+<span class="k">RUN </span>./gradlew dependencies <span class="nt">--no-daemon</span>
+
+<span class="k">COPY</span><span class="s"> src ./src</span>
+<span class="k">RUN </span>./gradlew clean build <span class="nt">-x</span> <span class="nb">test</span> <span class="nt">--no-daemon</span>
+
+<span class="k">FROM</span><span class="s"> eclipse-temurin:21-jre</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> --from=builder /app/build/libs/*.jar app.jar</span>
+
+<span class="k">EXPOSE</span><span class="s"> 8080</span>
+
+<span class="k">ENTRYPOINT</span><span class="s"> ["java", "-jar", "app.jar"]</span>
+</code></pre></div></div>
+
+<p>이전 실습에서는 Host에서 Gradle Build를 수행하고 생성된 JAR를 Docker Image에 복사했다. Multi-stage Build에서는 다음 과정이 하나의 Dockerfile 안에서 이루어진다.</p>
+
+<ol>
+  <li>
+    <p>JDK Image에서 Gradle Wrapper로 JAR를 Build한다.</p>
+  </li>
+  <li>
+    <p>새로운 JRE Image를 Runtime Stage로 사용한다.</p>
+  </li>
+  <li>
+    <p>Builder에서 생성한 JAR만 Runtime Stage로 복사한다.</p>
+  </li>
+  <li>
+    <p>최종 Image에는 Gradle, Source Code와 JDK가 남지 않는다.</p>
+  </li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> spring-docker:2.0 <span class="nb">.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">build.gradle</code>과 <code class="language-plaintext highlighter-rouge">settings.gradle</code>을 Source Code보다 먼저 복사하여 의존성 Layer를 분리했다. 의존성 설정이 바뀌지 않았다면 Source Code 변경 시 기존 의존성 Cache를 활용할 수 있다.</p>
+
+<h2 id="4--go-multi-stage-build">4 ) Go Multi-stage Build</h2>
+
+<hr />
+
+<p>Go는 Builder Stage에서 Source Code를 실행 Binary로 Compile하고 최종 Image에는 Binary만 복사한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="w"> </span><span class="s">golang:1.23-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> go.mod go.sum* ./</span>
+<span class="k">RUN </span>go mod download
+
+<span class="k">COPY</span><span class="s"> . .</span>
+<span class="k">RUN </span><span class="nv">CGO_ENABLED</span><span class="o">=</span>0 <span class="nv">GOOS</span><span class="o">=</span>linux go build <span class="nt">-o</span> main .
+
+<span class="k">FROM</span><span class="s"> alpine:latest</span>
+
+<span class="k">RUN </span>apk <span class="nt">--no-cache</span> add ca-certificates
+
+<span class="k">WORKDIR</span><span class="s"> /root</span>
+
+<span class="k">COPY</span><span class="s"> --from=builder /app/main ./main</span>
+
+<span class="k">EXPOSE</span><span class="s"> 8000</span>
+
+<span class="k">CMD</span><span class="s"> ["./main"]</span>
+</code></pre></div></div>
+
+<p>각 Stage의 역할은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>Builder Stage는 Go Compiler와 Module 의존성을 사용한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">CGO_ENABLED=0</code>으로 C Library에 대한 동적 의존성을 사용하지 않는 Binary를 Build한다.</p>
+  </li>
+  <li>
+    <p>Runtime Stage는 <code class="language-plaintext highlighter-rouge">alpine:latest</code>를 사용하고 HTTPS 인증에 필요한 CA 인증서를 설치한다.</p>
+  </li>
+  <li>
+    <p>최종 Image에는 Go Compiler와 Source Code 대신 <code class="language-plaintext highlighter-rouge">main</code> Binary만 포함한다.</p>
+  </li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> goapp:2.0 <span class="nb">.</span>
+</code></pre></div></div>
+
+<h2 id="5--python-multi-stage-build">5 ) Python Multi-stage Build</h2>
+
+<hr />
+
+<p>Python은 Compile된 단일 실행 File보다 Source Code와 Package가 설치된 환경이 필요하다. Builder Stage에서 가상 환경을 만들고 Runtime Stage로 해당 가상 환경을 복사한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.12-slim</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">ENV</span><span class="s"> PYTHONDONTWRITEBYTECODE=1 \</span>
+    PYTHONUNBUFFERED=1
+
+<span class="k">RUN </span>python <span class="nt">-m</span> venv /opt/venv
+<span class="k">ENV</span><span class="s"> PATH="/opt/venv/bin:$PATH"</span>
+
+<span class="k">COPY</span><span class="s"> requirements.txt ./</span>
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--no-cache-dir</span> <span class="nt">-r</span> requirements.txt
+
+<span class="k">FROM</span><span class="s"> python:3.12-slim</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> --from=builder /opt/venv /opt/venv</span>
+
+<span class="k">ENV</span><span class="s"> PATH="/opt/venv/bin:$PATH" \</span>
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+<span class="k">COPY</span><span class="s"> . .</span>
+
+<span class="k">RUN </span>adduser <span class="nt">--disabled-password</span> <span class="nt">--gecos</span> <span class="s2">""</span> appuser
+<span class="k">USER</span><span class="s"> appuser</span>
+
+<span class="k">EXPOSE</span><span class="s"> 8000</span>
+
+<span class="k">CMD</span><span class="s"> ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</span>
+</code></pre></div></div>
+
+<p>주요 설정은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">PYTHONDONTWRITEBYTECODE=1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">.pyc</code> File 생성 방지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">PYTHONUNBUFFERED=1</code></td>
+      <td>표준 출력과 오류의 Buffering 비활성화</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">/opt/venv</code></td>
+      <td>Builder와 Runtime에서 공통으로 사용하는 가상 환경 경로</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">appuser</code></td>
+      <td>Application을 실행할 일반 사용자</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> fastapiapp:2.0 <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>강의에서는 처음에 일반 <code class="language-plaintext highlighter-rouge">python</code> Image를 사용한 뒤 <code class="language-plaintext highlighter-rouge">python:3.12-slim</code>으로 변경했다. Python은 Compiler를 완전히 제거하는 방식보다 작은 Base Image를 선택하고 가상 환경만 복사하는 방식으로 최종 Image를 줄인다.</p>
+
+<h2 id="6--react-정적-file-multi-stage-build">6 ) React 정적 File Multi-stage Build</h2>
+
+<hr />
+
+<p>React Source Code는 Browser가 직접 실행할 수 있는 정적 HTML, JavaScript와 CSS File로 Build한다. Docker 환경에서는 Nginx나 Apache로 정적 File을 제공할 수 있고, Cloud 환경에서는 Web Endpoint를 제공하는 Object Storage에 배포할 수도 있다.</p>
+
+<h3 id="프로젝트-생성과-확인">프로젝트 생성과 확인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>npm create vite@latest my-react-app <span class="nt">--</span> <span class="nt">--template</span> react
+<span class="nb">cd </span>my-react-app
+npm <span class="nb">install
+</span>npm run dev <span class="nt">--</span> <span class="nt">--host</span> 0.0.0.0
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:5173
+</code></pre></div></div>
+
+<h3 id="dockerfile-1">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="w"> </span><span class="s">node:20-alpine</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> package*.json ./</span>
+<span class="k">RUN </span>npm <span class="nb">install</span>
+
+<span class="k">COPY</span><span class="s"> . .</span>
+<span class="k">RUN </span>npm run build
+
+<span class="k">FROM</span><span class="s"> nginx:stable-alpine</span>
+
+<span class="k">COPY</span><span class="s"> --from=builder /app/dist /usr/share/nginx/html</span>
+
+<span class="k">EXPOSE</span><span class="s"> 80</span>
+
+<span class="k">CMD</span><span class="s"> ["nginx", "-g", "daemon off;"]</span>
+</code></pre></div></div>
+
+<p>Builder Stage에서는 Vite가 React Source Code를 <code class="language-plaintext highlighter-rouge">/app/dist</code>의 정적 File로 변환한다. Runtime Stage에는 Node.js, npm, Source Code를 복사하지 않고 <code class="language-plaintext highlighter-rouge">dist</code>만 Nginx의 기본 Document Root에 복사한다.</p>
+
+<h3 id="dockerignore"><code class="language-plaintext highlighter-rouge">.dockerignore</code></h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>node_modules/
+dist/
+.git/
+.DS_Store
+</code></pre></div></div>
+
+<h3 id="image-build와-container-실행">Image Build와 Container 실행</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> my-react-app <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> my-react-app <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
+  my-react-app
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:8000
+</code></pre></div></div>
+
+<h2 id="7--언어별-차이-비교">7 ) 언어별 차이 비교</h2>
+
+<hr />
+
+<p>반복된 실습의 핵심은 Dockerfile의 형태가 아니라 Builder에서 Runtime으로 무엇을 전달하는지에 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Node.js</th>
+      <th>Spring Boot</th>
+      <th>Go</th>
+      <th>Python</th>
+      <th>React</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>실행 형태</td>
+      <td>Source Code</td>
+      <td>JAR</td>
+      <td>Native Binary</td>
+      <td>Source Code</td>
+      <td>정적 File</td>
+    </tr>
+    <tr>
+      <td>Build 도구</td>
+      <td>npm</td>
+      <td>Gradle·JDK</td>
+      <td>Go Compiler</td>
+      <td>pip·가상 환경</td>
+      <td>npm·Vite</td>
+    </tr>
+    <tr>
+      <td>Runtime</td>
+      <td>Node.js</td>
+      <td>JRE</td>
+      <td>Alpine</td>
+      <td>Python</td>
+      <td>Nginx</td>
+    </tr>
+    <tr>
+      <td>전달 대상</td>
+      <td>Application Directory</td>
+      <td><code class="language-plaintext highlighter-rouge">app.jar</code></td>
+      <td><code class="language-plaintext highlighter-rouge">main</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/opt/venv</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/app/dist</code></td>
+    </tr>
+    <tr>
+      <td>주요 절감 대상</td>
+      <td>Builder Base Image</td>
+      <td>JDK·Gradle·Source</td>
+      <td>Compiler·Source</td>
+      <td>Build Cache</td>
+      <td>Node.js·Source</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Multi-stage Build가 모든 언어에서 동일한 크기 절감 효과를 만드는 것은 아니다. Compile 결과만 전달할 수 있는 Spring Boot, Go, React에서는 Build 환경과 Runtime 환경의 구분이 명확하다. Node.js와 Python은 Runtime에도 언어 실행 환경과 Package가 필요하므로 필요한 의존성을 선별하고 작은 Base Image를 사용하는 것이 중요하다.</p>
+
+<h2 id="8--종합-실습">8 ) 종합 실습</h2>
+
+<hr />
+
+<p>강의의 종합 실습은 Database와 Web Application을 Container로 구성하는 과정이다.</p>
+
+<ol>
+  <li>
+    <p>MySQL, MariaDB, PostgreSQL, MongoDB, Redis 중 하나를 선택한다.</p>
+  </li>
+  <li>
+    <p>외부에서 접속할 수 있도록 Database Container를 생성한다.</p>
+  </li>
+  <li>
+    <p>프로그래밍 언어로 Database에 접속하는 Web Application을 작성한다.</p>
+  </li>
+  <li>
+    <p>Table에 데이터 한 건을 삽입하고 전체 데이터를 조회하는 기능을 구현한다.</p>
+  </li>
+  <li>
+    <p>Web Application을 Multi-stage Build로 Docker Image로 만든다.</p>
+  </li>
+  <li>
+    <p>Image로 Container를 실행하고 외부에서 접속되는지 확인한다.</p>
+  </li>
+</ol>
+
+<p>Kafka를 이용한 CQRS 구현은 별도의 Kafka·CQRS 실습 범위에 해당하므로 이 문서에서는 다루지 않는다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Multi-stage Build는 Build 환경과 Runtime 환경을 서로 다른 Stage로 분리한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">COPY --from</code>으로 Builder에서 생성한 실행 산출물이나 의존성 환경만 Runtime Stage에 전달한다.</p>
+    </li>
+    <li>
+      <p>Spring Boot는 JAR, Go는 실행 Binary, React는 정적 File을 최종 Image에 복사한다.</p>
+    </li>
+    <li>
+      <p>Node.js와 Python은 Runtime에도 언어 실행 환경과 Package가 필요하다.</p>
+    </li>
+    <li>
+      <p>의존성 File을 Source Code보다 먼저 복사하면 Build Cache를 효율적으로 사용할 수 있다.</p>
+    </li>
+    <li>
+      <p>최종 Stage에서 작은 Base Image와 일반 사용자를 사용하면 Image 크기와 실행 권한을 함께 관리할 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-14-application-image/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">애플리케이션별 Docker 이미지 빌드</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-16-docker-compose/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Docker Compose</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787229601"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787229601"></script>
+  </body>
+</html>

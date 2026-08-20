@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Docker Compose | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Docker Compose의 역할과 Compose File 작성 방법 및 Apache와 MariaDB 실행 실습">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-16-docker-compose/">
+<meta property="og:title" content="Docker Compose | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Docker Compose의 역할과 Compose File 작성 방법 및 Apache와 MariaDB 실행 실습">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-16-docker-compose/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker Compose | renamed.log">
+<meta name="twitter:description" content="Docker Compose의 역할과 Compose File 작성 방법 및 Apache와 MariaDB 실행 실습">
+
+  <meta property="article:published_time" content="2026-08-20T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787229601" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787229601" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787229601">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787229601" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787229601">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Docker Compose | renamed.log",
+    "description": "Docker Compose의 역할과 Compose File 작성 방법 및 Apache와 MariaDB 실행 실습",
+    "url": "https://kkr010128.github.io/cloud-native-16-docker-compose/",
+    "datePublished": "2026-08-20T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Docker Compose</h1>
+    
+      <p class="post-head__description">Docker Compose의 역할과 Compose File 작성 방법 및 Apache와 MariaDB 실행 실습</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 20일 · 5분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+          <a class="tag-chip" href="/?tag=DockerCompose">DockerCompose</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--docker-compose-개요">1 ) Docker Compose 개요</h2>
+
+<hr />
+
+<p>분산 Application은 Web Frontend, Backend API, Database처럼 여러 구성 요소로 이루어진다. Dockerfile은 각 구성 요소를 하나의 Image로 Packaging하지만 전체 Application을 실행하려면 여러 Container의 Port, Volume, 환경 변수와 Network를 함께 설정해야 한다.</p>
+
+<p>각 Container를 <code class="language-plaintext highlighter-rouge">docker container run</code>으로 하나씩 실행할 수도 있지만 명령이 많아질수록 Option을 누락하거나 실행 순서를 잘못 지정하기 쉽다. Docker Compose는 공통 목적을 가진 여러 Container의 구성을 하나의 YAML File에 선언하고 함께 관리하는 도구이다.</p>
+
+<ul>
+  <li>
+    <p>각 Application 구성 요소를 <code class="language-plaintext highlighter-rouge">services</code>에 정의한다.</p>
+  </li>
+  <li>
+    <p>Container의 Image, Port, Volume, 환경 변수와 재시작 정책을 기록한다.</p>
+  </li>
+  <li>
+    <p>필요한 Network와 Volume 같은 Docker Object를 생성한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">docker compose up</code>으로 Application Stack을 생성하고 실행한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">docker compose down</code>으로 Stack의 Container와 Network를 중지하고 삭제한다.</p>
+  </li>
+</ul>
+
+<p>Compose File은 여러 Service가 실행 중일 때 갖추어야 하는 원하는 상태를 기술한다. Compose가 File을 읽으면 Docker API를 통해 Container, Network와 Volume을 구성한다.</p>
+
+<h2 id="2--dockerfile과-docker-compose">2 ) Dockerfile과 Docker Compose</h2>
+
+<hr />
+
+<p>Dockerfile과 Docker Compose는 서로 다른 범위를 담당한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Dockerfile</th>
+      <th>Docker Compose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>목적</td>
+      <td>하나의 Image 생성</td>
+      <td>여러 Container로 구성된 Application 실행</td>
+    </tr>
+    <tr>
+      <td>주요 정의</td>
+      <td>Base Image, Package, Source Code, 실행 명령</td>
+      <td>Service, Port, Volume, 환경 변수, Network</td>
+    </tr>
+    <tr>
+      <td>주요 명령</td>
+      <td><code class="language-plaintext highlighter-rouge">docker build</code></td>
+      <td><code class="language-plaintext highlighter-rouge">docker compose up</code></td>
+    </tr>
+    <tr>
+      <td>결과</td>
+      <td>Docker Image</td>
+      <td>실행 중인 Application Stack</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Web Frontend, Backend API와 Database가 있다면 구성 요소마다 Dockerfile을 작성할 수 있다. Compose File은 이렇게 만든 Image와 외부 Image를 조합하여 전체 Application의 실행 관계를 정의한다.</p>
+
+<p>Compose로 실행한 Container도 각자 독립된 기능을 담당한다. 같은 Compose Project의 Service는 기본 Network에 연결되므로 IP 주소 대신 Service 이름으로 서로 통신할 수 있다.</p>
+
+<p>Docker Compose는 개발, 테스트, CI와 운영 환경에서 사용할 수 있다. 다만 여러 Host에 걸친 자동 확장, 장애 복구와 Cluster Scheduling 같은 기능을 제공하는 Orchestrator와 역할이 같지는 않다. 그러한 운영 기능이 필요하면 Docker Swarm이나 Kubernetes 같은 별도의 Orchestration Platform을 검토한다.</p>
+
+<h2 id="3--docker-compose-설치">3 ) Docker Compose 설치</h2>
+
+<hr />
+
+<p>Docker Desktop에는 Docker Compose가 포함되므로 Windows, macOS와 Docker Desktop을 사용하는 Linux에서는 별도로 설치할 필요가 없다.</p>
+
+<p>Docker Engine과 Docker CLI만 설치된 Linux에서는 Docker의 Package Repository를 설정한 뒤 Compose Plugin을 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> docker-compose-plugin
+docker compose version
+</code></pre></div></div>
+
+<p>현재 권장 방식은 Docker CLI Plugin과 공백을 사용한 <code class="language-plaintext highlighter-rouge">docker compose</code> 명령이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+docker compose down
+</code></pre></div></div>
+
+<p>강의에서 사용한 <code class="language-plaintext highlighter-rouge">docker-compose</code> 명령과 <code class="language-plaintext highlighter-rouge">/usr/local/bin/docker-compose</code>에 실행 File을 직접 설치하는 방식은 Standalone Compose 방식이다. 현재는 하위 호환을 위해 제공되는 Legacy 설치 방식이므로 이 문서의 실행 예제에서는 Compose Plugin을 사용한다.</p>
+
+<h2 id="4--compose-file-구조">4 ) Compose File 구조</h2>
+
+<hr />
+
+<p>Compose File의 기본 이름으로 <code class="language-plaintext highlighter-rouge">compose.yaml</code> 또는 <code class="language-plaintext highlighter-rouge">docker-compose.yaml</code>을 사용할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">web</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">httpd</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:80"</span>
+</code></pre></div></div>
+
+<p>주요 항목은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">services</code></td>
+      <td>Application을 구성하는 Service 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">image</code></td>
+      <td>Container 생성에 사용할 Image</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">build</code></td>
+      <td>Dockerfile을 이용해 Image를 Build할 경로와 Option</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ports</code></td>
+      <td><code class="language-plaintext highlighter-rouge">HOST_PORT:CONTAINER_PORT</code> 형식의 Port 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">volumes</code></td>
+      <td>Service의 영속 데이터와 Host File 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">environment</code></td>
+      <td>Container에 전달할 환경 변수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">restart</code></td>
+      <td>Container 종료 후 재시작 정책</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>과거 Compose File에서는 <code class="language-plaintext highlighter-rouge">version: "3"</code> 또는 <code class="language-plaintext highlighter-rouge">version: "3.8"</code>처럼 File 형식 Version을 작성했다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3.8"</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">web</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">httpd</span>
+</code></pre></div></div>
+
+<p>최상위 <code class="language-plaintext highlighter-rouge">version</code> 속성은 현재 Compose Specification에서 호환을 위해 남아 있는 Obsolete 항목이다. Compose는 이 값과 관계없이 현재 Specification으로 File을 검증하므로 새로운 Compose File에서는 생략한다.</p>
+
+<h2 id="5--apache-service">5 ) Apache Service</h2>
+
+<hr />
+
+<h3 id="docker-container-run으로-실행"><code class="language-plaintext highlighter-rouge">docker container run</code>으로 실행</h3>
+
+<p>Apache HTTP Server Container 하나를 직접 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> apache_1 <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 8080:80 <span class="se">\</span>
+  httpd
+</code></pre></div></div>
+
+<h3 id="compose-file로-실행">Compose File로 실행</h3>
+
+<p>동일한 설정을 <code class="language-plaintext highlighter-rouge">compose.yaml</code>에 선언한다. 앞의 Container와 동시에 비교할 수 있도록 Host의 8081번 Port를 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">apache_1</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">httpd</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8081:80"</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+</code></pre></div></div>
+
+<p>Compose File이 있는 Directory에서 Service를 실행하고 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+curl http://localhost:8081
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker container run</code>의 <code class="language-plaintext highlighter-rouge">--name</code>, <code class="language-plaintext highlighter-rouge">-p</code>, <code class="language-plaintext highlighter-rouge">--restart</code> Option이 Compose File의 Service 이름, <code class="language-plaintext highlighter-rouge">ports</code>, <code class="language-plaintext highlighter-rouge">restart</code> 항목에 대응한다.</p>
+
+<h2 id="6--mariadb-service">6 ) MariaDB Service</h2>
+
+<hr />
+
+<h3 id="docker-container-run으로-실행-1"><code class="language-plaintext highlighter-rouge">docker container run</code>으로 실행</h3>
+
+<p>강의에서는 다음 명령으로 MariaDB 10.4.6 Container를 실행했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
+  <span class="nt">--name</span> mariadb-server <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">-p</span> 3306:3306 <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>your_password <span class="se">\</span>
+  <span class="nt">-v</span> ~/mariadb/data:/var/lib/mysql <span class="se">\</span>
+  <span class="nt">--restart</span> always <span class="se">\</span>
+  mariadb:10.4.6
+</code></pre></div></div>
+
+<p>MariaDB 10.4 계열은 유지 관리가 종료된 Legacy Version이다. 명령의 Option 대응 관계를 이해하기 위한 강의 예제로 보존하며, 새 환경의 실행 예제에는 지원 중인 10.11 계열을 사용한다.</p>
+
+<h3 id="compose-file로-실행-1">Compose File로 실행</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">mariadb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb:10.11</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">mariadb-server</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3307:3306"</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">./data:/var/lib/mysql</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MYSQL_ROOT_PASSWORD</span><span class="pi">:</span> <span class="s">${MARIADB_ROOT_PASSWORD}</span>
+</code></pre></div></div>
+
+<p>Compose File과 같은 Directory에 <code class="language-plaintext highlighter-rouge">.env</code>를 만들고 실습용 비밀번호를 지정한다.</p>
+
+<pre><code class="language-dotenv">MARIADB_ROOT_PASSWORD=your_password
+</code></pre>
+
+<p><code class="language-plaintext highlighter-rouge">.env</code>에는 비밀번호가 포함되므로 Version Control에 Commit하지 않는다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.env
+</code></pre></div></div>
+
+<p>Service를 실행하고 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+</code></pre></div></div>
+
+<p>두 실행 방식의 Option은 다음과 같이 대응한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><code class="language-plaintext highlighter-rouge">docker container run</code></th>
+      <th>Compose File</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--name mariadb-server</code></td>
+      <td><code class="language-plaintext highlighter-rouge">container_name</code></td>
+      <td>Container 이름</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-p 3306:3306</code></td>
+      <td><code class="language-plaintext highlighter-rouge">ports</code></td>
+      <td>Host와 Container Port 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-v PATH:/var/lib/mysql</code></td>
+      <td><code class="language-plaintext highlighter-rouge">volumes</code></td>
+      <td>Database 데이터 영속화</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-e MYSQL_ROOT_PASSWORD=...</code></td>
+      <td><code class="language-plaintext highlighter-rouge">environment</code></td>
+      <td>초기 Root 비밀번호 전달</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--restart always</code></td>
+      <td><code class="language-plaintext highlighter-rouge">restart: always</code></td>
+      <td>Container 재시작 정책</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">~/mariadb/data</code>는 사용자의 Home Directory를 기준으로 하고 <code class="language-plaintext highlighter-rouge">./data</code>는 Compose File이 있는 Project Directory를 기준으로 한다. 상대 경로를 사용하면 Project File과 Database 데이터를 같은 Directory 구조 안에서 관리하기 쉽다.</p>
+
+<h2 id="7--compose-network">7 ) Compose Network</h2>
+
+<hr />
+
+<p>Compose는 별도의 Network를 지정하지 않아도 Project 전용 기본 Network를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>같은 Compose Network에 연결된 Service는 Container IP가 아니라 Service 이름으로 통신할 수 있다. 예를 들어 Backend Service에서 MariaDB에 접속할 때 Host를 <code class="language-plaintext highlighter-rouge">localhost</code>로 지정하지 않고 <code class="language-plaintext highlighter-rouge">mariadb</code>로 지정한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Host: mariadb
+Port: 3306
+</code></pre></div></div>
+
+<p>Container 내부에서 <code class="language-plaintext highlighter-rouge">localhost</code>는 해당 Container 자신을 가리킨다. Host에 공개한 3307번 Port는 Host에서 MariaDB에 접속할 때 사용하고, Compose Network 안의 다른 Container는 <code class="language-plaintext highlighter-rouge">mariadb:3306</code>으로 접속한다.</p>
+
+<h2 id="8--compose-생명주기-관리">8 ) Compose 생명주기 관리</h2>
+
+<hr />
+
+<p>주요 명령은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker compose up -d</code></td>
+      <td>Service 생성 및 Background 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker compose ps</code></td>
+      <td>Project의 Container 상태 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker compose logs</code></td>
+      <td>Service Log 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker compose stop</code></td>
+      <td>Container를 삭제하지 않고 중지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker compose start</code></td>
+      <td>중지한 Container 시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">docker compose down</code></td>
+      <td>Container와 기본 Network 중지 및 삭제</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose logs apache_1
+docker compose stop
+docker compose start
+docker compose down
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker compose down</code>은 기본적으로 Container와 Compose가 만든 Network를 삭제한다. 위 MariaDB 예제의 <code class="language-plaintext highlighter-rouge">./data</code>는 Host Bind Mount이므로 Container를 삭제해도 Host Directory의 데이터는 유지된다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Dockerfile은 하나의 Image를 만들고 Docker Compose는 여러 Container로 구성된 Application을 실행한다.</p>
+    </li>
+    <li>
+      <p>Compose File에는 Service별 Image, Port, Volume, 환경 변수와 재시작 정책을 YAML로 선언한다.</p>
+    </li>
+    <li>
+      <p>현재는 Standalone <code class="language-plaintext highlighter-rouge">docker-compose</code>보다 Docker CLI Plugin의 <code class="language-plaintext highlighter-rouge">docker compose</code> 명령을 사용한다.</p>
+    </li>
+    <li>
+      <p>최상위 <code class="language-plaintext highlighter-rouge">version</code> 속성은 현재 Obsolete이므로 새로운 Compose File에서는 생략한다.</p>
+    </li>
+    <li>
+      <p>같은 Compose Project의 Service는 기본 Network에서 Service 이름으로 통신한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker compose up</code>으로 Stack을 생성하고 <code class="language-plaintext highlighter-rouge">docker compose down</code>으로 Container와 기본 Network를 정리한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-15-multi-stage-build/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">애플리케이션별 Docker Multi-stage Build</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787229601"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787229601"></script>
+  </body>
+</html>
