@@ -2,7 +2,7 @@
 title: Dockerfile
 description: Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항
 date: 2026-08-18
-updated_at: 2026-08-19
+updated_at: 2026-08-20
 series: CloudNative
 tags:
   - CloudNative
@@ -630,6 +630,166 @@ docker build \
 
 Secret을 Mount하면 해당 Build Step에서만 `/run/secrets/github_token`으로 읽을 수 있으며 최종 Image에 File로 복사되지 않는다.
 
+## 10 ) Image 용량 절감
+
+---
+
+Image가 커지면 Registry에 저장하는 공간이 늘고 Network를 통한 Push와 Pull에도 시간이 더 걸린다. Ubuntu 같은 OS Base Image에서 Package를 설치할 때는 실행에 필요하지 않은 Package와 Package Manager의 Cache가 최종 Image에 남지 않도록 관리한다.
+
+### Package 설치와 Cache 정리
+
+다음 예제는 Ubuntu에 PHP와 Apache를 설치하고 `index.html`을 배치한다.
+
+```html
+<h1>Hello Docker</h1>
+```
+
+Package 설치와 정리를 여러 `RUN`으로 분리하면 앞선 Layer에 저장된 File이 그대로 남을 수 있다.
+
+```dockerfile
+FROM ubuntu:20.04
+
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata php apache2
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /var/www/html
+COPY index.html ./
+
+EXPOSE 80
+
+CMD ["apachectl", "-D", "FOREGROUND"]
+```
+
+Image Layer의 크기를 줄이려면 Package 설치와 Cache 삭제를 하나의 `RUN`에서 처리한다.
+
+```dockerfile
+FROM ubuntu:20.04
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      tzdata \
+      php \
+      apache2 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+WORKDIR /var/www/html
+COPY index.html ./
+
+EXPOSE 80
+
+CMD ["apachectl", "-D", "FOREGROUND"]
+```
+
+관련 명령의 역할은 다음과 같다.
+
+| 명령 | 역할 | Dockerfile에서의 주의 사항 |
+|---|---|---|
+| `apt-get clean` | 내려받은 Package File 정리 | Package 설치와 같은 Layer에서 실행 |
+| `apt-get autoclean` | 더 이상 내려받을 수 없는 오래된 Package File 정리 | Build에 필요한 명령은 아님 |
+| `apt-get autoremove` | 자동 설치된 뒤 불필요해진 의존 Package 제거 | 필요한 Runtime 의존성까지 제거하지 않는지 확인 |
+| `rm -rf /var/lib/apt/lists/*` | `apt-get update`로 받은 Package Index 삭제 | 이후 Package 설치가 필요하면 다시 `apt-get update` 실행 |
+
+Host OS에서는 이미 저장된 File을 삭제하면 사용 가능한 Disk 공간이 늘어난다. 반면 Docker Image는 이전 Layer가 보존되므로 후속 Layer에서 File을 삭제하는 것만으로는 앞선 Layer의 크기가 줄지 않는다. 생성한 Layer 안에서 불필요한 File을 함께 제거해야 효과가 있다.
+
+## 11 ) Dockerfile 작성 시 유의사항
+
+---
+
+### 작은 Image 구성
+
+- Application 실행에 필요한 Runtime을 포함한 `slim`, `alpine` 등의 Base Image를 검토한다.
+
+- 불필요한 Package를 설치하지 않고 `--no-install-recommends` 같은 Option을 활용한다.
+
+- 서로 관련된 Package 설치와 정리 작업은 하나의 `RUN`에서 수행한다.
+
+- Build 도구가 실행 단계에 필요하지 않다면 Multi-stage Build로 분리한다.
+
+경량 Base Image는 크기를 줄이는 데 도움이 되지만 Library와 Package 구성이 다를 수 있으므로 Application 호환성을 함께 확인한다.
+
+### Build Cache 활용
+
+Docker는 변경되지 않은 Layer를 재사용한다. 변경 빈도가 낮은 의존성 File을 먼저 복사하고 자주 변경되는 Source Code를 나중에 복사한다.
+
+```dockerfile
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+```
+
+Build Context에는 Image 생성에 필요한 File만 포함한다. `.dockerignore`에는 다음과 같은 대상을 등록할 수 있다.
+
+```text
+.git/
+node_modules/
+*.log
+.env
+```
+
+### 보안과 관리
+
+- Container Process를 항상 `root`로 실행하지 않고 `USER`로 일반 사용자를 지정한다.
+
+- `latest`에만 의존하지 않고 용도를 확인할 수 있는 Version Tag를 사용한다.
+
+- 비밀번호와 Token은 Dockerfile의 `ARG`, `ENV`, `COPY`에 직접 기록하지 않는다.
+
+- 하나의 Container에는 하나의 주요 관심사를 배치하여 Application 간 결합을 낮춘다.
+
+하나의 관심사가 반드시 하나의 Process만을 의미하는 것은 아니다. 핵심은 Web Server, Database, Message Broker처럼 독립적으로 배포하고 확장해야 하는 구성 요소를 서로 다른 Container로 분리하는 것이다.
+
+### Directory 단위의 Build Context
+
+Image Build는 지정한 Directory를 Build Context로 사용한다. 다음 순서로 작업 Directory를 구성하면 불필요한 File이 Image에 포함되는 것을 줄일 수 있다.
+
+1. Application마다 별도의 Directory를 생성한다.
+
+2. Source Code, 의존성 File과 Dockerfile을 함께 관리한다.
+
+3. Build에 필요하지 않은 File을 `.dockerignore`로 제외한다.
+
+4. 해당 Directory를 Build Context로 지정한다.
+
+Dockerfile로 만든 Image는 Container 기반 Serverless Platform에도 배포할 수 있다. 다만 Dockerfile 자체가 Serverless 환경을 생성하거나 Server의 배포·확장·고가용성을 자동으로 관리하는 것은 아니다. 이러한 기능은 Image를 실행하는 Cloud Platform이 제공한다.
+
+## 12 ) Multi-stage Build
+
+---
+
+Multi-stage Build는 Dockerfile을 여러 Build Stage로 나누는 방식이다. 각 Stage는 `FROM`으로 시작하며 `AS`로 이름을 지정할 수 있다.
+
+```dockerfile
+FROM build-image AS builder
+
+# 의존성 설치와 Application Build
+
+FROM runtime-image
+
+COPY --from=builder /path/to/artifact /app/artifact
+
+# Application 실행
+```
+
+동작 순서는 다음과 같다.
+
+1. Builder Stage에서 Compiler, Package Manager와 Build 도구를 사용한다.
+
+2. Source Code를 Build하여 JAR, 실행 Binary 또는 정적 File 같은 산출물을 생성한다.
+
+3. Runtime Stage를 새로운 `FROM`으로 시작한다.
+
+4. `COPY --from=builder`로 실행에 필요한 산출물만 가져온다.
+
+5. 최종 Image에는 Builder와 중간 File을 포함하지 않는다.
+
+각 Stage는 독립된 File System을 사용하지만 앞선 Stage의 File을 선택적으로 복사할 수 있다. 최종 Image는 마지막 Stage를 기준으로 생성되므로 Compiler와 Build Cache를 제외하여 Image 크기와 공격 표면을 줄일 수 있다.
+
+Node.js, Spring Boot, Go, Python, React에 Multi-stage Build를 적용하는 구체적인 차이는 다음 문서에서 다룬다.
+
 > **최종 정리**
 >
 > - Dockerfile은 Image 생성 과정을 Code로 기록하여 동일한 환경을 반복해서 Build할 수 있게 한다.
@@ -640,10 +800,12 @@ Secret을 Mount하면 해당 Build Step에서만 `/run/secrets/github_token`으�
 >
 > - Dockerfile의 Instruction 순서는 Image Layer와 Build Cache에 영향을 준다.
 >
-> - `docker build`는 Dockerfile과 Build Context를 사용하여 새로운 Image를 생성한다.
->
-> - Package 설치와 같은 Build 명령은 사용자의 입력 없이 끝나도록 비대화식으로 작성한다.
+> - Package 설치와 Cache 삭제를 같은 Layer에서 수행해야 Image 용량을 줄이는 데 효과가 있다.
 >
 > - `.dockerignore`로 불필요한 Build Context를 제외하고 Build Secret은 전용 Secret Mount로 전달한다.
+>
+> - Multi-stage Build는 Build 환경과 Runtime 환경을 분리하여 최종 Image에 필요한 산출물만 남긴다.
+>
+> - Dockerfile은 Serverless Platform에 배포할 Image를 만들 수 있지만 확장과 운영 자동화는 실행 Platform의 역할이다.
 >
 > - `MAINTAINER`처럼 현재 Deprecated된 Instruction은 그대로 이해하되 새 Dockerfile에서는 대체 방법을 사용한다.
