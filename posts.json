@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Docker Compose 응용과 Docker Swarm",
+        "url": "/cloud-native-17-docker-compose-swarm/",
+        "description": "다중 Container 실습, Nginx Load Balancing, 환경 변수 관리와 Docker Swarm의 핵심 구조",
+        "thumbnail": null,
+        "tags": ["Cloud","AutoEverSW"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 21일",
+        "reading_time_label": "13분 읽기",
+        "search": "docker compose 응용과 docker swarm 다중 container 실습, nginx load balancing, 환경 변수 관리와 docker swarm의 핵심 구조 cloud autoeversw cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Docker Compose",
         "url": "/cloud-native-16-docker-compose/",
         "description": "Docker Compose의 역할과 Compose File 작성 방법 및 Apache와 MariaDB 실행 실습",

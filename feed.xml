@@ -1,4 +1,1151 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-21T12:35:57+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">애플리케이션별 Docker Multi-stage Build</title><link href="https://kkr010128.github.io/cloud-native-15-multi-stage-build/" rel="alternate" type="text/html" title="애플리케이션별 Docker Multi-stage Build" /><published>2026-08-20T00:00:00+09:00</published><updated>2026-08-20T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-15-multi-stage-build</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-15-multi-stage-build/"><![CDATA[<h2 id="1--애플리케이션과-multi-stage-build">1 ) 애플리케이션과 Multi-stage Build</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-21T18:50:06+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker Compose 응용과 Docker Swarm</title><link href="https://kkr010128.github.io/cloud-native-17-docker-compose-swarm/" rel="alternate" type="text/html" title="Docker Compose 응용과 Docker Swarm" /><published>2026-08-21T00:00:00+09:00</published><updated>2026-08-21T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-17-docker-compose-swarm</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-17-docker-compose-swarm/"><![CDATA[<p>이전 글에서는 Docker Compose의 역할과 기본 File 구조를 살펴보았다. 이번 글에서는 여러 Service를 실제로 연결하고 확장하는 방법부터 Nginx Load Balancing, 환경 변수 관리와 Docker Swarm까지 다룬다.</p>
+
+<p>Docker Compose는 주로 단일 Host에서 여러 Container로 구성된 Application을 관리한다. 여러 Host를 하나의 Cluster로 묶어 Service를 배치하고 원하는 상태를 유지해야 한다면 Docker Swarm이나 Kubernetes 같은 Container Orchestration 도구가 필요하다.</p>
+
+<h2 id="1--compose-file-작성">1 ) Compose File 작성</h2>
+
+<hr />
+
+<h3 id="file-이름과-최상위-항목">File 이름과 최상위 항목</h3>
+
+<p>Compose File은 다음 이름을 사용할 수 있다.</p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">compose.yaml</code></p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">compose.yml</code></p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">docker-compose.yaml</code></p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">docker-compose.yml</code></p>
+  </li>
+</ul>
+
+<p>현재는 <code class="language-plaintext highlighter-rouge">compose.yaml</code>이 선호되며 <code class="language-plaintext highlighter-rouge">docker-compose.yaml</code>도 호환을 위해 사용할 수 있다.</p>
+
+<p>Python 기반 Compose V1에서 사용하던 <strong>Legacy 명령</strong>은 현재 호환 목적으로만 남은 Obsolete 항목이므로, 현재는 Docker CLI Plugin 형태의 <code class="language-plaintext highlighter-rouge">docker compose</code>를 사용하며</p>
+
+<p>Compose File의 주요 최상위 항목은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">services</code></td>
+      <td>실행할 Container Service 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">networks</code></td>
+      <td>Service가 사용할 Network 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">volumes</code></td>
+      <td>Service가 사용할 Named Volume 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">configs</code></td>
+      <td>일반 설정 정보 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">secrets</code></td>
+      <td>민감한 정보 정의</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">services</code> 아래에는 함께 실행할 Container를 Service 단위로 작성한다. Service별 주요 항목은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">image</code></td>
+      <td>Registry에서 가져오거나 이미 Build한 Image 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">build</code></td>
+      <td>Dockerfile과 Build Context 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">container_name</code></td>
+      <td>생성할 Container 이름 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ports</code></td>
+      <td>Host Port와 Container Port 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">expose</code></td>
+      <td>다른 Service에 Container Port 정보 제공</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">networks</code></td>
+      <td>연결할 Network 선택</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">volumes</code></td>
+      <td>Named Volume 또는 Bind Mount 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">environment</code></td>
+      <td>Container 환경 변수 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">command</code></td>
+      <td>Image의 기본 실행 명령을 덮어쓸 명령 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">restart</code></td>
+      <td>Container 종료 후 재시작 정책 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">depends_on</code></td>
+      <td>Service 사이의 생성 및 종료 순서 지정</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">restart</code>에는 <code class="language-plaintext highlighter-rouge">no</code>, <code class="language-plaintext highlighter-rouge">always</code>, <code class="language-plaintext highlighter-rouge">on-failure</code>, <code class="language-plaintext highlighter-rouge">unless-stopped</code> 등을 사용할 수 있다. YAML에서 <code class="language-plaintext highlighter-rouge">no</code>가 Boolean으로 해석될 수 있으므로 문자열인 <code class="language-plaintext highlighter-rouge">"no"</code>로 작성하는 편이 안전하다.</p>
+
+<p>Docker Hub 등의 Registry에 있는 Image는 <code class="language-plaintext highlighter-rouge">image</code>로 지정한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">myweb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
+  <span class="na">mydb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb</span>
+</code></pre></div></div>
+
+<p>직접 개발한 Application은 Dockerfile이 있는 현재 Directory를 Build Context로 지정할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">myweb</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">.</span>
+</code></pre></div></div>
+
+<p>Build Context와 Dockerfile 위치를 구분하려면 <code class="language-plaintext highlighter-rouge">build</code> 아래에 <code class="language-plaintext highlighter-rouge">context</code>와 <code class="language-plaintext highlighter-rouge">dockerfile</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">myweb</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span>
+      <span class="na">context</span><span class="pi">:</span> <span class="s">.</span>
+      <span class="na">dockerfile</span><span class="pi">:</span> <span class="s">docker/Dockerfile</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">depends_on</code>은 의존 Service를 먼저 생성하지만 해당 Application이 요청을 처리할 준비까지 마쳤음을 보장하지는 않는다. 준비 상태까지 기다려야 한다면 의존 Service에 <code class="language-plaintext highlighter-rouge">healthcheck</code>를 정의하고 <code class="language-plaintext highlighter-rouge">condition: service_healthy</code>를 사용한다.</p>
+
+<h3 id="network-정의">Network 정의</h3>
+
+<p><code class="language-plaintext highlighter-rouge">networks</code>를 생략하면 Compose가 Project 전용 기본 Network를 자동 생성한다. 같은 Network의 Service는 IP Address를 직접 확인하지 않고 Service 이름으로 통신할 수 있다.</p>
+
+<p>여러 Network를 분리하려면 최상위에서 Network를 정의하고 Service별로 연결한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">myweb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">frontend-net</span>
+  <span class="na">mydb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">backend-net</span>
+
+<span class="na">networks</span><span class="pi">:</span>
+  <span class="na">frontend-net</span><span class="pi">:</span> <span class="pi">{}</span>
+  <span class="na">backend-net</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>이미 만들어 둔 Network를 사용하려면 <code class="language-plaintext highlighter-rouge">external: true</code>와 실제 이름을 지정한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">networks</span><span class="pi">:</span>
+  <span class="na">default</span><span class="pi">:</span>
+    <span class="na">external</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">myapp-net</span>
+</code></pre></div></div>
+
+<h3 id="volume-정의">Volume 정의</h3>
+
+<p>데이터를 Container 수명과 분리하려면 최상위에서 Named Volume을 정의하고 Service의 내부 Directory에 Mount한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">mydb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mysql:8.0</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">mydb-data:/var/lib/mysql</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">mydb-data</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>Named Volume의 실제 데이터는 Docker가 관리한다. Linux의 기본 Rootless가 아닌 구성에서는 일반적으로 <code class="language-plaintext highlighter-rouge">/var/lib/docker/volumes</code> 아래에 배치되지만, Storage Driver나 실행 방식에 따라 위치가 달라질 수 있으므로 직접 경로를 조작하지 않는다.</p>
+
+<h2 id="2--mysql과-wordpress-실행">2 ) MySQL과 WordPress 실행</h2>
+
+<hr />
+
+<p>MySQL 8.0과 WordPress 5.7로 구성한 Web Application을 각각의 <code class="language-plaintext highlighter-rouge">docker run</code> 명령과 Compose File로 실행해 본다. 여기서 사용하는 Image Version과 비밀번호는 강의 실습을 재현하기 위한 값이므로 실제 운영 환경에서는 지원 중인 Image와 안전한 Secret 관리 방식을 선택해야 한다.</p>
+
+<h3 id="docker-run으로-실행"><code class="language-plaintext highlighter-rouge">docker run</code>으로 실행</h3>
+
+<p>먼저 Database 데이터를 저장할 Volume과 두 Container가 함께 사용할 Network를 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create mydb_data
+docker network create myapp_net
+</code></pre></div></div>
+
+<p>MySQL Container를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">-dit</span> <span class="se">\</span>
+  <span class="nt">--name</span> mysql_app <span class="se">\</span>
+  <span class="nt">-v</span> mydb_data:/var/lib/mysql <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>always <span class="se">\</span>
+  <span class="nt">-p</span> 3306:3306 <span class="se">\</span>
+  <span class="nt">--network</span> myapp_net <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_DATABASE</span><span class="o">=</span>adam <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_USER</span><span class="o">=</span>adam <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_PASSWORD</span><span class="o">=</span>wnddkd <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>wnddkd <span class="se">\</span>
+  mysql:8.0
+</code></pre></div></div>
+
+<p>WordPress Container를 같은 Network에 연결하여 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">-dit</span> <span class="se">\</span>
+  <span class="nt">--name</span> wordpress_app <span class="se">\</span>
+  <span class="nt">-v</span> myweb_data:/var/www/html <span class="se">\</span>
+  <span class="nt">-v</span> <span class="s2">"</span><span class="k">${</span><span class="nv">PWD</span><span class="k">}</span><span class="s2">/myweb-log:/var/log"</span> <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>always <span class="se">\</span>
+  <span class="nt">-p</span> 8888:80 <span class="se">\</span>
+  <span class="nt">--network</span> myapp_net <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">WORDPRESS_DB_HOST</span><span class="o">=</span>mysql_app:3306 <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">WORDPRESS_DB_NAME</span><span class="o">=</span>adam <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">WORDPRESS_DB_USER</span><span class="o">=</span>adam <span class="se">\</span>
+  <span class="nt">-e</span> <span class="nv">WORDPRESS_DB_PASSWORD</span><span class="o">=</span>wnddkd <span class="se">\</span>
+  wordpress:5.7
+</code></pre></div></div>
+
+<p>같은 사용자 정의 Network에서는 <code class="language-plaintext highlighter-rouge">mysql_app</code>이라는 Container 이름으로 MySQL에 접근할 수 있다. 과거에는 <code class="language-plaintext highlighter-rouge">--link mysql_app:mysql</code> Option을 사용하기도 했지만 <code class="language-plaintext highlighter-rouge">--link</code>는 <strong>Legacy 기능</strong>이므로 사용자 정의 Network와 DNS 기반 이름 조회를 사용한다.</p>
+
+<h3 id="docker-compose로-실행">Docker Compose로 실행</h3>
+
+<p>같은 구성을 <code class="language-plaintext highlighter-rouge">compose.yaml</code> 하나로 표현하면 다음과 같다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">mydb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mysql:8.0</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">mysql_app</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">mydb_data:/var/lib/mysql</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3306:3306"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">backend-net</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MYSQL_ROOT_PASSWORD</span><span class="pi">:</span> <span class="s">wnddkd</span>
+      <span class="na">MYSQL_DATABASE</span><span class="pi">:</span> <span class="s">adam</span>
+      <span class="na">MYSQL_USER</span><span class="pi">:</span> <span class="s">adam</span>
+      <span class="na">MYSQL_PASSWORD</span><span class="pi">:</span> <span class="s">wnddkd</span>
+
+  <span class="na">myweb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">wordpress:5.7</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">wordpress_app</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">mydb</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8888:80"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">backend-net</span>
+      <span class="pi">-</span> <span class="s">frontend-net</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">myweb_data:/var/www/html</span>
+      <span class="pi">-</span> <span class="s">${PWD}/myweb-log:/var/log</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">WORDPRESS_DB_HOST</span><span class="pi">:</span> <span class="s">mydb:3306</span>
+      <span class="na">WORDPRESS_DB_NAME</span><span class="pi">:</span> <span class="s">adam</span>
+      <span class="na">WORDPRESS_DB_USER</span><span class="pi">:</span> <span class="s">adam</span>
+      <span class="na">WORDPRESS_DB_PASSWORD</span><span class="pi">:</span> <span class="s">wnddkd</span>
+
+<span class="na">networks</span><span class="pi">:</span>
+  <span class="na">frontend-net</span><span class="pi">:</span> <span class="pi">{}</span>
+  <span class="na">backend-net</span><span class="pi">:</span> <span class="pi">{}</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">mydb_data</span><span class="pi">:</span> <span class="pi">{}</span>
+  <span class="na">myweb_data</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mydb</code>는 Backend Network에만 연결하고 <code class="language-plaintext highlighter-rouge">myweb</code>은 Frontend와 Backend Network에 모두 연결한다. WordPress는 MySQL Container의 IP가 아닌 Service 이름 <code class="language-plaintext highlighter-rouge">mydb</code>로 접속한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>여러 <code class="language-plaintext highlighter-rouge">docker run</code> 명령의 Image, Port, Volume, Network와 환경 변수를 하나의 Compose File로 옮길 수 있다.</p>
+    </li>
+    <li>
+      <p>동일한 Compose Network에서는 Service 이름을 DNS 이름으로 사용한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">depends_on</code>은 실행 순서를 정의하지만 준비 완료를 보장하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h2 id="3--flask와-redis의-container-통신">3 ) Flask와 Redis의 Container 통신</h2>
+
+<hr />
+
+<p>Flask Application의 Web 접속 횟수를 Redis에 저장하는 예제로 <code class="language-plaintext highlighter-rouge">localhost</code>와 Container Network의 차이를 확인한다.</p>
+
+<h3 id="redis만-container로-실행">Redis만 Container로 실행</h3>
+
+<p>Redis Container를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">--name</span> myredis <span class="nt">-d</span> <span class="nt">-p</span> 6379:6379 redis
+</code></pre></div></div>
+
+<p>Host에서 Redis Server가 이미 실행 중이어서 Port가 충돌한다면 실습 전에 기존 Service를 중지한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl stop redis-server
+</code></pre></div></div>
+
+<p>Python 가상 환경을 만들고 필요한 Package를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python3 <span class="nt">-m</span> venv ./myvenv
+<span class="nb">source </span>myvenv/bin/activate
+pip <span class="nb">install </span>flask redis
+pip freeze <span class="o">&gt;</span> requirements.txt
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">app.py</code>를 작성한다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">redis</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">web_hit_cnt</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">redis</span><span class="p">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"localhost"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">conn</span><span class="p">.</span><span class="n">incr</span><span class="p">(</span><span class="s">"hits"</span><span class="p">)</span>
+
+
+<span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">"/"</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">web_hit_cnt</span><span class="p">()</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s">"&lt;h1&gt;Web Access Count: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s">&lt;/h1&gt;"</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9000</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Host에서 Application을 실행하면 Host의 <code class="language-plaintext highlighter-rouge">6379</code> Port를 통해 Redis Container에 접근한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python app.py
+</code></pre></div></div>
+
+<h3 id="flask도-container로-실행">Flask도 Container로 실행</h3>
+
+<p>Flask Application을 Image로 Build하기 위해 <code class="language-plaintext highlighter-rouge">Dockerfile</code>을 작성한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> python:3</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> requirements.txt .</span>
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--no-cache-dir</span> <span class="nt">-r</span> requirements.txt
+
+<span class="k">COPY</span><span class="s"> app.py .</span>
+
+<span class="k">CMD</span><span class="s"> ["python", "app.py"]</span>
+</code></pre></div></div>
+
+<p>Image를 Build하고 Container를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> flaskapp <span class="nb">.</span>
+docker run <span class="nt">-dit</span> <span class="nt">-p</span> 9000:9000 <span class="nt">--name</span> flaskapp flaskapp
+</code></pre></div></div>
+
+<p>이 상태에서 Web Page를 호출하면 Redis 연결에 실패한다. Container 안의 <code class="language-plaintext highlighter-rouge">localhost</code>와 <code class="language-plaintext highlighter-rouge">127.0.0.1</code>은 Host나 다른 Container가 아니라 <strong>현재 Flask Container 자신</strong>을 가리키기 때문이다.</p>
+
+<p>다음 명령으로 기본 Bridge Network와 Redis Container의 IP Address를 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network inspect bridge
+docker inspect myredis
+</code></pre></div></div>
+
+<p>확인한 IP Address를 <code class="language-plaintext highlighter-rouge">app.py</code>에 직접 작성하면 임시로 연결할 수 있지만 Container를 다시 만들 때 IP가 바뀔 수 있다. 지속적으로 사용할 구성에서는 두 Container를 같은 사용자 정의 Network에 연결하고 이름으로 통신하거나 Compose를 사용한다.</p>
+
+<h3 id="docker-compose에서-service-이름으로-통신">Docker Compose에서 Service 이름으로 통신</h3>
+
+<p><code class="language-plaintext highlighter-rouge">app.py</code>에서 Redis 접속 Host를 Compose Service 이름인 <code class="language-plaintext highlighter-rouge">redis</code>로 변경한다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">redis</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">web_hit_cnt</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">redis</span><span class="p">.</span><span class="n">Redis</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"redis"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">6379</span><span class="p">)</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">conn</span><span class="p">.</span><span class="n">incr</span><span class="p">(</span><span class="s">"hits"</span><span class="p">)</span>
+
+
+<span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">"/"</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">web_hit_cnt</span><span class="p">()</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s">"&lt;h1&gt;Web Access Count: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s">&lt;/h1&gt;"</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">9000</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">compose.yaml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">redis</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">redis:latest</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">6379:6379"</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span> <span class="pi">[</span><span class="s2">"</span><span class="s">CMD"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">redis-cli"</span><span class="pi">,</span> <span class="s2">"</span><span class="s">ping"</span><span class="pi">]</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">3s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">5</span>
+
+  <span class="na">flask</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">.</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">9000:9000"</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="na">redis</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">service_healthy</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">always</span>
+</code></pre></div></div>
+
+<p>Application을 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+</code></pre></div></div>
+
+<p>Dockerfile만 사용하면 Image Build와 Container 실행 명령을 각각 수행해야 한다. Compose의 <code class="language-plaintext highlighter-rouge">build</code>를 사용하면 필요한 Image Build와 여러 Service 실행을 <code class="language-plaintext highlighter-rouge">docker compose up</code>으로 함께 처리할 수 있다.</p>
+
+<h2 id="4--compose-명령과-scale-조정">4 ) Compose 명령과 Scale 조정</h2>
+
+<hr />
+
+<p>주요 Compose 명령은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">build</code></td>
+      <td>Dockerfile을 이용해 Service Image Build</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">config</code></td>
+      <td>Compose File 해석 및 검증 결과 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">create</code></td>
+      <td>Service Container 생성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">up</code></td>
+      <td>Service 생성 및 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">down</code></td>
+      <td>Project의 Container와 Network 중지 후 삭제</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">events</code></td>
+      <td>Container Event 실시간 수신</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">exec</code></td>
+      <td>실행 중인 Service Container에서 명령 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">images</code></td>
+      <td>Service가 사용하는 Image 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kill</code></td>
+      <td>Service Container 강제 종료</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">logs</code></td>
+      <td>Service Log 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">pause</code>, <code class="language-plaintext highlighter-rouge">unpause</code></td>
+      <td>Service Container 일시 정지 및 재개</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">port</code></td>
+      <td>공개 Port 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ps</code></td>
+      <td>Service Container 상태 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">pull</code>, <code class="language-plaintext highlighter-rouge">push</code></td>
+      <td>Service Image 가져오기 및 배포</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">restart</code>, <code class="language-plaintext highlighter-rouge">start</code>, <code class="language-plaintext highlighter-rouge">stop</code></td>
+      <td>Service Container 재시작·시작·중지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">rm</code></td>
+      <td>중지된 Service Container 삭제</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">run</code></td>
+      <td>특정 Service 설정으로 일회성 명령 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">top</code></td>
+      <td>실행 중인 Process 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">version</code></td>
+      <td>Compose Version 출력</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>과거 Compose V1에는 <code class="language-plaintext highlighter-rouge">scale</code> 하위 명령이 있었지만 현재는 <code class="language-plaintext highlighter-rouge">docker compose up --scale</code>을 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">server_web</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">httpd:2</span>
+  <span class="na">server_db</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">redis</span>
+</code></pre></div></div>
+
+<p>기본 구성을 실행하고 확인한 뒤 종료한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+docker compose down
+</code></pre></div></div>
+
+<p>각 Service의 Replica 수를 3개로 조정하여 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="se">\</span>
+  <span class="nt">--scale</span> <span class="nv">server_db</span><span class="o">=</span>3 <span class="se">\</span>
+  <span class="nt">--scale</span> <span class="nv">server_web</span><span class="o">=</span>3 <span class="se">\</span>
+  <span class="nt">-d</span>
+</code></pre></div></div>
+
+<p>Scale 대상 Service에 <code class="language-plaintext highlighter-rouge">container_name</code>을 지정하면 Container 이름이 중복되므로 Replica를 여러 개 만들 수 없다. Host의 고정 Port도 각 Replica가 동시에 사용할 수 없으므로 Scale 구성에서는 Port 충돌을 함께 고려해야 한다.</p>
+
+<p>Project를 삭제할 때 사용할 수 있는 주요 Option은 다음과 같다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose <span class="o">[</span><span class="nt">-f</span> FILE] down <span class="o">[</span>OPTIONS]
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--rmi all</code></td>
+      <td>Service가 사용하는 모든 Image 삭제</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--rmi local</code></td>
+      <td>Custom Tag가 없는 Image만 삭제</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-v</code>, <code class="language-plaintext highlighter-rouge">--volumes</code></td>
+      <td>Compose File에 선언한 Named Volume과 Anonymous Volume 삭제</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--remove-orphans</code></td>
+      <td>현재 Compose File에 정의되지 않은 Project Container도 삭제</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Volume 삭제는 영속 데이터를 제거할 수 있으므로 대상 데이터를 확인한 뒤 실행한다.</p>
+
+<h2 id="5--load-balancer">5 ) Load Balancer</h2>
+
+<hr />
+
+<p>Load Balancer는 Client와 Server Pool 사이에서 요청을 여러 Server로 분산하는 장치 또는 기술이다. 한 Server에 부하가 집중되는 것을 방지하여 Resource 활용도와 처리량을 높이고 지연 시간을 줄이며, Health Check와 결합하면 장애가 발생한 Server를 대상에서 제외할 수 있다.</p>
+
+<p>Docker 환경에서도 HAProxy, Nginx, Apache HTTP Server 같은 외부 Service를 Container와 결합하여 Load Balancing을 구성할 수 있다.</p>
+
+<h3 id="load-balancing-algorithm">Load Balancing Algorithm</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Algorithm</th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Round Robin</td>
+      <td>요청을 Server에 순서대로 분배하며 Weight 적용 가능</td>
+    </tr>
+    <tr>
+      <td>Least Connections</td>
+      <td>현재 연결 수가 가장 적은 Server에 요청 전달</td>
+    </tr>
+    <tr>
+      <td>IP Hash</td>
+      <td>Client IP의 Hash로 Server를 선택하여 같은 IP의 경로 유지</td>
+    </tr>
+    <tr>
+      <td>Generic Hash</td>
+      <td>URI 등 사용자가 정한 Key로 Server 선택</td>
+    </tr>
+    <tr>
+      <td>Least Time</td>
+      <td>응답 시간과 연결 수를 고려하여 Server 선택</td>
+    </tr>
+    <tr>
+      <td>Random</td>
+      <td>Server를 무작위로 선택</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>IP Hash는 같은 Client를 같은 Server로 보내는 데 유용하지만 Server 장애나 구성 변경 시 경로가 달라질 수 있고 균등 분배를 항상 보장하지 않는다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">least_time</code>은 측정 기준에 따라 첫 Byte를 받는 시간인 <code class="language-plaintext highlighter-rouge">header</code>, 전체 응답을 받는 시간인 <code class="language-plaintext highlighter-rouge">last_byte</code>, 처리 중 요청까지 고려하는 <code class="language-plaintext highlighter-rouge">last_byte inflight</code> 방식을 사용할 수 있다. 이 지시어는 과거에는 Commercial Subscription에서만 제공되었지만 Nginx <code class="language-plaintext highlighter-rouge">1.31.0</code>부터 Open Source에서도 사용할 수 있다. Algorithm과 지시어의 지원 범위는 Nginx Version과 Edition에 따라 확인해야 한다.</p>
+
+<h3 id="nginx-upstream-parameter">Nginx Upstream Parameter</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Parameter</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">weight</code></td>
+      <td>Server 선택 가중치이며 기본값은 1</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">max_conns</code></td>
+      <td>Server의 최대 동시 연결 수 제한</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">queue</code></td>
+      <td>즉시 전달할 Server가 없을 때 요청 대기열 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">max_fails</code></td>
+      <td>지정 횟수 이상 실패한 Server를 일정 시간 대상에서 제외</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">backup</code></td>
+      <td>Primary Server를 사용할 수 없을 때 요청을 받을 Backup 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">down</code></td>
+      <td>해당 Server를 일시적으로 분배 대상에서 제외</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>원문의 <code class="language-plaintext highlighter-rouge">max_connes</code>는 Nginx Parameter 이름에 맞게 <code class="language-plaintext highlighter-rouge">max_conns</code>로 바로잡았다. <code class="language-plaintext highlighter-rouge">queue</code> 등 일부 기능은 Nginx Plus에서만 제공될 수 있으므로 사용하는 Edition의 공식 문서를 확인해야 한다.</p>
+
+<h2 id="6--nginx-container-load-balancing-실습">6 ) Nginx Container Load Balancing 실습</h2>
+
+<hr />
+
+<p>Flask Application 세 개와 Nginx Load Balancer를 Compose로 실행한다.</p>
+
+<h3 id="directory-구성">Directory 구성</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>alb
+<span class="nb">cd </span>alb
+<span class="nb">mkdir </span>nginx_alb pyfla_app1 pyfla_app2 pyfla_app3
+</code></pre></div></div>
+
+<p>완성되는 Directory 구조는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>alb/
+├── compose.yaml
+├── nginx_alb/
+│   ├── Dockerfile
+│   └── nginx.conf
+├── pyfla_app1/
+│   ├── Dockerfile
+│   └── pyfla_app.py
+├── pyfla_app2/
+│   ├── Dockerfile
+│   └── pyfla_app.py
+└── pyfla_app3/
+    ├── Dockerfile
+    └── pyfla_app.py
+</code></pre></div></div>
+
+<h3 id="nginx-구성">Nginx 구성</h3>
+
+<p><code class="language-plaintext highlighter-rouge">nginx_alb/Dockerfile</code>을 작성한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> nginx</span>
+
+<span class="k">RUN </span><span class="nb">rm</span> /etc/nginx/conf.d/default.conf
+<span class="k">COPY</span><span class="s"> nginx.conf /etc/nginx/conf.d/default.conf</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">nginx_alb/nginx.conf</code>에는 세 Flask Service를 Upstream으로 지정한다.</p>
+
+<div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">upstream</span> <span class="s">web-alb</span> <span class="p">{</span>
+    <span class="kn">server</span> <span class="s">pyfla_app1:5000</span><span class="p">;</span>
+    <span class="kn">server</span> <span class="s">pyfla_app2:5000</span><span class="p">;</span>
+    <span class="kn">server</span> <span class="s">pyfla_app3:5000</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">server</span> <span class="p">{</span>
+    <span class="kn">listen</span> <span class="mi">80</span><span class="p">;</span>
+
+    <span class="kn">location</span> <span class="n">/</span> <span class="p">{</span>
+        <span class="kn">proxy_pass</span> <span class="s">http://web-alb</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>원문은 Host Bridge Address인 <code class="language-plaintext highlighter-rouge">172.17.0.1</code>과 Host에 공개한 <code class="language-plaintext highlighter-rouge">5001</code>~<code class="language-plaintext highlighter-rouge">5003</code> Port를 Upstream으로 사용했다. Compose의 같은 Network에서는 Service 이름과 Container Port로 직접 통신할 수 있으므로 변경될 수 있는 Bridge Address에 의존하지 않도록 구성했다.</p>
+
+<h3 id="flask-application-구성">Flask Application 구성</h3>
+
+<p><code class="language-plaintext highlighter-rouge">pyfla_app1/pyfla_app.py</code>를 작성한다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">"/"</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">"Web Application 1</span><span class="se">\n</span><span class="s">"</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">"0.0.0.0"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">pyfla_app1/Dockerfile</code>을 작성한다.</p>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> python:3</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+<span class="k">COPY</span><span class="s"> . .</span>
+
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--no-cache-dir</span> flask
+
+<span class="k">ENTRYPOINT</span><span class="s"> ["python3"]</span>
+<span class="k">CMD</span><span class="s"> ["pyfla_app.py"]</span>
+</code></pre></div></div>
+
+<p>두 File을 나머지 Application Directory에 복사한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cp </span>pyfla_app1/pyfla_app.py pyfla_app2/
+<span class="nb">cp </span>pyfla_app1/pyfla_app.py pyfla_app3/
+<span class="nb">cp </span>pyfla_app1/Dockerfile pyfla_app2/
+<span class="nb">cp </span>pyfla_app1/Dockerfile pyfla_app3/
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">pyfla_app2/pyfla_app.py</code>와 <code class="language-plaintext highlighter-rouge">pyfla_app3/pyfla_app.py</code>의 응답 숫자를 각각 <code class="language-plaintext highlighter-rouge">2</code>, <code class="language-plaintext highlighter-rouge">3</code>으로 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nano pyfla_app2/pyfla_app.py
+nano pyfla_app3/pyfla_app.py
+</code></pre></div></div>
+
+<h3 id="compose-file과-실행">Compose File과 실행</h3>
+
+<p><code class="language-plaintext highlighter-rouge">alb/compose.yaml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">pyfla_app1</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">./pyfla_app1</span>
+
+  <span class="na">pyfla_app2</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">./pyfla_app2</span>
+
+  <span class="na">pyfla_app3</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">./pyfla_app3</span>
+
+  <span class="na">nginx</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">./nginx_alb</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8000:80"</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">pyfla_app1</span>
+      <span class="pi">-</span> <span class="s">pyfla_app2</span>
+      <span class="pi">-</span> <span class="s">pyfla_app3</span>
+</code></pre></div></div>
+
+<p>세 Flask Service는 Nginx를 통해 접근하므로 Host Port를 별도로 공개하지 않았다. Stack을 Build하고 Background에서 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">--build</span> <span class="nt">-d</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">http://localhost:8000</code>을 반복해서 호출하면 기본 Round Robin 방식으로 세 Application의 응답을 확인할 수 있다.</p>
+
+<h3 id="weight-변경">Weight 변경</h3>
+
+<p>첫 번째 Application에 더 많은 요청을 전달하려면 <code class="language-plaintext highlighter-rouge">nginx.conf</code>의 Weight를 변경한다.</p>
+
+<div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">upstream</span> <span class="s">web-alb</span> <span class="p">{</span>
+    <span class="kn">server</span> <span class="s">pyfla_app1:5000</span> <span class="s">weight=3</span><span class="p">;</span>
+    <span class="kn">server</span> <span class="s">pyfla_app2:5000</span> <span class="s">weight=1</span><span class="p">;</span>
+    <span class="kn">server</span> <span class="s">pyfla_app3:5000</span> <span class="s">weight=1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="k">server</span> <span class="p">{</span>
+    <span class="kn">listen</span> <span class="mi">80</span><span class="p">;</span>
+
+    <span class="kn">location</span> <span class="n">/</span> <span class="p">{</span>
+        <span class="kn">proxy_pass</span> <span class="s">http://web-alb</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>설정을 Image에 반영하려면 Nginx Service를 다시 Build한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">--build</span> <span class="nt">-d</span> nginx
+</code></pre></div></div>
+
+<h2 id="7--환경-변수-삽입-및-관리">7 ) 환경 변수 삽입 및 관리</h2>
+
+<hr />
+
+<p>Container에 환경 변수를 전달하는 방법은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>Compose File에 직접 작성한다.</p>
+  </li>
+  <li>
+    <p>Shell 환경 변수를 사용한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">.env</code> 또는 별도의 환경 변수 File을 사용한다.</p>
+  </li>
+  <li>
+    <p>Dockerfile의 <code class="language-plaintext highlighter-rouge">ENV</code>로 Image에 포함한다.</p>
+  </li>
+</ul>
+
+<p>Compose File에 비밀번호를 직접 작성할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">mysql</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mysql:8</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">unless-stopped</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3306:3306"</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MYSQL_ROOT_PASSWORD</span><span class="pi">:</span> <span class="s">password</span>
+</code></pre></div></div>
+
+<p>이 File을 Git Repository에 Commit하면 비밀번호가 노출된다. Shell 환경 변수로 분리하려면 먼저 값을 등록한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>password
+</code></pre></div></div>
+
+<p>Compose File에서는 변수 치환 문법을 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">mysql</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mysql:8</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">unless-stopped</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3306:3306"</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MYSQL_ROOT_PASSWORD</span><span class="pi">:</span> <span class="s">${MYSQL_ROOT_PASSWORD}</span>
+</code></pre></div></div>
+
+<p>값을 Compose File에서 분리해도 실행 중인 Container의 환경 변수나 Host 설정을 읽을 권한이 있으면 노출될 수 있다. <code class="language-plaintext highlighter-rouge">.env</code> 같은 File은 Version Control에서 제외하고 접근 권한을 관리해야 한다. 보안을 더 강화해야 하는 환경에서는 Docker Secret이나 HashiCorp Vault 같은 Secret 관리 방식을 사용한다.</p>
+
+<h2 id="8--docker-swarm">8 ) Docker Swarm</h2>
+
+<hr />
+
+<p>Docker Swarm Mode는 여러 Docker Host를 하나의 Cluster로 묶어 Service를 배포하고 관리하는 Docker Engine 내장 Orchestration 기능이다. Orchestration 도구가 없다면 여러 Host 중 어디에 Container를 배치할지, 서로 다른 Host의 Container를 어떻게 연결할지, 장애가 발생했을 때 어떻게 복구할지를 직접 조정해야 한다.</p>
+
+<h3 id="주요-용어">주요 용어</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>용어</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Docker Compose</td>
+      <td>주로 단일 Host에서 여러 Container Application 관리</td>
+    </tr>
+    <tr>
+      <td>Swarm</td>
+      <td>여러 Docker Engine이 참여하는 Cluster</td>
+    </tr>
+    <tr>
+      <td>Node</td>
+      <td>Swarm에 참여한 Docker Host</td>
+    </tr>
+    <tr>
+      <td>Service</td>
+      <td>Swarm에서 유지할 Container 실행 상태 정의</td>
+    </tr>
+    <tr>
+      <td>Task</td>
+      <td>Node에 배치되는 Service의 실행 단위</td>
+    </tr>
+    <tr>
+      <td>Stack</td>
+      <td>여러 Swarm Service로 구성된 전체 Application</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="node-역할과-분산-설계">Node 역할과 분산 설계</h3>
+
+<p>Swarm Node는 Manager와 Worker 역할로 구분한다.</p>
+
+<ul>
+  <li>
+    <p>Manager Node는 Cluster 상태, Service Scheduling과 원하는 상태 유지를 담당한다.</p>
+  </li>
+  <li>
+    <p>여러 Manager 중 하나가 Raft 합의의 Leader가 되어 관리 명령을 조정한다.</p>
+  </li>
+  <li>
+    <p>Worker Node는 Manager가 할당한 Task를 실행한다.</p>
+  </li>
+</ul>
+
+<p>Manager Node도 기본적으로 Task를 실행할 수 있다. 관리 부하와 Application 부하를 분리하려면 Service에 다음 Placement Constraint를 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> my-service <span class="se">\</span>
+  <span class="nt">--constraint</span> <span class="s1">'node.role!=manager'</span> <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>Kubernetes의 Control Plane Node도 일반적으로 Taint를 통해 일반 Workload 배치를 막지만, 설정에 따라 Workload를 실행할 수 있다. 따라서 “Kubernetes Master는 Container Service를 절대로 실행하지 않는다”라고 구분하기보다 기본 Scheduling 정책과 역할 분리 관점에서 이해해야 한다.</p>
+
+<h3 id="service-확장과-원하는-상태">Service 확장과 원하는 상태</h3>
+
+<p>Replica 수를 지정하면 Swarm Manager가 그 수만큼 Task를 유지한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="nt">--name</span> web <span class="nt">--replicas</span> 3 nginx
+</code></pre></div></div>
+
+<p>실행 중인 Task에 장애가 발생하여 실제 상태가 사용자가 요청한 상태와 달라지면 Manager는 대체 Task를 생성한다. 이처럼 선언한 상태와 실제 상태가 일치하도록 지속적으로 조정하는 것을 <strong>Desired State Management</strong>라고 한다.</p>
+
+<h3 id="service-scheduling">Service Scheduling</h3>
+
+<p>Manager는 Node의 가용성, Resource와 Placement 조건을 확인하여 Task를 배치한다. 원문의 <code class="language-plaintext highlighter-rouge">swarm manage --strategy</code>와 <code class="language-plaintext highlighter-rouge">spread</code>, <code class="language-plaintext highlighter-rouge">binpack</code>, <code class="language-plaintext highlighter-rouge">random</code> Option은 별도 Classic Swarm 시기의 방식으로 현재 Docker Engine의 Swarm Mode 명령이 아니다.</p>
+
+<p>현재 Swarm Mode에서는 다음 기능으로 배치를 제어한다.</p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">--constraint</code>로 Task가 배치될 수 있는 Node를 제한한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">--placement-pref 'spread=...'</code>로 Label 값을 기준으로 Replica를 분산한다.</p>
+  </li>
+  <li>
+    <p>CPU와 Memory 제한 또는 예약으로 Resource 조건을 설정한다.</p>
+  </li>
+</ul>
+
+<p>Placement Preference는 강제 조건이 아니며 현재는 <code class="language-plaintext highlighter-rouge">spread</code>만 지원한다. 엄격한 배치 조건이 필요하면 Constraint를 함께 사용한다.</p>
+
+<h3 id="ingress-network와-routing-mesh">Ingress Network와 Routing Mesh</h3>
+
+<p>Swarm을 초기화하거나 참여하면 Service Load Balancing을 위한 특별한 Overlay Network인 <code class="language-plaintext highlighter-rouge">ingress</code>가 생성된다. Service의 Port를 공개하면 모든 Swarm Node가 Routing Mesh에 참여한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> web <span class="se">\</span>
+  <span class="nt">--replicas</span> 1 <span class="se">\</span>
+  <span class="nt">--publish</span> <span class="nv">published</span><span class="o">=</span>8080,target<span class="o">=</span>80 <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>위 Service의 Task가 Worker Node 1에만 배치되어 있어도 Worker Node 2의 <code class="language-plaintext highlighter-rouge">8080</code> Port로 들어온 요청을 실행 중인 Task로 전달할 수 있다. Client는 실제 Task가 어느 Node에 있는지 알 필요가 없다.</p>
+
+<p>Published Port를 생략하면 Swarm이 사용 가능한 높은 번호의 Port를 할당한다. 과거 문서에서는 자동 할당 범위를 <code class="language-plaintext highlighter-rouge">30000</code>~<code class="language-plaintext highlighter-rouge">32767</code>로 설명하며, 현재 Docker 문서의 핵심 개념에도 이 범위가 안내되어 있다. 다만 실제 배포에서는 자동 할당 결과를 <code class="language-plaintext highlighter-rouge">docker service inspect</code>로 확인해야 한다.</p>
+
+<p>Routing Mesh를 사용하려면 Node 사이에 다음 Port가 열려 있어야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Port</th>
+      <th>Protocol</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">7946</code></td>
+      <td>TCP/UDP</td>
+      <td>Container Network Discovery</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">4789</code></td>
+      <td>UDP</td>
+      <td>Ingress Network Traffic</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Cluster 관리에는 별도로 Manager 통신용 TCP <code class="language-plaintext highlighter-rouge">2377</code>도 필요하다. 외부 Load Balancer나 Client가 Service에 접근한다면 공개한 Service Port도 허용해야 한다.</p>
+
+<h3 id="service-discovery">Service Discovery</h3>
+
+<p>Swarm은 내장 DNS를 통해 Service Discovery를 제공한다. 같은 Overlay Network의 Service는 각 Task의 IP를 직접 관리하지 않고 Service 이름으로 접근할 수 있으며, Swarm이 요청을 실행 중인 Task로 분산한다.</p>
+
+<h3 id="rolling-update와-rollback">Rolling Update와 Rollback</h3>
+
+<p>Swarm Service는 Replica를 단계적으로 교체하는 Rolling Update를 지원한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--image</span> nginx:stable <span class="se">\</span>
+  <span class="nt">--update-parallelism</span> 1 <span class="se">\</span>
+  <span class="nt">--update-order</span> start-first <span class="se">\</span>
+  <span class="nt">--update-failure-action</span> rollback <span class="se">\</span>
+  web
+</code></pre></div></div>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">--update-parallelism</code>은 한 번에 Update할 Task 수를 정한다.</p>
+  </li>
+  <li>
+    <p>기본 Update 순서는 기존 Task를 먼저 중지하는 <code class="language-plaintext highlighter-rouge">stop-first</code>이다. 새 Task를 먼저 실행하려면 <code class="language-plaintext highlighter-rouge">start-first</code>를 지정한다.</p>
+  </li>
+  <li>
+    <p>Update 실패 시 기본 동작은 일시 중지이며, 자동 복구가 필요하면 <code class="language-plaintext highlighter-rouge">--update-failure-action rollback</code>을 명시한다.</p>
+  </li>
+</ul>
+
+<p>따라서 “항상 새 Container를 먼저 만들며 실패하면 자동 Rollback한다”는 동작은 기본값이 아니라 Service Update 정책으로 구성해야 하는 동작이다.</p>
+
+<h2 id="9--docker-swarm과-kubernetes">9 ) Docker Swarm과 Kubernetes</h2>
+
+<hr />
+
+<p>두 도구 모두 여러 Node에 Container Workload를 배치하고 원하는 상태를 유지하지만 적용 환경과 기능 범위가 다르다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>기준</th>
+      <th>Docker Swarm</th>
+      <th>Kubernetes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>구성</td>
+      <td>Docker Engine에 내장되어 비교적 단순</td>
+      <td>별도의 Cluster 구성 요소와 Resource Model 사용</td>
+    </tr>
+    <tr>
+      <td>학습 곡선</td>
+      <td>Docker를 익혔다면 시작하기 쉬움</td>
+      <td>개념과 구성 요소가 더 많음</td>
+    </tr>
+    <tr>
+      <td>생태계와 확장성</td>
+      <td>기본 Orchestration 기능 중심</td>
+      <td>Network, Storage, Policy와 확장 생태계가 큼</td>
+    </tr>
+    <tr>
+      <td>Cloud 연동</td>
+      <td>Cluster를 직접 구성하는 형태가 일반적</td>
+      <td>주요 Cloud에서 Managed Kubernetes 제공</td>
+    </tr>
+    <tr>
+      <td>적합한 경우</td>
+      <td>단순한 Docker 기반 Cluster와 학습</td>
+      <td>복잡한 운영 요구와 Cloud Native Platform</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Docker Compose에서 익힌 Service와 Network 개념은 Swarm으로 이어지며, Swarm의 Desired State, Scheduling, Service Discovery, Rolling Update와 Ingress는 Kubernetes를 학습할 때도 연결되는 핵심 개념이다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Compose File의 <code class="language-plaintext highlighter-rouge">services</code>, <code class="language-plaintext highlighter-rouge">networks</code>, <code class="language-plaintext highlighter-rouge">volumes</code>로 여러 Container Application을 선언한다.</p>
+    </li>
+    <li>
+      <p>같은 Network의 Container는 변경될 수 있는 IP 대신 Service 이름으로 통신한다.</p>
+    </li>
+    <li>
+      <p>Nginx Upstream과 Compose Service를 결합하여 여러 Flask Application에 요청을 분산할 수 있다.</p>
+    </li>
+    <li>
+      <p>환경 변수를 File 밖으로 분리해도 자동으로 안전해지는 것은 아니므로 접근 권한과 Secret 관리 방식을 함께 고려한다.</p>
+    </li>
+    <li>
+      <p>Docker Swarm은 여러 Docker Host에서 Desired State, Scheduling, Service Discovery, Rolling Update와 Ingress Routing Mesh를 제공한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="Cloud" /><category term="AutoEverSW" /><summary type="html"><![CDATA[다중 Container 실습, Nginx Load Balancing, 환경 변수 관리와 Docker Swarm의 핵심 구조]]></summary></entry><entry><title type="html">애플리케이션별 Docker Multi-stage Build</title><link href="https://kkr010128.github.io/cloud-native-15-multi-stage-build/" rel="alternate" type="text/html" title="애플리케이션별 Docker Multi-stage Build" /><published>2026-08-20T00:00:00+09:00</published><updated>2026-08-20T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-15-multi-stage-build</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-15-multi-stage-build/"><![CDATA[<h2 id="1--애플리케이션과-multi-stage-build">1 ) 애플리케이션과 Multi-stage Build</h2>
 
 <hr />
 
@@ -4725,1148 +5872,4 @@ docker image prune
 docker image prune <span class="nt">-a</span>
 </code></pre></div></div>
 
-<p><code class="language-plaintext highlighter-rouge">docker image prune -a</code>는 다시 필요할 수 있는 Local Image도 삭제할 수 있으므로, 표시되는 삭제 대상을 확인한 뒤 실행한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Image 검색과 다운로드, Layer 구조, Tag 및 Docker Hub 배포 방법]]></summary></entry><entry><title type="html">클라우드 보안</title><link href="https://kkr010128.github.io/cloud-03-security/" rel="alternate" type="text/html" title="클라우드 보안" /><published>2026-08-13T00:00:00+09:00</published><updated>2026-08-13T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-03-security</id><content type="html" xml:base="https://kkr010128.github.io/cloud-03-security/"><![CDATA[<h2 id="1--클라우드-보안">1 ) 클라우드 보안</h2>
-
-<hr />
-
-<p>클라우드 환경에서는 설정 오류, 자격 증명 노출, 과도한 권한 부여 등이 보안 사고로 이어질 수 있다.</p>
-
-<p>대표적인 사례는 다음과 같다.</p>
-
-<ul>
-  <li>S3 Bucket을 Public으로 설정하여 고객 정보가 유출되는 경우</li>
-  <li>개발자가 AWS Access Key를 GitHub에 업로드하는 경우</li>
-  <li>사용자 또는 서비스에 과도한 권한을 부여하는 경우</li>
-</ul>
-
-<p>특히 Access Key를 소스 코드에 직접 포함하면 GitHub와 같은 외부 저장소에 코드가 공개될 때 자격 증명도 함께 노출될 수 있다.</p>
-
-<p>최근에는 GitHub에서 AWS Access Key가 포함된 코드를 Push하지 못하도록 제한하며, AWS에서도 GitHub에 노출된 Key를 이용한 접근을 감지하면 계정을 잠그는 방식으로 대응한다.</p>
-
-<h3 id="클라우드-보안이-중요한-이유">클라우드 보안이 중요한 이유</h3>
-
-<p>클라우드 보안은 크게 비용, 신뢰, 법적인 측면에서 중요하다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>비용</td>
-      <td>보안 사고로 인한 직접적인 금전적 피해가 발생할 수 있다.</td>
-    </tr>
-    <tr>
-      <td>신뢰</td>
-      <td>정보 유출 등의 사고는 서비스와 기업에 대한 신뢰 하락으로 이어질 수 있다.</td>
-    </tr>
-    <tr>
-      <td>법</td>
-      <td>개인정보 및 데이터와 관련된 법적 책임이 발생할 수 있다.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="2--iam">2 ) IAM</h2>
-
-<hr />
-
-<p>IAM (Identity and Access Management)은 AWS에서 사용자와 서비스의 접근 권한을 관리하기 위한 서비스이다.</p>
-
-<h3 id="주요-구성-요소">주요 구성 요소</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성 요소</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>User</td>
-      <td>AWS를 사용하는 개별 사용자</td>
-    </tr>
-    <tr>
-      <td>Group</td>
-      <td>여러 User를 묶어 관리</td>
-    </tr>
-    <tr>
-      <td>Role</td>
-      <td>권한의 묶음</td>
-    </tr>
-    <tr>
-      <td>Policy</td>
-      <td>허용하거나 거부할 권한을 정의하는 정책</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="root-사용자와-iam-사용자">Root 사용자와 IAM 사용자</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>Root 사용자</th>
-      <th>IAM 사용자</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>권한</td>
-      <td>모든 권한 소유</td>
-      <td>부여된 권한만 사용</td>
-    </tr>
-    <tr>
-      <td>생성</td>
-      <td>자동 생성</td>
-      <td>Root 사용자가 생성</td>
-    </tr>
-    <tr>
-      <td>삭제</td>
-      <td>삭제할 수 없음</td>
-      <td>삭제 가능</td>
-    </tr>
-    <tr>
-      <td>일상 사용</td>
-      <td>사용하지 않음</td>
-      <td>일상 업무에 사용</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Root 계정에서는 다음과 같은 작업을 수행한다.</p>
-
-<ul>
-  <li>AWS 계정 이름, 이메일, 비밀번호 변경</li>
-  <li>결제 정보 변경</li>
-  <li>AWS Support Plan 변경</li>
-  <li>계정 해지</li>
-  <li>IAM 사용자의 권한 복원</li>
-</ul>
-
-<p>Root 계정은 모든 권한을 가지고 있으므로 반드시 MFA (Multi-Factor Authentication)를 설정한다.</p>
-
-<h3 id="iam-role">IAM Role</h3>
-
-<p>Role은 권한을 묶어서 필요한 대상에게 부여하는 방식이다.</p>
-
-<p>대표적인 사용 사례는 다음과 같다.</p>
-
-<ul>
-  <li>AWS 서비스 간 접근</li>
-  <li>다른 AWS 계정에서 접근</li>
-  <li>임시 접근 권한 부여</li>
-</ul>
-
-<p>예를 들어 EC2가 S3에 접근해야 하는 경우 EC2에 필요한 Role을 부여할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EC2
- │
- │ IAM Role
- ▼
-S3
-</code></pre></div></div>
-
-<h3 id="iam-policy"><strong>IAM Policy</strong></h3>
-
-<p>Policy는 무엇을 허용하고 무엇을 거부할지를 정의한 규칙이다.</p>
-
-<p>Policy는 JSON으로 직접 작성하거나 GUI를 이용하여 작성할 수 있다.</p>
-
-<p>주요 구성 요소는 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>항목</strong></th>
-      <th><strong>역할</strong></th>
-      <th><strong>예</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Effect</td>
-      <td>허용 또는 거부</td>
-      <td><code class="language-plaintext highlighter-rouge">Allow</code>, <code class="language-plaintext highlighter-rouge">Deny</code></td>
-    </tr>
-    <tr>
-      <td>Action</td>
-      <td>수행할 작업</td>
-      <td><code class="language-plaintext highlighter-rouge">s3:GetObject</code></td>
-    </tr>
-    <tr>
-      <td>Resource</td>
-      <td>작업 대상 Resource</td>
-      <td><code class="language-plaintext highlighter-rouge">arn:aws:s3:::my-bucket/*</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>예시는 다음과 같다.</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"Version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2012-10-17"</span><span class="p">,</span><span class="w">
-  </span><span class="nl">"Statement"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-    </span><span class="p">{</span><span class="w">
-      </span><span class="nl">"Effect"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Allow"</span><span class="p">,</span><span class="w">
-      </span><span class="nl">"Action"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-        </span><span class="s2">"s3:GetObject"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"s3:ListBucket"</span><span class="w">
-      </span><span class="p">],</span><span class="w">
-      </span><span class="nl">"Resource"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-        </span><span class="s2">"arn:aws:s3:::my-bucket"</span><span class="w">
-      </span><span class="p">]</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-  </span><span class="p">]</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-
-<p>Policy에서 <code class="language-plaintext highlighter-rouge">Allow</code>와 <code class="language-plaintext highlighter-rouge">Deny</code>가 동시에 적용되는 경우 <code class="language-plaintext highlighter-rouge">Deny</code>가 적용된다.</p>
-
-<h3 id="최소-권한-원칙"><strong>최소 권한 원칙</strong></h3>
-
-<p>사용자와 서비스에는 작업에 필요한 최소한의 권한만 부여한다.</p>
-
-<p>불필요하게 많은 권한을 부여하면 계정이나 Access Key가 탈취되었을 때 피해 범위도 커질 수 있다.</p>
-
-<h3 id="iam-모범-사례"><strong>IAM 모범 사례</strong></h3>
-
-<ul>
-  <li>Root 계정에 MFA를 설정한다.</li>
-  <li>일상적인 작업에는 IAM 계정을 생성하여 사용한다.</li>
-  <li>Group을 이용하여 권한을 관리한다.</li>
-  <li>최소 권한 원칙을 적용한다.</li>
-  <li>강력한 비밀번호 정책을 설정한다.</li>
-  <li>Access Key를 코드에 직접 포함하지 않는다.</li>
-  <li>사용하지 않는 사용자와 Key를 정리한다.</li>
-  <li>Access Key 대신 IAM Role을 활용한다.</li>
-</ul>
-
-<p>IAM 계정을 사용하면 누가 어떤 작업을 수행했는지 구분할 수 있으며, Group을 이용하면 여러 사용자의 권한을 일관되고 효율적으로 관리할 수 있다.</p>
-
-<h3 id="비밀번호-정책"><strong>비밀번호 정책</strong></h3>
-
-<p>권장하는 비밀번호 정책은 다음과 같다.</p>
-
-<ul>
-  <li>최소 길이 12자 이상</li>
-  <li>대문자, 소문자, 숫자, 특수 문자 포함</li>
-  <li>비밀번호 만료 시간 설정</li>
-  <li>최근 12개의 비밀번호를 기억하여 재사용 방지</li>
-  <li>사용자가 자신의 비밀번호를 변경할 수 있도록 허용</li>
-</ul>
-
-<p>짧은 비밀번호는 무차별 대입 공격에 취약할 수 있으며, 여러 종류의 문자를 사용하여 비밀번호 복잡도를 높일 수 있다.</p>
-
-<h3 id="aws-접근-방법"><strong>AWS 접근 방법</strong></h3>
-
-<p>AWS에는 콘솔을 이용하는 방법과 Access Key를 이용하는 방법이 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구분</strong></th>
-      <th><strong>Console Login</strong></th>
-      <th><strong>Access Key</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>접근 방법</td>
-      <td>Web Browser로 AWS Console 접속</td>
-      <td>프로그램이나 명령어로 AWS API 호출</td>
-    </tr>
-    <tr>
-      <td>사용 방법</td>
-      <td>ID + Password + MFA</td>
-      <td>Access Key ID + Secret Access Key</td>
-    </tr>
-    <tr>
-      <td>사용 대상</td>
-      <td>사람</td>
-      <td>프로그램, CLI Tool, 자동화 Script</td>
-    </tr>
-    <tr>
-      <td>보안 위험</td>
-      <td>비밀번호 유출, Phishing</td>
-      <td>Key를 코드에 포함하면 유출 위험</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>프로그램에서 AWS에 접근할 때는 Access Key를 코드에 직접 저장하는 것보다 IAM Role을 사용하는 것을 권장한다.</p>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>IAM은 AWS Resource에 대한 접근 권한을 관리한다.</li>
-  <li>User, Group, Role, Policy가 주요 구성 요소이다.</li>
-  <li>Root 계정은 일상적인 작업에 사용하지 않고 MFA를 설정한다.</li>
-  <li>사용자와 서비스에는 필요한 최소한의 권한만 부여한다.</li>
-  <li>Access Key를 소스 코드에 직접 포함하지 않는다.</li>
-</ul>
-
-<h2 id="3--네트워크-보안-아키텍처"><strong>3 ) 네트워크 보안 아키텍처</strong></h2>
-
-<hr />
-
-<p>AWS에서는 하나의 보안 장치에만 의존하지 않고 여러 계층에 보안 기능을 배치하는 방어 심층 전략 (Defense in Depth)을 적용할 수 있다.</p>
-
-<h3 id="방어-심층-전략"><strong>방어 심층 전략</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>계층</strong></th>
-      <th><strong>서비스</strong></th>
-      <th><strong>보호 대상</strong></th>
-      <th><strong>주요 기능</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Edge</td>
-      <td>CloudFront, Shield, WAF</td>
-      <td>외부 Internet 경계</td>
-      <td>DDoS 방어, L7 Filtering</td>
-    </tr>
-    <tr>
-      <td>VPC 경계</td>
-      <td>Network Firewall, IGW</td>
-      <td>VPC 진입점</td>
-      <td>IDS/IPS, Stateful 검사</td>
-    </tr>
-    <tr>
-      <td>Subnet</td>
-      <td>NACL, Route Table</td>
-      <td>Subnet 경계</td>
-      <td>Stateless Filtering</td>
-    </tr>
-    <tr>
-      <td>Instance</td>
-      <td>Security Group</td>
-      <td>Instance 경계</td>
-      <td>Stateful Filtering</td>
-    </tr>
-    <tr>
-      <td>Application</td>
-      <td>IAM, 암호화, 인증</td>
-      <td>Application 내부</td>
-      <td>인증/인가, 데이터 암호화</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="aws-네트워크-보안-서비스"><strong>AWS 네트워크 보안 서비스</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>서비스</strong></th>
-      <th><strong>역할</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>AWS Shield</td>
-      <td>DDoS 방어</td>
-    </tr>
-    <tr>
-      <td>AWS WAF</td>
-      <td>Web Application 공격 Filtering</td>
-    </tr>
-    <tr>
-      <td>AWS Firewall Manager</td>
-      <td>여러 계정의 보안 정책 중앙 관리</td>
-    </tr>
-    <tr>
-      <td>AWS Network Firewall</td>
-      <td>VPC 수준 Firewall 및 IDS/IPS</td>
-    </tr>
-    <tr>
-      <td>VPC Flow Logs</td>
-      <td>Network Interface Traffic 기록</td>
-    </tr>
-    <tr>
-      <td>Traffic Mirroring</td>
-      <td>Traffic을 복제하여 보안 분석 도구로 전달</td>
-    </tr>
-    <tr>
-      <td>Route 53 Resolver DNS Firewall</td>
-      <td>악성 Domain DNS Query 차단 및 DNS Tunneling 방지</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><strong>AWS Shield</strong></p>
-
-<p>DDoS 방어를 목적으로 사용한다.</p>
-
-<ul>
-  <li>Standard: 무료이며 L3/L4 자동 보호</li>
-  <li>Advanced: L7 방어</li>
-</ul>
-
-<p><strong>AWS WAF</strong></p>
-
-<p>Web Application Firewall로 SQL Injection, XSS, Bot 등 L7 공격을 Filtering한다.</p>
-
-<p>CloudFront와 ALB 등에 적용할 수 있다.</p>
-
-<p><strong>AWS Firewall Manager</strong></p>
-
-<p>여러 AWS 계정에서 사용하는 WAF, Shield, Security Group, NACL 규칙 등을 중앙에서 관리한다.</p>
-
-<p><strong>AWS Network Firewall</strong></p>
-
-<p>VPC 수준에서 Stateful/Stateless Packet 검사를 수행하며 IDS/IPS 기능을 제공한다.</p>
-
-<p><strong>VPC Flow Logs</strong></p>
-
-<p>VPC 내부 Network Interface의 Traffic 정보를 기록한다.</p>
-
-<p><strong>Traffic Mirroring</strong></p>
-
-<p>Traffic을 복제하여 보안 분석 도구로 전달한다.</p>
-
-<p><strong>Route 53 Resolver DNS Firewall</strong></p>
-
-<p>악성 Domain에 대한 DNS Query를 차단하고 DNS Tunneling을 방지하는 데 사용한다.</p>
-
-<h2 id="4--aws-waf"><strong>4 ) AWS WAF</strong></h2>
-
-<hr />
-
-<p>AWS WAF는 Web ACL에 Rule을 정의하고 CloudFront 또는 ALB에 연결하여 HTTP/HTTPS Traffic을 Filtering한다.</p>
-
-<h3 id="waf-동작-구조"><strong>WAF 동작 구조</strong></h3>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Web Request
-HTTP / HTTPS
-     │
-     ▼
-CloudFront / ALB
-     │
-     │ WAF Web ACL
-     ▼
-Rule 평가
-     │
-     │ 우선순위 순서로 Rule Matching
-     ▼
-Allow / Block / Count
-</code></pre></div></div>
-
-<p>Rule에 Matching되면 해당 Action을 수행하고, Matching되지 않으면 기본 Action을 수행한다.</p>
-
-<h3 id="waf-규칙-유형"><strong>WAF 규칙 유형</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>유형</strong></th>
-      <th><strong>설명</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>IP 기반</td>
-      <td>특정 IP/CIDR을 허용하거나 차단</td>
-    </tr>
-    <tr>
-      <td>Rate 기반</td>
-      <td>일정 시간 동안의 요청 수 제한</td>
-    </tr>
-    <tr>
-      <td>관리형 규칙</td>
-      <td>AWS 또는 Marketplace에서 제공하는 규칙</td>
-    </tr>
-    <tr>
-      <td>사용자 정의</td>
-      <td>Header, Query String 등의 조건을 직접 정의</td>
-    </tr>
-    <tr>
-      <td>정규식 패턴</td>
-      <td>URL, User-Agent 등을 정규표현식으로 Matching</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>관리형 규칙은 OWASP Top 10이나 Bot 제어 등에 활용할 수 있다.</p>
-
-<h3 id="aws-관리형-규칙-그룹"><strong>AWS 관리형 규칙 그룹</strong></h3>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesCommonRuleSet</code>: XSS, 파일 포함, SSRF 등 공통 취약점</li>
-  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesSQLiRuleSet</code>: SQL Injection 공격 패턴</li>
-  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesKnownBadInputsRuleSet</code>: Log4j, Java Deserialization 등 알려진 악성 입력</li>
-  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesAmazonIpReputationRuleSet</code>: AWS 위협 Intelligence 기반 악성 IP</li>
-  <li><code class="language-plaintext highlighter-rouge">AWSManagedRulesBotControlRuleSet</code>: Bot Traffic 탐지 및 제어</li>
-</ul>
-
-<h3 id="waf-logging"><strong>WAF Logging</strong></h3>
-
-<p>WAF Log를 분석하면 공격 패턴을 파악하고 Rule을 최적화할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>로그 대상</strong></th>
-      <th><strong>활용</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>S3</td>
-      <td>대용량 저장 및 Athena를 이용한 장기 분석</td>
-    </tr>
-    <tr>
-      <td>CloudWatch Logs</td>
-      <td>실시간 조회 및 Metric Filter를 이용한 차단 현황 Monitoring</td>
-    </tr>
-    <tr>
-      <td>Kinesis Data Firehose</td>
-      <td>SIEM 연동 및 실시간 Dashboard 활용</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="5--vpc-보안-전략"><strong>5 ) VPC 보안 전략</strong></h2>
-
-<hr />
-
-<h3 id="vpc-보안-설계-원칙"><strong>VPC 보안 설계 원칙</strong></h3>
-
-<p><strong>최소 노출</strong></p>
-
-<p>Internet에 노출되는 Resource를 최소화한다. Public Subnet에는 ALB, NAT 등의 최소한의 Resource만 배치한다.</p>
-
-<p><strong>네트워크 분리</strong></p>
-
-<p>워크로드별 Network를 격리한다. 예를 들어 <code class="language-plaintext highlighter-rouge">dev</code>, <code class="language-plaintext highlighter-rouge">stg</code>, <code class="language-plaintext highlighter-rouge">prod</code> 환경별로 VPC를 분리할 수 있다.</p>
-
-<p><strong>트래픽 제어</strong></p>
-
-<p>SG와 NACL을 이용하여 허용된 Traffic만 통과시키는 White List 방식을 사용한다.</p>
-
-<p><strong>가시성 확보</strong></p>
-
-<p>VPC Flow Logs를 활성화하여 Traffic 흐름을 기록한다.</p>
-
-<p><strong>암호화 전송</strong></p>
-
-<p>Network 구간의 데이터를 보호하기 위해 TLS를 강제하고 VPN, PrivateLink 등을 활용한다.</p>
-
-<h3 id="subnet-분리-전략"><strong>Subnet 분리 전략</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>Tier</strong></th>
-      <th><strong>Subnet</strong></th>
-      <th><strong>배치 Resource</strong></th>
-      <th><strong>Internet 접근</strong></th>
-      <th><strong>보안</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Public Tier</td>
-      <td>Public Subnet</td>
-      <td>ALB, NAT Gateway, Bastion</td>
-      <td>Inbound/Outbound 허용</td>
-      <td>최소 Resource</td>
-    </tr>
-    <tr>
-      <td>App Tier</td>
-      <td>Private Subnet</td>
-      <td>EC2, ECS, Lambda</td>
-      <td>NAT를 통한 Outbound만</td>
-      <td>ALB에서만 접근</td>
-    </tr>
-    <tr>
-      <td>Data Tier</td>
-      <td>격리된 Private Subnet</td>
-      <td>RDS, ElastiCache</td>
-      <td>Internet 접근 불가</td>
-      <td>App Tier에서만 접근</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="vpc-간-연결-보안"><strong>VPC 간 연결 보안</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>연결 방식</strong></th>
-      <th><strong>용도</strong></th>
-      <th><strong>보안 고려사항</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>VPC Peering</td>
-      <td>두 VPC 간 Private 연결</td>
-      <td>CIDR 중복 불가, 전이적 Routing 불가</td>
-    </tr>
-    <tr>
-      <td>Transit Gateway</td>
-      <td>다수 VPC/On-Premises Hub 연결</td>
-      <td>Routing Table을 통한 Traffic 제어, Blackhole Routing</td>
-    </tr>
-    <tr>
-      <td>PrivateLink</td>
-      <td>서비스 간 Private 접근</td>
-      <td>Internet 노출 없이 서비스 제공</td>
-    </tr>
-    <tr>
-      <td>Site-to-Site VPN</td>
-      <td>On-Premises와 VPC의 암호화 연결</td>
-      <td>IPSec Tunnel, BGP Routing, 이중화</td>
-    </tr>
-    <tr>
-      <td>Direct Connect</td>
-      <td>전용선 연결</td>
-      <td>물리적 분리, MACsec 암호화</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="vpc-endpoint"><strong>VPC Endpoint</strong></h3>
-
-<p>VPC Endpoint를 이용하면 Internet Gateway 없이 AWS 서비스에 Private하게 접근할 수 있어 공격 표면을 줄일 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>유형</strong></th>
-      <th><strong>지원 서비스</strong></th>
-      <th><strong>보안 제어</strong></th>
-      <th><strong>비용</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Gateway Endpoint</td>
-      <td>S3, DynamoDB</td>
-      <td>Endpoint Policy로 접근 제한</td>
-      <td>무료</td>
-    </tr>
-    <tr>
-      <td>Interface Endpoint</td>
-      <td>대부분의 AWS 서비스</td>
-      <td>Security Group 적용</td>
-      <td>시간당 + GB당 과금</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Interface Endpoint는 PrivateLink 기반 ENI를 사용한다.</p>
-
-<p>보안에 필요한 주요 VPC Endpoint는 다음과 같다.</p>
-
-<ul>
-  <li><strong>S3</strong>: Private Subnet에서 Internet을 경유하지 않고 접근하며 NAT Gateway 비용을 줄일 수 있다.</li>
-  <li><strong>STS</strong>: 임시 자격 증명 발급을 Private하게 수행한다.</li>
-  <li><strong>Secrets Manager</strong>: 비밀값을 Internet을 통하지 않고 조회한다.</li>
-</ul>
-
-<h2 id="6--security-group과-nacl"><strong>6 ) Security Group과 NACL</strong></h2>
-
-<hr />
-
-<p>Security Group과 NACL (Network Access Control List)은 AWS Network Traffic을 제어하지만 적용 범위와 동작 방식이 다르다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구분</strong></th>
-      <th><strong>Security Group</strong></th>
-      <th><strong>Network ACL</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>적용 대상</td>
-      <td>Instance 수준</td>
-      <td>Subnet 수준</td>
-    </tr>
-    <tr>
-      <td>상태</td>
-      <td>Stateful</td>
-      <td>Stateless</td>
-    </tr>
-    <tr>
-      <td>응답 Traffic</td>
-      <td>자동 허용</td>
-      <td>별도 Rule 필요</td>
-    </tr>
-    <tr>
-      <td>기본 동작</td>
-      <td>Inbound 거부 / Outbound 허용</td>
-      <td>기본 NACL 모두 허용 / Custom NACL 모두 거부</td>
-    </tr>
-    <tr>
-      <td>Rule 유형</td>
-      <td>Allow만 가능</td>
-      <td>Allow / Deny 가능</td>
-    </tr>
-    <tr>
-      <td>Rule 평가</td>
-      <td>모든 Rule 종합 평가</td>
-      <td>번호 순서대로 평가 후 첫 Matching에서 중단</td>
-    </tr>
-    <tr>
-      <td>SG 참조</td>
-      <td>다른 SG를 Source로 참조 가능</td>
-      <td>IP/CIDR 사용</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="트래픽-평가-순서"><strong>트래픽 평가 순서</strong></h3>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Internet
-   ↓
-NACL Inbound
-   ↓
-Security Group Inbound
-   ↓
-Instance
-   ↓
-Security Group 응답 자동 허용
-   ↓
-NACL Outbound
-</code></pre></div></div>
-
-<p>Security Group은 Stateful이므로 허용된 요청에 대한 응답 Traffic은 자동으로 허용된다.</p>
-
-<p>NACL은 Stateless이므로 Inbound와 Outbound Rule을 각각 설정해야 한다.</p>
-
-<h3 id="서비스별-security-group-설정"><strong>서비스별 Security Group 설정</strong></h3>
-
-<p><strong>RDS</strong></p>
-
-<ul>
-  <li>App SG에서만 DB Port 허용</li>
-  <li>Public 접근 비활성화</li>
-  <li>DB 전용 Subnet 사용</li>
-</ul>
-
-<p><strong>ElastiCache</strong></p>
-
-<ul>
-  <li>App SG에서만 Redis/Memcached Port 허용</li>
-  <li>VPC 외부 접근 불가</li>
-  <li>전송 중 TLS 활성화</li>
-</ul>
-
-<p><strong>Lambda</strong></p>
-
-<ul>
-  <li>Outbound 중심으로 관리</li>
-  <li>Lambda SG의 Outbound를 필요한 서비스에만 허용</li>
-</ul>
-
-<p><strong>정리</strong></p>
-
-<ul>
-  <li>AWS Network 보안은 Defense in Depth 방식으로 여러 계층에서 구성한다.</li>
-  <li>WAF는 Web Application Traffic을 Filtering한다.</li>
-  <li>VPC는 Public, App, Data Tier 등으로 분리하여 Resource 노출을 최소화할 수 있다.</li>
-  <li>VPC Endpoint를 이용하면 AWS 서비스에 Internet을 통하지 않고 접근할 수 있다.</li>
-  <li>Security Group은 Stateful이며 NACL은 Stateless이다.</li>
-</ul>
-
-<h2 id="7--데이터-보안-전략"><strong>7 ) 데이터 보안 전략</strong></h2>
-
-<hr />
-
-<p>데이터 보안의 기본 원칙은 기밀성, 무결성, 가용성이다.</p>
-
-<ul>
-  <li><strong>기밀성 (Confidentiality)</strong>: 허가된 대상만 데이터에 접근할 수 있도록 한다.</li>
-  <li><strong>무결성 (Integrity)</strong>: 데이터가 허가되지 않은 방식으로 변경되지 않도록 한다.</li>
-  <li><strong>가용성 (Availability)</strong>: 필요한 시점에 데이터와 서비스를 사용할 수 있도록 한다.</li>
-</ul>
-
-<h3 id="암호화-유형"><strong>암호화 유형</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구분</strong></th>
-      <th><strong>저장 데이터 암호화</strong></th>
-      <th><strong>전송 데이터 암호화</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>보호 대상</td>
-      <td>Disk, S3, DB 등에 저장된 데이터</td>
-      <td>Network를 통해 이동하는 데이터</td>
-    </tr>
-    <tr>
-      <td>방법</td>
-      <td>AES-256 대칭키 암호화</td>
-      <td>TLS 1.2/1.3</td>
-    </tr>
-    <tr>
-      <td>AWS</td>
-      <td>KMS, CloudHSM</td>
-      <td>ACM</td>
-    </tr>
-    <tr>
-      <td>적용 대상</td>
-      <td>EBS, S3, RDS, DynamoDB, EFS 등</td>
-      <td>HTTPS, VPN, PrivateLink</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="서비스별-암호화"><strong>서비스별 암호화</strong></h3>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>서비스</strong></th>
-      <th><strong>저장 암호화</strong></th>
-      <th><strong>전송 암호화</strong></th>
-      <th><strong>특징</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>S3</td>
-      <td>SSE-S3, SSE-KMS, SSE-C</td>
-      <td>HTTPS 강제</td>
-      <td>기본 암호화 설정 가능</td>
-    </tr>
-    <tr>
-      <td>EBS</td>
-      <td>KMS 암호화</td>
-      <td>Instance-EBS 간 자동 암호화</td>
-      <td>계정 수준 암호화</td>
-    </tr>
-    <tr>
-      <td>RDS</td>
-      <td>KMS 암호화</td>
-      <td>SSL/TLS 인증서</td>
-      <td>생성 후 암호화 변경 불가</td>
-    </tr>
-    <tr>
-      <td>DynamoDB</td>
-      <td>기본 암호화</td>
-      <td>HTTPS Endpoint</td>
-      <td>고객 관리 Key 선택 가능</td>
-    </tr>
-    <tr>
-      <td>EFS</td>
-      <td>KMS 암호화</td>
-      <td>TLS Mount Helper</td>
-      <td>생성 시 암호화 설정</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="8--보안-감사"><strong>8 ) 보안 감사</strong></h2>
-
-<hr />
-
-<p>AWS에서는 Resource의 설정을 지속적으로 확인하고 보안 상태와 규정 준수 여부를 점검하기 위한 여러 서비스를 제공한다.</p>
-
-<h3 id="aws-config"><strong>AWS Config</strong></h3>
-
-<p>AWS Config는 Resource의 구성 변경을 지속적으로 기록하고 Rule에 따라 규정 준수 여부를 자동으로 평가하는 서비스이다.</p>
-
-<h4 id="config-rule-유형"><strong>Config Rule 유형</strong></h4>
-
-<ul>
-  <li><strong>AWS 관리형 Rule</strong>: AWS가 사전에 정의한 Rule</li>
-  <li><strong>사용자 정의 Rule</strong>: Lambda 함수로 작성한 Custom Rule</li>
-</ul>
-
-<p>보안에 활용할 수 있는 Rule로 <code class="language-plaintext highlighter-rouge">restricted-ssh</code>가 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Security Group
-      │
-      │ SSH 0.0.0.0/0
-      ▼
-AWS Config
-      │
-      ▼
-Rule 위반 탐지
-</code></pre></div></div>
-
-<h4 id="auto-remediation"><strong>Auto Remediation</strong></h4>
-
-<p>Config Rule을 위반하면 SSM Automation 문서를 연결하여 자동으로 교정할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>위반 사항</strong></th>
-      <th><strong>대응</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Public S3 Bucket</td>
-      <td>Block Public Access 자동 활성화</td>
-    </tr>
-    <tr>
-      <td>암호화되지 않은 EBS</td>
-      <td>알림 전송 후 새로운 Volume 생성 필요</td>
-    </tr>
-    <tr>
-      <td>SSH <code class="language-plaintext highlighter-rouge">0.0.0.0/0</code> 허용 SG</td>
-      <td>해당 Rule 자동 제거</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="aws-security-hub"><strong>AWS Security Hub</strong></h3>
-
-<p>AWS Security Hub는 여러 보안 서비스의 결과를 중앙에서 통합 관리하는 서비스이다.</p>
-
-<p>주요 보안 표준은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>보안 표준</strong></th>
-      <th><strong>설명</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>AWS Foundational Security Best Practices</td>
-      <td>AWS 자체 보안 모범 사례, 약 200개</td>
-    </tr>
-    <tr>
-      <td>CIS AWS Foundations Benchmark</td>
-      <td>CIS의 AWS 보안 Benchmark, 약 50개</td>
-    </tr>
-    <tr>
-      <td>PCI DSS</td>
-      <td>결제 카드 산업 보안 표준, 약 30개</td>
-    </tr>
-    <tr>
-      <td>NIST SP 800-53</td>
-      <td>미국 연방 보안 Framework, 약 160개</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="cis-benchmark"><strong>CIS Benchmark</strong></h4>
-
-<p>CIS (Center for Internet Security)는 System과 Cloud 환경을 안전하게 구성하기 위한 보안 Benchmark를 제공한다.</p>
-
-<p>Ubuntu Server에서는 다음과 같은 항목을 점검할 수 있다.</p>
-
-<ul>
-  <li>불필요한 서비스 비활성화</li>
-  <li>SSH 보안 설정</li>
-  <li>비밀번호 정책 강화</li>
-  <li>파일 및 Directory 권한 설정</li>
-  <li>Log 및 감사 설정</li>
-  <li>Firewall 설정</li>
-  <li>계정 및 권한 관리</li>
-  <li>시간 동기화</li>
-  <li>Kernel 및 Package 보안 설정</li>
-</ul>
-
-<p>SSH를 예로 들면 단순히 SSH 설치 여부만 확인하는 것이 아니라 다음과 같은 보안 설정을 점검할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Root 직접 로그인 차단
-        ↓
-비밀번호 인증 제한
-        ↓
-적절한 암호화 알고리즘 사용
-        ↓
-접근 가능한 사용자 제한
-</code></pre></div></div>
-
-<p>Kubernetes에도 별도의 CIS Kubernetes Benchmark가 존재한다.</p>
-
-<p>Security Hub를 활성화하면 Security Score가 산출되며 이를 기반으로 개선 우선순위를 설정하고 Critical/High 항목부터 대응할 수 있다.</p>
-
-<h3 id="aws-audit-manager"><strong>AWS Audit Manager</strong></h3>
-
-<p>AWS Audit Manager는 AWS 사용에 대한 감사 증거를 자동으로 수집하고 규정 준수 보고서를 생성하는 서비스이다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>기능</strong></th>
-      <th><strong>설명</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>사전 정의 Framework</td>
-      <td>SOC 2, PCI DSS, GDPR, HIPAA 등 제공</td>
-    </tr>
-    <tr>
-      <td>자동 증거 수집</td>
-      <td>Config, CloudTrail, Security Hub 등에서 증거 수집</td>
-    </tr>
-    <tr>
-      <td>Custom Framework</td>
-      <td>조직의 내부 정책에 맞는 감사 Framework 생성</td>
-    </tr>
-    <tr>
-      <td>감사 보고서</td>
-      <td>감사인에게 제출 가능한 보고서 생성</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="aws-trusted-advisor"><strong>AWS Trusted Advisor</strong></h3>
-
-<p>AWS Trusted Advisor는 AWS 환경의 보안, 비용 최적화, 성능, 서비스 한도 등을 점검하는 서비스이다.</p>
-
-<p>보안과 관련된 주요 점검 항목은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>점검 항목</strong></th>
-      <th><strong>내용</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>S3 Bucket Public 접근</td>
-      <td>Public 읽기/쓰기가 허용된 S3 Bucket 탐지</td>
-    </tr>
-    <tr>
-      <td>Root 계정 MFA</td>
-      <td>Root 계정 MFA 활성화 여부 확인</td>
-    </tr>
-    <tr>
-      <td>Security Group 무제한 접근</td>
-      <td><code class="language-plaintext highlighter-rouge">0.0.0.0/0</code>으로 개방된 Port 탐지</td>
-    </tr>
-    <tr>
-      <td>IAM Access Key Rotation</td>
-      <td>90일 이상 Rotation되지 않은 Access Key 탐지</td>
-    </tr>
-    <tr>
-      <td>EBS Public Snapshot</td>
-      <td>Public으로 공유된 EBS Snapshot 탐지</td>
-    </tr>
-    <tr>
-      <td>CloudTrail Logging</td>
-      <td>CloudTrail 활성화 여부 확인</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>CloudTrail은 AWS에서 누가 무엇을 수행했는지를 기록하는 감사 및 보안 Logging 서비스이다.</p>
-
-<h3 id="amazon-inspector"><strong>Amazon Inspector</strong></h3>
-
-<p>Amazon Inspector는 EC2 Instance, Container Image, Lambda 함수의 Software 취약점과 Network 노출을 자동으로 Scan하는 서비스이다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>Scan 대상</strong></th>
-      <th><strong>검출 내용</strong></th>
-      <th><strong>특징</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>EC2 Instance</td>
-      <td>OS Package 취약점, Network 도달 가능성</td>
-      <td>SSM Agent 기반 Agentless Scan</td>
-    </tr>
-    <tr>
-      <td>ECR Container Image</td>
-      <td>Container Image 내부 Package 취약점</td>
-      <td>Image Push 시 자동 Scan</td>
-    </tr>
-    <tr>
-      <td>Lambda 함수</td>
-      <td>함수 Code 및 Dependency 취약점</td>
-      <td>배포 시 자동 Scan</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>ECR은 Docker Image 등을 저장하는 Container Image Repository로 사용할 수 있다.</p>
-
-<h3 id="규정-준수의-코드화"><strong>규정 준수의 코드화</strong></h3>
-
-<p>규정 준수의 코드화는 규정 준수 요구 사항을 코드로 정의하고 자동으로 검증하는 접근 방식이다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th><strong>구성 요소</strong></th>
-      <th><strong>AWS 서비스</strong></th>
-      <th><strong>역할</strong></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>정책 정의</td>
-      <td>AWS Config Rules, SCP, CloudFormation Guard</td>
-      <td>보안 정책을 코드로 정의</td>
-    </tr>
-    <tr>
-      <td>자동 평가</td>
-      <td>AWS Config, Security Hub</td>
-      <td>Resource의 정책 준수 여부 지속 평가</td>
-    </tr>
-    <tr>
-      <td>자동 교정</td>
-      <td>SSM Automation, Lambda</td>
-      <td>위반 사항 자동 수정</td>
-    </tr>
-    <tr>
-      <td>증거 수집</td>
-      <td>Audit Manager, CloudTrail</td>
-      <td>규정 준수 증거 자동 수집</td>
-    </tr>
-    <tr>
-      <td>보고</td>
-      <td>Security Hub, Audit Manager</td>
-      <td>규정 준수 현황 보고</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>전체 흐름은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>정책 코드 작성
-      ↓
-CI/CD 배포
-      ↓
-지속적 평가
-      ↓
-자동 교정 / 보고
-</code></pre></div></div>
-
-<hr />
-
-<blockquote>
-  <p><strong>전체 정리</strong></p>
-
-  <ul>
-    <li>클라우드 보안에서는 Public Resource 설정, Access Key 노출, 과도한 권한과 같은 보안 위험을 줄이는 것이 중요하다.</li>
-    <li>IAM을 통해 User, Group, Role, Policy를 관리하며, Root 계정의 사용을 최소화하고 MFA와 최소 권한 원칙을 적용한다.</li>
-    <li>AWS Network는 WAF, Network Firewall, NACL, Security Group 등을 이용하여 여러 계층을 보호하는 Defense in Depth 전략을 적용할 수 있다.</li>
-    <li>VPC에서는 Public, App, Data 영역을 분리하고 필요한 Traffic만 허용하여 Resource의 외부 노출을 최소화한다.</li>
-    <li>저장 데이터와 전송 데이터에는 각각 적절한 암호화를 적용하여 데이터의 기밀성과 무결성을 보호한다.</li>
-    <li>AWS Config, Security Hub, Audit Manager, Trusted Advisor, Amazon Inspector 등을 활용하여 보안 상태와 취약점, 규정 준수 여부를 지속적으로 점검할 수 있다.</li>
-    <li>규정 준수 요구 사항을 코드로 정의하면 정책 정의 → 지속적 평가 → 자동 교정 → 증거 수집 → 보고 과정으로 관리할 수 있다.</li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="Cloud" /><category term="AutoEverSW" /><summary type="html"><![CDATA[IAM과 네트워크 보안, 데이터 암호화, 보안 감사 및 규정 준수 중심의 AWS 클라우드 보안 전략]]></summary></entry></feed>
+<p><code class="language-plaintext highlighter-rouge">docker image prune -a</code>는 다시 필요할 수 있는 Local Image도 삭제할 수 있으므로, 표시되는 삭제 대상을 확인한 뒤 실행한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Image 검색과 다운로드, Layer 구조, Tag 및 Docker Hub 배포 방법]]></summary></entry></feed>
