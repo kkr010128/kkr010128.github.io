@@ -4,8 +4,10 @@ description: 다중 Container 실습, Nginx Load Balancing, 환경 변수 관리
 date: 2026-08-21
 series: CloudNative
 tags:
-  - Cloud
+  - CloudNative
   - AutoEverSW
+  - Docker
+  - DockerSwarm
 ---
 이전 글에서는 Docker Compose의 역할과 기본 File 구조를 살펴보았다. 이번 글에서는 여러 Service를 실제로 연결하고 확장하는 방법부터 Nginx Load Balancing, 환경 변수 관리와 Docker Swarm까지 다룬다.
 
