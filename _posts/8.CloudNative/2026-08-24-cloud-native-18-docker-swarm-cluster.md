@@ -37,7 +37,7 @@ LAPTOP
 세 VM 모두 Docker Engine과 Compose Plugin을 설치해 환경을 준비했다.
 
 
-![Manager와 Worker VM에 Docker를 설치하는 화면](notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp)
+![Manager와 Worker VM에 Docker를 설치하는 화면](../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp)
 
 ```bash
 sudo apt-get update
@@ -105,7 +105,7 @@ docker swarm join \
   192.168.0.100:2377
 ```
 
-![Manager 초기화 후 두 Worker가 Swarm에 참여한 화면](notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/04.webp)
+![Manager 초기화 후 두 Worker가 Swarm에 참여한 화면](../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/04.webp)
 
 Manager에서는 Worker Token을 다시 확인할 수 있다.
 
@@ -113,7 +113,7 @@ Manager에서는 Worker Token을 다시 확인할 수 있다.
 docker swarm join-token worker
 ```
 
-![Manager에서 Worker 참여 Token을 확인한 화면](notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp)
+![Manager에서 Worker 참여 Token을 확인한 화면](../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp)
 
 `docker swarm join-token`은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다. 
 >Kubernetes의 Join Token도 Control Plane에서 `kubeadm token create --print-join-command`로 다시 만들거나 조회한다.
@@ -130,7 +130,7 @@ Manager에서 Docker Daemon이 사용하는 Port를 확인한다.
 sudo netstat -nlp | grep dockerd
 ```
 
-![Manager에서 Docker Swarm 통신 Port를 확인한 화면](notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/06.webp)
+![Manager에서 Docker Swarm 통신 Port를 확인한 화면](../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/06.webp)
 
 Swarm Node 사이에는 다음 Port가 필요하다.
 
@@ -150,7 +150,7 @@ Manager에서 Node 목록을 조회한다.
 docker node ls
 ```
 
-![Manager와 Worker에서 docker node ls를 실행한 결과](notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/10.webp)
+![Manager와 Worker에서 docker node ls를 실행한 결과](../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/10.webp)
 
 같은 명령을 Worker에서 실행하면 `This node is not a swarm manager` 오류가 발생한다. `docker node ls`는 Cluster 전체 상태를 조회하는 관리 명령이므로 Manager에서만 사용할 수 있다.
 
