@@ -1,4 +1,1468 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-24T12:36:55+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker Compose 응용과 Docker Swarm</title><link href="https://kkr010128.github.io/cloud-native-17-docker-compose-swarm/" rel="alternate" type="text/html" title="Docker Compose 응용과 Docker Swarm" /><published>2026-08-21T00:00:00+09:00</published><updated>2026-08-21T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-17-docker-compose-swarm</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-17-docker-compose-swarm/"><![CDATA[<p>이전 글에서는 Docker Compose의 역할과 기본 File 구조를 살펴보았다. 이번 글에서는 여러 Service를 실제로 연결하고 확장하는 방법부터 Nginx Load Balancing, 환경 변수 관리와 Docker Swarm까지 다룬다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-24T23:06:54+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker Swarm Ingress가 요청을 Container까지 전달하는 방법</title><link href="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/" rel="alternate" type="text/html" title="Docker Swarm Ingress가 요청을 Container까지 전달하는 방법" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/notes-07-deepdive-swarm-published-port</id><content type="html" xml:base="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/"><![CDATA[<h2 id="1--실습에서-이상한-점을-발견했다">1 ) 실습에서 이상한 점을 발견했다</h2>
+
+<hr />
+
+<p>Docker Swarm에서 Nginx Container는 Worker에만 배치했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> web-alb <span class="se">\</span>
+  <span class="nt">--replicas</span> 2 <span class="se">\</span>
+  <span class="nt">--publish</span> <span class="nv">published</span><span class="o">=</span>8001,target<span class="o">=</span>80 <span class="se">\</span>
+  <span class="nt">--constraint</span> <span class="s1">'node.role==worker'</span> <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>Cluster의 상태는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Manager  192.168.0.100  Nginx Container 없음
+Worker 1 192.168.0.101  Nginx Container 실행
+Worker 2 192.168.0.102  Nginx Container 실행
+</code></pre></div></div>
+
+<p>그런데 Manager IP로 접속해도 Nginx Page가 출력됐다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://192.168.0.100:8001
+</code></pre></div></div>
+
+<p>Worker IP로 접속한 결과도 같았다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://192.168.0.101:8001
+curl http://192.168.0.102:8001
+</code></pre></div></div>
+
+<p>Manager에는 Nginx Container가 없는데 누가 요청을 받은 것일까?</p>
+
+<h2 id="2--결론부터-확인해-보자">2 ) 결론부터 확인해 보자</h2>
+
+<hr />
+
+<p>Manager가 Nginx 요청을 직접 처리한 것은 아니다. Manager는 요청을 받은 뒤 실제 Nginx Container가 있는 Worker로 전달했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+  │ Manager_IP:8001로 요청
+  ▼
+Manager
+  │ 실제 Nginx Task로 전달
+  ▼
+Worker 1 또는 Worker 2
+  │
+  ▼
+Nginx Container가 응답
+</code></pre></div></div>
+
+<p>이 동작을 가능하게 만드는 기능이 Docker Swarm의 <strong>Routing Mesh</strong>이다.</p>
+
+<p>Routing Mesh가 적용되면 모든 Swarm Node가 Service 요청의 입구가 된다. 요청을 받은 Node에 Container가 없어도 실제 Container가 실행 중인 다른 Node로 요청을 보낼 수 있다.</p>
+
+<h2 id="3--일반-container의-port-연결과-무엇이-다를까">3 ) 일반 Container의 Port 연결과 무엇이 다를까</h2>
+
+<hr />
+
+<p>일반 Container의 Port를 다음과 같이 연결했다고 가정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">-p</span> 8001:80 nginx
+</code></pre></div></div>
+
+<p>이 명령은 현재 Host의 8001번 Port를 현재 Host에서 실행 중인 Nginx Container의 80번 Port와 연결한다. 다른 Host의 8001번 Port까지 열리지는 않는다.</p>
+
+<p>Swarm Service에서는 다음 값을 사용했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>published=8001,target=80
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">published=8001</code></td>
+      <td>Swarm 외부에서 Service에 접속할 Port</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">target=80</code></td>
+      <td>Nginx Container가 실제로 요청을 받는 Port</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>8001번 Port는 특정 Container에 연결된 Port가 아니라 <code class="language-plaintext highlighter-rouge">web-alb</code> Service로 들어가는 공통 입구이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Swarm Service의 8001번 Port
+          │
+          ├── Worker 1의 Nginx:80
+          └── Worker 2의 Nginx:80
+</code></pre></div></div>
+
+<p>Replica가 늘어나도 외부에서는 같은 8001번 Port를 사용한다.</p>
+
+<h2 id="4--왜-모든-node가-8001번-port로-요청을-받을까">4 ) 왜 모든 Node가 8001번 Port로 요청을 받을까</h2>
+
+<hr />
+
+<p>Swarm Service의 기본 Port 공개 방식은 <code class="language-plaintext highlighter-rouge">ingress</code> Mode이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>published=8001,target=80,mode=ingress
+</code></pre></div></div>
+
+<p>Ingress Mode에서는 모든 Node가 8001번 Port로 들어오는 요청을 받을 수 있도록 Routing Mesh가 구성된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Manager:8001  ─┐
+Worker1:8001  ─┼─→ web-alb Service
+Worker2:8001  ─┘
+</code></pre></div></div>
+
+<p>여기서 가장 중요한 차이는 다음과 같다.</p>
+
+<blockquote>
+  <p>모든 Node에 Nginx가 실행된다. → X</p>
+
+  <p>모든 Node가 Service 요청의 입구가 된다. → O</p>
+</blockquote>
+
+<p>Manager는 Nginx를 실행하지 않는다. Service의 입구 역할만 하며 실제 HTTP 응답은 Worker의 Nginx가 만든다.</p>
+
+<h2 id="5--manager로-들어온-요청은-어떻게-worker를-찾아갈까">5 ) Manager로 들어온 요청은 어떻게 Worker를 찾아갈까</h2>
+
+<hr />
+
+<p>Manager의 8001번 Port로 요청이 들어온 과정을 단계별로 살펴본다.</p>
+
+<h3 id="1-manager가-service-요청을-받는다">1. Manager가 Service 요청을 받는다</h3>
+
+<p>Client가 <code class="language-plaintext highlighter-rouge">192.168.0.100:8001</code>로 요청한다. Manager에는 8001번 Port가 <code class="language-plaintext highlighter-rouge">web-alb</code> Service에 공개됐다는 Network 규칙이 설정되어 있다.</p>
+
+<h3 id="2-ipvs가-nginx-task-하나를-선택한다">2. IPVS가 Nginx Task 하나를 선택한다</h3>
+
+<p>Swarm Node가 Published Port의 요청을 받으면 Linux의 IPVS(커널에서 동작하는 L4 LB)가 해당 Service에서 실행 중인 Task 하나를 선택한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>web-alb Service
+   │
+   ├── Worker 1의 Task
+   └── Worker 2의 Task
+</code></pre></div></div>
+
+<p>IPVS는 요청을 어느 Task로 보낼지 결정하는 Load Balancer 역할을 한다.</p>
+
+<h3 id="3-ingress-network로-요청을-전달한다">3. Ingress Network로 요청을 전달한다</h3>
+
+<p>선택된 Task가 다른 Node에 있다면 <code class="language-plaintext highlighter-rouge">ingress</code> Overlay Network를 통해 요청을 전달한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Manager
+  │ ingress Overlay Network
+  ▼
+Worker 2
+  │
+  ▼
+Nginx Container:80
+</code></pre></div></div>
+
+<p>Overlay Network는 서로 다른 Docker Host의 Container가 같은 가상 Network에 연결된 것처럼 통신하게 한다.</p>
+
+<h3 id="4-nginx가-응답한다">4. Nginx가 응답한다</h3>
+
+<p>Worker의 Nginx Container가 HTTP 요청을 처리하고 응답을 반환한다. Client는 요청이 어느 Worker에서 처리됐는지 알 필요가 없다.</p>
+
+<p>전체 경로를 합치면 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+  │ Manager_IP:8001
+  ▼
+Manager의 Routing Mesh
+  │
+  ▼
+IPVS가 Nginx Task 선택
+  │
+  ▼
+Ingress Overlay Network
+  │
+  ▼
+Worker의 Nginx Container:80
+</code></pre></div></div>
+
+<h2 id="6--netstat에서-port가-보이지-않을-수도-있다">6 ) <code class="language-plaintext highlighter-rouge">netstat</code>에서 Port가 보이지 않을 수도 있다</h2>
+
+<hr />
+
+<p>일반적으로 Application이 Port를 열면 <code class="language-plaintext highlighter-rouge">netstat</code>이나 <code class="language-plaintext highlighter-rouge">ss</code>에서 해당 Process가 <code class="language-plaintext highlighter-rouge">LISTEN</code> 중인 것으로 나타난다.</p>
+
+<p>Swarm의 Published Port는 일반 Application Process가 직접 Socket을 열고 기다리는 구조와 다르다. Docker의 Network 규칙과 IPVS가 Traffic을 처리하므로 8001번 Port가 일반적인 Listening Socket처럼 보이지 않을 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netstat <span class="nt">-nlp</span> | <span class="nb">grep </span>8001
+</code></pre></div></div>
+
+<p>출력이 없다는 이유만으로 Service Port가 공개되지 않았다고 판단할 수 없다. Published Port는 Manager에서 Service 설정을 직접 확인하는 편이 정확하다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service inspect <span class="se">\</span>
+  <span class="nt">--format</span> <span class="s1">''</span> <span class="se">\</span>
+  web-alb
+</code></pre></div></div>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"Protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tcp"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"TargetPort"</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"PublishedPort"</span><span class="p">:</span><span class="w"> </span><span class="mi">8001</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"PublishMode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ingress"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="7--service-vip와는-어떤-차이가-있을까">7 ) Service VIP와는 어떤 차이가 있을까</h2>
+
+<hr />
+
+<p>Routing Mesh와 Service VIP는 모두 요청을 Replica로 분산하지만 요청이 시작되는 위치가 다르다.</p>
+
+<h3 id="routing-mesh">Routing Mesh</h3>
+
+<p>Swarm 외부의 Client가 Published Port를 통해 들어올 때 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부 Client
+→ Node_IP:8001
+→ Routing Mesh
+→ Nginx Task
+</code></pre></div></div>
+
+<h3 id="service-vip">Service VIP</h3>
+
+<p>같은 Overlay Network 안의 다른 Service가 Service 이름으로 접속할 때 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Backend Container
+→ web-alb
+→ Docker DNS
+→ Service VIP
+→ Nginx Task
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Routing Mesh</th>
+      <th>Service VIP</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>요청 출발</td>
+      <td>Swarm 외부</td>
+      <td>Swarm 내부 Service</td>
+    </tr>
+    <tr>
+      <td>사용하는 주소</td>
+      <td><code class="language-plaintext highlighter-rouge">Node IP:Published Port</code></td>
+      <td>Service 이름</td>
+    </tr>
+    <tr>
+      <td>주요 목적</td>
+      <td>외부 요청 전달</td>
+      <td>Service 간 통신</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Manager IP로 Nginx에 접속할 수 있었던 이유는 Service VIP가 아니라 Routing Mesh 때문이다.</p>
+
+<h2 id="8--실제-사용자는-어느-node-ip로-접속할까">8 ) 실제 사용자는 어느 Node IP로 접속할까</h2>
+
+<hr />
+
+<p>실습에서는 어느 Node IP를 사용해도 접속할 수 있다. 그러나 실제 사용자에게 여러 Node IP를 직접 알려주지는 않는다. Domain을 Node 하나에만 연결하면 해당 Node가 중단됐을 때 다른 Worker가 정상이어도 사용자가 접속하지 못하기 때문이다.</p>
+
+<p>일반적으로 Swarm 앞에 외부 Load Balancer나 고가용성 VIP를 둔다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자
+  │ service.example.com
+  ▼
+외부 Load Balancer
+  │
+  ├── Manager:8001
+  ├── Worker 1:8001
+  └── Worker 2:8001
+          │
+          ▼
+    Swarm Routing Mesh
+          │
+          ▼
+      Nginx Task
+</code></pre></div></div>
+
+<p>두 기능은 서로 다른 문제를 해결한다.</p>
+
+<ul>
+  <li>
+    <p>외부 Load Balancer는 사용자가 접속할 하나의 주소와 Node 장애 대응을 제공한다.</p>
+  </li>
+  <li>
+    <p>Routing Mesh는 Task가 어느 Node에 있는지 외부에서 추적하지 않아도 되게 한다.</p>
+  </li>
+</ul>
+
+<h2 id="9--reverse-proxy와-routing-mesh는-같은-기능일까">9 ) Reverse Proxy와 Routing Mesh는 같은 기능일까</h2>
+
+<hr />
+
+<p>둘 다 요청을 뒤쪽 Server로 전달하지만 요청을 나누는 기준이 다르다.</p>
+
+<p>Routing Mesh는 Published Port로 들어온 Network Connection을 Service Task 중 하나로 전달한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>8001번 Port의 요청
+→ web-alb의 Nginx Task 중 하나
+</code></pre></div></div>
+
+<p>Nginx 같은 Reverse Proxy는 HTTP 요청을 읽고 Domain이나 URL Path에 따라 Backend를 선택한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/api     → Backend API
+/images  → Image Server
+</code></pre></div></div>
+
+<p>Reverse Proxy의 목적은 단순히 Backend IP를 숨기는 것이 아니다. TLS 처리, HTTP Routing, Header 변경과 Cache 같은 Application 계층 기능도 담당한다.</p>
+
+<p>Routing Mesh와 Reverse Proxy는 함께 사용할 수도 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부 Load Balancer
+→ Swarm Routing Mesh
+→ Nginx Reverse Proxy Service
+→ Backend Service
+</code></pre></div></div>
+
+<h2 id="10--모든-node에서-port를-열고-싶지-않다면">10 ) 모든 Node에서 Port를 열고 싶지 않다면</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">mode=host</code>로 Port를 공개하면 Routing Mesh를 우회할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> web-host-mode <span class="se">\</span>
+  <span class="nt">--mode</span> global <span class="se">\</span>
+  <span class="nt">--publish</span> <span class="nv">published</span><span class="o">=</span>8001,target<span class="o">=</span>80,mode<span class="o">=</span>host <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>접속 상황</th>
+      <th>Ingress Mode</th>
+      <th>Host Mode</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Task가 있는 Node</td>
+      <td>접속 가능</td>
+      <td>접속 가능</td>
+    </tr>
+    <tr>
+      <td>Task가 없는 Node</td>
+      <td>다른 Node의 Task로 전달</td>
+      <td>접속 불가</td>
+    </tr>
+    <tr>
+      <td>Load Balancing</td>
+      <td>Routing Mesh가 처리</td>
+      <td>별도로 구성</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Host Mode에서는 외부 Load Balancer가 Task가 실행 중인 Node를 알아야 한다. 같은 Published Port를 사용하는 Task를 한 Node에 여러 개 배치하기도 어렵다.</p>
+
+<p>어느 Node로든 간편하게 요청을 받고 싶다면 Ingress Mode가 적합하다. 요청 경로와 Load Balancing을 직접 제어해야 한다면 Host Mode를 검토한다.</p>
+
+<h2 id="11--다시-처음-질문으로-돌아가면">11 ) 다시 처음 질문으로 돌아가면</h2>
+
+<hr />
+
+<p>Manager에 Nginx Container가 없는데도 <code class="language-plaintext highlighter-rouge">Manager_IP:8001</code>로 접속할 수 있었던 이유는 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">published=8001</code>은 특정 Container가 아니라 Swarm Service에 적용된다.</p>
+  </li>
+  <li>
+    <p>Ingress Mode에서는 모든 Swarm Node가 8001번 Port 요청의 입구가 된다.</p>
+  </li>
+  <li>
+    <p>Manager로 들어온 요청은 IPVS와 Ingress Network를 거쳐 실제 Nginx Task로 전달된다.</p>
+  </li>
+  <li>
+    <p>HTTP 응답은 Manager가 아니라 Worker의 Nginx Container가 생성한다.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>Swarm에서는 Container가 없는 Node도 Service의 입구가 될 수 있다.</strong></p>
+</blockquote>
+
+<p>이 구조 덕분에 Client는 Nginx Task가 어느 Worker에서 실행 중인지 추적하지 않고 Swarm Node의 Published Port로 요청할 수 있다.</p>]]></content><author><name></name></author><category term="DeepDive" /><category term="Docker" /><category term="DockerSwarm" /><category term="Network" /><summary type="html"><![CDATA[Published Port로 들어온 요청이 Routing Mesh와 IPVS, Ingress Overlay Network를 거쳐 Service Task에 도달하는 과정]]></summary></entry><entry><title type="html">Docker Swarm Cluster 구성과 Service 운영</title><link href="https://kkr010128.github.io/cloud-native-18-docker-swarm-cluster/" rel="alternate" type="text/html" title="Docker Swarm Cluster 구성과 Service 운영" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-18-docker-swarm-cluster</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-18-docker-swarm-cluster/"><![CDATA[<h2 id="1--클러스터-실습-환경-구성">1 ) 클러스터 실습 환경 구성</h2>
+
+<hr />
+
+<p>Ubuntu 24.04 VM 세 대를 같은 Network에 연결하고 한 대는 Manager, 두 대는 Worker로 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Windows Host
+LAPTOP
+192.168.0.99
+       │
+       ├── LAB_MASTER
+       │   hostname: master
+       │   192.168.0.100
+       │
+       ├── LAB_WORKER_1
+       │   hostname: worker1
+       │   192.168.0.101
+       │
+       └── LAB_WORKER_2
+           hostname: worker2
+           192.168.0.102
+</code></pre></div></div>
+
+<p>수업에서는 NAT 네트워크를 구성하여 한 네트워크로 묶어 사용하는 방향으로 진행했으나, VPN과 SSH를 이용해 홈 네트워크에 접속해 사용하고 있는 현재 환경에 맞게 각 VM은 Bridge Adapter를 사용하여 Host에서 SSH로 접속했다. 
+세 VM 모두 Docker Engine과 Compose Plugin을 설치해 환경을 준비했다.</p>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp" alt="Manager와 Worker VM에 Docker를 설치하는 화면" /></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="se">\</span>
+  docker-ce <span class="se">\</span>
+  docker-ce-cli <span class="se">\</span>
+  containerd.io <span class="se">\</span>
+  docker-buildx-plugin <span class="se">\</span>
+  docker-compose-plugin
+</code></pre></div></div>
+
+<p>설치 후 Version과 Service 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker version
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> docker
+<span class="nb">sudo </span>systemctl status docker
+</code></pre></div></div>
+
+<p>현재 사용자가 <code class="language-plaintext highlighter-rouge">sudo</code> 없이 Docker를 실행하려면 <code class="language-plaintext highlighter-rouge">docker</code> Group에 추가한 뒤 다시 로그인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>usermod <span class="nt">-aG</span> docker <span class="s2">"</span><span class="si">$(</span><span class="nb">whoami</span><span class="si">)</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Docker Socket의 권한을 <code class="language-plaintext highlighter-rouge">666</code>으로 변경하면 모든 사용자가 Docker Daemon을 제어할 수 있으므로 사용하지 않는다.</p>
+</blockquote>
+
+<p>Docker Engine 설치는 모든 Node에서 수행하지만 Cluster를 생성하고 관리하는 명령은 Manager에서 수행한다.</p>
+
+<blockquote>
+  <p>Kubernetes도 Container Runtime과 Node 구성 요소는 모든 Machine에 필요하지만 Cluster 제어 명령은 Control Plane을 중심으로 수행한다.</p>
+</blockquote>
+
+<h2 id="2--swarm-cluster-구성">2 ) Swarm Cluster 구성</h2>
+
+<hr />
+
+<h3 id="manager-초기화">Manager 초기화</h3>
+
+<p>Manager로 사용할 <code class="language-plaintext highlighter-rouge">master</code>에서 Swarm Mode를 초기화한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker swarm init
+
+<span class="c"># docker swarm init --advertise-addr 192.168.0.100</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker wsarm init</code> 으로만 실행하면 Docker가 해당 호스트의 IP 주소를 자동으로 선택해 Swarm Manager를 초기화한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">--advertise-addr</code>는 다른 Node가 Manager에 접속할 주소를 지정한다.</p>
+
+<p>다른 Swarm 노드들에게 “이 Manager에는 계속 <code class="language-plaintext highlighter-rouge">192.168.0.100</code>으로 접속해”라고 명시하는 것이다.</p>
+
+<p>초기화가 끝나면 현재 Node가 Manager가 되고 Worker가 Cluster에 참여할 때 사용할 <code class="language-plaintext highlighter-rouge">docker swarm join</code> 명령이 출력된다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 <code class="language-plaintext highlighter-rouge">kubeadm init</code>이 Control Plane을 초기화하고 Worker가 사용할 <code class="language-plaintext highlighter-rouge">kubeadm join</code> 명령을 출력한다. Cluster의 제어 주체를 먼저 만들고 다른 Node가 Token을 이용해 참여한다는 흐름은 비슷하다. 다만 Swarm은 Docker Engine에 Orchestrator가 내장되어 있고 Kubernetes는 API Server, Scheduler, Controller Manager 등 별도의 Control Plane 구성 요소를 사용한다.</p>
+</blockquote>
+
+<h3 id="worker-참여">Worker 참여</h3>
+
+<p>Manager에서 출력된 명령을 <code class="language-plaintext highlighter-rouge">worker1</code>, <code class="language-plaintext highlighter-rouge">worker2</code>에서 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker swarm <span class="nb">join</span> <span class="se">\</span>
+  <span class="nt">--token</span> SWMTKN-1-WORKER_TOKEN <span class="se">\</span>
+  192.168.0.100:2377
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/04.webp" alt="Manager 초기화 후 두 Worker가 Swarm에 참여한 화면" /></p>
+
+<p>Manager에서는 Worker Token을 다시 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker swarm join-token worker
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp" alt="Manager에서 Worker 참여 Token을 확인한 화면" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">docker swarm join-token</code>은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다.</p>
+<blockquote>
+  <p>Kubernetes의 Join Token도 Control Plane에서 <code class="language-plaintext highlighter-rouge">kubeadm token create --print-join-command</code>로 다시 만들거나 조회한다.</p>
+</blockquote>
+
+<p>Join Token은 Node를 Cluster에 참여시킬 수 있는 인증 정보이므로 공개 저장소나 게시물에 실제 값을 남기지 않는다. 노출되었다면 Token을 교체해야 한다.</p>
+
+<p>물론 참여하기 위해서는 Manager와 네트워크 통신이 가능해야 한다. 하지만 토큰이 공개되어 있으면 공격자가 내부에 접근했을 때 필요한 인증 정보를 이미 확보한 상태가 되기에 인증 정보를 담고 있는 토큰은 비밀 정보로 취급해야 한다.</p>
+
+<h3 id="swarm-port-확인">Swarm Port 확인</h3>
+
+<p>Manager에서 Docker Daemon이 사용하는 Port를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netstat <span class="nt">-nlp</span> | <span class="nb">grep </span>dockerd
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/06.webp" alt="Manager에서 Docker Swarm 통신 Port를 확인한 화면" /></p>
+
+<p>Swarm Node 사이에는 다음 Port가 필요하다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Port</th>
+      <th>Protocol</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">2377</code></td>
+      <td>TCP</td>
+      <td>Manager의 Cluster 관리 통신</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">7946</code></td>
+      <td>TCP/UDP</td>
+      <td>Node Discovery와 통신</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">4789</code></td>
+      <td>UDP</td>
+      <td>Overlay Network Traffic</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p>Kubernetes도 Control Plane API, kubelet, Service Network 등에 별도의 Port가 필요하지만 Swarm과 Port 번호 및 구성 요소는 다르다.</p>
+</blockquote>
+
+<h3 id="node-상태-확인">Node 상태 확인</h3>
+
+<p>Manager에서 Node 목록을 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/10.webp" alt="Manager와 Worker에서 docker node ls를 실행한 결과" /></p>
+
+<p>같은 명령을 Worker에서 실행하면 <code class="language-plaintext highlighter-rouge">This node is not a swarm manager</code> 오류가 발생한다. <code class="language-plaintext highlighter-rouge">docker node ls</code>는 Cluster 전체 상태를 조회하는 관리 명령이므로 Manager에서만 사용할 수 있다.</p>
+
+<blockquote>
+  <p>Kubernetes의 <code class="language-plaintext highlighter-rouge">kubectl get nodes</code>도 API Server를 통해 Cluster 상태를 조회한다. 명령 자체가 Control Plane Machine에서만 실행되어야 하는 것은 아니지만, 외부 Machine이나 Worker에서 실행하려면 API Server 주소와 인증 정보가 담긴 Kubeconfig가 필요하다. Swarm Worker가 관리 API를 제공하지 않는 것과 달리 Kubernetes Client는 인증 설정이 있으면 어느 Machine에서도 API Server에 요청할 수 있다.</p>
+</blockquote>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker info
+docker network <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker info</code>의 <code class="language-plaintext highlighter-rouge">Swarm: active</code>와 Network 목록의 <code class="language-plaintext highlighter-rouge">ingress</code>를 확인한다.</p>
+
+<h3 id="node-제거">Node 제거</h3>
+
+<p>Worker를 정상적으로 제거할 때는 제거할 Worker에서 Swarm을 떠난 뒤 Manager에서 Node 정보를 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 제거할 Worker에서 실행</span>
+docker swarm leave
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Manager에서 실행</span>
+docker node <span class="nb">rm </span>worker1
+</code></pre></div></div>
+
+<p>Manager가 Swarm을 떠나면 Manager Quorum에 영향을 줄 수 있다. 특히 마지막 Manager에서 <code class="language-plaintext highlighter-rouge">--force</code>로 떠나면 Cluster를 더 이상 관리할 수 없으므로 실습 종료 외에는 신중하게 사용한다.</p>
+
+<h2 id="3--service-생성과-조회">3 ) Service 생성과 조회</h2>
+
+<hr />
+
+<p>Manager에서 반복적으로 Message를 출력하는 Service를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> swarm-start <span class="se">\</span>
+  alpine:3 <span class="se">\</span>
+  /bin/sh <span class="nt">-c</span> <span class="s2">"while true; do echo 'Docker Swarm Start'; sleep 3; done"</span>
+</code></pre></div></div>
+
+<p>Service 상태와 Task 배치를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service <span class="nb">ls
+</span>docker service ps swarm-start
+docker service logs <span class="nt">-f</span> swarm-start
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker service ls</code>, <code class="language-plaintext highlighter-rouge">docker service ps</code>, <code class="language-plaintext highlighter-rouge">docker service logs</code>는 Cluster Service를 관리하는 명령이므로 Manager에서 실행한다. Worker에서는 자신에게 배치된 Container를 <code class="language-plaintext highlighter-rouge">docker container ls</code>로 확인할 수 있지만 Service의 전체 Replica 상태는 조회할 수 없다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 Deployment를 생성한 뒤 <code class="language-plaintext highlighter-rouge">kubectl get deployments</code>, <code class="language-plaintext highlighter-rouge">kubectl get pods</code>, <code class="language-plaintext highlighter-rouge">kubectl logs</code>로 비슷한 정보를 확인한다. Swarm의 Service는 원하는 Replica 상태를 선언하는 단위이며 Kubernetes에서는 주로 Deployment가 이 역할을 담당한다.</p>
+</blockquote>
+
+<p>Service를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service <span class="nb">rm </span>swarm-start
+</code></pre></div></div>
+
+<h2 id="4--nginx-service와-routing-mesh">4 ) Nginx Service와 Routing Mesh</h2>
+
+<hr />
+
+<p>Worker에만 Nginx Task가 배치되도록 Constraint를 지정하고 Service Port를 공개한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> web-alb <span class="se">\</span>
+  <span class="nt">--replicas</span> 2 <span class="se">\</span>
+  <span class="nt">--publish</span> <span class="nv">published</span><span class="o">=</span>8001,target<span class="o">=</span>80 <span class="se">\</span>
+  <span class="nt">--constraint</span> <span class="s1">'node.role==worker'</span> <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps web-alb
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">node.role==worker</code> Constraint 때문에 Nginx Task는 Manager에 배치되지 않는다. 그러나 Service의 8001번 Port를 공개하면 Manager와 두 Worker를 포함한 모든 Node가 동일한 8001번 Port로 들어오는 Traffic을 받는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://192.168.0.100:8001
+curl http://192.168.0.101:8001
+curl http://192.168.0.102:8001
+</code></pre></div></div>
+
+<p>세 주소 모두 같은 Service에 연결된다. 이것은 모든 Node가 공개 Port를 감시하는 Swarm Routing Mesh의 동작이다. 요청을 받은 Node에 Nginx Task가 없더라도 Ingress Network가 실제 Task가 실행 중인 Node로 Traffic을 전달한다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 Deployment만 생성해도 모든 Node에 같은 외부 Port가 자동으로 열리지 않는다. 외부 접근에는 NodePort, LoadBalancer 또는 Ingress 같은 별도의 Service 노출 방식이 필요하다. NodePort를 사용하면 여러 Node의 동일 Port로 접근할 수 있다는 점은 Swarm Routing Mesh와 비슷하지만, Kubernetes Service와 kube-proxy 또는 CNI가 Traffic 전달을 담당한다는 차이가 있다.</p>
+</blockquote>
+
+<h3 id="임시-page-변경">임시 Page 변경</h3>
+
+<p>Task가 배치된 Worker에서 테스트용 <code class="language-plaintext highlighter-rouge">index.html</code>을 만든 뒤 특정 Container에 복사할 수 있다.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;h1&gt;</span>Swarm Worker 1<span class="nt">&lt;/h1&gt;</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">ls
+</span>docker <span class="nb">cp </span>index.html CONTAINER_ID:/usr/share/nginx/html/index.html
+</code></pre></div></div>
+
+<p>이 방법은 특정 Task의 쓰기 Layer만 변경한다. 다른 Replica에는 적용되지 않고 Task가 재생성되면 변경 내용도 사라지므로 Load Balancing을 눈으로 확인하는 임시 실습에만 사용한다. 실제 배포에서는 Page를 포함한 새로운 Image를 Build하여 Service를 Update한다.</p>
+
+<h2 id="5--overlay-network와-service-discovery">5 ) Overlay Network와 Service Discovery</h2>
+
+<hr />
+
+<p>Swarm의 Overlay Network는 여러 Docker Host에 걸쳐 있는 Service를 하나의 가상 Network로 연결한다. 같은 Overlay Network의 Service는 IP를 직접 관리하지 않고 Service 이름으로 통신한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create <span class="se">\</span>
+  <span class="nt">--driver</span> overlay <span class="se">\</span>
+  dailylog-net
+</code></pre></div></div>
+
+<p>Service에는 Virtual IP가 할당되며 내장 DNS가 Service 이름을 이 주소로 해석한다. Client가 Virtual IP로 요청하면 Swarm이 실행 중인 Replica 중 하나로 전달한다. Replica가 늘거나 다른 Node로 이동해도 Application은 같은 Service 이름을 사용한다.</p>
+
+<blockquote>
+  <p>Kubernetes도 Service 이름을 Cluster DNS로 조회하고 고정된 ClusterIP를 통해 여러 Pod로 요청을 전달한다. Service Discovery 관점은 비슷하지만 Swarm은 Service와 Overlay Network를 Docker Engine이 직접 관리하고 Kubernetes는 Service, EndpointSlice, kube-proxy 또는 Network Plugin이 역할을 나누어 담당한다.</p>
+</blockquote>
+
+<h2 id="6--service-확장과-배포-mode">6 ) Service 확장과 배포 Mode</h2>
+
+<hr />
+
+<h3 id="replicated-mode">Replicated Mode</h3>
+
+<p>실행 중인 Service의 Replica 수를 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service scale web-alb<span class="o">=</span>5
+</code></pre></div></div>
+
+<p>Node 수보다 Replica가 많으면 한 Node에 여러 Task가 배치될 수 있다. Swarm은 Node 수와 Replica 수를 일치시키는 것이 아니라 가용 Resource와 Constraint를 기준으로 Task를 배치한다.</p>
+
+<blockquote>
+  <p>Kubernetes의 <code class="language-plaintext highlighter-rouge">kubectl scale deployment ... --replicas=5</code>도 원하는 Pod 수를 변경한다. 두 도구 모두 선언한 수와 실제 실행 수가 같아지도록 조정한다.</p>
+</blockquote>
+
+<h3 id="global-mode">Global Mode</h3>
+
+<p>조건에 맞는 모든 Node에 Task를 하나씩 배치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> global-nginx <span class="se">\</span>
+  <span class="nt">--mode</span> global <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>Global Mode는 각 Node에서 동작해야 하는 Monitoring Agent나 Log Collector에 적합하다. Kubernetes의 DaemonSet이 같은 목적을 담당한다.</p>
+
+<h2 id="7--장애-복구와-desired-state">7 ) 장애 복구와 Desired State</h2>
+
+<hr />
+
+<p>Replica가 세 개인 Service를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> recovery-test <span class="se">\</span>
+  <span class="nt">--replicas</span> 3 <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>Task가 배치된 Worker에서 Container 하나를 강제로 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">rm</span> <span class="nt">-f</span> CONTAINER_ID
+</code></pre></div></div>
+
+<p>Manager에서 일정 시간 뒤 Task 상태를 다시 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps recovery-test
+</code></pre></div></div>
+
+<p>실행 중인 Replica가 세 개보다 적어졌으므로 Swarm은 새로운 Task를 생성한다. 사용자가 선언한 Desired State와 실제 상태를 지속적으로 비교하고 차이를 복구하는 동작이다.</p>
+
+<blockquote>
+  <p>Kubernetes의 Deployment Controller도 Pod가 삭제되면 ReplicaSet을 통해 새로운 Pod를 생성한다. 자동 복구의 기본 원리는 같지만 Swarm은 Service Task를, Kubernetes는 Pod와 Controller Resource를 중심으로 상태를 관리한다.</p>
+</blockquote>
+
+<h2 id="8--rolling-update와-rollback">8 ) Rolling Update와 Rollback</h2>
+
+<hr />
+
+<p>Redis 6.0 Service를 생성한 뒤 Image Version을 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> my-database <span class="se">\</span>
+  <span class="nt">--replicas</span> 3 <span class="se">\</span>
+  redis:6.0-alpine
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--image</span> redis:6.2.5-alpine <span class="se">\</span>
+  my-database
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps my-database
+</code></pre></div></div>
+
+<p>Rolling Update는 기존 Task를 한꺼번에 교체하지 않고 정해진 단위와 간격으로 교체한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-parallelism</code></td>
+      <td>동시에 Update할 Task 수, 기본값 <code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-delay</code></td>
+      <td>한 Update Group이 끝난 뒤 다음 Group까지 대기 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-order</code></td>
+      <td><code class="language-plaintext highlighter-rouge">stop-first</code> 또는 <code class="language-plaintext highlighter-rouge">start-first</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-failure-action</code></td>
+      <td>실패 시 <code class="language-plaintext highlighter-rouge">pause</code>, <code class="language-plaintext highlighter-rouge">rollback</code>, <code class="language-plaintext highlighter-rouge">continue</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-max-failure-ratio</code></td>
+      <td>허용할 Update 실패 비율</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>기본 Update 순서는 기존 Task를 먼저 중지하는 <code class="language-plaintext highlighter-rouge">stop-first</code>이다. 새 Task를 먼저 실행하여 중단 시간을 줄이려면 <code class="language-plaintext highlighter-rouge">start-first</code>를 명시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--image</span> redis:6.2.5-alpine <span class="se">\</span>
+  <span class="nt">--update-parallelism</span> 1 <span class="se">\</span>
+  <span class="nt">--update-delay</span> 10s <span class="se">\</span>
+  <span class="nt">--update-order</span> start-first <span class="se">\</span>
+  <span class="nt">--update-failure-action</span> rollback <span class="se">\</span>
+  my-database
+</code></pre></div></div>
+
+<p>실패한 Update를 이전 Service Spec으로 되돌린다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service rollback my-database
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker info
+docker swarm update <span class="nt">--task-history-limit</span> 10
+</code></pre></div></div>
+
+<p>Task History Limit은 이전 Task 기록의 보존 수를 조정한다. Rollback 자체가 여러 Version의 Image 이력을 원하는 만큼 보관하는 기능이라는 의미는 아니다.</p>
+
+<blockquote>
+  <p>Kubernetes Deployment도 RollingUpdate Strategy, <code class="language-plaintext highlighter-rouge">maxUnavailable</code>, <code class="language-plaintext highlighter-rouge">maxSurge</code>와 <code class="language-plaintext highlighter-rouge">kubectl rollout undo</code>를 제공한다. 두 도구 모두 단계적 교체와 Rollback을 지원하지만 Option 이름과 상태를 기록하는 Resource 구조는 다르다.</p>
+</blockquote>
+
+<h3 id="resource와-service-설정-변경">Resource와 Service 설정 변경</h3>
+
+<p>실행 중인 Service의 설정을 변경할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--limit-cpu</span> 0.5 <span class="se">\</span>
+  <span class="nt">--limit-memory</span> 512M <span class="se">\</span>
+  <span class="nt">--env-add</span> <span class="nv">MY_VAR</span><span class="o">=</span>value <span class="se">\</span>
+  <span class="nt">--env-rm</span> OLD_VAR <span class="se">\</span>
+  <span class="nt">--publish-add</span> <span class="nv">published</span><span class="o">=</span>8002,target<span class="o">=</span>80 <span class="se">\</span>
+  <span class="nt">--replicas</span> 5 <span class="se">\</span>
+  web-alb
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service inspect <span class="nt">--pretty</span> web-alb
+</code></pre></div></div>
+
+<h2 id="9--node-drain과-유지-보수">9 ) Node Drain과 유지 보수</h2>
+
+<hr />
+
+<p>Node를 유지 보수할 때 <code class="language-plaintext highlighter-rouge">Drain</code>으로 변경하면 기존 Task를 다른 Active Node로 옮기고 새로운 Task도 배치하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node update <span class="se">\</span>
+  <span class="nt">--availability</span> drain <span class="se">\</span>
+  worker1
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps web-alb
+</code></pre></div></div>
+
+<p>유지 보수가 끝나면 다시 <code class="language-plaintext highlighter-rouge">Active</code>로 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node update <span class="se">\</span>
+  <span class="nt">--availability</span> active <span class="se">\</span>
+  worker1
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker node update</code>는 Manager에서 실행한다. Worker는 자신의 Availability를 직접 변경할 수 없다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 <code class="language-plaintext highlighter-rouge">kubectl cordon NODE</code>로 새로운 Pod Scheduling을 막고 <code class="language-plaintext highlighter-rouge">kubectl drain NODE</code>로 기존 Workload를 다른 Node로 이동시킨다. Swarm의 <code class="language-plaintext highlighter-rouge">Drain</code>은 이 두 작업을 하나의 Availability 상태 변경으로 처리한다.</p>
+</blockquote>
+
+<h2 id="10--docker-stack-배포">10 ) Docker Stack 배포</h2>
+
+<hr />
+
+<p>Swarm에서는 여러 Service, Network와 Volume을 하나의 Stack으로 배포할 수 있다. <code class="language-plaintext highlighter-rouge">docker stack</code> 명령은 Manager에서 실행한다.</p>
+
+<h3 id="overlay-network-생성">Overlay Network 생성</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create <span class="se">\</span>
+  <span class="nt">--driver</span> overlay <span class="se">\</span>
+  dailylog-net
+</code></pre></div></div>
+
+<h3 id="stack-file-작성">Stack File 작성</h3>
+
+<p><code class="language-plaintext highlighter-rouge">docker stack deploy</code>는 현재도 Legacy Compose v3 형식을 사용하므로 Stack File에는 <code class="language-plaintext highlighter-rouge">version</code>을 유지한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3.9"</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">mongodb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">dbgurum/dailylog:db_1.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">27017:27017"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">dailylog-net</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.role != manager</span>
+      <span class="na">restart_policy</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">on-failure</span>
+        <span class="na">delay</span><span class="pi">:</span> <span class="s">10s</span>
+        <span class="na">max_attempts</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">window</span><span class="pi">:</span> <span class="s">120s</span>
+
+  <span class="na">backend</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">dbgurum/dailylog:back_1.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8000:8000"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">dailylog-net</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MONGO_URL</span><span class="pi">:</span> <span class="s">mongodb://mongodb:27017</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.role != manager</span>
+      <span class="na">restart_policy</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">on-failure</span>
+        <span class="na">delay</span><span class="pi">:</span> <span class="s">10s</span>
+        <span class="na">max_attempts</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">window</span><span class="pi">:</span> <span class="s">120s</span>
+
+  <span class="na">frontend</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">dbgurum/dailylog:front_1.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3000:8000"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">dailylog-net</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">PORT</span><span class="pi">:</span> <span class="s2">"</span><span class="s">8000"</span>
+      <span class="na">DAILYLOG_API_ADDR</span><span class="pi">:</span> <span class="s">backend:8000</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.role != manager</span>
+      <span class="na">restart_policy</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">on-failure</span>
+        <span class="na">delay</span><span class="pi">:</span> <span class="s">10s</span>
+        <span class="na">max_attempts</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">window</span><span class="pi">:</span> <span class="s">120s</span>
+
+<span class="na">networks</span><span class="pi">:</span>
+  <span class="na">dailylog-net</span><span class="pi">:</span>
+    <span class="na">external</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>Stack 배포에서는 각 Node가 Image를 내려받을 수 있어야 하므로 Image를 Registry에 Push한 상태여야 한다. <code class="language-plaintext highlighter-rouge">depends_on</code>은 Stack Service의 준비 순서를 제어하는 기능으로 의존하지 않고, Backend가 Database 연결 실패를 재시도하도록 Application과 Restart Policy를 구성한다.</p>
+
+<h3 id="배포와-확인">배포와 확인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack deploy <span class="se">\</span>
+  <span class="nt">--compose-file</span> docker-compose.yaml <span class="se">\</span>
+  dailylog
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack <span class="nb">ls
+</span>docker stack services dailylog
+docker stack ps dailylog
+</code></pre></div></div>
+
+<p>Stack을 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack <span class="nb">rm </span>dailylog
+</code></pre></div></div>
+
+<blockquote>
+  <p>Kubernetes에서는 여러 Resource가 작성된 YAML을 <code class="language-plaintext highlighter-rouge">kubectl apply</code>로 배포한다. Swarm Stack과 마찬가지로 선언형 File로 여러 구성 요소를 배포하지만 Kubernetes는 Deployment, Service, ConfigMap, Secret 등 Resource 종류를 각각 정의한다.</p>
+</blockquote>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Manager에서 Swarm을 초기화하고 Worker는 Join Token으로 Cluster에 참여한다.</p>
+    </li>
+    <li>
+      <p>Cluster 전체의 Node와 Service 관리 명령은 Manager에서 실행하며 Worker는 할당된 Task를 실행한다.</p>
+    </li>
+    <li>
+      <p>Service Port를 공개하면 Task 배치 여부와 관계없이 모든 Node가 같은 Port로 Traffic을 받는다.</p>
+    </li>
+    <li>
+      <p>Overlay Network와 내장 DNS를 통해 Service 이름으로 통신하며 Routing Mesh가 실행 중인 Task로 요청을 전달한다.</p>
+    </li>
+    <li>
+      <p>Replicated Mode는 지정한 수의 Task를 유지하고 Global Mode는 조건에 맞는 모든 Node에 Task를 배치한다.</p>
+    </li>
+    <li>
+      <p>Swarm은 Desired State, Rolling Update, Rollback과 Node Drain으로 Service 운영을 지원한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker stack deploy</code>는 여러 Service와 Network를 하나의 Application Stack으로 배포한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><category term="DockerSwarm" /><summary type="html"><![CDATA[Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포]]></summary></entry><entry><title type="html">Docker Health Check와 Config 및 Secret</title><link href="https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret/" rel="alternate" type="text/html" title="Docker Health Check와 Config 및 Secret" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret/"><![CDATA[<h2 id="1--process-상태와-application-상태">1 ) Process 상태와 Application 상태</h2>
+
+<hr />
+
+<p>Container는 지정된 주 Process가 실행되는 동안 Running 상태를 유지한다. Process가 종료되면 Container도 종료되므로 기본적인 실행 여부는 Container 상태만으로 확인할 수 있다.</p>
+
+<p>하지만 Process가 실행 중이라고 Application이 정상적으로 요청을 처리한다는 의미는 아니다. Web Application이 처리 용량을 초과하여 <code class="language-plaintext highlighter-rouge">503 Service Unavailable</code>을 반환하거나 Database 연결이 끊긴 상태에서도 주 Process는 계속 실행될 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>확인 대상</th>
+      <th>확인할 수 있는 상태</th>
+      <th>확인하기 어려운 상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Container Process</td>
+      <td>Process 실행 및 종료 여부</td>
+      <td>Application이 실제 요청을 처리하는지 여부</td>
+    </tr>
+    <tr>
+      <td>Health Check</td>
+      <td>HTTP 응답, Database 접속 등 Application 상태</td>
+      <td>비즈니스 기능 전체의 정상 여부</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Dockerfile의 <code class="language-plaintext highlighter-rouge">HEALTHCHECK</code>는 Container 안에서 검사 명령을 주기적으로 실행하여 Process보다 구체적인 Application 상태를 확인한다.</p>
+
+<h2 id="2--dockerfile-health-check">2 ) Dockerfile Health Check</h2>
+
+<hr />
+
+<h3 id="flask-application">Flask Application</h3>
+
+<p><code class="language-plaintext highlighter-rouge">app.py</code>에 일반 요청과 상태 확인을 위한 Endpoint를 작성한다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">"/"</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">"Hello Docker"</span>
+
+
+<span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">"/health"</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">health_check</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">"OK"</span><span class="p">,</span> <span class="mi">200</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="dockerfile">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> python:3.9-slim</span>
+
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> curl <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> app.py ./</span>
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--no-cache-dir</span> flask
+
+<span class="k">HEALTHCHECK</span><span class="s"> \</span>
+  --interval=10s \
+  --timeout=3s \
+  --start-period=5s \
+  --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+<span class="k">EXPOSE</span><span class="s"> 8080</span>
+
+<span class="k">CMD</span><span class="s"> ["python", "app.py"]</span>
+</code></pre></div></div>
+
+<p>Health Check Option은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--interval</code></td>
+      <td>검사 실행 간격</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--timeout</code></td>
+      <td>한 번의 검사 제한 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--start-period</code></td>
+      <td>Application 시작 후 실패를 유예할 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--retries</code></td>
+      <td><code class="language-plaintext highlighter-rouge">unhealthy</code>로 판단하기 전 연속 실패 횟수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">CMD</code></td>
+      <td>실제 상태를 검사할 명령</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">curl -f</code>는 HTTP 응답 Code가 오류이면 실패 상태로 종료하게 되므로, <code class="language-plaintext highlighter-rouge">|| exit 1</code>로 정리한다.</p>
+
+<h3 id="image-build와-상태-확인">Image Build와 상태 확인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> my-healthcheck-app <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> healthcheck <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  my-healthcheck-app
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container ps
+docker container inspect healthcheck
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">STATUS</code>에는 Health Check 결과가 다음과 같이 표시된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>상태</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">starting</code></td>
+      <td>Container가 시작되어 첫 검사 결과를 기다리는 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">healthy</code></td>
+      <td>최근 Health Check가 성공한 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">unhealthy</code></td>
+      <td>설정한 횟수만큼 연속으로 검사에 실패한 상태</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Health Check 결과는 Load Balancing과 Rolling Update에서 새 Task가 요청을 처리할 준비가 되었는지 판단하는 자료가 된다. Kubernetes에서는 비슷한 목적을 Startup Probe, Readiness Probe와 Liveness Probe로 나누어 설정한다.</p>
+
+<h2 id="3--compose-health-check">3 ) Compose Health Check</h2>
+
+<hr />
+
+<p>Compose File에서는 Service의 <code class="language-plaintext highlighter-rouge">healthcheck</code>에 검사 명령과 주기를 정의한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">web</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">my-healthcheck-app</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:8080"</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">CMD</span>
+        <span class="pi">-</span> <span class="s">curl</span>
+        <span class="pi">-</span> <span class="s">-f</span>
+        <span class="pi">-</span> <span class="s">http://localhost:8080/health</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">10s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">3</span>
+      <span class="na">start_period</span><span class="pi">:</span> <span class="s">5s</span>
+</code></pre></div></div>
+
+<p>Dockerfile과 Compose File에 Health Check가 모두 있으면 Compose File의 설정이 해당 Service에서 우선한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+</code></pre></div></div>
+
+<h2 id="4--database-준비-후-web-service-시작">4 ) Database 준비 후 Web Service 시작</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">depends_on</code>만 지정하면 Compose는 Database Container를 먼저 시작하지만 Database가 Connection을 받을 준비까지 기다리지는 않는다. Database에 Health Check를 추가하고 Web Service에 <code class="language-plaintext highlighter-rouge">condition: service_healthy</code>를 지정한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">db</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">postgres:15</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">POSTGRES_USER</span><span class="pi">:</span> <span class="s">user</span>
+      <span class="na">POSTGRES_PASSWORD</span><span class="pi">:</span> <span class="s">password</span>
+      <span class="na">POSTGRES_DB</span><span class="pi">:</span> <span class="s">mydb</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">CMD-SHELL</span>
+        <span class="pi">-</span> <span class="s">pg_isready -U user -d mydb</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">5</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">my-network</span>
+
+  <span class="na">web</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">.</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:8080"</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">DB_HOST</span><span class="pi">:</span> <span class="s">db</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="na">db</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">service_healthy</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">my-network</span>
+
+<span class="na">networks</span><span class="pi">:</span>
+  <span class="na">my-network</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>이 설정에서 실행 순서는 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p>Compose가 <code class="language-plaintext highlighter-rouge">db</code> Container를 시작한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">pg_isready</code>가 PostgreSQL의 준비 상태를 검사한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">db</code>가 <code class="language-plaintext highlighter-rouge">healthy</code>가 되면 <code class="language-plaintext highlighter-rouge">web</code> Container를 생성한다.</p>
+  </li>
+  <li>
+    <p>Web Application은 <code class="language-plaintext highlighter-rouge">db</code>라는 Service 이름으로 Database에 접속한다.</p>
+  </li>
+</ol>
+
+<p>Health Check가 성공했더라도 실행 중 Network 장애가 발생할 수 있으므로 Application 자체에도 Connection 재시도와 오류 처리가 필요하다.</p>
+
+<h2 id="5--swarm-config">5 ) Swarm Config</h2>
+
+<hr />
+
+<p>Docker Config는 Application 설정과 Image를 분리하기 위한 Swarm Resource이다. Service에 Config를 연결하면 지정한 Target 경로에서 File로 읽을 수 있다.</p>
+
+<p>Config에는 다음과 같은 비민감 설정을 저장한다.</p>
+
+<ul>
+  <li>
+    <p>Web Server 설정</p>
+  </li>
+  <li>
+    <p>Application Feature 설정</p>
+  </li>
+  <li>
+    <p>일반적인 Database Client 설정</p>
+  </li>
+  <li>
+    <p>환경별 설정 File</p>
+  </li>
+</ul>
+
+<p>MySQL의 일반 설정 File을 Config로 생성한다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[mysqld]</span>
+<span class="py">max_connections</span><span class="p">=</span><span class="s">200</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker config create <span class="se">\</span>
+  mysql_server_config <span class="se">\</span>
+  ./mysql.cnf
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker config <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>Config를 MySQL Service에 연결한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> mysql-server <span class="se">\</span>
+  <span class="nt">--config</span> <span class="nb">source</span><span class="o">=</span>mysql_server_config,target<span class="o">=</span>/etc/mysql/conf.d/custom.cnf <span class="se">\</span>
+  mysql:8.0
+</code></pre></div></div>
+
+<p>Config를 변경해야 할 때는 기존 Config 자체를 덮어쓰기보다 새로운 이름으로 생성하고 Service가 참조하는 Config를 교체한다.</p>
+
+<h2 id="6--config에-비밀번호를-넣어도-되는가">6 ) Config에 비밀번호를 넣어도 되는가</h2>
+
+<hr />
+
+<p>강의에서는 MySQL Root 비밀번호를 Config 객체로 만들어 File 형태로 주입했다. 이어서 비밀번호를 환경 변수로 직접 전달하면 Container 설정이나 <code class="language-plaintext highlighter-rouge">docker inspect</code>를 통해 노출될 수 있으므로 Secret을 사용할 수 있다고 설명했다.</p>
+
+<p>두 실습을 비교하면서 일반 설정은 Config로, 비밀번호와 같은 민감 정보는 Secret으로 관리하는 것이 목적에 더 적합하다는 것을 알게 되었다.</p>
+
+<p>Config는 민감하지 않은 설정을 배포하기 위한 Resource이다. 비밀번호, API Token, TLS Private Key처럼 노출되어서는 안 되는 값은 Secret으로 관리해야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Config</th>
+      <th>Secret</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>저장 대상</td>
+      <td>일반 설정</td>
+      <td>비밀번호, Token, 인증서 Key</td>
+    </tr>
+    <tr>
+      <td>Service 전달</td>
+      <td>Container의 File로 Mount</td>
+      <td>권한을 받은 Task에만 전달</td>
+    </tr>
+    <tr>
+      <td>Linux Container의 기본 경로</td>
+      <td>지정한 Target</td>
+      <td><code class="language-plaintext highlighter-rouge">/run/secrets/SECRET_NAME</code></td>
+    </tr>
+    <tr>
+      <td>주요 보호 특성</td>
+      <td>설정과 Image 분리</td>
+      <td>Swarm에서 전송 중·저장 시 암호화</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>환경 변수에 비밀번호를 직접 기록하는 방법도 Container 설정과 <code class="language-plaintext highlighter-rouge">docker inspect</code> 결과 등에 값이 나타날 수 있다. Secret을 지원하는 Image라면 <code class="language-plaintext highlighter-rouge">_FILE</code> 접미사가 붙은 환경 변수로 Secret File 경로를 전달한다.</p>
+
+<h2 id="7--swarm-secret">7 ) Swarm Secret</h2>
+
+<hr />
+
+<p>Secret의 기본 흐름은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Secret 생성
+→ Swarm Secret Store에 저장
+→ Service에 Secret 사용 권한 부여
+→ Task의 /run/secrets에 File로 Mount
+→ Task 종료 시 Mount 제거
+</code></pre></div></div>
+
+<h3 id="secret-생성">Secret 생성</h3>
+
+<p>비밀번호 File을 생성하고 Swarm Secret으로 등록한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s1">'MyStrongPassword123!'</span> <span class="o">&gt;</span> mysql_root_pw.txt
+docker secret create <span class="se">\</span>
+  mysql_root_password_v1 <span class="se">\</span>
+  ./mysql_root_pw.txt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker secret <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>또는 표준 입력으로 값을 전달할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s1">'initial_db_password_111'</span> | <span class="se">\</span>
+  docker secret create db_password_v1 -
+</code></pre></div></div>
+
+<p>Shell History와 Terminal 출력에 Secret을 남길 수 있으므로 실제 환경에서는 Secret 값을 명령행에 직접 작성하지 않는다.</p>
+
+<h3 id="mysql-service에-secret-연결">MySQL Service에 Secret 연결</h3>
+
+<p>MySQL 공식 Image는 <code class="language-plaintext highlighter-rouge">MYSQL_ROOT_PASSWORD_FILE</code>에 지정한 File의 내용을 Root 비밀번호로 읽을 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> mysql-server <span class="se">\</span>
+  <span class="nt">--publish</span> <span class="nv">published</span><span class="o">=</span>3306,target<span class="o">=</span>3306 <span class="se">\</span>
+  <span class="nt">--secret</span> <span class="nb">source</span><span class="o">=</span>mysql_root_password_v1,target<span class="o">=</span>mysql_root_password <span class="se">\</span>
+  <span class="nt">--env</span> <span class="nv">MYSQL_ROOT_PASSWORD_FILE</span><span class="o">=</span>/run/secrets/mysql_root_password <span class="se">\</span>
+  mysql:8.0
+</code></pre></div></div>
+
+<p>Service Task에서는 다음 경로로 Secret을 읽는다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/run/secrets/mysql_root_password
+</code></pre></div></div>
+
+<p>Secret 값은 <code class="language-plaintext highlighter-rouge">docker secret inspect</code>로 조회되지 않는다. Manager와 사용 권한이 부여된 Service Task만 Secret에 접근하며 Linux Container에서는 Memory File System에 Mount된다.</p>
+
+<h3 id="stack-file에서-config와-secret-사용">Stack File에서 Config와 Secret 사용</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3.9"</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">db</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mysql:8.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3306:3306"</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MYSQL_ROOT_PASSWORD_FILE</span><span class="pi">:</span> <span class="s">/run/secrets/db_root_password</span>
+      <span class="na">MYSQL_DATABASE</span><span class="pi">:</span> <span class="s">myapp_db</span>
+    <span class="na">configs</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">source</span><span class="pi">:</span> <span class="s">db_config</span>
+        <span class="na">target</span><span class="pi">:</span> <span class="s">/etc/mysql/conf.d/custom.cnf</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="m">0444</span>
+    <span class="na">secrets</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">source</span><span class="pi">:</span> <span class="s">db_root_password</span>
+        <span class="na">target</span><span class="pi">:</span> <span class="s">db_root_password</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="m">0400</span>
+
+<span class="na">configs</span><span class="pi">:</span>
+  <span class="na">db_config</span><span class="pi">:</span>
+    <span class="na">file</span><span class="pi">:</span> <span class="s">./mysql.cnf</span>
+
+<span class="na">secrets</span><span class="pi">:</span>
+  <span class="na">db_root_password</span><span class="pi">:</span>
+    <span class="na">file</span><span class="pi">:</span> <span class="s">./mysql_root_pw.txt</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack deploy <span class="se">\</span>
+  <span class="nt">--compose-file</span> docker-compose.yaml <span class="se">\</span>
+  mysql-app
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mysql.cnf</code>와 비밀번호 File은 용도가 다르므로 Config와 Secret으로 분리한다.</p>
+
+<h2 id="8--secret-version-교체">8 ) Secret Version 교체</h2>
+
+<hr />
+
+<p>Swarm Secret의 값은 직접 수정할 수 없다. 새 Version의 Secret을 생성한 뒤 Service가 참조하는 Secret을 교체한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker secret create <span class="se">\</span>
+  mysql_root_password_v2 <span class="se">\</span>
+  ./mysql_root_pw_v2.txt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--secret-rm</span> mysql_root_password_v1 <span class="se">\</span>
+  <span class="nt">--secret-add</span> <span class="nb">source</span><span class="o">=</span>mysql_root_password_v2,target<span class="o">=</span>mysql_root_password <span class="se">\</span>
+  mysql-server
+</code></pre></div></div>
+
+<p>기존 Secret을 사용하는 Service가 없다면 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker secret <span class="nb">rm </span>mysql_root_password_v1
+</code></pre></div></div>
+
+<p>Secret 이름에 Version을 포함하면 새 값으로 교체하고 이전 값을 제거하는 과정을 구분하기 쉽다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Container Process가 실행 중이어도 Application은 요청을 처리하지 못할 수 있으므로 별도의 Health Check가 필요하다.</p>
+    </li>
+    <li>
+      <p>Dockerfile과 Compose의 Health Check는 HTTP 요청이나 Database 접속처럼 실제 Application 상태를 검사한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">depends_on</code>과 <code class="language-plaintext highlighter-rouge">condition: service_healthy</code>를 함께 사용하면 의존 Service가 준비된 뒤 다음 Service를 시작할 수 있다.</p>
+    </li>
+    <li>
+      <p>Config는 일반 설정을 Image와 분리하고 Secret은 비밀번호와 Token 같은 민감 정보를 보호한다.</p>
+    </li>
+    <li>
+      <p>환경 변수에 비밀번호를 직접 넣으면 Container 설정에서 노출될 수 있으므로 <code class="language-plaintext highlighter-rouge">_FILE</code> 환경 변수와 Secret File을 사용한다.</p>
+    </li>
+    <li>
+      <p>Swarm Secret은 권한이 부여된 Service Task의 <code class="language-plaintext highlighter-rouge">/run/secrets</code>에 Mount되며 새 Version을 생성하는 방식으로 교체한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><category term="DockerSwarm" /><summary type="html"><![CDATA[Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법]]></summary></entry><entry><title type="html">Docker Compose 응용과 Docker Swarm</title><link href="https://kkr010128.github.io/cloud-native-17-docker-compose-swarm/" rel="alternate" type="text/html" title="Docker Compose 응용과 Docker Swarm" /><published>2026-08-21T00:00:00+09:00</published><updated>2026-08-21T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-17-docker-compose-swarm</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-17-docker-compose-swarm/"><![CDATA[<p>이전 글에서는 Docker Compose의 역할과 기본 File 구조를 살펴보았다. 이번 글에서는 여러 Service를 실제로 연결하고 확장하는 방법부터 Nginx Load Balancing, 환경 변수 관리와 Docker Swarm까지 다룬다.</p>
 
 <p>Docker Compose는 주로 단일 Host에서 여러 Container로 구성된 Application을 관리한다. 여러 Host를 하나의 Cluster로 묶어 Service를 배치하고 원하는 상태를 유지해야 한다면 Docker Swarm이나 Kubernetes 같은 Container Orchestration 도구가 필요하다.</p>
 
@@ -4844,1032 +6308,4 @@ docker image <span class="nb">ls </span>my-node-app
       <p><code class="language-plaintext highlighter-rouge">docker commit</code>으로 Container 상태를 Image로 저장할 수 있지만 반복 가능한 Image 생성에는 Dockerfile을 사용한다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행 및 파일 복사]]></summary></entry><entry><title type="html">Docker와 Container 가상화</title><link href="https://kkr010128.github.io/cloud-native-08-docker-overview/" rel="alternate" type="text/html" title="Docker와 Container 가상화" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-08-docker-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-08-docker-overview/"><![CDATA[<h2 id="1--가상화">1 ) 가상화</h2>
-
-<hr />
-
-<p>가상화(Virtualization)는 <strong>물리적 시스템의 CPU, Memory, Storage, Network 같은 자원을 추상화하여 여러 가상 환경에서 사용할 수 있게 하는 기술</strong>이다.</p>
-
-<p>가상화 소프트웨어는 물리적 Hardware의 기능을 논리적으로 분리한다. 하나의 물리적인 Computer에서도 여러 가상 System을 동시에 실행할 수 있으므로 Hardware Resource의 활용도를 높이고 Infrastructure를 유연하게 관리할 수 있다.</p>
-
-<pre><code class="language-mermaid">flowchart TB
-    A["물리적 컴퓨터"] --&gt; B["가상화 소프트웨어"]
-    B --&gt; C["가상 시스템 1"]
-    B --&gt; D["가상 시스템 2"]
-    B --&gt; E["가상 시스템 3"]
-</code></pre>
-
-<h3 id="가상화의-장점">가상화의 장점</h3>
-
-<ul>
-  <li><strong>효율적인 리소스 사용</strong>
-    <ul>
-      <li>하나의 물리적 System을 여러 환경이 공유하여 Resource를 효율적으로 사용한다.</li>
-    </ul>
-  </li>
-  <li><strong>자동화된 IT 관리</strong>
-    <ul>
-      <li>가상 환경의 생성, 배포 및 관리를 자동화하기 쉽다.</li>
-    </ul>
-  </li>
-  <li><strong>신속한 재해 복구</strong>
-    <ul>
-      <li>Snapshot과 복제된 환경을 이용하여 장애 발생 시 빠르게 복구할 수 있다.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="가상화-서비스">가상화 서비스</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>종류</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Server 가상화</td>
-      <td>하나의 물리적 Server를 여러 가상 Server로 분리</td>
-    </tr>
-    <tr>
-      <td>Storage 가상화</td>
-      <td>여러 Storage Resource를 하나의 논리적 Storage처럼 구성</td>
-    </tr>
-    <tr>
-      <td>Network 가상화</td>
-      <td>물리적 Network를 논리적으로 분리하고 Software로 제어</td>
-    </tr>
-    <tr>
-      <td>Data 가상화</td>
-      <td>여러 위치의 Data를 하나의 Data Source처럼 제공</td>
-    </tr>
-    <tr>
-      <td>Application 가상화</td>
-      <td>Application을 운영체제와 분리된 환경에서 실행</td>
-    </tr>
-    <tr>
-      <td>Desktop 가상화</td>
-      <td>Desktop 환경을 중앙 Server에서 제공</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Network 가상화의 대표적인 기술로 SDN(Software-Defined Networking)이 있다. SDN은 물리적 장비가 담당하던 Traffic 제어 기능을 Software로 분리하여 Routing 정책을 중앙에서 관리한다. 예를 들어 영상 통화 Traffic을 일반 Application Traffic보다 우선 처리하도록 구성할 수 있다.</p>
-
-<h3 id="가상화-방식">가상화 방식</h3>
-
-<h4 id="host-os-가상화">Host OS 가상화</h4>
-
-<p>Host OS 위에 가상화 Software를 설치하고 그 위에서 Guest OS를 실행하는 방식이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
-Guest OS
-Virtualization Software
-Host OS
-Hardware
-</code></pre></div></div>
-
-<p>Host와 Guest 운영체제의 선택이 비교적 자유롭지만 운영체제 위에서 또 다른 운영체제를 실행하므로 Overhead가 클 수 있다.</p>
-
-<h4 id="hypervisor-가상화">Hypervisor 가상화</h4>
-
-<p>Host OS 없이 Hardware에 Hypervisor를 직접 설치하고 여러 Guest OS를 실행하는 방식이다. Hardware에 직접 설치하는 Hypervisor를 <strong>Bare Metal Hypervisor</strong>라고 하며 Server 가상화에서 주로 사용한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application
-Guest OS
-Hypervisor
-Hardware
-</code></pre></div></div>
-
-<p>Host OS를 거치지 않으므로 Host OS 방식보다 Overhead가 작다.</p>
-
-<h4 id="container-가상화">Container 가상화</h4>
-
-<p>Host OS 위에 Container Runtime을 설치하고 Application 실행 환경을 논리적으로 격리하는 방식이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container A        Container B
-App + Library      App + Library
---------------------------------
-Container Runtime
-Host OS
-Hardware
-</code></pre></div></div>
-
-<p>Container는 Guest OS 전체를 포함하지 않고 Host OS의 Kernel을 공유한다. 따라서 Virtual Machine보다 가볍고 빠르지만 서로 다른 종류의 Kernel을 요구하는 운영체제를 동시에 실행하기 어렵고, 격리 수준도 완전한 Virtual Machine과 차이가 있다.</p>
-
-<p>Container 가상화 Software에는 OpenVZ, LXC, Linux VServer, Docker, Oracle Solaris Zones 등이 있다.</p>
-
-<h2 id="2--container">2 ) Container</h2>
-
-<hr />
-
-<p>Container는 <strong>Application Code와 실행에 필요한 Library 및 의존성을 하나의 격리된 단위로 묶은 실행 환경</strong>이다. Guest OS Layer가 없으므로 Image 크기가 작고 시작 시간이 빠르다.</p>
-
-<h3 id="container의-장점">Container의 장점</h3>
-
-<ul>
-  <li>Hypervisor와 Guest OS가 필요하지 않아 가볍다.</li>
-  <li>Image의 복제, 이관 및 배포가 쉽다.</li>
-  <li>Guest OS를 Booting하지 않으므로 Application 시작이 빠르다.</li>
-  <li>동일한 Hardware에서 Virtual Machine보다 많은 Application을 실행할 수 있다.</li>
-  <li>Application마다 의존성을 분리하여 Library와 설정의 충돌을 줄인다.</li>
-</ul>
-
-<p>Application 배포 방식은 다음과 같이 변화해 왔다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>운영체제에 직접 배포 → Virtual Machine 기반 배포 → Container 기반 배포
-</code></pre></div></div>
-
-<h2 id="3--docker">3 ) Docker</h2>
-
-<hr />
-
-<p>Docker는 <strong>Container형 가상화 기술을 구현하는 상주 애플리케이션과 이를 조작하는 명령행 도구</strong>로 구성된다. 애플리케이션과 데이터를 독립된 환경에 격리하여 실행할 수 있게 한다.</p>
-
-<h3 id="특징">특징</h3>
-
-<ul>
-  <li>Microservice, DevOps, Testing 등 다양한 분야에서 활용된다.</li>
-  <li>Linux Container 구현체의 사실상 표준(de facto)이다.</li>
-  <li>가상 머신보다 가볍고 실행 및 배포가 빠르다.</li>
-</ul>
-
-<h3 id="docker와-linux">Docker와 Linux</h3>
-
-<p>Docker는 Linux를 전제로 만들어졌다. Windows와 macOS에서도 Docker Desktop을 사용할 수 있지만 내부적으로 Linux 환경을 사용하며, Container에서 실행할 프로그램도 Linux용이다.</p>
-
-<h3 id="lxclinux-containers">LXC(Linux Containers)</h3>
-
-<p>LXC (Linux Containers)는 <strong>OS 수준의 가상화(OS-level Virtualization)</strong>를 구현하는 Linux Container 기술이다.
-하나의 Linux System에서 격리된 Container 환경을 실행하며, 이를 위해 여러 Linux 기능을 사용한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>기술</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">chroot</code></td>
-      <td>특정 Directory를 Root처럼 인식시켜 File 영역을 격리</td>
-    </tr>
-    <tr>
-      <td>cgroups</td>
-      <td>CPU와 Memory 등의 Resource 사용량을 제한하고 격리</td>
-    </tr>
-    <tr>
-      <td>Namespace</td>
-      <td>Process Tree, Network, User ID, Mount 영역을 분리</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="chroot">chroot</h4>
-
-<p><code class="language-plaintext highlighter-rouge">chroot</code>는 특정 Directory를 최상위 Directory인 Root로 인식하도록 설정하는 Linux 기능이다.
-이를 통해 다음과 같은 영역을 격리할 수 있다.</p>
-
-<ul>
-  <li>User</li>
-  <li>File</li>
-  <li>Directory</li>
-</ul>
-
-<h4 id="cgroups">cgroups</h4>
-
-<p>cgroups (Control Groups)는 <strong>Resource를 제한하고 격리하는 Linux Kernel 기능</strong>이다.</p>
-
-<p>각 Container가 사용할 수 있는 CPU, Memory 등의 Resource를 제한하는 데 사용할 수 있다.</p>
-
-<h4 id="namespace">Namespace</h4>
-
-<p>Namespace는 <strong>Process를 독립시키기 위한 Linux Kernel의 격리 기술</strong>이다.</p>
-
-<p>각 Process가 서로 분리된 운영 환경을 바라볼 수 있도록 하며 다음과 같은 영역을 격리할 수 있다.</p>
-
-<ul>
-  <li>Process Tree</li>
-  <li>Network</li>
-  <li>User ID</li>
-  <li>Mount된 File System</li>
-</ul>
-
-<h3 id="프로그램과-데이터를-격리하는-이유">프로그램과 데이터를 격리하는 이유</h3>
-
-<p>여러 프로그램이 동일한 실행 환경을 사용하면 서로 영향을 줄 수 있다.</p>
-
-<p>예를 들어 여러 프로그램이 특정 Directory를 공유하거나 같은 경로의 설정 정보를 사용하는 경우, 하나의 프로그램을 Update했을 때 다른 프로그램에도 영향을 줄 수 있다.</p>
-
-<p>이러한 문제는 다음과 같은 부분에서 발생할 수 있다.</p>
-
-<ul>
-  <li>실행 환경</li>
-  <li>Library</li>
-  <li>Directory</li>
-  <li>설정 파일</li>
-</ul>
-
-<p>여러 프로그램이 같은 Directory, Library, 설정 파일을 공유하면 하나의 변경이 다른 프로그램에 영향을 줄 수 있다. Docker는 실행 환경을 Container 단위로 격리하여 이러한 충돌을 줄인다.</p>
-
-<h2 id="4--image와-container">4 ) Image와 Container</h2>
-
-<hr />
-
-<p>Image는 Container를 만들기 위한 <strong>설계도</strong>, Container는 Image를 실행한 <strong>Instance</strong>에 해당한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Image        → Class
-Container    → Instance
-</code></pre></div></div>
-
-<p>하나의 Image로 동일한 환경의 Container를 여러 개 생성할 수 있고, 실행 중인 Container를 새로운 Image로 만드는 것도 가능하다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>              ┌─ Container 1
-Docker Image ─┼─ Container 2
-              └─ Container 3
-</code></pre></div></div>
-<h3 id="docker-hub">Docker Hub</h3>
-
-<p>Docker Hub는 Docker가 제공하는 공식 Image Registry이다. 일반적으로 Docker Hub에서 Base Image를 내려받고 필요한 Layer를 추가하여 새로운 Image를 만든 뒤 배포한다.</p>
-
-<h3 id="다양한-형태로-구성할-수-있는-container">다양한 형태로 구성할 수 있는 Container</h3>
-
-<p>Container는 하나의 애플리케이션으로 구성할 수도 있고 여러 개의 애플리케이션을 묶어서 구성할 수도 있다.</p>
-<blockquote>
-  <p>WordPress를 Apache Web Server와 MySQL로 함께 구성한 사례</p>
-</blockquote>
-
-<h3 id="container와-데이터">Container와 데이터</h3>
-
-<p>Container는 삭제 후 복구할 수 없는 일회성 실행 환경이다. Container 내부에만 저장한 데이터도 함께 사라질 수 있다.</p>
-
-<p>따라서 Container의 Lifecycle과 저장해야 하는 데이터를 구분하여 다루어야 한다.</p>
-
-<p>보존할 데이터는 Host의 Disk나 Docker Volume을 Mount하여 저장한다.</p>
-
-<h2 id="5--docker의-장점과-구성-요소">5 ) Docker의 장점과 구성 요소</h2>
-
-<hr />
-
-<h3 id="장점">장점</h3>
-
-<ul>
-  <li>개발 환경과 운영 환경을 거의 동일하게 재현할 수 있다.</li>
-  <li>물리적 환경과 Server 구성 차이의 영향을 줄일 수 있다.</li>
-  <li>가상 머신보다 가볍고 Image의 복제·이관·배포가 쉽다.</li>
-  <li>Cloud Platform과 Container Orchestration 환경에서 활용할 수 있다.</li>
-</ul>
-
-<p>Linux 운영체제 자체의 동작이나 비 Linux 환경이 필요한 경우에는 완전한 Guest OS를 제공하는 Virtual Machine이 더 적합할 수 있다.</p>
-
-<p>Container는 완전한 Guest OS를 제공하는 Virtual Machine과는 구조적으로 차이가 있다.</p>
-
-<h3 id="주요-도구">주요 도구</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>도구</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>containerd</td>
-      <td>Image 전송·저장, Container 실행과 감독 등 Lifecycle 관리</td>
-    </tr>
-    <tr>
-      <td>BuildKit</td>
-      <td>Dockerfile을 기반으로 Docker Image Build</td>
-    </tr>
-    <tr>
-      <td>Docker CLI</td>
-      <td><code class="language-plaintext highlighter-rouge">docker</code> 명령을 통해 Docker Engine 조작</td>
-    </tr>
-    <tr>
-      <td>Docker Compose</td>
-      <td>YAML로 여러 Container를 하나의 Application처럼 관리</td>
-    </tr>
-    <tr>
-      <td>Docker Registry</td>
-      <td>Image 저장 및 Push/Pull 제공</td>
-    </tr>
-    <tr>
-      <td>Docker Swarm</td>
-      <td>여러 Docker Host를 Cluster로 관리</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="containerd">containerd</h4>
-
-<p>containerd는 Container를 구동하고 관리하는 Runtime이다.</p>
-
-<p>Linux 및 Windows용 Daemon으로 동작하며 다음과 같은 Container Lifecycle을 관리한다.</p>
-
-<ul>
-  <li>Image 전송 및 저장</li>
-  <li>Container 실행</li>
-  <li>Container 감독</li>
-  <li>Network 연결</li>
-  <li>Container Lifecycle 관리</li>
-</ul>
-
-<p>강의에서는 Kubernetes를 학습할 때 Docker와 containerd의 관계를 주의해야 한다고 설명하였다.</p>
-
-<blockquote>
-  <p>Kubernetes에서는 Docker를 직접 Container Runtime으로 사용하는 방식이 제거되었으며 containerd와 같은 Container Runtime을 사용한다.</p>
-</blockquote>
-
-<h4 id="buildkit">BuildKit</h4>
-
-<p>BuildKit은 Dockerfile의 설정 정보를 이용하여 <strong>Docker Image를 Build하는 Open Source 도구</strong>이다.</p>
-
-<p>Image Build 과정에서 다양한 Architecture와 Build 기능을 제공한다.</p>
-
-<p>강의에서는 현재 Docker가 <strong>Docker Image를 만드는 도구로 많이 사용된다는 점</strong>을 강조하였다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Dockerfile → BuildKit → Docker Image
-</code></pre></div></div>
-
-<h4 id="docker-cli">Docker CLI</h4>
-
-<p>Docker CLI (Command Line Interface)는 Docker 명령을 실행하기 위한 명령행 도구이다.</p>
-
-<p>Docker CLI를 이용하여 Docker Image와 Container 등을 조작할 수 있다.</p>
-
-<h3 id="container와-orchestration">Container와 Orchestration</h3>
-
-<p>Container 기술은 PaaS 서비스를 가능하게 하는 Software 개발 환경을 제공하는 데 활용할 수 있다.</p>
-
-<p>하지만 Container의 수가 증가하면 각각의 Container를 직접 관리하기 어려워진다.</p>
-
-<p>Container 수가 많아지면 자동 복구, Traffic Routing, Load Balancing 등을 직접 처리하기 어렵다. 이때 Kubernetes와 같은 Orchestration 도구를 사용한다.</p>
-
-<p>다음과 같은 작업을 자동화하고 관리하기 위해 <strong>Orchestration 도구</strong>가 필요하다.</p>
-
-<ul>
-  <li>Container 자동 관리</li>
-  <li>Traffic Routing</li>
-  <li>Load Balancing</li>
-</ul>
-
-<p>강의에서는 Container 기반 환경의 구성을 다음과 같이 연결하여 설명하였다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container로 구동되는 Application
-              ↓
-      LXC / Docker 기술
-              ↓
- Orchestration Tool
-        Kubernetes
-              ↓
-             IaaS
-</code></pre></div></div>
-
-<p>즉, Docker와 같은 Container 기술을 이용하여 애플리케이션 실행 환경을 구성하고, 여러 Container를 운영해야 하는 환경에서는 Kubernetes와 같은 Orchestration 도구를 이용하여 이를 관리한다.</p>
-
-<h3 id="docker의-구성-요소">Docker의 구성 요소</h3>
-
-<p>Docker는 Client, Host, Engine을 중심으로 동작하며 Container 구성과 Image 관리, Cluster 관리 등을 위한 여러 도구로 구성된다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성 요소</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Docker Client</td>
-      <td>Docker에 명령을 전달할 수 있는 CLI</td>
-    </tr>
-    <tr>
-      <td>Docker Host</td>
-      <td>Docker가 설치되어 실행되는 Server 또는 Virtual Machine</td>
-    </tr>
-    <tr>
-      <td>Docker Engine</td>
-      <td>Docker를 이용한 Application 실행 환경을 제공하는 핵심 요소</td>
-    </tr>
-    <tr>
-      <td>Docker Compose</td>
-      <td>여러 Container의 구성 정보를 YAML로 작성하여 하나의 Application처럼 관리하는 도구</td>
-    </tr>
-    <tr>
-      <td>Docker Registry</td>
-      <td>Docker Image를 Push/Pull할 수 있도록 Image를 저장하고 배포하는 Registry</td>
-    </tr>
-    <tr>
-      <td>Docker Swarm</td>
-      <td>여러 Docker Host를 Cluster로 구성하여 관리하는 Docker Orchestration 도구</td>
-    </tr>
-    <tr>
-      <td>Docker Hub</td>
-      <td>Docker Image를 공유할 수 있는 Cloud 기반 Registry Service</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="docker-client">Docker Client</h4>
-
-<p>Docker Client는 사용자가 Docker에 명령을 전달하기 위한 CLI (Command Line Interface)이다.</p>
-
-<p>사용자가 <code class="language-plaintext highlighter-rouge">docker</code> 명령을 실행하면 Docker Client를 통해 Docker Engine에 명령이 전달된다.</p>
-
-<h4 id="docker-host와-docker-engine">Docker Host와 Docker Engine</h4>
-
-<p>Docker Host는 Docker가 설치되어 있는 Server 또는 Virtual Machine이다.</p>
-
-<p>Docker Host 내부에서는 <strong>Docker Engine</strong>이 동작하며, Docker를 이용한 Application 실행 환경을 제공한다.</p>
-
-<p>Docker Engine은 Docker의 핵심 요소로 Container와 Image를 실행하고 관리한다.</p>
-
-<h4 id="docker-compose">Docker Compose</h4>
-
-<p>Docker Compose는 서로 의존성을 가지는 여러 Container의 구성 정보를 <strong>YAML 파일</strong>로 작성하여 일원화된 Application 관리가 가능하도록 하는 도구이다.</p>
-
-<p>여러 Container로 구성된 Application의 실행 환경을 하나의 설정 파일에서 관리할 수 있다.</p>
-
-<h4 id="docker-registry와-docker-hub">Docker Registry와 Docker Hub</h4>
-
-<p>Docker Registry는 Docker Image를 저장하고 <code class="language-plaintext highlighter-rouge">push</code>, <code class="language-plaintext highlighter-rouge">pull</code>할 수 있도록 하는 Image 저장소이다.</p>
-
-<p>Docker Hub는 Docker Image를 공유할 수 있도록 Docker에서 제공하는 Cloud Service이다.</p>
-
-<h4 id="docker-swarm">Docker Swarm</h4>
-
-<p>Docker Swarm은 여러 Docker Host를 하나의 Cluster로 구성하여 관리할 수 있도록 하는 <strong>Docker Orchestration 도구</strong>이다.</p>
-
-<p>여러 Docker Host에서 실행되는 Container를 하나의 Cluster 단위로 관리할 때 사용할 수 있다.</p>
-
-<h2 id="6--docker-설치">6 ) Docker 설치</h2>
-
-<hr />
-
-<p>Docker는 64-bit 운영체제에서 사용한다. Windows와 macOS에서는 Docker Desktop을 설치한다.</p>
-
-<h3 id="windows">Windows</h3>
-
-<p>WSL 2를 설치한 뒤 Docker Desktop을 설치한다.</p>
-
-<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">wsl</span><span class="w"> </span><span class="nt">--install</span><span class="w">
-</span><span class="n">wsl</span><span class="w"> </span><span class="nt">--set-default-version</span><span class="w"> </span><span class="nx">2</span><span class="w">
-</span></code></pre></div></div>
-
-<h3 id="ubuntu">Ubuntu</h3>
-
-<p>Ubuntu에서는 Docker 공식 저장소를 등록한 뒤 Docker Engine과 관련 Plugin을 설치한다. 세부 명령은 버전에 따라 달라질 수 있으므로 <a href="https://docs.docker.com/engine/install/ubuntu/">Docker 공식 설치 문서</a>를 기준으로 진행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
-<span class="nb">sudo </span>apt <span class="nb">install </span>docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-</code></pre></div></div>
-
-<p>설치 후 Version과 Service 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker version
-<span class="nb">sudo </span>systemctl status docker
-<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> docker
-</code></pre></div></div>
-
-<p>현재 사용자가 <code class="language-plaintext highlighter-rouge">sudo</code> 없이 Docker를 실행하려면 <code class="language-plaintext highlighter-rouge">docker</code> Group에 추가한 뒤 다시 로그인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>usermod <span class="nt">-aG</span> docker <span class="s2">"</span><span class="si">$(</span><span class="nb">whoami</span><span class="si">)</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<blockquote>
-  <p>Docker Socket의 권한을 <code class="language-plaintext highlighter-rouge">666</code>으로 변경하면 모든 사용자가 Docker Daemon을 제어할 수 있으므로 사용하지 않는다.</p>
-</blockquote>
-
-<h2 id="7--기본-사용">7 ) 기본 사용</h2>
-
-<hr />
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Image 다운로드와 확인</span>
-docker pull hello-world
-docker images
-
-<span class="c"># Container 생성 및 실행</span>
-docker run hello-world
-
-<span class="c"># 실행 중인 Container 확인</span>
-docker ps
-
-<span class="c"># 모든 Container 확인</span>
-docker ps <span class="nt">-a</span>
-
-<span class="c"># Docker Version과 System 정보 확인</span>
-docker version
-docker info
-docker system <span class="nb">df</span>
-</code></pre></div></div>
-
-<p>대화형 Terminal이 필요한 Container는 <code class="language-plaintext highlighter-rouge">-it</code> Option으로 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">-it</span> IMAGE_NAME
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker run</code>은 Image가 없으면 내려받고, Container를 생성한 뒤 시작한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[가상화와 Container의 원리부터 Docker의 구성 요소, 설치 및 기본 사용법까지 정리]]></summary></entry><entry><title type="html">Docker 명령어와 Registry</title><link href="https://kkr010128.github.io/cloud-native-09-docker-commands/" rel="alternate" type="text/html" title="Docker 명령어와 Registry" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-09-docker-commands</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-09-docker-commands/"><![CDATA[<h2 id="1--docker-registry">1 ) Docker Registry</h2>
-
-<hr />
-
-<p>Docker Registry는 Image를 저장하고 배포하는 장소이다. Docker Hub는 Docker가 운영하는 공식 Public Registry이며 Apache, MySQL, Ubuntu 등의 공식 Image를 제공한다.</p>
-
-<p>Registry는 여러 <strong>Repository</strong>로 구성된다. 직접 Private Registry를 구축하거나 Cloud Service Provider가 제공하는 Registry를 사용할 수도 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Registry
-  ├─ Repository A
-  │    ├─ Image:1.0
-  │    └─ Image:2.0
-  └─ Repository B
-</code></pre></div></div>
-
-<h2 id="2--container-application-개발-흐름">2 ) Container Application 개발 흐름</h2>
-
-<hr />
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Application Code 작성
-        ↓
-Dockerfile 작성
-        ↓
-Image Build
-        ↓
-Container 생성 및 실행
-        ↓
-Application Test
-        ↓
-Registry에 Image Push
-</code></pre></div></div>
-
-<p>Dockerfile은 Git으로 관리하며 코드 변경 후 같은 과정을 반복한다. 여러 Container가 필요한 Application은 Docker Compose로 함께 실행하고 각각의 Container와 전체 Application을 테스트한다.</p>
-
-<h2 id="3--docker-명령-구조">3 ) Docker 명령 구조</h2>
-
-<hr />
-
-<p>모든 Docker 명령은 <code class="language-plaintext highlighter-rouge">docker</code>로 시작한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker [상위 명령] [하위 명령] [Option] [대상] [인자]
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image pull penguin
-docker container run penguin
-docker container run <span class="nt">-d</span> penguin
-</code></pre></div></div>
-
-<p>일부 명령은 상위 명령을 생략한 이전 형식도 지원하지만, 동작 대상을 명확히 나타내려면 <code class="language-plaintext highlighter-rouge">docker image ...</code>, <code class="language-plaintext highlighter-rouge">docker container ...</code> 형식을 사용하는 것이 좋다.</p>
-
-<h3 id="image-명령">Image 명령</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>명령</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker image pull IMAGE</code></td>
-      <td>Registry에서 Image 다운로드</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker image ls</code></td>
-      <td>Local Image 목록 출력</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker image build -t NAME .</code></td>
-      <td>Dockerfile로 Image Build 및 Tag 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker image rm IMAGE</code></td>
-      <td>Image 삭제</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="container-명령">Container 명령</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>명령</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container create IMAGE</code></td>
-      <td>Container 생성</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container start CONTAINER</code></td>
-      <td>정지된 Container 시작</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container run IMAGE</code></td>
-      <td>Image Pull, Container 생성과 시작 수행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container stop CONTAINER</code></td>
-      <td>실행 중인 Container 정지</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container rm CONTAINER</code></td>
-      <td>정지된 Container 삭제</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container ls</code></td>
-      <td>실행 중인 Container 목록 출력</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container exec -it CONTAINER CMD</code></td>
-      <td>실행 중인 Container에서 명령 수행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container cp SRC DEST</code></td>
-      <td>Host와 Container 사이에서 File 복사</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker container commit CONTAINER IMAGE</code></td>
-      <td>Container 상태를 Image로 저장</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>자주 사용하는 <code class="language-plaintext highlighter-rouge">run</code> Option은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--name</code></td>
-      <td>Container 이름 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-d</code></td>
-      <td>Background 실행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-i</code></td>
-      <td>표준 입력 유지</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-t</code></td>
-      <td>가상 Terminal 할당</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-e</code></td>
-      <td>환경 변수 설정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-p</code></td>
-      <td>Host와 Container Port 연결</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-v</code></td>
-      <td>Volume 또는 Directory Mount</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="4--volume과-network-명령">4 ) Volume과 Network 명령</h2>
-
-<hr />
-
-<h3 id="volume">Volume</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create VOLUME_NAME
-docker volume inspect VOLUME_NAME
-docker volume <span class="nb">ls
-</span>docker volume <span class="nb">rm </span>VOLUME_NAME
-docker volume prune
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">prune</code>은 사용하지 않는 Resource를 일괄 삭제하므로 삭제 대상을 확인한 후 실행한다.</p>
-
-<h3 id="network">Network</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create NETWORK_NAME
-docker network inspect NETWORK_NAME
-docker network <span class="nb">ls
-</span>docker network connect NETWORK_NAME CONTAINER_NAME
-docker network <span class="nb">rm </span>NETWORK_NAME
-docker network prune
-</code></pre></div></div>
-
-<h2 id="5--그-밖의-명령">5 ) 그 밖의 명령</h2>
-
-<hr />
-
-<table>
-  <thead>
-    <tr>
-      <th>명령</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker login</code> / <code class="language-plaintext highlighter-rouge">logout</code></td>
-      <td>Registry 인증과 해제</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker search</code></td>
-      <td>Registry의 Image 검색</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker version</code></td>
-      <td>Client와 Server Version 확인</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker info</code></td>
-      <td>Docker Engine 정보 확인</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker system</code></td>
-      <td>Docker System 정보와 Resource 관리</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker swarm</code></td>
-      <td>Docker Swarm 관리</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker node</code></td>
-      <td>Swarm Node 관리</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker service</code></td>
-      <td>Swarm Service 관리</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker stack</code></td>
-      <td>여러 Swarm Service로 구성한 Stack 관리</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker secret</code></td>
-      <td>Swarm의 비밀 정보 관리</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">docker plugin</code></td>
-      <td>Docker Plugin 관리</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>명령의 자세한 사용법은 <code class="language-plaintext highlighter-rouge">--help</code>로 확인할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--help</span>
-</code></pre></div></div>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Registry와 Container 개발 흐름, Image·Container·Volume·Network 관리 명령어]]></summary></entry><entry><title type="html">Docker 이미지와 Union File System</title><link href="https://kkr010128.github.io/cloud-native-10-docker-images/" rel="alternate" type="text/html" title="Docker 이미지와 Union File System" /><published>2026-08-14T00:00:00+09:00</published><updated>2026-08-14T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-10-docker-images</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-10-docker-images/"><![CDATA[<h2 id="1--docker-image">1 ) Docker Image</h2>
-
-<hr />
-
-<p>Docker Image는 Container 형태로 Software를 배포하고 실행하는 데 필요한 코드, Runtime, Library와 설정을 담은 Package이다.</p>
-
-<ul>
-  <li>실행에 필요한 요소를 포함하므로 환경별 의존성 차이를 줄인다.</li>
-  <li>특정 시점의 Container File System을 담은 Snapshot으로 볼 수 있다.</li>
-  <li>하나의 Image로 동일한 환경을 가진 Container를 여러 개 생성할 수 있다.</li>
-  <li>여러 개의 읽기 전용 Layer로 구성된다.</li>
-</ul>
-
-<h3 id="image-이름">Image 이름</h3>
-
-<p>Image의 전체 참조 형식은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>REGISTRY/NAMESPACE/REPOSITORY:TAG
-</code></pre></div></div>
-
-<p>Docker Hub 공식 Image는 <code class="language-plaintext highlighter-rouge">docker.io/library</code>를 생략할 수 있고, Tag를 생략하면 기본적으로 <code class="language-plaintext highlighter-rouge">latest</code>가 사용된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker.io/library/debian:latest
-library/debian:latest
-debian:latest
-debian
-</code></pre></div></div>
-
-<p>네 표현은 모두 같은 Image를 가리킨다. 다만 <code class="language-plaintext highlighter-rouge">latest</code>는 가장 최신 Version을 보장하는 의미가 아니라 이름이 <code class="language-plaintext highlighter-rouge">latest</code>인 Tag이므로, 재현 가능한 배포에는 명시적인 Version Tag나 Digest를 사용하는 것이 좋다.</p>
-
-<h2 id="2--image-검색과-다운로드">2 ) Image 검색과 다운로드</h2>
-
-<hr />
-
-<h3 id="검색">검색</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker search <span class="o">[</span>OPTIONS] KEYWORD
-docker search <span class="nt">--limit</span> 5 httpd
-</code></pre></div></div>
-
-<p>검색 결과에는 Image 이름, 설명, Star 수, 공식 Image 여부 등이 표시된다.</p>
-
-<h3 id="다운로드">다운로드</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image pull NAME[:TAG]
-docker image pull NAME@DIGEST
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker pull jenkins/jenkins:lts
-docker pull debian:latest
-docker pull gcr.io/google-samples/hello-app:1.0
-</code></pre></div></div>
-
-<p>주요 Option은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--all-tags</code>, <code class="language-plaintext highlighter-rouge">-a</code></td>
-      <td>Repository의 모든 Tag 다운로드</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--platform</code></td>
-      <td>대상 Platform 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--quiet</code>, <code class="language-plaintext highlighter-rouge">-q</code></td>
-      <td>상세 출력 생략</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Apple Silicon Mac에서는 필요에 따라 <code class="language-plaintext highlighter-rouge">--platform linux/arm64</code> 또는 실행할 Image가 요구하는 Platform을 지정한다.</p>
-
-<p>Digest는 Image Content를 식별하는 Hash 값이다. 같은 Digest를 사용하면 동일한 Image Content를 가리킨다.</p>
-
-<h2 id="3--image-조회">3 ) Image 조회</h2>
-
-<hr />
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Local Image 목록</span>
-docker images
-docker image <span class="nb">ls</span>
-
-<span class="c"># 상세 정보</span>
-docker image inspect httpd
-
-<span class="c"># 생성 시각만 출력</span>
-docker image inspect <span class="nt">--format</span><span class="o">=</span><span class="s1">''</span> httpd
-
-<span class="c"># Layer 생성 이력</span>
-docker image <span class="nb">history </span>httpd
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker image history</code>를 사용하면 Image를 구성한 명령과 Layer 정보를 확인할 수 있다.</p>
-
-<h2 id="4--union-file-system">4 ) Union File System</h2>
-
-<hr />
-
-<p>Union File System은 서로 다른 File System이나 Directory의 내용을 하나의 File System처럼 합쳐 보여주는 기술이다.</p>
-
-<p>Docker Image는 변경할 수 없는 여러 읽기 전용 Layer로 구성된다. Image로 Container를 실행하면 그 위에 쓰기 가능한 Container Layer가 추가되고, 실행 중 발생한 변경 사항은 이 Layer에 기록된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container Layer     ← Read / Write
------------------
-Application Layer   ← Read Only
-Library Layer       ← Read Only
-Base Image Layer    ← Read Only
-</code></pre></div></div>
-
-<p>동일한 Image에서 만든 Container들은 읽기 전용 Image Layer를 공유하므로 Disk를 효율적으로 사용할 수 있다. Container Layer는 Container 삭제 시 함께 사라질 수 있으므로 영구 데이터는 Volume에 저장한다.</p>
-
-<p>Linux Docker Engine의 데이터와 Log는 일반적으로 <code class="language-plaintext highlighter-rouge">/var/lib/docker</code> 아래에 저장되며 Storage Driver에 따라 실제 구조가 달라질 수 있다. <code class="language-plaintext highlighter-rouge">overlay2</code>를 사용하는 환경에서는 관련 Layer 데이터가 해당 영역에 관리된다.</p>
-
-<h2 id="5--docker-hub-로그인과-image-배포">5 ) Docker Hub 로그인과 Image 배포</h2>
-
-<hr />
-
-<h3 id="로그인">로그인</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker login
-docker login <span class="nt">-u</span> USERNAME
-docker <span class="nb">logout</span>
-</code></pre></div></div>
-
-<p>비밀번호를 Command에 직접 작성하지 않는다. Docker Hub가 요구하는 경우 Password 대신 Access Token을 사용하고, Token은 문서나 Git Repository에 저장하지 않는다.</p>
-
-<h3 id="tag-지정">Tag 지정</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image tag SOURCE_IMAGE TARGET_IMAGE
-docker image tag httpd:latest USERNAME/myapache:1.0
-</code></pre></div></div>
-
-<p>Tag는 같은 Image에 Registry에 업로드할 참조 이름과 Version을 부여한다.</p>
-
-<h3 id="push">Push</h3>
-
-<p>Docker Hub에서 Repository를 만든 뒤 계정 Namespace가 포함된 이름으로 Push한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker push USERNAME/myapache:1.0
-</code></pre></div></div>
-
-<p>새 Version은 다른 Tag를 붙여 같은 Repository에 추가할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image tag httpd:latest USERNAME/myapache:2.0
-docker push USERNAME/myapache:2.0
-</code></pre></div></div>
-
-<h2 id="6--docker-image를-파일로-관리">6 ) Docker Image를 파일로 관리</h2>
-
-<hr />
-
-<p>Docker Image는 Registry를 거치지 않고 <code class="language-plaintext highlighter-rouge">tar</code> Archive로 저장하고 다른 Docker 환경에서 다시 불러올 수 있다. <code class="language-plaintext highlighter-rouge">docker image save</code>는 Image의 Layer와 Tag 정보를 함께 보존하므로, Network를 사용할 수 없는 환경으로 Image를 옮기거나 특정 Image를 보관할 때 유용하다.</p>
-
-<h3 id="image-저장">Image 저장</h3>
-
-<pre><code class="language-txt">docker image save [OPTIONS] IMAGE [IMAGE...]
-</code></pre>
-
-<p><code class="language-plaintext highlighter-rouge">-o</code> 또는 <code class="language-plaintext highlighter-rouge">--output</code> Option을 사용하면 출력 파일을 직접 지정할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Image 다운로드</span>
-docker image pull eclipse-mosquitto:latest
-
-<span class="c"># Local Image 확인</span>
-docker image <span class="nb">ls</span>
-
-<span class="c"># tar Archive로 저장</span>
-docker image save <span class="nt">-o</span> eclipse-mosquitto.tar eclipse-mosquitto:latest
-</code></pre></div></div>
-
-<p>Shell의 출력 Redirection을 사용해도 같은 방식으로 저장할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image save eclipse-mosquitto:latest <span class="o">&gt;</span> eclipse-mosquitto.tar
-</code></pre></div></div>
-
-<h3 id="image-불러오기">Image 불러오기</h3>
-
-<p><code class="language-plaintext highlighter-rouge">docker image load</code>는 <code class="language-plaintext highlighter-rouge">save</code>로 만든 Archive에서 Image와 Tag 정보를 복원한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image load <span class="nt">-i</span> eclipse-mosquitto.tar
-docker image <span class="nb">ls</span>
-</code></pre></div></div>
-
-<p>입력 Redirection을 사용할 수도 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image load &lt; eclipse-mosquitto.tar
-</code></pre></div></div>
-
-<p>Container의 File System을 <code class="language-plaintext highlighter-rouge">docker export</code>와 <code class="language-plaintext highlighter-rouge">docker import</code>로 옮기는 방식과 달리, <code class="language-plaintext highlighter-rouge">save</code>와 <code class="language-plaintext highlighter-rouge">load</code>는 Image Layer와 Metadata를 유지한다.</p>
-
-<h3 id="image-삭제와-정리">Image 삭제와 정리</h3>
-
-<p>Image 이름과 Tag 또는 Image ID를 지정해 Local Image를 삭제할 수 있다. <code class="language-plaintext highlighter-rouge">docker rmi</code>는 <code class="language-plaintext highlighter-rouge">docker image rm</code>의 단축 명령이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image <span class="nb">rm </span>IMAGE[:TAG]
-docker image <span class="nb">rm </span>IMAGE_ID
-docker rmi IMAGE[:TAG]
-</code></pre></div></div>
-
-<p>주요 Option은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--force</code>, <code class="language-plaintext highlighter-rouge">-f</code></td>
-      <td>충돌이 발생해도 Image를 강제로 삭제</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--no-prune</code></td>
-      <td>기본적으로 함께 정리되는 Tag가 없는 Parent Image를 보존</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Local Image ID 전체를 명령 치환으로 전달하면 모든 Local Image의 삭제를 시도한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image <span class="nb">rm</span> <span class="si">$(</span>docker image <span class="nb">ls</span> <span class="nt">-q</span><span class="si">)</span>
-</code></pre></div></div>
-
-<p>실행 중인 Container가 사용하거나 다른 Image가 참조하는 Image는 삭제되지 않을 수 있다. <code class="language-plaintext highlighter-rouge">-f</code>를 사용하기 전에 Container와 Image의 사용 관계를 먼저 확인한다.</p>
-
-<p>사용하지 않는 Image만 정리하려면 <code class="language-plaintext highlighter-rouge">prune</code>을 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Dangling Image만 제거</span>
-docker image prune
-
-<span class="c"># Container가 사용하지 않는 모든 Image 제거</span>
-docker image prune <span class="nt">-a</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker image prune -a</code>는 다시 필요할 수 있는 Local Image도 삭제할 수 있으므로, 표시되는 삭제 대상을 확인한 뒤 실행한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Image 검색과 다운로드, Layer 구조, Tag 및 Docker Hub 배포 방법]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행 및 파일 복사]]></summary></entry></feed>

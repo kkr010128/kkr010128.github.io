@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Docker Swarm Cluster 구성과 Service 운영 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-18-docker-swarm-cluster/">
+<meta property="og:title" content="Docker Swarm Cluster 구성과 Service 운영 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-18-docker-swarm-cluster/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker Swarm Cluster 구성과 Service 운영 | renamed.log">
+<meta name="twitter:description" content="Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포">
+
+  <meta property="article:published_time" content="2026-08-24T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787580414" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787580414" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787580414">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787580414" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787580414">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Docker Swarm Cluster 구성과 Service 운영 | renamed.log",
+    "description": "Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포",
+    "url": "https://kkr010128.github.io/cloud-native-18-docker-swarm-cluster/",
+    "datePublished": "2026-08-24T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Docker Swarm Cluster 구성과 Service 운영</h1>
+    
+      <p class="post-head__description">Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 24일 · 9분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+          <a class="tag-chip" href="/?tag=DockerSwarm">DockerSwarm</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--클러스터-실습-환경-구성">1 ) 클러스터 실습 환경 구성</h2>
+
+<hr />
+
+<p>Ubuntu 24.04 VM 세 대를 같은 Network에 연결하고 한 대는 Manager, 두 대는 Worker로 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Windows Host
+LAPTOP
+192.168.0.99
+       │
+       ├── LAB_MASTER
+       │   hostname: master
+       │   192.168.0.100
+       │
+       ├── LAB_WORKER_1
+       │   hostname: worker1
+       │   192.168.0.101
+       │
+       └── LAB_WORKER_2
+           hostname: worker2
+           192.168.0.102
+</code></pre></div></div>
+
+<p>수업에서는 NAT 네트워크를 구성하여 한 네트워크로 묶어 사용하는 방향으로 진행했으나, VPN과 SSH를 이용해 홈 네트워크에 접속해 사용하고 있는 현재 환경에 맞게 각 VM은 Bridge Adapter를 사용하여 Host에서 SSH로 접속했다. 
+세 VM 모두 Docker Engine과 Compose Plugin을 설치해 환경을 준비했다.</p>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp" alt="Manager와 Worker VM에 Docker를 설치하는 화면" /></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="se">\</span>
+  docker-ce <span class="se">\</span>
+  docker-ce-cli <span class="se">\</span>
+  containerd.io <span class="se">\</span>
+  docker-buildx-plugin <span class="se">\</span>
+  docker-compose-plugin
+</code></pre></div></div>
+
+<p>설치 후 Version과 Service 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker version
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> docker
+<span class="nb">sudo </span>systemctl status docker
+</code></pre></div></div>
+
+<p>현재 사용자가 <code class="language-plaintext highlighter-rouge">sudo</code> 없이 Docker를 실행하려면 <code class="language-plaintext highlighter-rouge">docker</code> Group에 추가한 뒤 다시 로그인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>usermod <span class="nt">-aG</span> docker <span class="s2">"</span><span class="si">$(</span><span class="nb">whoami</span><span class="si">)</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>Docker Socket의 권한을 <code class="language-plaintext highlighter-rouge">666</code>으로 변경하면 모든 사용자가 Docker Daemon을 제어할 수 있으므로 사용하지 않는다.</p>
+</blockquote>
+
+<p>Docker Engine 설치는 모든 Node에서 수행하지만 Cluster를 생성하고 관리하는 명령은 Manager에서 수행한다.</p>
+
+<blockquote>
+  <p>Kubernetes도 Container Runtime과 Node 구성 요소는 모든 Machine에 필요하지만 Cluster 제어 명령은 Control Plane을 중심으로 수행한다.</p>
+</blockquote>
+
+<h2 id="2--swarm-cluster-구성">2 ) Swarm Cluster 구성</h2>
+
+<hr />
+
+<h3 id="manager-초기화">Manager 초기화</h3>
+
+<p>Manager로 사용할 <code class="language-plaintext highlighter-rouge">master</code>에서 Swarm Mode를 초기화한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker swarm init
+
+<span class="c"># docker swarm init --advertise-addr 192.168.0.100</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker wsarm init</code> 으로만 실행하면 Docker가 해당 호스트의 IP 주소를 자동으로 선택해 Swarm Manager를 초기화한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">--advertise-addr</code>는 다른 Node가 Manager에 접속할 주소를 지정한다.</p>
+
+<p>다른 Swarm 노드들에게 “이 Manager에는 계속 <code class="language-plaintext highlighter-rouge">192.168.0.100</code>으로 접속해”라고 명시하는 것이다.</p>
+
+<p>초기화가 끝나면 현재 Node가 Manager가 되고 Worker가 Cluster에 참여할 때 사용할 <code class="language-plaintext highlighter-rouge">docker swarm join</code> 명령이 출력된다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 <code class="language-plaintext highlighter-rouge">kubeadm init</code>이 Control Plane을 초기화하고 Worker가 사용할 <code class="language-plaintext highlighter-rouge">kubeadm join</code> 명령을 출력한다. Cluster의 제어 주체를 먼저 만들고 다른 Node가 Token을 이용해 참여한다는 흐름은 비슷하다. 다만 Swarm은 Docker Engine에 Orchestrator가 내장되어 있고 Kubernetes는 API Server, Scheduler, Controller Manager 등 별도의 Control Plane 구성 요소를 사용한다.</p>
+</blockquote>
+
+<h3 id="worker-참여">Worker 참여</h3>
+
+<p>Manager에서 출력된 명령을 <code class="language-plaintext highlighter-rouge">worker1</code>, <code class="language-plaintext highlighter-rouge">worker2</code>에서 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker swarm <span class="nb">join</span> <span class="se">\</span>
+  <span class="nt">--token</span> SWMTKN-1-WORKER_TOKEN <span class="se">\</span>
+  192.168.0.100:2377
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/04.webp" alt="Manager 초기화 후 두 Worker가 Swarm에 참여한 화면" /></p>
+
+<p>Manager에서는 Worker Token을 다시 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker swarm join-token worker
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp" alt="Manager에서 Worker 참여 Token을 확인한 화면" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">docker swarm join-token</code>은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다.</p>
+<blockquote>
+  <p>Kubernetes의 Join Token도 Control Plane에서 <code class="language-plaintext highlighter-rouge">kubeadm token create --print-join-command</code>로 다시 만들거나 조회한다.</p>
+</blockquote>
+
+<p>Join Token은 Node를 Cluster에 참여시킬 수 있는 인증 정보이므로 공개 저장소나 게시물에 실제 값을 남기지 않는다. 노출되었다면 Token을 교체해야 한다.</p>
+
+<p>물론 참여하기 위해서는 Manager와 네트워크 통신이 가능해야 한다. 하지만 토큰이 공개되어 있으면 공격자가 내부에 접근했을 때 필요한 인증 정보를 이미 확보한 상태가 되기에 인증 정보를 담고 있는 토큰은 비밀 정보로 취급해야 한다.</p>
+
+<h3 id="swarm-port-확인">Swarm Port 확인</h3>
+
+<p>Manager에서 Docker Daemon이 사용하는 Port를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netstat <span class="nt">-nlp</span> | <span class="nb">grep </span>dockerd
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/06.webp" alt="Manager에서 Docker Swarm 통신 Port를 확인한 화면" /></p>
+
+<p>Swarm Node 사이에는 다음 Port가 필요하다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Port</th>
+      <th>Protocol</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">2377</code></td>
+      <td>TCP</td>
+      <td>Manager의 Cluster 관리 통신</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">7946</code></td>
+      <td>TCP/UDP</td>
+      <td>Node Discovery와 통신</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">4789</code></td>
+      <td>UDP</td>
+      <td>Overlay Network Traffic</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p>Kubernetes도 Control Plane API, kubelet, Service Network 등에 별도의 Port가 필요하지만 Swarm과 Port 번호 및 구성 요소는 다르다.</p>
+</blockquote>
+
+<h3 id="node-상태-확인">Node 상태 확인</h3>
+
+<p>Manager에서 Node 목록을 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/10.webp" alt="Manager와 Worker에서 docker node ls를 실행한 결과" /></p>
+
+<p>같은 명령을 Worker에서 실행하면 <code class="language-plaintext highlighter-rouge">This node is not a swarm manager</code> 오류가 발생한다. <code class="language-plaintext highlighter-rouge">docker node ls</code>는 Cluster 전체 상태를 조회하는 관리 명령이므로 Manager에서만 사용할 수 있다.</p>
+
+<blockquote>
+  <p>Kubernetes의 <code class="language-plaintext highlighter-rouge">kubectl get nodes</code>도 API Server를 통해 Cluster 상태를 조회한다. 명령 자체가 Control Plane Machine에서만 실행되어야 하는 것은 아니지만, 외부 Machine이나 Worker에서 실행하려면 API Server 주소와 인증 정보가 담긴 Kubeconfig가 필요하다. Swarm Worker가 관리 API를 제공하지 않는 것과 달리 Kubernetes Client는 인증 설정이 있으면 어느 Machine에서도 API Server에 요청할 수 있다.</p>
+</blockquote>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker info
+docker network <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker info</code>의 <code class="language-plaintext highlighter-rouge">Swarm: active</code>와 Network 목록의 <code class="language-plaintext highlighter-rouge">ingress</code>를 확인한다.</p>
+
+<h3 id="node-제거">Node 제거</h3>
+
+<p>Worker를 정상적으로 제거할 때는 제거할 Worker에서 Swarm을 떠난 뒤 Manager에서 Node 정보를 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 제거할 Worker에서 실행</span>
+docker swarm leave
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Manager에서 실행</span>
+docker node <span class="nb">rm </span>worker1
+</code></pre></div></div>
+
+<p>Manager가 Swarm을 떠나면 Manager Quorum에 영향을 줄 수 있다. 특히 마지막 Manager에서 <code class="language-plaintext highlighter-rouge">--force</code>로 떠나면 Cluster를 더 이상 관리할 수 없으므로 실습 종료 외에는 신중하게 사용한다.</p>
+
+<h2 id="3--service-생성과-조회">3 ) Service 생성과 조회</h2>
+
+<hr />
+
+<p>Manager에서 반복적으로 Message를 출력하는 Service를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> swarm-start <span class="se">\</span>
+  alpine:3 <span class="se">\</span>
+  /bin/sh <span class="nt">-c</span> <span class="s2">"while true; do echo 'Docker Swarm Start'; sleep 3; done"</span>
+</code></pre></div></div>
+
+<p>Service 상태와 Task 배치를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service <span class="nb">ls
+</span>docker service ps swarm-start
+docker service logs <span class="nt">-f</span> swarm-start
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker service ls</code>, <code class="language-plaintext highlighter-rouge">docker service ps</code>, <code class="language-plaintext highlighter-rouge">docker service logs</code>는 Cluster Service를 관리하는 명령이므로 Manager에서 실행한다. Worker에서는 자신에게 배치된 Container를 <code class="language-plaintext highlighter-rouge">docker container ls</code>로 확인할 수 있지만 Service의 전체 Replica 상태는 조회할 수 없다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 Deployment를 생성한 뒤 <code class="language-plaintext highlighter-rouge">kubectl get deployments</code>, <code class="language-plaintext highlighter-rouge">kubectl get pods</code>, <code class="language-plaintext highlighter-rouge">kubectl logs</code>로 비슷한 정보를 확인한다. Swarm의 Service는 원하는 Replica 상태를 선언하는 단위이며 Kubernetes에서는 주로 Deployment가 이 역할을 담당한다.</p>
+</blockquote>
+
+<p>Service를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service <span class="nb">rm </span>swarm-start
+</code></pre></div></div>
+
+<h2 id="4--nginx-service와-routing-mesh">4 ) Nginx Service와 Routing Mesh</h2>
+
+<hr />
+
+<p>Worker에만 Nginx Task가 배치되도록 Constraint를 지정하고 Service Port를 공개한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> web-alb <span class="se">\</span>
+  <span class="nt">--replicas</span> 2 <span class="se">\</span>
+  <span class="nt">--publish</span> <span class="nv">published</span><span class="o">=</span>8001,target<span class="o">=</span>80 <span class="se">\</span>
+  <span class="nt">--constraint</span> <span class="s1">'node.role==worker'</span> <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps web-alb
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">node.role==worker</code> Constraint 때문에 Nginx Task는 Manager에 배치되지 않는다. 그러나 Service의 8001번 Port를 공개하면 Manager와 두 Worker를 포함한 모든 Node가 동일한 8001번 Port로 들어오는 Traffic을 받는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://192.168.0.100:8001
+curl http://192.168.0.101:8001
+curl http://192.168.0.102:8001
+</code></pre></div></div>
+
+<p>세 주소 모두 같은 Service에 연결된다. 이것은 모든 Node가 공개 Port를 감시하는 Swarm Routing Mesh의 동작이다. 요청을 받은 Node에 Nginx Task가 없더라도 Ingress Network가 실제 Task가 실행 중인 Node로 Traffic을 전달한다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 Deployment만 생성해도 모든 Node에 같은 외부 Port가 자동으로 열리지 않는다. 외부 접근에는 NodePort, LoadBalancer 또는 Ingress 같은 별도의 Service 노출 방식이 필요하다. NodePort를 사용하면 여러 Node의 동일 Port로 접근할 수 있다는 점은 Swarm Routing Mesh와 비슷하지만, Kubernetes Service와 kube-proxy 또는 CNI가 Traffic 전달을 담당한다는 차이가 있다.</p>
+</blockquote>
+
+<h3 id="임시-page-변경">임시 Page 변경</h3>
+
+<p>Task가 배치된 Worker에서 테스트용 <code class="language-plaintext highlighter-rouge">index.html</code>을 만든 뒤 특정 Container에 복사할 수 있다.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;h1&gt;</span>Swarm Worker 1<span class="nt">&lt;/h1&gt;</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">ls
+</span>docker <span class="nb">cp </span>index.html CONTAINER_ID:/usr/share/nginx/html/index.html
+</code></pre></div></div>
+
+<p>이 방법은 특정 Task의 쓰기 Layer만 변경한다. 다른 Replica에는 적용되지 않고 Task가 재생성되면 변경 내용도 사라지므로 Load Balancing을 눈으로 확인하는 임시 실습에만 사용한다. 실제 배포에서는 Page를 포함한 새로운 Image를 Build하여 Service를 Update한다.</p>
+
+<h2 id="5--overlay-network와-service-discovery">5 ) Overlay Network와 Service Discovery</h2>
+
+<hr />
+
+<p>Swarm의 Overlay Network는 여러 Docker Host에 걸쳐 있는 Service를 하나의 가상 Network로 연결한다. 같은 Overlay Network의 Service는 IP를 직접 관리하지 않고 Service 이름으로 통신한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create <span class="se">\</span>
+  <span class="nt">--driver</span> overlay <span class="se">\</span>
+  dailylog-net
+</code></pre></div></div>
+
+<p>Service에는 Virtual IP가 할당되며 내장 DNS가 Service 이름을 이 주소로 해석한다. Client가 Virtual IP로 요청하면 Swarm이 실행 중인 Replica 중 하나로 전달한다. Replica가 늘거나 다른 Node로 이동해도 Application은 같은 Service 이름을 사용한다.</p>
+
+<blockquote>
+  <p>Kubernetes도 Service 이름을 Cluster DNS로 조회하고 고정된 ClusterIP를 통해 여러 Pod로 요청을 전달한다. Service Discovery 관점은 비슷하지만 Swarm은 Service와 Overlay Network를 Docker Engine이 직접 관리하고 Kubernetes는 Service, EndpointSlice, kube-proxy 또는 Network Plugin이 역할을 나누어 담당한다.</p>
+</blockquote>
+
+<h2 id="6--service-확장과-배포-mode">6 ) Service 확장과 배포 Mode</h2>
+
+<hr />
+
+<h3 id="replicated-mode">Replicated Mode</h3>
+
+<p>실행 중인 Service의 Replica 수를 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service scale web-alb<span class="o">=</span>5
+</code></pre></div></div>
+
+<p>Node 수보다 Replica가 많으면 한 Node에 여러 Task가 배치될 수 있다. Swarm은 Node 수와 Replica 수를 일치시키는 것이 아니라 가용 Resource와 Constraint를 기준으로 Task를 배치한다.</p>
+
+<blockquote>
+  <p>Kubernetes의 <code class="language-plaintext highlighter-rouge">kubectl scale deployment ... --replicas=5</code>도 원하는 Pod 수를 변경한다. 두 도구 모두 선언한 수와 실제 실행 수가 같아지도록 조정한다.</p>
+</blockquote>
+
+<h3 id="global-mode">Global Mode</h3>
+
+<p>조건에 맞는 모든 Node에 Task를 하나씩 배치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> global-nginx <span class="se">\</span>
+  <span class="nt">--mode</span> global <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>Global Mode는 각 Node에서 동작해야 하는 Monitoring Agent나 Log Collector에 적합하다. Kubernetes의 DaemonSet이 같은 목적을 담당한다.</p>
+
+<h2 id="7--장애-복구와-desired-state">7 ) 장애 복구와 Desired State</h2>
+
+<hr />
+
+<p>Replica가 세 개인 Service를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> recovery-test <span class="se">\</span>
+  <span class="nt">--replicas</span> 3 <span class="se">\</span>
+  nginx
+</code></pre></div></div>
+
+<p>Task가 배치된 Worker에서 Container 하나를 강제로 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">rm</span> <span class="nt">-f</span> CONTAINER_ID
+</code></pre></div></div>
+
+<p>Manager에서 일정 시간 뒤 Task 상태를 다시 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps recovery-test
+</code></pre></div></div>
+
+<p>실행 중인 Replica가 세 개보다 적어졌으므로 Swarm은 새로운 Task를 생성한다. 사용자가 선언한 Desired State와 실제 상태를 지속적으로 비교하고 차이를 복구하는 동작이다.</p>
+
+<blockquote>
+  <p>Kubernetes의 Deployment Controller도 Pod가 삭제되면 ReplicaSet을 통해 새로운 Pod를 생성한다. 자동 복구의 기본 원리는 같지만 Swarm은 Service Task를, Kubernetes는 Pod와 Controller Resource를 중심으로 상태를 관리한다.</p>
+</blockquote>
+
+<h2 id="8--rolling-update와-rollback">8 ) Rolling Update와 Rollback</h2>
+
+<hr />
+
+<p>Redis 6.0 Service를 생성한 뒤 Image Version을 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> my-database <span class="se">\</span>
+  <span class="nt">--replicas</span> 3 <span class="se">\</span>
+  redis:6.0-alpine
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--image</span> redis:6.2.5-alpine <span class="se">\</span>
+  my-database
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps my-database
+</code></pre></div></div>
+
+<p>Rolling Update는 기존 Task를 한꺼번에 교체하지 않고 정해진 단위와 간격으로 교체한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-parallelism</code></td>
+      <td>동시에 Update할 Task 수, 기본값 <code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-delay</code></td>
+      <td>한 Update Group이 끝난 뒤 다음 Group까지 대기 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-order</code></td>
+      <td><code class="language-plaintext highlighter-rouge">stop-first</code> 또는 <code class="language-plaintext highlighter-rouge">start-first</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-failure-action</code></td>
+      <td>실패 시 <code class="language-plaintext highlighter-rouge">pause</code>, <code class="language-plaintext highlighter-rouge">rollback</code>, <code class="language-plaintext highlighter-rouge">continue</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--update-max-failure-ratio</code></td>
+      <td>허용할 Update 실패 비율</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>기본 Update 순서는 기존 Task를 먼저 중지하는 <code class="language-plaintext highlighter-rouge">stop-first</code>이다. 새 Task를 먼저 실행하여 중단 시간을 줄이려면 <code class="language-plaintext highlighter-rouge">start-first</code>를 명시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--image</span> redis:6.2.5-alpine <span class="se">\</span>
+  <span class="nt">--update-parallelism</span> 1 <span class="se">\</span>
+  <span class="nt">--update-delay</span> 10s <span class="se">\</span>
+  <span class="nt">--update-order</span> start-first <span class="se">\</span>
+  <span class="nt">--update-failure-action</span> rollback <span class="se">\</span>
+  my-database
+</code></pre></div></div>
+
+<p>실패한 Update를 이전 Service Spec으로 되돌린다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service rollback my-database
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker info
+docker swarm update <span class="nt">--task-history-limit</span> 10
+</code></pre></div></div>
+
+<p>Task History Limit은 이전 Task 기록의 보존 수를 조정한다. Rollback 자체가 여러 Version의 Image 이력을 원하는 만큼 보관하는 기능이라는 의미는 아니다.</p>
+
+<blockquote>
+  <p>Kubernetes Deployment도 RollingUpdate Strategy, <code class="language-plaintext highlighter-rouge">maxUnavailable</code>, <code class="language-plaintext highlighter-rouge">maxSurge</code>와 <code class="language-plaintext highlighter-rouge">kubectl rollout undo</code>를 제공한다. 두 도구 모두 단계적 교체와 Rollback을 지원하지만 Option 이름과 상태를 기록하는 Resource 구조는 다르다.</p>
+</blockquote>
+
+<h3 id="resource와-service-설정-변경">Resource와 Service 설정 변경</h3>
+
+<p>실행 중인 Service의 설정을 변경할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--limit-cpu</span> 0.5 <span class="se">\</span>
+  <span class="nt">--limit-memory</span> 512M <span class="se">\</span>
+  <span class="nt">--env-add</span> <span class="nv">MY_VAR</span><span class="o">=</span>value <span class="se">\</span>
+  <span class="nt">--env-rm</span> OLD_VAR <span class="se">\</span>
+  <span class="nt">--publish-add</span> <span class="nv">published</span><span class="o">=</span>8002,target<span class="o">=</span>80 <span class="se">\</span>
+  <span class="nt">--replicas</span> 5 <span class="se">\</span>
+  web-alb
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service inspect <span class="nt">--pretty</span> web-alb
+</code></pre></div></div>
+
+<h2 id="9--node-drain과-유지-보수">9 ) Node Drain과 유지 보수</h2>
+
+<hr />
+
+<p>Node를 유지 보수할 때 <code class="language-plaintext highlighter-rouge">Drain</code>으로 변경하면 기존 Task를 다른 Active Node로 옮기고 새로운 Task도 배치하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node update <span class="se">\</span>
+  <span class="nt">--availability</span> drain <span class="se">\</span>
+  worker1
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service ps web-alb
+</code></pre></div></div>
+
+<p>유지 보수가 끝나면 다시 <code class="language-plaintext highlighter-rouge">Active</code>로 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node update <span class="se">\</span>
+  <span class="nt">--availability</span> active <span class="se">\</span>
+  worker1
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker node update</code>는 Manager에서 실행한다. Worker는 자신의 Availability를 직접 변경할 수 없다.</p>
+
+<blockquote>
+  <p>Kubernetes에서는 <code class="language-plaintext highlighter-rouge">kubectl cordon NODE</code>로 새로운 Pod Scheduling을 막고 <code class="language-plaintext highlighter-rouge">kubectl drain NODE</code>로 기존 Workload를 다른 Node로 이동시킨다. Swarm의 <code class="language-plaintext highlighter-rouge">Drain</code>은 이 두 작업을 하나의 Availability 상태 변경으로 처리한다.</p>
+</blockquote>
+
+<h2 id="10--docker-stack-배포">10 ) Docker Stack 배포</h2>
+
+<hr />
+
+<p>Swarm에서는 여러 Service, Network와 Volume을 하나의 Stack으로 배포할 수 있다. <code class="language-plaintext highlighter-rouge">docker stack</code> 명령은 Manager에서 실행한다.</p>
+
+<h3 id="overlay-network-생성">Overlay Network 생성</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create <span class="se">\</span>
+  <span class="nt">--driver</span> overlay <span class="se">\</span>
+  dailylog-net
+</code></pre></div></div>
+
+<h3 id="stack-file-작성">Stack File 작성</h3>
+
+<p><code class="language-plaintext highlighter-rouge">docker stack deploy</code>는 현재도 Legacy Compose v3 형식을 사용하므로 Stack File에는 <code class="language-plaintext highlighter-rouge">version</code>을 유지한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3.9"</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">mongodb</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">dbgurum/dailylog:db_1.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">27017:27017"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">dailylog-net</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.role != manager</span>
+      <span class="na">restart_policy</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">on-failure</span>
+        <span class="na">delay</span><span class="pi">:</span> <span class="s">10s</span>
+        <span class="na">max_attempts</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">window</span><span class="pi">:</span> <span class="s">120s</span>
+
+  <span class="na">backend</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">dbgurum/dailylog:back_1.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8000:8000"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">dailylog-net</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MONGO_URL</span><span class="pi">:</span> <span class="s">mongodb://mongodb:27017</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.role != manager</span>
+      <span class="na">restart_policy</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">on-failure</span>
+        <span class="na">delay</span><span class="pi">:</span> <span class="s">10s</span>
+        <span class="na">max_attempts</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">window</span><span class="pi">:</span> <span class="s">120s</span>
+
+  <span class="na">frontend</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">dbgurum/dailylog:front_1.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3000:8000"</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">dailylog-net</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">PORT</span><span class="pi">:</span> <span class="s2">"</span><span class="s">8000"</span>
+      <span class="na">DAILYLOG_API_ADDR</span><span class="pi">:</span> <span class="s">backend:8000</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.role != manager</span>
+      <span class="na">restart_policy</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">on-failure</span>
+        <span class="na">delay</span><span class="pi">:</span> <span class="s">10s</span>
+        <span class="na">max_attempts</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">window</span><span class="pi">:</span> <span class="s">120s</span>
+
+<span class="na">networks</span><span class="pi">:</span>
+  <span class="na">dailylog-net</span><span class="pi">:</span>
+    <span class="na">external</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>Stack 배포에서는 각 Node가 Image를 내려받을 수 있어야 하므로 Image를 Registry에 Push한 상태여야 한다. <code class="language-plaintext highlighter-rouge">depends_on</code>은 Stack Service의 준비 순서를 제어하는 기능으로 의존하지 않고, Backend가 Database 연결 실패를 재시도하도록 Application과 Restart Policy를 구성한다.</p>
+
+<h3 id="배포와-확인">배포와 확인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack deploy <span class="se">\</span>
+  <span class="nt">--compose-file</span> docker-compose.yaml <span class="se">\</span>
+  dailylog
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack <span class="nb">ls
+</span>docker stack services dailylog
+docker stack ps dailylog
+</code></pre></div></div>
+
+<p>Stack을 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack <span class="nb">rm </span>dailylog
+</code></pre></div></div>
+
+<blockquote>
+  <p>Kubernetes에서는 여러 Resource가 작성된 YAML을 <code class="language-plaintext highlighter-rouge">kubectl apply</code>로 배포한다. Swarm Stack과 마찬가지로 선언형 File로 여러 구성 요소를 배포하지만 Kubernetes는 Deployment, Service, ConfigMap, Secret 등 Resource 종류를 각각 정의한다.</p>
+</blockquote>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Manager에서 Swarm을 초기화하고 Worker는 Join Token으로 Cluster에 참여한다.</p>
+    </li>
+    <li>
+      <p>Cluster 전체의 Node와 Service 관리 명령은 Manager에서 실행하며 Worker는 할당된 Task를 실행한다.</p>
+    </li>
+    <li>
+      <p>Service Port를 공개하면 Task 배치 여부와 관계없이 모든 Node가 같은 Port로 Traffic을 받는다.</p>
+    </li>
+    <li>
+      <p>Overlay Network와 내장 DNS를 통해 Service 이름으로 통신하며 Routing Mesh가 실행 중인 Task로 요청을 전달한다.</p>
+    </li>
+    <li>
+      <p>Replicated Mode는 지정한 수의 Task를 유지하고 Global Mode는 조건에 맞는 모든 Node에 Task를 배치한다.</p>
+    </li>
+    <li>
+      <p>Swarm은 Desired State, Rolling Update, Rollback과 Node Drain으로 Service 운영을 지원한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">docker stack deploy</code>는 여러 Service와 Network를 하나의 Application Stack으로 배포한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/notes-07-deepdive-swarm-published-port/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Docker Swarm Ingress가 요청을 Container까지 전달하는 방법</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-19-healthcheck-config-secret/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Docker Health Check와 Config 및 Secret</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787580414"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787580414"></script>
+  </body>
+</html>

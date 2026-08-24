@@ -1,0 +1,825 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Docker Health Check와 Config 및 Secret | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret/">
+<meta property="og:title" content="Docker Health Check와 Config 및 Secret | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker Health Check와 Config 및 Secret | renamed.log">
+<meta name="twitter:description" content="Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법">
+
+  <meta property="article:published_time" content="2026-08-24T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787580414" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787580414" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787580414">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787580414" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787580414">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Docker Health Check와 Config 및 Secret | renamed.log",
+    "description": "Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법",
+    "url": "https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret/",
+    "datePublished": "2026-08-24T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Docker Health Check와 Config 및 Secret</h1>
+    
+      <p class="post-head__description">Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 24일 · 5분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+          <a class="tag-chip" href="/?tag=DockerSwarm">DockerSwarm</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1--process-상태와-application-상태">1 ) Process 상태와 Application 상태</h2>
+
+<hr />
+
+<p>Container는 지정된 주 Process가 실행되는 동안 Running 상태를 유지한다. Process가 종료되면 Container도 종료되므로 기본적인 실행 여부는 Container 상태만으로 확인할 수 있다.</p>
+
+<p>하지만 Process가 실행 중이라고 Application이 정상적으로 요청을 처리한다는 의미는 아니다. Web Application이 처리 용량을 초과하여 <code class="language-plaintext highlighter-rouge">503 Service Unavailable</code>을 반환하거나 Database 연결이 끊긴 상태에서도 주 Process는 계속 실행될 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>확인 대상</th>
+      <th>확인할 수 있는 상태</th>
+      <th>확인하기 어려운 상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Container Process</td>
+      <td>Process 실행 및 종료 여부</td>
+      <td>Application이 실제 요청을 처리하는지 여부</td>
+    </tr>
+    <tr>
+      <td>Health Check</td>
+      <td>HTTP 응답, Database 접속 등 Application 상태</td>
+      <td>비즈니스 기능 전체의 정상 여부</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Dockerfile의 <code class="language-plaintext highlighter-rouge">HEALTHCHECK</code>는 Container 안에서 검사 명령을 주기적으로 실행하여 Process보다 구체적인 Application 상태를 확인한다.</p>
+
+<h2 id="2--dockerfile-health-check">2 ) Dockerfile Health Check</h2>
+
+<hr />
+
+<h3 id="flask-application">Flask Application</h3>
+
+<p><code class="language-plaintext highlighter-rouge">app.py</code>에 일반 요청과 상태 확인을 위한 Endpoint를 작성한다.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">"/"</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">"Hello Docker"</span>
+
+
+<span class="o">@</span><span class="n">app</span><span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s">"/health"</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">health_check</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">"OK"</span><span class="p">,</span> <span class="mi">200</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">"__main__"</span><span class="p">:</span>
+    <span class="n">app</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">host</span><span class="o">=</span><span class="s">"0.0.0.0"</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="dockerfile">Dockerfile</h3>
+
+<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> python:3.9-slim</span>
+
+<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> curl <span class="o">&amp;&amp;</span> <span class="se">\
+</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
+
+<span class="k">WORKDIR</span><span class="s"> /app</span>
+
+<span class="k">COPY</span><span class="s"> app.py ./</span>
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--no-cache-dir</span> flask
+
+<span class="k">HEALTHCHECK</span><span class="s"> \</span>
+  --interval=10s \
+  --timeout=3s \
+  --start-period=5s \
+  --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+<span class="k">EXPOSE</span><span class="s"> 8080</span>
+
+<span class="k">CMD</span><span class="s"> ["python", "app.py"]</span>
+</code></pre></div></div>
+
+<p>Health Check Option은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--interval</code></td>
+      <td>검사 실행 간격</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--timeout</code></td>
+      <td>한 번의 검사 제한 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--start-period</code></td>
+      <td>Application 시작 후 실패를 유예할 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--retries</code></td>
+      <td><code class="language-plaintext highlighter-rouge">unhealthy</code>로 판단하기 전 연속 실패 횟수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">CMD</code></td>
+      <td>실제 상태를 검사할 명령</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">curl -f</code>는 HTTP 응답 Code가 오류이면 실패 상태로 종료하게 되므로, <code class="language-plaintext highlighter-rouge">|| exit 1</code>로 정리한다.</p>
+
+<h3 id="image-build와-상태-확인">Image Build와 상태 확인</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> my-healthcheck-app <span class="nb">.</span>
+docker container run <span class="se">\</span>
+  <span class="nt">--name</span> healthcheck <span class="se">\</span>
+  <span class="nt">-d</span> <span class="se">\</span>
+  my-healthcheck-app
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container ps
+docker container inspect healthcheck
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">STATUS</code>에는 Health Check 결과가 다음과 같이 표시된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>상태</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">starting</code></td>
+      <td>Container가 시작되어 첫 검사 결과를 기다리는 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">healthy</code></td>
+      <td>최근 Health Check가 성공한 상태</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">unhealthy</code></td>
+      <td>설정한 횟수만큼 연속으로 검사에 실패한 상태</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Health Check 결과는 Load Balancing과 Rolling Update에서 새 Task가 요청을 처리할 준비가 되었는지 판단하는 자료가 된다. Kubernetes에서는 비슷한 목적을 Startup Probe, Readiness Probe와 Liveness Probe로 나누어 설정한다.</p>
+
+<h2 id="3--compose-health-check">3 ) Compose Health Check</h2>
+
+<hr />
+
+<p>Compose File에서는 Service의 <code class="language-plaintext highlighter-rouge">healthcheck</code>에 검사 명령과 주기를 정의한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">web</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">my-healthcheck-app</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:8080"</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">CMD</span>
+        <span class="pi">-</span> <span class="s">curl</span>
+        <span class="pi">-</span> <span class="s">-f</span>
+        <span class="pi">-</span> <span class="s">http://localhost:8080/health</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">10s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">3</span>
+      <span class="na">start_period</span><span class="pi">:</span> <span class="s">5s</span>
+</code></pre></div></div>
+
+<p>Dockerfile과 Compose File에 Health Check가 모두 있으면 Compose File의 설정이 해당 Service에서 우선한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+</code></pre></div></div>
+
+<h2 id="4--database-준비-후-web-service-시작">4 ) Database 준비 후 Web Service 시작</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">depends_on</code>만 지정하면 Compose는 Database Container를 먼저 시작하지만 Database가 Connection을 받을 준비까지 기다리지는 않는다. Database에 Health Check를 추가하고 Web Service에 <code class="language-plaintext highlighter-rouge">condition: service_healthy</code>를 지정한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">db</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">postgres:15</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">POSTGRES_USER</span><span class="pi">:</span> <span class="s">user</span>
+      <span class="na">POSTGRES_PASSWORD</span><span class="pi">:</span> <span class="s">password</span>
+      <span class="na">POSTGRES_DB</span><span class="pi">:</span> <span class="s">mydb</span>
+    <span class="na">healthcheck</span><span class="pi">:</span>
+      <span class="na">test</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">CMD-SHELL</span>
+        <span class="pi">-</span> <span class="s">pg_isready -U user -d mydb</span>
+      <span class="na">interval</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">timeout</span><span class="pi">:</span> <span class="s">5s</span>
+      <span class="na">retries</span><span class="pi">:</span> <span class="m">5</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">my-network</span>
+
+  <span class="na">web</span><span class="pi">:</span>
+    <span class="na">build</span><span class="pi">:</span> <span class="s">.</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:8080"</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">DB_HOST</span><span class="pi">:</span> <span class="s">db</span>
+    <span class="na">depends_on</span><span class="pi">:</span>
+      <span class="na">db</span><span class="pi">:</span>
+        <span class="na">condition</span><span class="pi">:</span> <span class="s">service_healthy</span>
+    <span class="na">networks</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">my-network</span>
+
+<span class="na">networks</span><span class="pi">:</span>
+  <span class="na">my-network</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>이 설정에서 실행 순서는 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p>Compose가 <code class="language-plaintext highlighter-rouge">db</code> Container를 시작한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">pg_isready</code>가 PostgreSQL의 준비 상태를 검사한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">db</code>가 <code class="language-plaintext highlighter-rouge">healthy</code>가 되면 <code class="language-plaintext highlighter-rouge">web</code> Container를 생성한다.</p>
+  </li>
+  <li>
+    <p>Web Application은 <code class="language-plaintext highlighter-rouge">db</code>라는 Service 이름으로 Database에 접속한다.</p>
+  </li>
+</ol>
+
+<p>Health Check가 성공했더라도 실행 중 Network 장애가 발생할 수 있으므로 Application 자체에도 Connection 재시도와 오류 처리가 필요하다.</p>
+
+<h2 id="5--swarm-config">5 ) Swarm Config</h2>
+
+<hr />
+
+<p>Docker Config는 Application 설정과 Image를 분리하기 위한 Swarm Resource이다. Service에 Config를 연결하면 지정한 Target 경로에서 File로 읽을 수 있다.</p>
+
+<p>Config에는 다음과 같은 비민감 설정을 저장한다.</p>
+
+<ul>
+  <li>
+    <p>Web Server 설정</p>
+  </li>
+  <li>
+    <p>Application Feature 설정</p>
+  </li>
+  <li>
+    <p>일반적인 Database Client 설정</p>
+  </li>
+  <li>
+    <p>환경별 설정 File</p>
+  </li>
+</ul>
+
+<p>MySQL의 일반 설정 File을 Config로 생성한다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[mysqld]</span>
+<span class="py">max_connections</span><span class="p">=</span><span class="s">200</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker config create <span class="se">\</span>
+  mysql_server_config <span class="se">\</span>
+  ./mysql.cnf
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker config <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>Config를 MySQL Service에 연결한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> mysql-server <span class="se">\</span>
+  <span class="nt">--config</span> <span class="nb">source</span><span class="o">=</span>mysql_server_config,target<span class="o">=</span>/etc/mysql/conf.d/custom.cnf <span class="se">\</span>
+  mysql:8.0
+</code></pre></div></div>
+
+<p>Config를 변경해야 할 때는 기존 Config 자체를 덮어쓰기보다 새로운 이름으로 생성하고 Service가 참조하는 Config를 교체한다.</p>
+
+<h2 id="6--config에-비밀번호를-넣어도-되는가">6 ) Config에 비밀번호를 넣어도 되는가</h2>
+
+<hr />
+
+<p>강의에서는 MySQL Root 비밀번호를 Config 객체로 만들어 File 형태로 주입했다. 이어서 비밀번호를 환경 변수로 직접 전달하면 Container 설정이나 <code class="language-plaintext highlighter-rouge">docker inspect</code>를 통해 노출될 수 있으므로 Secret을 사용할 수 있다고 설명했다.</p>
+
+<p>두 실습을 비교하면서 일반 설정은 Config로, 비밀번호와 같은 민감 정보는 Secret으로 관리하는 것이 목적에 더 적합하다는 것을 알게 되었다.</p>
+
+<p>Config는 민감하지 않은 설정을 배포하기 위한 Resource이다. 비밀번호, API Token, TLS Private Key처럼 노출되어서는 안 되는 값은 Secret으로 관리해야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Config</th>
+      <th>Secret</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>저장 대상</td>
+      <td>일반 설정</td>
+      <td>비밀번호, Token, 인증서 Key</td>
+    </tr>
+    <tr>
+      <td>Service 전달</td>
+      <td>Container의 File로 Mount</td>
+      <td>권한을 받은 Task에만 전달</td>
+    </tr>
+    <tr>
+      <td>Linux Container의 기본 경로</td>
+      <td>지정한 Target</td>
+      <td><code class="language-plaintext highlighter-rouge">/run/secrets/SECRET_NAME</code></td>
+    </tr>
+    <tr>
+      <td>주요 보호 특성</td>
+      <td>설정과 Image 분리</td>
+      <td>Swarm에서 전송 중·저장 시 암호화</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>환경 변수에 비밀번호를 직접 기록하는 방법도 Container 설정과 <code class="language-plaintext highlighter-rouge">docker inspect</code> 결과 등에 값이 나타날 수 있다. Secret을 지원하는 Image라면 <code class="language-plaintext highlighter-rouge">_FILE</code> 접미사가 붙은 환경 변수로 Secret File 경로를 전달한다.</p>
+
+<h2 id="7--swarm-secret">7 ) Swarm Secret</h2>
+
+<hr />
+
+<p>Secret의 기본 흐름은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Secret 생성
+→ Swarm Secret Store에 저장
+→ Service에 Secret 사용 권한 부여
+→ Task의 /run/secrets에 File로 Mount
+→ Task 종료 시 Mount 제거
+</code></pre></div></div>
+
+<h3 id="secret-생성">Secret 생성</h3>
+
+<p>비밀번호 File을 생성하고 Swarm Secret으로 등록한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s1">'MyStrongPassword123!'</span> <span class="o">&gt;</span> mysql_root_pw.txt
+docker secret create <span class="se">\</span>
+  mysql_root_password_v1 <span class="se">\</span>
+  ./mysql_root_pw.txt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker secret <span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>또는 표준 입력으로 값을 전달할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s1">'initial_db_password_111'</span> | <span class="se">\</span>
+  docker secret create db_password_v1 -
+</code></pre></div></div>
+
+<p>Shell History와 Terminal 출력에 Secret을 남길 수 있으므로 실제 환경에서는 Secret 값을 명령행에 직접 작성하지 않는다.</p>
+
+<h3 id="mysql-service에-secret-연결">MySQL Service에 Secret 연결</h3>
+
+<p>MySQL 공식 Image는 <code class="language-plaintext highlighter-rouge">MYSQL_ROOT_PASSWORD_FILE</code>에 지정한 File의 내용을 Root 비밀번호로 읽을 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service create <span class="se">\</span>
+  <span class="nt">--name</span> mysql-server <span class="se">\</span>
+  <span class="nt">--publish</span> <span class="nv">published</span><span class="o">=</span>3306,target<span class="o">=</span>3306 <span class="se">\</span>
+  <span class="nt">--secret</span> <span class="nb">source</span><span class="o">=</span>mysql_root_password_v1,target<span class="o">=</span>mysql_root_password <span class="se">\</span>
+  <span class="nt">--env</span> <span class="nv">MYSQL_ROOT_PASSWORD_FILE</span><span class="o">=</span>/run/secrets/mysql_root_password <span class="se">\</span>
+  mysql:8.0
+</code></pre></div></div>
+
+<p>Service Task에서는 다음 경로로 Secret을 읽는다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/run/secrets/mysql_root_password
+</code></pre></div></div>
+
+<p>Secret 값은 <code class="language-plaintext highlighter-rouge">docker secret inspect</code>로 조회되지 않는다. Manager와 사용 권한이 부여된 Service Task만 Secret에 접근하며 Linux Container에서는 Memory File System에 Mount된다.</p>
+
+<h3 id="stack-file에서-config와-secret-사용">Stack File에서 Config와 Secret 사용</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3.9"</span>
+
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">db</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mysql:8.0</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">3306:3306"</span>
+    <span class="na">environment</span><span class="pi">:</span>
+      <span class="na">MYSQL_ROOT_PASSWORD_FILE</span><span class="pi">:</span> <span class="s">/run/secrets/db_root_password</span>
+      <span class="na">MYSQL_DATABASE</span><span class="pi">:</span> <span class="s">myapp_db</span>
+    <span class="na">configs</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">source</span><span class="pi">:</span> <span class="s">db_config</span>
+        <span class="na">target</span><span class="pi">:</span> <span class="s">/etc/mysql/conf.d/custom.cnf</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="m">0444</span>
+    <span class="na">secrets</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">source</span><span class="pi">:</span> <span class="s">db_root_password</span>
+        <span class="na">target</span><span class="pi">:</span> <span class="s">db_root_password</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="m">0400</span>
+
+<span class="na">configs</span><span class="pi">:</span>
+  <span class="na">db_config</span><span class="pi">:</span>
+    <span class="na">file</span><span class="pi">:</span> <span class="s">./mysql.cnf</span>
+
+<span class="na">secrets</span><span class="pi">:</span>
+  <span class="na">db_root_password</span><span class="pi">:</span>
+    <span class="na">file</span><span class="pi">:</span> <span class="s">./mysql_root_pw.txt</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker stack deploy <span class="se">\</span>
+  <span class="nt">--compose-file</span> docker-compose.yaml <span class="se">\</span>
+  mysql-app
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mysql.cnf</code>와 비밀번호 File은 용도가 다르므로 Config와 Secret으로 분리한다.</p>
+
+<h2 id="8--secret-version-교체">8 ) Secret Version 교체</h2>
+
+<hr />
+
+<p>Swarm Secret의 값은 직접 수정할 수 없다. 새 Version의 Secret을 생성한 뒤 Service가 참조하는 Secret을 교체한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker secret create <span class="se">\</span>
+  mysql_root_password_v2 <span class="se">\</span>
+  ./mysql_root_pw_v2.txt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker service update <span class="se">\</span>
+  <span class="nt">--secret-rm</span> mysql_root_password_v1 <span class="se">\</span>
+  <span class="nt">--secret-add</span> <span class="nb">source</span><span class="o">=</span>mysql_root_password_v2,target<span class="o">=</span>mysql_root_password <span class="se">\</span>
+  mysql-server
+</code></pre></div></div>
+
+<p>기존 Secret을 사용하는 Service가 없다면 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker secret <span class="nb">rm </span>mysql_root_password_v1
+</code></pre></div></div>
+
+<p>Secret 이름에 Version을 포함하면 새 값으로 교체하고 이전 값을 제거하는 과정을 구분하기 쉽다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Container Process가 실행 중이어도 Application은 요청을 처리하지 못할 수 있으므로 별도의 Health Check가 필요하다.</p>
+    </li>
+    <li>
+      <p>Dockerfile과 Compose의 Health Check는 HTTP 요청이나 Database 접속처럼 실제 Application 상태를 검사한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">depends_on</code>과 <code class="language-plaintext highlighter-rouge">condition: service_healthy</code>를 함께 사용하면 의존 Service가 준비된 뒤 다음 Service를 시작할 수 있다.</p>
+    </li>
+    <li>
+      <p>Config는 일반 설정을 Image와 분리하고 Secret은 비밀번호와 Token 같은 민감 정보를 보호한다.</p>
+    </li>
+    <li>
+      <p>환경 변수에 비밀번호를 직접 넣으면 Container 설정에서 노출될 수 있으므로 <code class="language-plaintext highlighter-rouge">_FILE</code> 환경 변수와 Secret File을 사용한다.</p>
+    </li>
+    <li>
+      <p>Swarm Secret은 권한이 부여된 Service Task의 <code class="language-plaintext highlighter-rouge">/run/secrets</code>에 Mount되며 새 Version을 생성하는 방식으로 교체한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-18-docker-swarm-cluster/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Docker Swarm Cluster 구성과 Service 운영</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787580414"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787580414"></script>
+  </body>
+</html>

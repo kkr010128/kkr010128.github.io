@@ -4,6 +4,51 @@
       
       
       {
+        "title": "Docker Health Check와 Config 및 Secret",
+        "url": "/cloud-native-19-healthcheck-config-secret/",
+        "description": "Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker","DockerSwarm"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 24일",
+        "reading_time_label": "5분 읽기",
+        "search": "docker health check와 config 및 secret container 상태 검사, compose 의존성 제어와 swarm config·secret 관리 방법 cloudnative autoeversw docker dockerswarm cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Docker Swarm Cluster 구성과 Service 운영",
+        "url": "/cloud-native-18-docker-swarm-cluster/",
+        "description": "Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker","DockerSwarm"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 24일",
+        "reading_time_label": "9분 읽기",
+        "search": "docker swarm cluster 구성과 service 운영 manager와 worker cluster 구성, service 배포, routing mesh, 확장, rolling update 및 stack 배포 cloudnative autoeversw docker dockerswarm cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Docker Swarm Ingress가 요청을 Container까지 전달하는 방법",
+        "url": "/notes-07-deepdive-swarm-published-port/",
+        "description": "Published Port로 들어온 요청이 Routing Mesh와 IPVS, Ingress Overlay Network를 거쳐 Service Task에 도달하는 과정",
+        "thumbnail": null,
+        "tags": ["DeepDive","Docker","DockerSwarm","Network"],
+        "series_key": "technotes",
+        "series_title": "TechNotes",
+        "date_label": "2026년 8월 24일",
+        "reading_time_label": "5분 읽기",
+        "search": "docker swarm ingress가 요청을 container까지 전달하는 방법 published port로 들어온 요청이 routing mesh와 ipvs, ingress overlay network를 거쳐 service task에 도달하는 과정 deepdive docker dockerswarm network technotes"
+      },
+    
+      
+      
+      {
         "title": "Docker Compose 응용과 Docker Swarm",
         "url": "/cloud-native-17-docker-compose-swarm/",
         "description": "다중 Container 실습, Nginx Load Balancing, 환경 변수 관리와 Docker Swarm의 핵심 구조",
