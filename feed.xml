@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-24T23:06:54+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker Swarm Ingress가 요청을 Container까지 전달하는 방법</title><link href="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/" rel="alternate" type="text/html" title="Docker Swarm Ingress가 요청을 Container까지 전달하는 방법" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/notes-07-deepdive-swarm-published-port</id><content type="html" xml:base="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/"><![CDATA[<h2 id="1--실습에서-이상한-점을-발견했다">1 ) 실습에서 이상한 점을 발견했다</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-25T08:39:10+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker Swarm Ingress가 요청을 Container까지 전달하는 방법</title><link href="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/" rel="alternate" type="text/html" title="Docker Swarm Ingress가 요청을 Container까지 전달하는 방법" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/notes-07-deepdive-swarm-published-port</id><content type="html" xml:base="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/"><![CDATA[<h2 id="1--실습에서-이상한-점을-발견했다">1 ) 실습에서 이상한 점을 발견했다</h2>
 
 <hr />
 
@@ -425,7 +425,7 @@ LAPTOP
 <p>수업에서는 NAT 네트워크를 구성하여 한 네트워크로 묶어 사용하는 방향으로 진행했으나, VPN과 SSH를 이용해 홈 네트워크에 접속해 사용하고 있는 현재 환경에 맞게 각 VM은 Bridge Adapter를 사용하여 Host에서 SSH로 접속했다. 
 세 VM 모두 Docker Engine과 Compose Plugin을 설치해 환경을 준비했다.</p>
 
-<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp" alt="Manager와 Worker VM에 Docker를 설치하는 화면" /></p>
+<p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp" alt="Manager와 Worker VM에 Docker를 설치하는 화면" /></p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update
 <span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="se">\</span>
@@ -492,14 +492,14 @@ LAPTOP
   192.168.0.100:2377
 </code></pre></div></div>
 
-<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/04.webp" alt="Manager 초기화 후 두 Worker가 Swarm에 참여한 화면" /></p>
+<p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/04.webp" alt="Manager 초기화 후 두 Worker가 Swarm에 참여한 화면" /></p>
 
 <p>Manager에서는 Worker Token을 다시 확인할 수 있다.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker swarm join-token worker
 </code></pre></div></div>
 
-<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp" alt="Manager에서 Worker 참여 Token을 확인한 화면" /></p>
+<p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp" alt="Manager에서 Worker 참여 Token을 확인한 화면" /></p>
 
 <p><code class="language-plaintext highlighter-rouge">docker swarm join-token</code>은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다.</p>
 <blockquote>
@@ -517,7 +517,7 @@ LAPTOP
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netstat <span class="nt">-nlp</span> | <span class="nb">grep </span>dockerd
 </code></pre></div></div>
 
-<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/06.webp" alt="Manager에서 Docker Swarm 통신 Port를 확인한 화면" /></p>
+<p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/06.webp" alt="Manager에서 Docker Swarm 통신 Port를 확인한 화면" /></p>
 
 <p>Swarm Node 사이에는 다음 Port가 필요하다.</p>
 
@@ -559,7 +559,7 @@ LAPTOP
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node <span class="nb">ls</span>
 </code></pre></div></div>
 
-<p><img src="notes/assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/10.webp" alt="Manager와 Worker에서 docker node ls를 실행한 결과" /></p>
+<p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/10.webp" alt="Manager와 Worker에서 docker node ls를 실행한 결과" /></p>
 
 <p>같은 명령을 Worker에서 실행하면 <code class="language-plaintext highlighter-rouge">This node is not a swarm manager</code> 오류가 발생한다. <code class="language-plaintext highlighter-rouge">docker node ls</code>는 Cluster 전체 상태를 조회하는 관리 명령이므로 Manager에서만 사용할 수 있다.</p>
 
