@@ -2,6 +2,7 @@
 title: Docker Swarm Cluster 구성과 Service 운영
 description: Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포
 date: 2026-08-24
+updated_at: 2026-08-25
 series: CloudNative
 tags:
   - CloudNative
@@ -9,6 +10,7 @@ tags:
   - Docker
   - DockerSwarm
 ---
+
 ## 1 ) 클러스터 실습 환경 구성
 
 ---
@@ -33,7 +35,7 @@ LAPTOP
            192.168.0.102
 ```
 
-수업에서는 NAT 네트워크를 구성하여 한 네트워크로 묶어 사용하는 방향으로 진행했으나, VPN과 SSH를 이용해 홈 네트워크에 접속해 사용하고 있는 현재 환경에 맞게 각 VM은 Bridge Adapter를 사용하여 Host에서 SSH로 접속했다. 
+각 VM은 Bridge Adapter를 사용하여 같은 Network에 연결하고 Host에서 SSH로 접속한다.
 세 VM 모두 Docker Engine과 Compose Plugin을 설치해 환경을 준비했다.
 
 
@@ -66,7 +68,7 @@ sudo usermod -aG docker "$(whoami)"
 > Docker Socket의 권한을 `666`으로 변경하면 모든 사용자가 Docker Daemon을 제어할 수 있으므로 사용하지 않는다.
 
 
-Docker Engine 설치는 모든 Node에서 수행하지만 Cluster를 생성하고 관리하는 명령은 Manager에서 수행한다. 
+Docker Engine 설치는 모든 Node에서 수행하지만 Cluster를 생성하고 관리하는 명령은 Manager에서 수행한다.
 
 > Kubernetes도 Container Runtime과 Node 구성 요소는 모든 Machine에 필요하지만 Cluster 제어 명령은 Control Plane을 중심으로 수행한다.
 
@@ -84,9 +86,9 @@ docker swarm init
 # docker swarm init --advertise-addr 192.168.0.100
 ```
 
-`docker wsarm init` 으로만 실행하면 Docker가 해당 호스트의 IP 주소를 자동으로 선택해 Swarm Manager를 초기화한다.
+`docker swarm init`으로만 실행하면 Docker가 해당 Host의 IP Address를 자동으로 선택해 Swarm Manager를 초기화한다.
 
-`--advertise-addr`는 다른 Node가 Manager에 접속할 주소를 지정한다. 
+`--advertise-addr`는 다른 Node가 Manager에 접속할 주소를 지정한다.
 
 다른 Swarm 노드들에게 "이 Manager에는 계속 `192.168.0.100`으로 접속해"라고 명시하는 것이다.
 
@@ -115,8 +117,9 @@ docker swarm join-token worker
 
 ![Manager에서 Worker 참여 Token을 확인한 화면](../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp)
 
-`docker swarm join-token`은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다. 
->Kubernetes의 Join Token도 Control Plane에서 `kubeadm token create --print-join-command`로 다시 만들거나 조회한다.
+`docker swarm join-token`은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다.
+
+> Kubernetes의 Join Token도 Control Plane에서 `kubeadm token create --print-join-command`로 다시 만들거나 조회한다.
 
 Join Token은 Node를 Cluster에 참여시킬 수 있는 인증 정보이므로 공개 저장소나 게시물에 실제 값을 남기지 않는다. 노출되었다면 Token을 교체해야 한다.
 
@@ -543,6 +546,98 @@ docker stack rm dailylog
 
 > Kubernetes에서는 여러 Resource가 작성된 YAML을 `kubectl apply`로 배포한다. Swarm Stack과 마찬가지로 선언형 File로 여러 구성 요소를 배포하지만 Kubernetes는 Deployment, Service, ConfigMap, Secret 등 Resource 종류를 각각 정의한다.
 
+## 11 ) Docker Swarm의 Volume
+
+---
+
+Swarm Service의 Container도 데이터를 영속적으로 보관하기 위해 Volume을 사용한다. 다만 기본 `local` Driver로 만든 Named Volume은 **각 Node의 Local Disk에 독립적으로 생성**된다는 점을 고려해야 한다.
+
+### Named Volume과 재배치
+
+다음 Service가 `worker1`에서 실행되면 `db-data` Volume도 `worker1`에 생성된다.
+
+```yaml
+services:
+  database:
+    image: mariadb:11
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data: {}
+```
+
+Service Task가 장애나 Node Drain으로 `worker2`에 다시 배치되면 Docker는 `worker2`에 같은 이름의 새 Local Volume을 생성한다. Volume 이름은 같지만 `worker1`의 기존 데이터가 자동으로 복사되거나 공유되지는 않는다.
+
+```text
+worker1                          worker2
+┌────────────────────┐          ┌────────────────────┐
+│ db-data            │          │ db-data            │
+│ 기존 Database Data │          │ 새로 생성된 Volume │
+└────────────────────┘          └────────────────────┘
+
+같은 이름이지만 서로 다른 Local Data
+```
+
+### Node Placement로 고정
+
+단일 Database처럼 특정 Node의 Local Data를 계속 사용해야 한다면 Node에 Label을 지정하고 Placement Constraint로 Task를 고정할 수 있다.
+
+Manager에서 Storage를 보유한 Node에 Label을 지정한다.
+
+```bash
+docker node update --label-add storage=db worker1
+```
+
+Stack File에서 해당 Label을 가진 Node에만 Database를 배치한다.
+
+```yaml
+services:
+  database:
+    image: mariadb:11
+    volumes:
+      - db-data:/var/lib/mysql
+    deploy:
+      placement:
+        constraints:
+          - node.labels.storage == db
+
+volumes:
+  db-data: {}
+```
+
+이 방식은 Local Data를 유지하지만 `worker1`에 장애가 발생하면 다른 Node에 자동으로 재배치할 수 없다. Node 고정은 공유 Storage가 아니며 고가용성을 제공하지 않는다.
+
+### NFS와 Network Storage
+
+여러 Node에서 같은 Data에 접근해야 한다면 NFS 같은 Network File System이나 Cluster 전체에서 사용할 수 있는 Storage Driver를 구성한다.
+
+```yaml
+services:
+  database:
+    image: mariadb:11
+    volumes:
+      - db-data:/var/lib/mysql
+
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.110,rw
+      device: ":/srv/swarm-data"
+```
+
+모든 Swarm Node가 NFS Server에 연결할 수 있어야 하며 NFS Directory, 접근 권한과 방화벽을 미리 구성해야 한다. Public Cloud에서는 Network File System이나 Swarm과 호환되는 외부 Volume Driver를 사용할 수 있다.
+
+| 방식 | Data 위치 | 다른 Node 재배치 | 적합한 경우 | 주의 사항 |
+|---|---|---|---|---|
+| Local Named Volume | 각 Node의 Local Disk | 기존 Data 자동 연결 불가 | Node와 Data의 결합이 중요하지 않은 경우 | 같은 이름의 별도 Volume 생성 가능 |
+| Placement Constraint | 지정 Node의 Local Disk | 지정 Node에서만 실행 | 단일 Stateful Application | Node 장애 시 Service 중단 가능 |
+| NFS·Network Storage | Network Storage | 같은 Data에 접근 가능 | 여러 Node에서 Data 공유 | Storage 가용성·성능·권한 관리 필요 |
+
+Stateful Service를 운영할 때는 Container Replica 수만 늘리는 것으로 Data 고가용성이 완성되지 않는다. Database 자체의 Replication과 Backup, Storage 장애 복구 방식까지 함께 설계해야 한다.
+
 
 ---
 
@@ -561,3 +656,5 @@ docker stack rm dailylog
 > - Swarm은 Desired State, Rolling Update, Rollback과 Node Drain으로 Service 운영을 지원한다.
 >
 > - `docker stack deploy`는 여러 Service와 Network를 하나의 Application Stack으로 배포한다.
+>
+> - Swarm의 기본 Named Volume은 Node Local Storage이므로 Task 재배치 시 Data가 자동으로 따라가지 않는다.
