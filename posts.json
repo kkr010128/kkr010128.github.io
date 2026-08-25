@@ -4,6 +4,51 @@
       
       
       {
+        "title": "Kubernetes Component와 Service Network",
+        "url": "/cloud-native-22-kubernetes-components-networking/",
+        "description": "Control Plane과 Worker Component의 동작 흐름, Controller 종류, Service와 Pod Network 및 CNI 구조",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","Network"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 25일",
+        "reading_time_label": "8분 읽기",
+        "search": "kubernetes component와 service network control plane과 worker component의 동작 흐름, controller 종류, service와 pod network 및 cni 구조 cloudnative autoeversw kubernetes network cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "kubeadm으로 Kubernetes Cluster 구축",
+        "url": "/cloud-native-21-kubeadm-cluster/",
+        "description": "Master와 Worker 공통 준비부터 Control Plane 초기화, CNI 설치, Worker Join과 Cluster 확인까지 단계별 구성",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","kubeadm"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 25일",
+        "reading_time_label": "8분 읽기",
+        "search": "kubeadm으로 kubernetes cluster 구축 master와 worker 공통 준비부터 control plane 초기화, cni 설치, worker join과 cluster 확인까지 단계별 구성 cloudnative autoeversw kubernetes kubeadm cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes 개요와 Architecture",
+        "url": "/cloud-native-20-kubernetes-overview/",
+        "description": "Container Runtime과 Orchestration의 개념부터 Kubernetes Resource, Pod, Control Plane과 Worker Node 구조까지 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 25일",
+        "reading_time_label": "6분 읽기",
+        "search": "kubernetes 개요와 architecture container runtime과 orchestration의 개념부터 kubernetes resource, pod, control plane과 worker node 구조까지 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Docker Health Check와 Config 및 Secret",
         "url": "/cloud-native-19-healthcheck-config-secret/",
         "description": "Container 상태 검사, Compose 의존성 제어와 Swarm Config·Secret 관리 방법",
@@ -27,7 +72,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 24일",
-        "reading_time_label": "9분 읽기",
+        "reading_time_label": "10분 읽기",
         "search": "docker swarm cluster 구성과 service 운영 manager와 worker cluster 구성, service 배포, routing mesh, 확장, rolling update 및 stack 배포 cloudnative autoeversw docker dockerswarm cloudnative"
       },
     

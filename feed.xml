@@ -1,4 +1,1590 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-25T12:33:55+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Docker Swarm Ingress가 요청을 Container까지 전달하는 방법</title><link href="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/" rel="alternate" type="text/html" title="Docker Swarm Ingress가 요청을 Container까지 전달하는 방법" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/notes-07-deepdive-swarm-published-port</id><content type="html" xml:base="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/"><![CDATA[<h2 id="1--실습에서-이상한-점을-발견했다">1 ) 실습에서 이상한 점을 발견했다</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-08-26T08:53:49+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes 개요와 Architecture</title><link href="https://kkr010128.github.io/cloud-native-20-kubernetes-overview/" rel="alternate" type="text/html" title="Kubernetes 개요와 Architecture" /><published>2026-08-25T00:00:00+09:00</published><updated>2026-08-25T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-20-kubernetes-overview</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-20-kubernetes-overview/"><![CDATA[<p>Kubernetes는 여러 Node에서 Container Application을 배포하고, 확장하며, 선언한 상태로 유지하는 Container Orchestration Platform이다. Kubernetes를 이해하려면 먼저 Container Runtime이 Application을 실행하는 범위와 Orchestrator가 Cluster를 관리하는 범위를 구분해야 한다.</p>
+
+<h2 id="1--container-runtime">1 ) Container Runtime</h2>
+
+<hr />
+
+<p>일반적인 Virtual Machine은 Hardware Resource를 가상화하고 각 Virtual Machine에 Guest OS를 실행한다. Container는 Host OS의 Kernel을 공유하면서 Process, File System과 Network를 격리한다. Guest OS 전체를 실행하지 않으므로 상대적으로 적은 Resource로 더 많은 Application을 실행할 수 있다.</p>
+
+<p>Runtime은 Program이 실행되는 환경을 의미한다. JavaScript가 Browser에서 실행된다면 Browser가 Runtime 역할을 한다. 같은 관점에서 <strong>Container Runtime은 Container Image를 가져오고 Container를 생성·실행·감독하는 Software</strong>이다.</p>
+
+<h3 id="containerd">containerd</h3>
+
+<p>containerd는 Container 실행과 Image 관리를 담당하는 Open Source Container Runtime이다.</p>
+
+<ul>
+  <li>
+    <p>Registry에서 Container Image를 내려받는다.</p>
+  </li>
+  <li>
+    <p>Image Layer의 압축을 풀고 Local Storage에 관리한다.</p>
+  </li>
+  <li>
+    <p>Container를 생성·시작·중지·삭제한다.</p>
+  </li>
+  <li>
+    <p>실행 중인 Container의 상태를 감독한다.</p>
+  </li>
+</ul>
+
+<p>Docker Engine은 내부적으로 containerd를 사용하며 Kubernetes도 CRI Plugin을 갖춘 containerd를 Runtime으로 사용할 수 있다.</p>
+
+<h3 id="docker-engine">Docker Engine</h3>
+
+<p>Docker Engine은 Image Build, Registry 전송, Network, Volume과 Container Lifecycle을 포함한 개발·운영 기능을 제공한다. containerd보다 넓은 범위를 담당하며 내부의 Container 실행 계층에서 containerd를 사용한다.</p>
+
+<p>Kubernetes <code class="language-plaintext highlighter-rouge">v1.20</code>에서 Docker Engine 연동을 담당하던 Dockershim이 Deprecated되었고 <code class="language-plaintext highlighter-rouge">v1.24</code>에서 제거되었다. 이는 Docker로 만든 Image를 Kubernetes에서 사용할 수 없다는 의미는 아니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Docker Build
+    │
+    ▼
+OCI 호환 Container Image
+    │
+    ├── containerd
+    ├── CRI-O
+    └── Docker Engine + cri-dockerd
+</code></pre></div></div>
+
+<p>Docker로 Build한 OCI 호환 Image를 Registry에 Push하면 containerd와 CRI-O를 사용하는 Kubernetes Cluster에서도 실행할 수 있다. Docker Engine을 Kubernetes Runtime으로 연결해야 한다면 외부 CRI Adapter인 <code class="language-plaintext highlighter-rouge">cri-dockerd</code>가 필요하다.</p>
+
+<h3 id="cri-o">CRI-O</h3>
+
+<p>CRI-O는 Kubernetes의 CRI(Container Runtime Interface)를 구현하기 위해 만들어진 Open Source Runtime이다. Kubernetes에서 OCI 호환 Container를 실행하는 데 필요한 범위에 집중한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Docker Engine</th>
+      <th>containerd</th>
+      <th>CRI-O</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>주요 범위</td>
+      <td>Image Build·배포·Container 관리</td>
+      <td>Image 관리·Container 실행</td>
+      <td>Kubernetes용 Container 실행</td>
+    </tr>
+    <tr>
+      <td>Kubernetes 연결</td>
+      <td><code class="language-plaintext highlighter-rouge">cri-dockerd</code> 필요</td>
+      <td>CRI Plugin 사용</td>
+      <td>CRI 직접 구현</td>
+    </tr>
+    <tr>
+      <td>Image Build</td>
+      <td>지원</td>
+      <td>기본 역할 아님</td>
+      <td>기본 역할 아님</td>
+    </tr>
+    <tr>
+      <td>주요 용도</td>
+      <td>개발과 Container Platform 운영</td>
+      <td>Docker와 Kubernetes의 Runtime</td>
+      <td>Kubernetes Runtime</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="2--container-orchestration">2 ) Container Orchestration</h2>
+
+<hr />
+
+<p>Container 수가 많아지고 여러 Machine에 분산되면 개별 명령으로 상태를 관리하기 어렵다. Container Orchestration은 여러 Container를 배치하고 연결하며, 상태를 추적하고, 장애가 발생했을 때 원하는 상태로 복구하는 역할을 수행한다.</p>
+
+<p>주요 기능은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>여러 Node에 Workload를 배치한다.</p>
+  </li>
+  <li>
+    <p>Container 장애를 감지하고 대체 실행 단위를 생성한다.</p>
+  </li>
+  <li>
+    <p>Replica 수를 조정하여 Application을 확장하거나 축소한다.</p>
+  </li>
+  <li>
+    <p>Service Discovery와 Traffic Routing을 제공한다.</p>
+  </li>
+  <li>
+    <p>설정, Secret과 Persistent Storage를 Application에 연결한다.</p>
+  </li>
+  <li>
+    <p>선언한 상태와 실제 상태가 일치하도록 지속적으로 조정한다.</p>
+  </li>
+</ul>
+
+<h3 id="orchestration-도구">Orchestration 도구</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>도구</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Docker Swarm</td>
+      <td>Docker Engine에 내장되어 구성과 사용이 비교적 단순</td>
+    </tr>
+    <tr>
+      <td>Apache Mesos</td>
+      <td>분산 System Resource를 관리하며 Framework와 결합하여 사용</td>
+    </tr>
+    <tr>
+      <td>Nomad</td>
+      <td>HashiCorp가 개발한 Orchestrator로 Consul, Vault와 연동 가능</td>
+    </tr>
+    <tr>
+      <td>Kubernetes</td>
+      <td>Container Workload 배포·확장·상태 관리를 위한 CNCF Platform</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Docker Swarm은 작은 Cluster나 Docker 중심 환경에서 비교적 쉽게 시작할 수 있다. Mesos는 분산 Resource 관리 Framework와 다른 System을 함께 구성해야 하며, Nomad는 Consul의 Service Discovery 및 Vault의 Secret 관리와 결합할 수 있다. Kubernetes는 폭넓은 Cloud·Network·Storage 생태계를 갖추고 있다.</p>
+
+<h2 id="3--kubernetes">3 ) Kubernetes</h2>
+
+<hr />
+
+<p>Kubernetes는 <code class="language-plaintext highlighter-rouge">K8s</code>라고도 표기한다. <code class="language-plaintext highlighter-rouge">K</code>와 <code class="language-plaintext highlighter-rouge">s</code> 사이의 여덟 글자 <code class="language-plaintext highlighter-rouge">ubernete</code>를 숫자 <code class="language-plaintext highlighter-rouge">8</code>로 줄인 표현이다.</p>
+
+<p>Kubernetes에 배포할 Application은 Container 환경에서 독립적으로 실행되고, 외부 설정을 주입받으며, Replica가 교체되어도 Service를 유지할 수 있도록 설계해야 장점을 충분히 활용할 수 있다.</p>
+
+<p>Kubernetes Cluster는 한 대의 Machine으로도 구성할 수 있지만 실제 운영 환경에서는 일반적으로 여러 Node를 사용한다. 각 Node에서 여러 Pod가 실행되며 Kubernetes는 YAML Manifest에 선언한 상태를 기준으로 Pod와 관련 Resource를 생성하고 관리한다.</p>
+
+<h3 id="kubernetes를-사용하는-이유">Kubernetes를 사용하는 이유</h3>
+
+<h4 id="자동화된-container-orchestration">자동화된 Container Orchestration</h4>
+
+<p>Scheduler가 Resource와 조건을 확인하여 Pod를 Node에 배치하고 Controller가 선언한 Replica 수를 유지한다.</p>
+
+<h4 id="service-지속성과-self-healing">Service 지속성과 Self-healing</h4>
+
+<p>Pod나 Container에 장애가 발생하면 Controller와 kubelet이 필요한 복구 작업을 수행한다. Node가 사용할 수 없는 상태가 되면 Controller가 다른 가용 Node에 대체 Pod를 생성할 수 있다.</p>
+
+<p>대체 Pod가 생성되는 것이 기존 Process나 Local Data가 그대로 이동한다는 의미는 아니다. Stateful Application은 Persistent Volume과 Application 수준의 복구 전략이 필요하다.</p>
+
+<h4 id="효율적인-resource-사용">효율적인 Resource 사용</h4>
+
+<p>Container별 CPU와 Memory Request·Limit을 지정할 수 있으며 Scheduler가 가용 Resource를 고려하여 Pod를 배치한다. Service는 변하는 Pod 집합에 안정적인 Endpoint를 제공하고 Ingress 또는 Gateway API는 HTTP·HTTPS Traffic Routing을 구성한다.</p>
+
+<h4 id="유연한-확장">유연한 확장</h4>
+
+<p>Replica 수를 직접 조정하거나 HorizontalPodAutoscaler를 사용하여 Metric에 따라 Workload를 확장·축소할 수 있다.</p>
+
+<h4 id="desired-state-유지">Desired State 유지</h4>
+
+<p>사용자는 YAML Manifest로 원하는 상태를 선언한다. Controller는 실제 Cluster 상태를 관찰하고 필요한 Resource를 생성·수정·삭제하여 두 상태를 일치시킨다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자가 선언한 상태
+Deployment Replica: 3
+          │
+          ▼
+Controller가 실제 상태 관찰
+          │
+          ├── Pod 2개 → Pod 1개 추가
+          └── Pod 4개 → Pod 1개 제거
+</code></pre></div></div>
+
+<h4 id="infrastructure-선택의-유연성">Infrastructure 선택의 유연성</h4>
+
+<p>Kubernetes는 On-premises, Virtual Machine과 여러 Public Cloud에서 사용할 수 있다. 다만 Kubernetes를 사용한다고 Application과 Infrastructure가 자동으로 모든 Cloud Provider에서 동일하게 동작하는 것은 아니다. Load Balancer, Storage와 IAM 같은 Provider별 연동 요소를 함께 고려해야 한다.</p>
+
+<h2 id="4--kubernetes-resource">4 ) Kubernetes Resource</h2>
+
+<hr />
+
+<p>Kubernetes에서 상태를 관리하는 대상을 Resource 또는 Object라고 한다. Resource는 API Group과 역할을 기준으로 구분할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>영역</th>
+      <th>주요 Resource</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Workload</td>
+      <td>Pod, ReplicaSet, Deployment, DaemonSet, StatefulSet, Job, CronJob</td>
+      <td>Container 실행과 Lifecycle 관리</td>
+    </tr>
+    <tr>
+      <td>Service와 Network</td>
+      <td>Service, EndpointSlice, Ingress, NetworkPolicy</td>
+      <td>Service Discovery, Traffic 공개와 Network 정책</td>
+    </tr>
+    <tr>
+      <td>Config와 Storage</td>
+      <td>ConfigMap, Secret, PersistentVolumeClaim, PersistentVolume, StorageClass</td>
+      <td>설정·기밀 정보와 영속 Storage 관리</td>
+    </tr>
+    <tr>
+      <td>Cluster와 접근 제어</td>
+      <td>Node, Namespace, ServiceAccount, Role, ClusterRole, RoleBinding, ClusterRoleBinding</td>
+      <td>Cluster 구성과 RBAC 관리</td>
+    </tr>
+    <tr>
+      <td>정책과 확장</td>
+      <td>ResourceQuota, LimitRange, HorizontalPodAutoscaler, PodDisruptionBudget, CustomResourceDefinition</td>
+      <td>Resource 제한·확장·가용성·API 확장</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">ReplicationController</code>도 지원되지만 현재는 일반적으로 ReplicaSet과 Deployment를 사용한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ClusterIP</code>, <code class="language-plaintext highlighter-rouge">NodePort</code>, <code class="language-plaintext highlighter-rouge">LoadBalancer</code>, <code class="language-plaintext highlighter-rouge">ExternalName</code>은 각각 별도 Resource가 아니라 Service의 <code class="language-plaintext highlighter-rouge">type</code> 값이다. External IP, Headless Service와 Selector가 없는 Service도 Service를 구성하는 방식이다. Ingress는 Service Type이 아니라 HTTP·HTTPS Routing 규칙을 표현하는 별도 Resource이다.</p>
+
+<h2 id="5--kubernetes-architecture">5 ) Kubernetes Architecture</h2>
+
+<hr />
+
+<p>Kubernetes Cluster는 Control Plane과 Worker Node로 구성된다. 과거에 Master Node라고 부르던 역할은 현재 문서에서 <strong>Control Plane Node</strong>라고 표현한다. 이 글에서는 처음 역할을 대응할 때 <code class="language-plaintext highlighter-rouge">Master(Control Plane)</code>로 함께 표기하고 이후에는 Control Plane을 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Kubernetes Cluster
+├── Control Plane Node
+│   ├── kube-apiserver
+│   ├── etcd
+│   ├── kube-scheduler
+│   └── kube-controller-manager
+│
+├── Worker Node 1
+│   ├── kubelet
+│   ├── Container Runtime
+│   ├── Network 구성 요소
+│   └── Pod
+│
+└── Worker Node 2
+    ├── kubelet
+    ├── Container Runtime
+    ├── Network 구성 요소
+    └── Pod
+</code></pre></div></div>
+
+<h3 id="cluster와-node">Cluster와 Node</h3>
+
+<p>Cluster는 Kubernetes Resource를 함께 관리하는 집합이다. Node는 Pod가 배치되는 Machine이며 물리 Server나 Virtual Machine으로 구성할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>관점</th>
+      <th>Control Plane Node</th>
+      <th>Worker Node</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>주요 책임</td>
+      <td>Cluster 상태와 Scheduling 관리</td>
+      <td>할당된 Pod 실행</td>
+    </tr>
+    <tr>
+      <td>주요 구성 요소</td>
+      <td>API Server, etcd, Scheduler, Controller Manager</td>
+      <td>kubelet, Container Runtime, Network 구성 요소</td>
+    </tr>
+    <tr>
+      <td>Application Pod</td>
+      <td>기본 kubeadm 구성에서는 일반 Workload Scheduling 제한</td>
+      <td>일반적으로 Application Pod 실행</td>
+    </tr>
+    <tr>
+      <td>장애 영향</td>
+      <td>API와 Cluster 관리 기능에 영향</td>
+      <td>해당 Node의 Workload에 영향</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>운영 Cluster에서는 Control Plane을 여러 대로 구성하여 관리 기능의 고가용성을 확보할 수 있다. 학습 환경에서는 Control Plane 한 대와 Worker 두 대로 기본 구조를 확인할 수 있다.</p>
+
+<h3 id="pod">Pod</h3>
+
+<p>Pod는 Kubernetes에서 생성하고 Scheduling할 수 있는 가장 작은 배포 단위이다. 하나 이상의 Container를 포함하며 같은 Pod의 Container는 다음 Resource를 공유한다.</p>
+
+<ul>
+  <li>
+    <p>Pod IP Address와 Network Namespace</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">localhost</code> Network</p>
+  </li>
+  <li>
+    <p>연결한 Volume</p>
+  </li>
+  <li>
+    <p>Pod Lifecycle</p>
+  </li>
+</ul>
+
+<p>같은 Pod에는 Main Application과 그 Application의 동작을 직접 보조하는 Sidecar처럼 <strong>생명주기와 Resource를 밀접하게 공유해야 하는 Container</strong>를 배치한다. Web Application과 Database처럼 독립적으로 확장·배포·복구해야 하는 구성 요소는 일반적으로 서로 다른 Pod와 Workload로 분리한다.</p>
+
+<h3 id="persistent-storage">Persistent Storage</h3>
+
+<p>Pod는 교체될 수 있는 Resource이므로 Container Writable Layer에만 저장한 Data는 Pod와 함께 사라질 수 있다. 중요한 Data는 PersistentVolume과 PersistentVolumeClaim을 통해 Pod 외부의 Storage에 저장한다.</p>
+
+<p>CSI(Container Storage Interface)는 Kubernetes가 다양한 Storage System과 연결되는 표준 Interface이다. 실제 Storage는 Local Disk, NFS, Distributed Storage 또는 Cloud Provider의 Block·File Storage가 될 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Container Runtime은 Image와 Container 실행을 담당하고 Kubernetes는 여러 Node의 Workload를 Orchestration한다.</p>
+    </li>
+    <li>
+      <p>Dockershim은 제거되었지만 Docker로 Build한 OCI Image는 containerd와 CRI-O 환경에서도 사용할 수 있다.</p>
+    </li>
+    <li>
+      <p>Kubernetes는 Desired State, Self-healing, Scheduling, Service Discovery와 Scaling을 제공한다.</p>
+    </li>
+    <li>
+      <p>Control Plane은 Cluster 상태와 배치를 관리하고 Worker Node는 실제 Application Pod를 실행한다.</p>
+    </li>
+    <li>
+      <p>Pod에는 독립된 Application을 무조건 함께 넣는 것이 아니라 생명주기와 Resource를 공유해야 하는 Container를 배치한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Container Runtime과 Orchestration의 개념부터 Kubernetes Resource, Pod, Control Plane과 Worker Node 구조까지 정리]]></summary></entry><entry><title type="html">kubeadm으로 Kubernetes Cluster 구축</title><link href="https://kkr010128.github.io/cloud-native-21-kubeadm-cluster/" rel="alternate" type="text/html" title="kubeadm으로 Kubernetes Cluster 구축" /><published>2026-08-25T00:00:00+09:00</published><updated>2026-08-25T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-21-kubeadm-cluster</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-21-kubeadm-cluster/"><![CDATA[<p>Kubernetes Cluster는 Local 도구, 직접 구성 도구 또는 Public Cloud의 Managed Service를 이용해 구축할 수 있다. 이 글에서는 Linux Virtual Machine 세 대와 <code class="language-plaintext highlighter-rouge">kubeadm</code>을 사용하여 Master(Control Plane) 한 대와 Worker 두 대를 구성한다.</p>
+
+<p>공통 준비는 모든 Node에서 수행하고, Cluster 초기화와 관리는 Control Plane에서, <code class="language-plaintext highlighter-rouge">kubeadm join</code>은 Worker에서 수행한다.</p>
+
+<h2 id="1--kubernetes-cluster-구축-방식">1 ) Kubernetes Cluster 구축 방식</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>예시</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Local Kubernetes</td>
+      <td>Docker Desktop, Minikube, kind</td>
+      <td>한 대의 개발 Machine에서 학습·개발·CI 용도로 사용</td>
+    </tr>
+    <tr>
+      <td>경량 Distribution</td>
+      <td>k3s, k0s</td>
+      <td>설치와 운영 구성을 단순화한 Kubernetes Distribution</td>
+    </tr>
+    <tr>
+      <td>직접 구성</td>
+      <td>kubeadm, kOps, Kubespray</td>
+      <td>On-premises 또는 Cloud VM에 Cluster 직접 구성</td>
+    </tr>
+    <tr>
+      <td>Managed Kubernetes</td>
+      <td>EKS, AKS, GKE, NKS</td>
+      <td>Cloud Provider가 Control Plane 운영을 관리</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="local-kubernetes">Local Kubernetes</h3>
+
+<ul>
+  <li>
+    <p>Docker Desktop은 Desktop 환경에서 Kubernetes Cluster를 활성화할 수 있다.</p>
+  </li>
+  <li>
+    <p>Minikube는 Container, Virtual Machine 또는 Bare Metal Driver를 사용하여 Local Cluster를 만든다.</p>
+  </li>
+  <li>
+    <p>kind(Kubernetes IN Docker)는 Kubernetes Node를 Container로 실행하며 Local 개발과 CI Test에 활용할 수 있다.</p>
+  </li>
+  <li>
+    <p>k3s와 k0s는 비교적 간단하게 설치할 수 있는 Kubernetes Distribution이다.</p>
+  </li>
+</ul>
+
+<h3 id="직접-구성과-managed-service">직접 구성과 Managed Service</h3>
+
+<p><code class="language-plaintext highlighter-rouge">kubeadm</code>은 Kubernetes가 제공하는 Cluster Bootstrap 도구이다. Control Plane과 Worker를 직접 구성하면서 각 Node의 역할과 Component를 확인하기에 적합하다. kOps와 Kubespray 같은 도구는 Infrastructure 구성이나 반복 설치 자동화에 활용할 수 있다.</p>
+
+<p>AWS EKS, Microsoft AKS, Google GKE와 NHN Cloud NKS 같은 Managed Kubernetes는 Control Plane 운영의 많은 부분을 Cloud Provider가 담당한다. SUSE Rancher와 Red Hat OpenShift는 Kubernetes 기반 Platform을 구축하고 관리하는 데 사용할 수 있다.</p>
+
+<h2 id="2--실습-cluster-구성">2 ) 실습 Cluster 구성</h2>
+
+<hr />
+
+<p>서로 통신할 수 있는 Linux Virtual Machine 세 대를 준비한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Kubernetes Cluster
+├── master   192.168.0.100   Control Plane
+├── worker1  192.168.0.101   Worker Node
+└── worker2  192.168.0.102   Worker Node
+</code></pre></div></div>
+
+<p>IP Address는 내 현재 환경에 맞춘 예시이다. 실제 Network에 맞는 고정 Address를 사용하고 모든 Node에서 서로 통신할 수 있어야 한다.</p>
+
+<h3 id="node별-역할">Node별 역할</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>작업</th>
+      <th>Master(Control Plane)</th>
+      <th>Worker</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Hostname·Network 설정</td>
+      <td>수행</td>
+      <td>수행</td>
+    </tr>
+    <tr>
+      <td>Kernel·Swap 설정</td>
+      <td>수행</td>
+      <td>수행</td>
+    </tr>
+    <tr>
+      <td>Container Runtime 설치</td>
+      <td>수행</td>
+      <td>수행</td>
+    </tr>
+    <tr>
+      <td>kubelet·kubeadm 설치</td>
+      <td>수행</td>
+      <td>수행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubeadm init</code></td>
+      <td>수행</td>
+      <td>수행하지 않음</td>
+    </tr>
+    <tr>
+      <td>Kubeconfig 설정</td>
+      <td>수행</td>
+      <td>일반적으로 수행하지 않음</td>
+    </tr>
+    <tr>
+      <td>CNI 설치</td>
+      <td>수행</td>
+      <td>수행하지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubeadm join</code></td>
+      <td>수행하지 않음</td>
+      <td>수행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubectl get nodes</code></td>
+      <td>수행</td>
+      <td>Kubeconfig가 있다면 가능</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="최소-resource와-network">최소 Resource와 Network</h3>
+
+<ul>
+  <li>
+    <p>모든 Machine에 2GiB 이상의 Memory를 준비한다.</p>
+  </li>
+  <li>
+    <p>Control Plane에는 2개 이상의 CPU Core를 할당한다.</p>
+  </li>
+  <li>
+    <p>Application 실습을 고려하여 Worker에도 CPU, Memory와 Disk를 넉넉하게 할당한다.</p>
+  </li>
+  <li>
+    <p>모든 Node에서 고유한 Hostname, MAC Address와 Product UUID를 사용한다.</p>
+  </li>
+  <li>
+    <p>모든 Node의 시간 동기화와 양방향 Network 통신을 확인한다.</p>
+  </li>
+</ul>
+
+<p>Control Plane 한 대가 중지되면 Cluster 관리 API를 사용할 수 없으므로 이 구성은 학습용이다. 운영 환경에서는 여러 Control Plane과 Load Balancer를 이용한 고가용성 구성을 검토한다.</p>
+
+<h2 id="3--모든-node-공통-준비">3 ) 모든 Node 공통 준비</h2>
+
+<hr />
+
+<p>이 절의 명령은 <strong>Master와 모든 Worker에서 실행</strong>한다.</p>
+
+<h3 id="hostname-설정">Hostname 설정</h3>
+
+<p>각 Node에서 역할에 맞는 Hostname을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master에서 실행</span>
+<span class="nb">sudo </span>hostnamectl set-hostname master
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Worker 1에서 실행</span>
+<span class="nb">sudo </span>hostnamectl set-hostname worker1
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Worker 2에서 실행</span>
+<span class="nb">sudo </span>hostnamectl set-hostname worker2
+</code></pre></div></div>
+
+<p>모든 Node의 <code class="language-plaintext highlighter-rouge">/etc/hosts</code>에 Master와 Worker의 IP Address 및 Hostname을 등록한다. 기존 <code class="language-plaintext highlighter-rouge">localhost</code> 관련 항목은 유지하고 다음 세 줄을 추가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master와 모든 Worker에서 실행</span>
+<span class="nb">sudo </span>nano /etc/hosts
+
+→ 127.0.0.1 <span class="o">{</span>hostName<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.0.100 master
+192.168.0.101 worker1
+192.168.0.102 worker2
+</code></pre></div></div>
+
+<p>세 Node에 동일한 내용을 등록하면 IP Address 대신 Hostname으로 통신할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-c</span> 3 master
+ping <span class="nt">-c</span> 3 worker1
+ping <span class="nt">-c</span> 3 worker2
+</code></pre></div></div>
+
+<p>고정 IP는 Ubuntu의 경우 <code class="language-plaintext highlighter-rouge">/etc/netplan</code> 아래 YAML File 등 운영체제의 Network 설정 방식으로 구성한다. 설정 후 각 Node에서 다른 Node의 IP Address로 통신되는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping <span class="nt">-c</span> 3 192.168.0.100
+ping <span class="nt">-c</span> 3 192.168.0.101
+ping <span class="nt">-c</span> 3 192.168.0.102
+</code></pre></div></div>
+
+<h3 id="package-업데이트">Package 업데이트</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt-get upgrade <span class="nt">-y</span>
+<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> apt-transport-https ca-certificates curl gpg
+</code></pre></div></div>
+
+<h3 id="swap-비활성화">Swap 비활성화</h3>
+
+<p>기본 kubelet 설정은 Swap이 활성화된 Node에서 시작을 거부한다. 현재 Session의 Swap을 비활성화하고 재부팅 후에도 다시 활성화되지 않도록 <code class="language-plaintext highlighter-rouge">/etc/fstab</code>을 수정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>swapoff <span class="nt">-a</span>
+<span class="nb">sudo sed</span> <span class="nt">-i</span> <span class="s1">'/ swap / s/^\(.*\)$/#\1/g'</span> /etc/fstab
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>swapon <span class="nt">--show</span>
+</code></pre></div></div>
+
+<p>출력이 없으면 활성화된 Swap 영역이 없는 상태이다. 기존 <code class="language-plaintext highlighter-rouge">/etc/fstab</code> 항목을 수정하기 전에는 원본을 Backup하고 중복 실행 시 결과를 확인한다.</p>
+
+<h3 id="kernel-module과-sysctl">Kernel Module과 <code class="language-plaintext highlighter-rouge">sysctl</code></h3>
+
+<p>Container Network에서 Overlay File System과 Bridge Traffic 처리를 사용할 수 있도록 Module을 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh"> | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+</span><span class="no">EOF
+</span></code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>modprobe overlay
+<span class="nb">sudo </span>modprobe br_netfilter
+</code></pre></div></div>
+
+<p>IPv4 Forwarding과 Bridge Traffic의 iptables 처리를 활성화한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="no">EOF</span><span class="sh"> | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+</span><span class="no">EOF
+</span></code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>sysctl <span class="nt">--system</span>
+</code></pre></div></div>
+
+<p>설정값을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>sysctl net.bridge.bridge-nf-call-iptables
+sysctl net.bridge.bridge-nf-call-ip6tables
+sysctl net.ipv4.ip_forward
+</code></pre></div></div>
+
+<h2 id="4--모든-node에-containerd-설치">4 ) 모든 Node에 containerd 설치</h2>
+
+<hr />
+
+<p>Pod는 Worker에서 실행되지만 Control Plane도 Kubernetes Component를 Static Pod로 실행할 수 있으므로 <strong>모든 Node에 Container Runtime이 필요</strong>하다.</p>
+
+<h3 id="containerd-설치">containerd 설치</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> containerd
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> /etc/containerd
+containerd config default | <span class="nb">sudo tee</span> /etc/containerd/config.toml
+</code></pre></div></div>
+
+<p>Kubernetes의 kubelet과 Runtime이 같은 cgroup Driver를 사용하도록 <code class="language-plaintext highlighter-rouge">/etc/containerd/config.toml</code>에서 <code class="language-plaintext highlighter-rouge">SystemdCgroup</code>을 <code class="language-plaintext highlighter-rouge">true</code>로 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo sed</span> <span class="nt">-i</span> <span class="s1">'s/SystemdCgroup = false/SystemdCgroup = true/'</span> /etc/containerd/config.toml
+</code></pre></div></div>
+
+<p>설정이 실제 File에 반영되었는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">grep </span>SystemdCgroup /etc/containerd/config.toml
+</code></pre></div></div>
+
+<p>containerd를 재시작하고 Boot 시 자동으로 시작하도록 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl restart containerd
+<span class="nb">sudo </span>systemctl <span class="nb">enable </span>containerd
+<span class="nb">sudo </span>systemctl status containerd
+</code></pre></div></div>
+
+<p>Distribution에서 제공하는 containerd Version에 따라 설정 File 구조가 다를 수 있다. <code class="language-plaintext highlighter-rouge">SystemdCgroup</code> 항목이 없거나 Service가 시작되지 않으면 설치된 containerd Version의 설정 구조를 먼저 확인한다.</p>
+
+<h2 id="5--모든-node에-kubernetes-package-설치">5 ) 모든 Node에 Kubernetes Package 설치</h2>
+
+<hr />
+
+<p>Kubernetes <code class="language-plaintext highlighter-rouge">v1.30</code>은 지원이 종료된 Version이다. 이 글은 2026년 8월 25일 기준 지원 Branch인 Kubernetes <code class="language-plaintext highlighter-rouge">v1.36</code> Package Repository를 사용한다.</p>
+
+<h3 id="repository-key-등록">Repository Key 등록</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo mkdir</span> <span class="nt">-p</span> <span class="nt">-m</span> 755 /etc/apt/keyrings
+curl <span class="nt">-fsSL</span> https://pkgs.k8s.io/core:/stable:/v1.36/deb/Release.key <span class="se">\</span>
+  | <span class="nb">sudo </span>gpg <span class="nt">--dearmor</span> <span class="nt">-o</span> /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+</code></pre></div></div>
+
+<h3 id="repository-등록">Repository 등록</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s1">'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.36/deb/ /'</span> <span class="se">\</span>
+  | <span class="nb">sudo tee</span> /etc/apt/sources.list.d/kubernetes.list
+</code></pre></div></div>
+
+<p>Kubernetes Package Repository는 Minor Version별로 분리되어 있다. 다른 Version을 사용할 때는 Cluster 전체에서 Version 호환 정책을 확인하고 URL의 Minor Version을 일관되게 변경한다.</p>
+
+<h3 id="kubelet-kubeadm-kubectl-설치">kubelet, kubeadm, kubectl 설치</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> kubelet kubeadm kubectl
+<span class="nb">sudo </span>apt-mark hold kubelet kubeadm kubectl
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> kubelet
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Package</th>
+      <th>역할</th>
+      <th>필요한 Node</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubelet</code></td>
+      <td>Node에서 Pod와 Container 상태 관리</td>
+      <td>모든 Node</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubeadm</code></td>
+      <td>Cluster 초기화와 Node Join</td>
+      <td>모든 Node</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubectl</code></td>
+      <td>API Server에 관리 요청 전달</td>
+      <td>Control Plane 또는 별도 관리 Client</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Worker에 <code class="language-plaintext highlighter-rouge">kubectl</code>이 반드시 필요한 것은 아니지만 Package 구성을 동일하게 유지하는 학습 환경에서는 함께 설치할 수 있다. Kubeconfig가 없으면 <code class="language-plaintext highlighter-rouge">kubectl</code>만 설치되어 있어도 Cluster를 관리할 수 없다.</p>
+
+<p>초기화 전 kubelet이 반복 재시작될 수 있다. 아직 Cluster 설정을 받지 못한 상태이므로 <code class="language-plaintext highlighter-rouge">kubeadm init</code> 또는 <code class="language-plaintext highlighter-rouge">kubeadm join</code> 전에는 예상되는 동작이다.</p>
+
+<h2 id="6--방화벽과-port-확인">6 ) 방화벽과 Port 확인</h2>
+
+<hr />
+
+<p>방화벽 전체를 중지하지 않고 Node 역할과 CNI Plugin에 필요한 Port를 허용한다.</p>
+
+<h3 id="control-plane-port">Control Plane Port</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Port</th>
+      <th>Protocol</th>
+      <th>용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">6443</code></td>
+      <td>TCP</td>
+      <td>Kubernetes API Server</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">2379-2380</code></td>
+      <td>TCP</td>
+      <td>etcd Client와 Peer 통신</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">10250</code></td>
+      <td>TCP</td>
+      <td>kubelet API</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">10257</code></td>
+      <td>TCP</td>
+      <td>kube-controller-manager</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">10259</code></td>
+      <td>TCP</td>
+      <td>kube-scheduler</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="worker-port">Worker Port</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Port</th>
+      <th>Protocol</th>
+      <th>용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">10250</code></td>
+      <td>TCP</td>
+      <td>kubelet API</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">10256</code></td>
+      <td>TCP</td>
+      <td>kube-proxy Health Endpoint</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">30000-32767</code></td>
+      <td>TCP/UDP</td>
+      <td>기본 NodePort 범위</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Flannel VXLAN은 Node 사이의 UDP <code class="language-plaintext highlighter-rouge">8472</code> 등 별도 Port가 필요할 수 있다. 실제 허용 Port는 사용하는 CNI와 운영체제 방화벽 정책을 함께 확인한다.</p>
+
+<h2 id="7--master에서-control-plane-초기화">7 ) Master에서 Control Plane 초기화</h2>
+
+<hr />
+
+<p>이 절은 <strong>Master(Control Plane)에서만 실행</strong>한다. Worker에서는 실행하지 않는다.</p>
+
+<p>Flannel의 기본 Pod Network CIDR과 일치하도록 <code class="language-plaintext highlighter-rouge">10.244.0.0/16</code>을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>kubeadm init <span class="nt">--pod-network-cidr</span><span class="o">=</span>10.244.0.0/16
+</code></pre></div></div>
+
+<p>여러 Network Interface가 있어 자동 선택한 Address가 적절하지 않다면 Control Plane의 고정 IP를 명시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>kubeadm init <span class="se">\</span>
+  <span class="nt">--apiserver-advertise-address</span><span class="o">=</span>192.168.0.100 <span class="se">\</span>
+  <span class="nt">--pod-network-cidr</span><span class="o">=</span>10.244.0.0/16
+</code></pre></div></div>
+
+<p>초기화에 성공하면 다음 정보가 출력된다.</p>
+
+<ul>
+  <li>
+    <p>현재 사용자의 Kubeconfig 설정 명령</p>
+  </li>
+  <li>
+    <p>CNI 설치 안내</p>
+  </li>
+  <li>
+    <p>Worker가 사용할 <code class="language-plaintext highlighter-rouge">kubeadm join</code> 명령</p>
+  </li>
+</ul>
+
+<p>Join Token은 Node를 Cluster에 참여시킬 수 있는 인증 정보이므로 공개 Repository나 문서에 실제 값을 저장하지 않는다.</p>
+
+<h3 id="kubeconfig-설정">Kubeconfig 설정</h3>
+
+<p>Master의 일반 사용자 계정에서 <code class="language-plaintext highlighter-rouge">kubectl</code>을 사용하도록 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.kube"</span>
+<span class="nb">sudo cp</span> <span class="nt">-i</span> /etc/kubernetes/admin.conf <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.kube/config"</span>
+<span class="nb">sudo chown</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-u</span><span class="si">)</span><span class="s2">:</span><span class="si">$(</span><span class="nb">id</span> <span class="nt">-g</span><span class="si">)</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.kube/config"</span>
+</code></pre></div></div>
+
+<p>API Server 연결을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl cluster-info
+kubectl get nodes
+</code></pre></div></div>
+
+<p>CNI 설치 전에는 Node가 <code class="language-plaintext highlighter-rouge">NotReady</code>로 표시될 수 있다.</p>
+
+<h2 id="8--master에서-cni-설치">8 ) Master에서 CNI 설치</h2>
+
+<hr />
+
+<p>Kubernetes는 CNI Specification을 제공하지만 Pod Network 구현을 직접 선택하여 설치해야 한다. 이 실습에서는 Flannel을 사용한다.</p>
+
+<p><strong>실행 위치: Master(Control Plane)</strong></p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> <span class="se">\</span>
+  https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+</code></pre></div></div>
+
+<p>Flannel Manifest의 기본 Network가 <code class="language-plaintext highlighter-rouge">10.244.0.0/16</code>이므로 <code class="language-plaintext highlighter-rouge">kubeadm init</code>의 <code class="language-plaintext highlighter-rouge">--pod-network-cidr</code>와 일치해야 한다. 다른 CNI를 사용한다면 해당 Plugin이 요구하는 CIDR과 설치 절차를 따른다. Cluster에는 일반적으로 하나의 Pod Network를 설치한다.</p>
+
+<p>상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--all-namespaces</span>
+kubectl get pods <span class="nt">-n</span> kube-flannel
+kubectl get nodes
+</code></pre></div></div>
+
+<p>Pod Network가 정상적으로 구성되면 CoreDNS Pod와 Control Plane Node가 <code class="language-plaintext highlighter-rouge">Running</code>, <code class="language-plaintext highlighter-rouge">Ready</code> 상태로 전환된다.</p>
+
+<h2 id="9--worker를-cluster에-연결">9 ) Worker를 Cluster에 연결</h2>
+
+<hr />
+
+<p>이 절은 <strong>각 Worker에서 실행</strong>한다. <code class="language-plaintext highlighter-rouge">kubeadm init</code> 결과에 출력된 Join 명령을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>kubeadm <span class="nb">join</span> &lt;CONTROL_PLANE_IP&gt;:6443 <span class="se">\</span>
+  <span class="nt">--token</span> &lt;TOKEN&gt; <span class="se">\</span>
+  <span class="nt">--discovery-token-ca-cert-hash</span> sha256:&lt;HASH&gt;
+</code></pre></div></div>
+
+<p>예시의 <code class="language-plaintext highlighter-rouge">&lt;CONTROL_PLANE_IP&gt;</code>, <code class="language-plaintext highlighter-rouge">&lt;TOKEN&gt;</code>, <code class="language-plaintext highlighter-rouge">&lt;HASH&gt;</code>는 실제 출력값으로 바꾼다. 실제 Token과 Hash를 문서에 고정하여 저장하지 않는다.</p>
+
+<p>Token이 만료되었거나 Join 명령을 잃어버렸다면 Master에서 다시 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubeadm token create <span class="nt">--print-join-command</span>
+</code></pre></div></div>
+
+<p>Worker에서 Join이 완료되면 kubelet은 API Server와 통신하고, Scheduler가 해당 Worker에 배치한 Pod를 Container Runtime으로 실행한다.</p>
+
+<h2 id="10--master에서-cluster-확인">10 ) Master에서 Cluster 확인</h2>
+
+<hr />
+
+<p>Worker Join 이후에는 <strong>Master에서</strong> Cluster 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>예상 구조는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NAME      STATUS   ROLES           VERSION
+master    Ready    control-plane   v1.36.x
+worker1   Ready    &lt;none&gt;          v1.36.x
+worker2   Ready    &lt;none&gt;          v1.36.x
+</code></pre></div></div>
+
+<p>System Pod가 어느 Node에서 실행되는지도 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> kube-system <span class="nt">-o</span> wide
+kubectl get pods <span class="nt">-n</span> kube-flannel <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<h3 id="master와-worker의-동작-흐름">Master와 Worker의 동작 흐름</h3>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>관리 사용자
+    │ kubectl 요청
+    ▼
+Master(Control Plane)
+    ├── API Server가 요청 검증 및 저장
+    ├── Controller가 원하는 상태 조정
+    └── Scheduler가 Worker 선택
+                    │
+                    ▼
+Worker
+    ├── kubelet이 할당된 Pod 확인
+    ├── Container Runtime이 Container 실행
+    └── CNI가 Pod Network 구성
+</code></pre></div></div>
+
+<p>Master는 Cluster의 상태와 배치를 결정하고 Worker는 실제 Application Pod를 실행한다. Worker의 kubelet은 API Server에서 자신에게 할당된 PodSpec을 관찰하여 실행 상태를 맞춘다.</p>
+
+<h2 id="11--node-제거와-cluster-reset">11 ) Node 제거와 Cluster Reset</h2>
+
+<hr />
+
+<p>Reset은 Cluster 상태와 Node 설정을 제거하므로 대상 Node와 필요한 Backup을 확인한 뒤 실행한다.</p>
+
+<h3 id="worker-제거">Worker 제거</h3>
+
+<p>먼저 Master에서 대상 Worker의 Workload를 비우고 Node Object를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl drain &lt;WORKER_NAME&gt; <span class="se">\</span>
+  <span class="nt">--ignore-daemonsets</span> <span class="se">\</span>
+  <span class="nt">--delete-emptydir-data</span>
+kubectl delete node &lt;WORKER_NAME&gt;
+</code></pre></div></div>
+
+<p>대상 Worker에서 kubeadm 상태를 초기화한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>kubeadm reset <span class="nt">-f</span>
+</code></pre></div></div>
+
+<h3 id="전체-학습-cluster-초기화">전체 학습 Cluster 초기화</h3>
+
+<p>Worker를 먼저 Reset한 뒤 Master에서 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>kubeadm reset <span class="nt">-f</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubeadm reset</code>은 CNI 설정 Directory와 사용자 Kubeconfig를 자동으로 모두 제거하지 않는다. 같은 Machine을 새 Cluster에 재사용하면서 CNI를 변경한다면 <code class="language-plaintext highlighter-rouge">/etc/cni/net.d</code>의 내용을 Backup하고 대상을 확인한 후 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo rm</span> <span class="nt">-rf</span> /etc/cni/net.d
+</code></pre></div></div>
+
+<p>Cluster가 더 이상 존재하지 않고 Admin Kubeconfig가 필요하지 않은지 확인한 뒤 현재 사용자의 설정 File을 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">rm</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.kube/config"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/kubernetes/*</code>, <code class="language-plaintext highlighter-rouge">/var/lib/kubelet/*</code>, <code class="language-plaintext highlighter-rouge">~/.kube</code>를 직접 모두 삭제하면 필요한 File까지 광범위하게 제거할 수 있다. <code class="language-plaintext highlighter-rouge">kubeadm reset</code> 결과와 Machine 재사용 목적을 확인한 뒤 필요한 항목만 정리한다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Host, Kernel, Swap, Container Runtime과 Kubernetes Package 준비는 Master와 Worker 모두에서 수행한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">kubeadm init</code>, Kubeconfig 설정과 CNI 설치는 Master(Control Plane)에서 수행한다.</p>
+    </li>
+    <li>
+      <p>Worker는 Master가 생성한 Token과 CA Hash를 사용하여 <code class="language-plaintext highlighter-rouge">kubeadm join</code>을 실행한다.</p>
+    </li>
+    <li>
+      <p>Master는 API와 Cluster 상태를 관리하고 Worker는 kubelet과 Container Runtime으로 실제 Pod를 실행한다.</p>
+    </li>
+    <li>
+      <p>방화벽 전체를 중지하지 않고 Kubernetes Component와 CNI에 필요한 Port를 허용한다.</p>
+    </li>
+    <li>
+      <p>Kubernetes <code class="language-plaintext highlighter-rouge">v1.30</code>은 지원이 종료되었으므로 이 글의 설치 명령은 <code class="language-plaintext highlighter-rouge">v1.36</code> Repository를 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><category term="kubeadm" /><summary type="html"><![CDATA[Master와 Worker 공통 준비부터 Control Plane 초기화, CNI 설치, Worker Join과 Cluster 확인까지 단계별 구성]]></summary></entry><entry><title type="html">Kubernetes Component와 Service Network</title><link href="https://kkr010128.github.io/cloud-native-22-kubernetes-components-networking/" rel="alternate" type="text/html" title="Kubernetes Component와 Service Network" /><published>2026-08-25T00:00:00+09:00</published><updated>2026-08-25T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-22-kubernetes-components-networking</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-22-kubernetes-components-networking/"><![CDATA[<p>Kubernetes에서 사용자가 선언한 Pod가 실행되기까지 Control Plane과 Worker의 여러 Component가 역할을 나누어 동작한다. Pod가 실행된 후에는 Service가 변하는 Pod 집합에 안정적인 Endpoint를 제공하고 CNI 기반 Pod Network가 Node를 넘어 통신할 수 있게 한다.</p>
+
+<h2 id="1--kubernetes-component-배치">1 ) Kubernetes Component 배치</h2>
+
+<hr />
+
+<p>Control Plane은 Cluster 전체의 상태와 Scheduling을 관리하고 Worker는 할당된 Pod를 실행한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Plane
+├── kube-apiserver
+├── etcd
+├── kube-scheduler
+└── kube-controller-manager
+
+Worker Node
+├── kubelet
+├── Container Runtime
+├── kube-proxy 또는 Service Proxy 구현
+└── CNI 기반 Pod Network
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Component</th>
+      <th>주요 실행 위치</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>kubectl</td>
+      <td>관리 Client</td>
+      <td>API Server에 요청 전달</td>
+    </tr>
+    <tr>
+      <td>kube-apiserver</td>
+      <td>Control Plane</td>
+      <td>Kubernetes API 제공, 요청 인증·인가·검증</td>
+    </tr>
+    <tr>
+      <td>etcd</td>
+      <td>Control Plane</td>
+      <td>Cluster 상태 저장</td>
+    </tr>
+    <tr>
+      <td>kube-scheduler</td>
+      <td>Control Plane</td>
+      <td>Scheduling되지 않은 Pod의 실행 Node 선택</td>
+    </tr>
+    <tr>
+      <td>kube-controller-manager</td>
+      <td>Control Plane</td>
+      <td>여러 Controller의 Reconciliation Loop 실행</td>
+    </tr>
+    <tr>
+      <td>kubelet</td>
+      <td>모든 Node</td>
+      <td>자신에게 할당된 Pod 실행 상태 유지</td>
+    </tr>
+    <tr>
+      <td>Container Runtime</td>
+      <td>모든 Node</td>
+      <td>Image와 Container 실행 관리</td>
+    </tr>
+    <tr>
+      <td>kube-proxy</td>
+      <td>일반적으로 각 Node</td>
+      <td>Service용 Network Rule 관리</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="2--kubectl과-api-server">2 ) kubectl과 API Server</h2>
+
+<hr />
+
+<h3 id="kubectl">kubectl</h3>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl</code>은 Kubernetes API를 호출하는 Command Line Client이다. 독립된 Binary이므로 반드시 Control Plane Node에서 실행할 필요는 없다.</p>
+
+<p>다음 정보가 담긴 Kubeconfig가 있으면 별도 관리 PC나 다른 Node에서도 사용할 수 있다.</p>
+
+<ul>
+  <li>
+    <p>API Server 주소</p>
+  </li>
+  <li>
+    <p>Cluster 인증서 정보</p>
+  </li>
+  <li>
+    <p>사용자 인증 정보</p>
+  </li>
+  <li>
+    <p>Namespace와 Context</p>
+  </li>
+</ul>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config current-context
+kubectl cluster-info
+kubectl get nodes
+</code></pre></div></div>
+
+<h3 id="kube-apiserver">kube-apiserver</h3>
+
+<p>API Server는 Kubernetes Control Plane의 Frontend이다. kubectl, Controller, Scheduler, kubelet과 외부 Client는 API Server를 통해 Cluster 상태를 조회하거나 변경한다.</p>
+
+<p>주요 역할은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>요청한 사용자를 인증한다.</p>
+  </li>
+  <li>
+    <p>RBAC 등으로 요청 권한을 확인한다.</p>
+  </li>
+  <li>
+    <p>Resource 형식과 정책을 검증한다.</p>
+  </li>
+  <li>
+    <p>Admission Control을 적용한다.</p>
+  </li>
+  <li>
+    <p>유효한 Resource 상태를 etcd에 저장하고 Client에 응답한다.</p>
+  </li>
+</ul>
+
+<p>API Server가 Worker의 kubelet에 Container 생성 명령을 직접 전달하는 구조는 아니다. 각 Component가 API Server를 중심으로 원하는 상태와 현재 상태를 관찰하고 자신의 역할을 수행한다.</p>
+
+<h2 id="3--etcd-scheduler와-controller-manager">3 ) etcd, Scheduler와 Controller Manager</h2>
+
+<hr />
+
+<h3 id="etcd">etcd</h3>
+
+<p>etcd는 Kubernetes Cluster의 상태 정보를 저장하는 분산 Key-value Database이다.</p>
+
+<ul>
+  <li>
+    <p>Pod, Deployment, Service와 Node 같은 Resource의 선언 상태를 저장한다.</p>
+  </li>
+  <li>
+    <p>Control Plane Component는 API Server를 통해 Cluster 상태를 읽고 갱신한다.</p>
+  </li>
+  <li>
+    <p>운영 환경에서는 etcd Backup과 복구 절차가 Cluster 복구의 핵심이 된다.</p>
+  </li>
+</ul>
+
+<p>API Server가 Pod Object를 etcd에 저장했다고 해서 Container가 이미 실행된 것은 아니다. 저장된 PodSpec을 Scheduler와 kubelet이 관찰하고 후속 작업을 수행해야 실제 Container가 실행된다.</p>
+
+<h3 id="kube-scheduler">kube-scheduler</h3>
+
+<p>Scheduler는 아직 Node가 정해지지 않은 Pod를 관찰하고 실행할 Node를 선택한다.</p>
+
+<p>주요 판단 요소는 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>Node의 가용 CPU와 Memory</p>
+  </li>
+  <li>
+    <p>Pod의 Resource Request</p>
+  </li>
+  <li>
+    <p>Node Selector와 Node Affinity</p>
+  </li>
+  <li>
+    <p>Taint와 Toleration</p>
+  </li>
+  <li>
+    <p>Pod Affinity와 Anti-affinity</p>
+  </li>
+  <li>
+    <p>Volume과 Topology 조건</p>
+  </li>
+</ul>
+
+<p>Scheduler는 Container를 직접 실행하지 않는다. 선택한 Node 정보를 Pod에 Binding하면 해당 Worker의 kubelet이 Pod 실행을 담당한다.</p>
+
+<h3 id="kube-controller-manager">kube-controller-manager</h3>
+
+<p>Controller Manager는 여러 Controller를 하나의 Process에서 실행한다. Controller는 선언된 상태와 실제 상태를 반복해서 비교하고 필요한 변경을 수행한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>선언 상태: Replica 3개
+실제 상태: Pod 2개
+        │
+        ▼
+Controller가 차이 감지
+        │
+        ▼
+새 Pod Object 생성
+</code></pre></div></div>
+
+<p>Controller는 Resource를 지속적으로 관찰하고 장애나 변경으로 상태 차이가 생기면 Reconciliation을 수행한다.</p>
+
+<h2 id="4--worker의-kubelet과-container-runtime">4 ) Worker의 kubelet과 Container Runtime</h2>
+
+<hr />
+
+<h3 id="kubelet">kubelet</h3>
+
+<p>kubelet은 각 Node에서 실행되는 Agent이다. API Server를 통해 자신에게 할당된 PodSpec을 확인하고 Container Runtime을 사용하여 Pod의 Container가 실행되도록 한다.</p>
+
+<p>주요 역할은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>Pod에 필요한 Image와 Container 실행 요청</p>
+  </li>
+  <li>
+    <p>Volume Mount</p>
+  </li>
+  <li>
+    <p>Liveness, Readiness와 Startup Probe 실행</p>
+  </li>
+  <li>
+    <p>Pod와 Node 상태를 API Server에 보고</p>
+  </li>
+  <li>
+    <p>실패한 Container의 Restart Policy 적용</p>
+  </li>
+</ul>
+
+<p>kubelet은 자신이 관리하도록 할당된 Pod를 대상으로 동작하며 Kubernetes 밖에서 별도로 실행한 Container를 일반적인 Pod처럼 관리하지 않는다.</p>
+
+<h3 id="container-runtime">Container Runtime</h3>
+
+<p>Container Runtime은 kubelet의 요청을 CRI를 통해 받아 Image를 준비하고 Container를 실행한다. containerd와 CRI-O가 대표적인 CRI Runtime이다.</p>
+
+<h3 id="pod-생성-흐름">Pod 생성 흐름</h3>
+
+<p>Deployment를 생성했을 때 Master와 Worker의 동작을 순서대로 보면 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1. kubectl이 Deployment Manifest를 API Server에 전달
+2. API Server가 인증·인가·검증 후 상태 저장
+3. Deployment Controller가 ReplicaSet 생성
+4. ReplicaSet Controller가 필요한 Pod Object 생성
+5. Scheduler가 Pod를 실행할 Worker 선택
+6. 선택된 Worker의 kubelet이 PodSpec 확인
+7. Container Runtime이 Image를 준비하고 Container 실행
+8. CNI Plugin이 Pod Network 구성
+9. kubelet이 Pod 상태를 API Server에 보고
+</code></pre></div></div>
+
+<p>Control Plane은 상태를 저장하고 배치를 결정하며 Worker는 실제 Container와 Network를 구성한다.</p>
+
+<h2 id="5--kube-proxy와-service-구현">5 ) kube-proxy와 Service 구현</h2>
+
+<hr />
+
+<p>kube-proxy는 Kubernetes Service 개념의 일부를 구현하는 Network Proxy이다. 일반적으로 각 Node에서 실행되며 Service의 Virtual IP와 Port로 들어온 Traffic을 Backend Pod로 전달할 수 있도록 Network Rule을 관리한다.</p>
+
+<p>구현 방식에는 iptables, IPVS와 nftables 기반 Mode가 사용될 수 있다. 일부 CNI는 자체 Service Proxy 기능으로 kube-proxy를 대체할 수 있으므로 kube-proxy는 모든 Cluster에 반드시 존재하는 Component는 아니다.</p>
+
+<p>kubeadm 기반 Cluster에서는 일반적으로 kube-proxy가 DaemonSet으로 배포된다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get daemonsets <span class="nt">-n</span> kube-system
+kubectl get pods <span class="nt">-n</span> kube-system <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<h2 id="6--kubernetes-controller">6 ) Kubernetes Controller</h2>
+
+<hr />
+
+<p>Controller는 Pod를 직접 나열하여 수동 관리하는 대신 Workload의 원하는 상태를 선언하게 한다.</p>
+
+<h3 id="replicaset">ReplicaSet</h3>
+
+<p>ReplicaSet은 Label Selector와 일치하는 Pod가 지정한 수만큼 실행되도록 유지한다. ReplicaSet이 관리하는 동일 구성의 Pod를 Replica라고 한다.</p>
+
+<p>일반적으로 ReplicaSet을 직접 만들기보다 Deployment를 통해 관리한다.</p>
+
+<h3 id="deployment">Deployment</h3>
+
+<p>Deployment는 Stateless Application을 배포할 때 가장 일반적으로 사용하는 Workload Resource이다.</p>
+
+<ul>
+  <li>
+    <p>ReplicaSet과 Pod를 관리한다.</p>
+  </li>
+  <li>
+    <p>Rolling Update와 Rollback을 제공한다.</p>
+  </li>
+  <li>
+    <p>Replica 수를 변경하여 Scaling할 수 있다.</p>
+  </li>
+</ul>
+
+<h3 id="daemonset">DaemonSet</h3>
+
+<p>DaemonSet은 조건에 맞는 각 Node에 Pod가 하나씩 실행되도록 관리한다. Node가 추가되면 해당 Node에도 Pod를 배치한다.</p>
+
+<p>주요 사용 사례는 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>Log Collector</p>
+  </li>
+  <li>
+    <p>Node Monitoring Agent</p>
+  </li>
+  <li>
+    <p>CNI와 Storage의 Node Agent</p>
+  </li>
+</ul>
+
+<h3 id="statefulset">StatefulSet</h3>
+
+<p>StatefulSet은 순서와 고유한 식별자가 필요한 Stateful Application을 관리한다.</p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">pod-name-0</code>, <code class="language-plaintext highlighter-rouge">pod-name-1</code>과 같은 안정적인 Pod 이름을 유지한다.</p>
+  </li>
+  <li>
+    <p>순서가 있는 배포와 Scaling을 제공한다.</p>
+  </li>
+  <li>
+    <p>VolumeClaimTemplate으로 Pod별 PersistentVolumeClaim을 생성할 수 있다.</p>
+  </li>
+</ul>
+
+<p>Pod가 다시 Scheduling되어도 논리적 식별자는 유지되지만 Data 보존 여부는 연결한 Persistent Storage에 달려 있다.</p>
+
+<h3 id="job과-cronjob">Job과 CronJob</h3>
+
+<p>Job은 지정한 작업이 성공적으로 완료되도록 하나 이상의 Pod를 실행한다. CronJob은 Schedule에 따라 Job을 반복 생성한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Controller</th>
+      <th>목적</th>
+      <th>대표 사례</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ReplicaSet</td>
+      <td>지정한 Pod 수 유지</td>
+      <td>Deployment의 하위 Controller</td>
+    </tr>
+    <tr>
+      <td>Deployment</td>
+      <td>Stateless Application 배포</td>
+      <td>Web API, Frontend</td>
+    </tr>
+    <tr>
+      <td>DaemonSet</td>
+      <td>각 Node에 Pod 실행</td>
+      <td>Log·Monitoring Agent</td>
+    </tr>
+    <tr>
+      <td>StatefulSet</td>
+      <td>식별자와 Storage가 필요한 Workload</td>
+      <td>Database, Message Broker</td>
+    </tr>
+    <tr>
+      <td>Job</td>
+      <td>완료형 작업</td>
+      <td>Batch, Migration</td>
+    </tr>
+    <tr>
+      <td>CronJob</td>
+      <td>예약된 Job 실행</td>
+      <td>Backup, 정기 Report</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="7--kubernetes-service">7 ) Kubernetes Service</h2>
+
+<hr />
+
+<p>Pod는 장애 복구, Scaling과 Update 과정에서 생성되고 삭제되며 IP Address도 변경될 수 있다. Service는 Label Selector로 Pod 집합을 선택하고 Client가 사용할 안정적인 IP Address와 DNS 이름을 제공한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+  │
+  ▼
+Service: web
+  ├── Pod: web-a  10.244.1.10
+  ├── Pod: web-b  10.244.2.11
+  └── Pod: web-c  10.244.2.12
+</code></pre></div></div>
+
+<p>Pod가 여러 Worker에 나뉘어 있어도 하나의 Service가 같은 Label의 Pod를 Backend로 관리할 수 있다. EndpointSlice에는 Service가 전달할 Pod Endpoint가 기록된다.</p>
+
+<h3 id="service-type">Service Type</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>접근 범위</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ClusterIP</code></td>
+      <td>Cluster 내부</td>
+      <td>기본 Type, Cluster 내부 Virtual IP 제공</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">NodePort</code></td>
+      <td>Cluster 외부</td>
+      <td>각 Node의 지정 Port로 Service 공개</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">LoadBalancer</code></td>
+      <td>외부 Load Balancer</td>
+      <td>Cloud Provider 또는 Load Balancer 구현과 연동</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ExternalName</code></td>
+      <td>외부 DNS 이름</td>
+      <td>DNS CNAME으로 외부 FQDN 연결</td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="clusterip">ClusterIP</h4>
+
+<p>Cluster 내부 Client가 Service 이름이나 ClusterIP를 사용하여 Backend Pod에 접근한다.</p>
+
+<h4 id="nodeport">NodePort</h4>
+
+<p>각 Node의 IP Address와 할당된 Port를 통해 Service를 외부에 공개한다. 기본 NodePort 범위는 <code class="language-plaintext highlighter-rouge">30000</code>~<code class="language-plaintext highlighter-rouge">32767</code>이다.</p>
+
+<h4 id="loadbalancer">LoadBalancer</h4>
+
+<p>Cloud Provider나 Load Balancer Controller가 외부 Load Balancer를 구성하고 Service에 External IP 또는 Hostname을 제공한다. 지원 여부와 동작은 Cluster 환경에 따라 달라진다.</p>
+
+<h4 id="externalname">ExternalName</h4>
+
+<p>Service DNS 이름을 외부 FQDN의 CNAME으로 연결한다. Pod Proxy나 ClusterIP를 생성하는 방식과 다르다.</p>
+
+<h3 id="그-밖의-service-구성">그 밖의 Service 구성</h3>
+
+<ul>
+  <li>
+    <p>External IP는 Cluster 관리자가 지정한 외부 IP로 들어온 Traffic을 Service에 연결하는 설정이다.</p>
+  </li>
+  <li>
+    <p>Headless Service는 <code class="language-plaintext highlighter-rouge">clusterIP: None</code>으로 설정하여 단일 Virtual IP 대신 개별 Endpoint의 DNS 정보를 제공한다.</p>
+  </li>
+  <li>
+    <p>Selector가 없는 Service는 Kubernetes 밖의 Backend나 수동으로 관리하는 EndpointSlice와 연결할 수 있다.</p>
+  </li>
+</ul>
+
+<h2 id="8--ingress">8 ) Ingress</h2>
+
+<hr />
+
+<p>Ingress는 HTTP와 HTTPS의 Hostname 및 Path 기반 Routing 규칙을 정의하는 Resource이다. Ingress Object만 생성해서는 Traffic이 처리되지 않으며 Cluster에 Ingress Controller가 필요하다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+  │
+  ▼
+Ingress Controller
+  ├── app.example.com/api  → api Service
+  └── app.example.com/web  → web Service
+</code></pre></div></div>
+
+<p>Ingress Controller는 일반적으로 Cluster의 Pod와 Service로 배포되지만 환경에 따라 외부 Load Balancer와 연동할 수 있다. 별도의 전용 Hardware나 Cluster 밖 Node에서만 실행되는 것은 아니다.</p>
+
+<p>Ingress는 주로 HTTP·HTTPS Routing을 담당한다. 더 다양한 Protocol과 Traffic 관리 기능에는 Service Type과 Gateway API 등을 함께 검토한다.</p>
+
+<h2 id="9--pod-network">9 ) Pod Network</h2>
+
+<hr />
+
+<p>Kubernetes Network Model의 기본 원칙은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>각 Pod는 Cluster 전체에서 고유한 IP Address를 가진다.</p>
+  </li>
+  <li>
+    <p>같은 Pod의 Container는 하나의 Network Namespace와 Pod IP를 공유한다.</p>
+  </li>
+  <li>
+    <p>같은 Pod의 Container는 서로 다른 Port를 사용하며 <code class="language-plaintext highlighter-rouge">localhost:PORT</code>로 통신할 수 있다.</p>
+  </li>
+  <li>
+    <p>Network Policy로 제한하지 않았다면 같은 Node와 다른 Node의 Pod가 서로 직접 통신할 수 있어야 한다.</p>
+  </li>
+  <li>
+    <p>Node의 Agent는 해당 Node의 Pod와 통신할 수 있어야 한다.</p>
+  </li>
+</ul>
+
+<h3 id="pod-내부-통신">Pod 내부 통신</h3>
+
+<p>하나의 Pod에 Application Container와 Sidecar Container가 있으면 두 Container의 IP Address는 같다. 같은 Port를 동시에 사용할 수 없으므로 서로 다른 Port를 열고 <code class="language-plaintext highlighter-rouge">localhost</code>로 통신한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Pod 10.244.1.10
+├── Application :8080
+└── Sidecar     :15000
+
+Application → localhost:15000
+</code></pre></div></div>
+
+<h3 id="node와-pod-network">Node와 Pod Network</h3>
+
+<p>Node는 Host Network의 IP Address를 사용하고 Pod는 CNI가 구성한 Pod Network의 IP Address를 사용한다. Pod CIDR은 Cluster와 CNI 설정에 따라 달라지며 항상 특정 <code class="language-plaintext highlighter-rouge">172.x.x.x</code> 대역을 사용하는 것은 아니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Physical or VM Network
+├── Worker 1: 192.168.0.101
+│   └── Pod Network: 10.244.1.0/24
+└── Worker 2: 192.168.0.102
+    └── Pod Network: 10.244.2.0/24
+</code></pre></div></div>
+
+<p>Kubernetes Network Model은 다른 Node에 있는 Pod 사이의 통신도 요구한다. 실제 Packet 전달 경로는 설치한 CNI 기반 Network 구현이 구성한다.</p>
+
+<h2 id="10--cni와-overlay-network">10 ) CNI와 Overlay Network</h2>
+
+<hr />
+
+<p>CNI(Container Network Interface)는 Container Runtime이 Network Plugin을 호출하는 Interface 규격이다. Kubernetes Node의 Runtime은 CNI Plugin을 이용하여 다음 작업을 수행한다.</p>
+
+<ul>
+  <li>
+    <p>Pod Network Interface 생성과 삭제</p>
+  </li>
+  <li>
+    <p>Pod IP Address 할당과 회수</p>
+  </li>
+  <li>
+    <p>Route와 Overlay Network 구성</p>
+  </li>
+  <li>
+    <p>Network Namespace 연결</p>
+  </li>
+  <li>
+    <p>Plugin에 따라 NetworkPolicy 적용</p>
+  </li>
+</ul>
+
+<p>Overlay Network는 Node의 물리 Network 위에 논리적인 Pod Network를 구성한다. 각 Node의 Pod CIDR가 겹치지 않도록 관리하고 다른 Node의 Pod로 Packet을 전달한다.</p>
+
+<h3 id="주요-cni-기반-network-구현">주요 CNI 기반 Network 구현</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>구현</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Flannel</td>
+      <td>비교적 단순한 Pod Network 구성, VXLAN 등 Backend 제공</td>
+    </tr>
+    <tr>
+      <td>Calico</td>
+      <td>Routing과 NetworkPolicy 기능 제공</td>
+    </tr>
+    <tr>
+      <td>Cilium</td>
+      <td>eBPF 기반 Network, Security와 Observability 제공</td>
+    </tr>
+    <tr>
+      <td>Multus</td>
+      <td>하나의 Pod에 여러 Network Interface 연결</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Kubernetes 자체는 하나의 특정 CNI 구현을 강제하지 않는다. Cluster 요구 사항에 따라 NetworkPolicy, 암호화, 성능, 운영 복잡도와 Cloud 연동을 고려하여 선택한다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>API Server를 중심으로 Control Plane Component와 Worker Component가 Cluster 상태를 관찰하고 역할을 수행한다.</p>
+    </li>
+    <li>
+      <p>Scheduler는 Pod의 Worker를 선택하고 해당 Worker의 kubelet과 Container Runtime이 실제 Container를 실행한다.</p>
+    </li>
+    <li>
+      <p>Deployment, DaemonSet, StatefulSet, Job과 CronJob은 목적에 맞는 Pod 상태를 관리한다.</p>
+    </li>
+    <li>
+      <p>Service는 변하는 Pod 집합에 안정적인 IP와 DNS Endpoint를 제공하며 Ingress는 HTTP·HTTPS Routing 규칙을 정의한다.</p>
+    </li>
+    <li>
+      <p>같은 Pod의 Container는 Network Namespace를 공유하고 다른 Node의 Pod 통신은 CNI 기반 Pod Network가 구현한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><category term="Network" /><summary type="html"><![CDATA[Control Plane과 Worker Component의 동작 흐름, Controller 종류, Service와 Pod Network 및 CNI 구조]]></summary></entry><entry><title type="html">Docker Swarm Ingress가 요청을 Container까지 전달하는 방법</title><link href="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/" rel="alternate" type="text/html" title="Docker Swarm Ingress가 요청을 Container까지 전달하는 방법" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/notes-07-deepdive-swarm-published-port</id><content type="html" xml:base="https://kkr010128.github.io/notes-07-deepdive-swarm-published-port/"><![CDATA[<h2 id="1--실습에서-이상한-점을-발견했다">1 ) 실습에서 이상한 점을 발견했다</h2>
 
 <hr />
 
@@ -422,7 +2008,7 @@ LAPTOP
            192.168.0.102
 </code></pre></div></div>
 
-<p>수업에서는 NAT 네트워크를 구성하여 한 네트워크로 묶어 사용하는 방향으로 진행했으나, VPN과 SSH를 이용해 홈 네트워크에 접속해 사용하고 있는 현재 환경에 맞게 각 VM은 Bridge Adapter를 사용하여 Host에서 SSH로 접속했다. 
+<p>각 VM은 Bridge Adapter를 사용하여 같은 Network에 연결하고 Host에서 SSH로 접속한다.
 세 VM 모두 Docker Engine과 Compose Plugin을 설치해 환경을 준비했다.</p>
 
 <p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp" alt="Manager와 Worker VM에 Docker를 설치하는 화면" /></p>
@@ -471,7 +2057,7 @@ LAPTOP
 <span class="c"># docker swarm init --advertise-addr 192.168.0.100</span>
 </code></pre></div></div>
 
-<p><code class="language-plaintext highlighter-rouge">docker wsarm init</code> 으로만 실행하면 Docker가 해당 호스트의 IP 주소를 자동으로 선택해 Swarm Manager를 초기화한다.</p>
+<p><code class="language-plaintext highlighter-rouge">docker swarm init</code>으로만 실행하면 Docker가 해당 Host의 IP Address를 자동으로 선택해 Swarm Manager를 초기화한다.</p>
 
 <p><code class="language-plaintext highlighter-rouge">--advertise-addr</code>는 다른 Node가 Manager에 접속할 주소를 지정한다.</p>
 
@@ -502,6 +2088,7 @@ LAPTOP
 <p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp" alt="Manager에서 Worker 참여 Token을 확인한 화면" /></p>
 
 <p><code class="language-plaintext highlighter-rouge">docker swarm join-token</code>은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다.</p>
+
 <blockquote>
   <p>Kubernetes의 Join Token도 Control Plane에서 <code class="language-plaintext highlighter-rouge">kubeadm token create --print-join-command</code>로 다시 만들거나 조회한다.</p>
 </blockquote>
@@ -960,6 +2547,122 @@ docker stack ps dailylog
   <p>Kubernetes에서는 여러 Resource가 작성된 YAML을 <code class="language-plaintext highlighter-rouge">kubectl apply</code>로 배포한다. Swarm Stack과 마찬가지로 선언형 File로 여러 구성 요소를 배포하지만 Kubernetes는 Deployment, Service, ConfigMap, Secret 등 Resource 종류를 각각 정의한다.</p>
 </blockquote>
 
+<h2 id="11--docker-swarm의-volume">11 ) Docker Swarm의 Volume</h2>
+
+<hr />
+
+<p>Swarm Service의 Container도 데이터를 영속적으로 보관하기 위해 Volume을 사용한다. 다만 기본 <code class="language-plaintext highlighter-rouge">local</code> Driver로 만든 Named Volume은 <strong>각 Node의 Local Disk에 독립적으로 생성</strong>된다는 점을 고려해야 한다.</p>
+
+<h3 id="named-volume과-재배치">Named Volume과 재배치</h3>
+
+<p>다음 Service가 <code class="language-plaintext highlighter-rouge">worker1</code>에서 실행되면 <code class="language-plaintext highlighter-rouge">db-data</code> Volume도 <code class="language-plaintext highlighter-rouge">worker1</code>에 생성된다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">database</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb:11</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">db-data:/var/lib/mysql</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">db-data</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>Service Task가 장애나 Node Drain으로 <code class="language-plaintext highlighter-rouge">worker2</code>에 다시 배치되면 Docker는 <code class="language-plaintext highlighter-rouge">worker2</code>에 같은 이름의 새 Local Volume을 생성한다. Volume 이름은 같지만 <code class="language-plaintext highlighter-rouge">worker1</code>의 기존 데이터가 자동으로 복사되거나 공유되지는 않는다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>worker1                          worker2
+┌────────────────────┐          ┌────────────────────┐
+│ db-data            │          │ db-data            │
+│ 기존 Database Data │          │ 새로 생성된 Volume │
+└────────────────────┘          └────────────────────┘
+
+같은 이름이지만 서로 다른 Local Data
+</code></pre></div></div>
+
+<h3 id="node-placement로-고정">Node Placement로 고정</h3>
+
+<p>단일 Database처럼 특정 Node의 Local Data를 계속 사용해야 한다면 Node에 Label을 지정하고 Placement Constraint로 Task를 고정할 수 있다.</p>
+
+<p>Manager에서 Storage를 보유한 Node에 Label을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node update <span class="nt">--label-add</span> <span class="nv">storage</span><span class="o">=</span>db worker1
+</code></pre></div></div>
+
+<p>Stack File에서 해당 Label을 가진 Node에만 Database를 배치한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">database</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb:11</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">db-data:/var/lib/mysql</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.labels.storage == db</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">db-data</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>이 방식은 Local Data를 유지하지만 <code class="language-plaintext highlighter-rouge">worker1</code>에 장애가 발생하면 다른 Node에 자동으로 재배치할 수 없다. Node 고정은 공유 Storage가 아니며 고가용성을 제공하지 않는다.</p>
+
+<h3 id="nfs와-network-storage">NFS와 Network Storage</h3>
+
+<p>여러 Node에서 같은 Data에 접근해야 한다면 NFS 같은 Network File System이나 Cluster 전체에서 사용할 수 있는 Storage Driver를 구성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">database</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb:11</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">db-data:/var/lib/mysql</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">db-data</span><span class="pi">:</span>
+    <span class="na">driver</span><span class="pi">:</span> <span class="s">local</span>
+    <span class="na">driver_opts</span><span class="pi">:</span>
+      <span class="na">type</span><span class="pi">:</span> <span class="s">nfs</span>
+      <span class="na">o</span><span class="pi">:</span> <span class="s">addr=192.168.0.110,rw</span>
+      <span class="na">device</span><span class="pi">:</span> <span class="s2">"</span><span class="s">:/srv/swarm-data"</span>
+</code></pre></div></div>
+
+<p>모든 Swarm Node가 NFS Server에 연결할 수 있어야 하며 NFS Directory, 접근 권한과 방화벽을 미리 구성해야 한다. Public Cloud에서는 Network File System이나 Swarm과 호환되는 외부 Volume Driver를 사용할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>Data 위치</th>
+      <th>다른 Node 재배치</th>
+      <th>적합한 경우</th>
+      <th>주의 사항</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Local Named Volume</td>
+      <td>각 Node의 Local Disk</td>
+      <td>기존 Data 자동 연결 불가</td>
+      <td>Node와 Data의 결합이 중요하지 않은 경우</td>
+      <td>같은 이름의 별도 Volume 생성 가능</td>
+    </tr>
+    <tr>
+      <td>Placement Constraint</td>
+      <td>지정 Node의 Local Disk</td>
+      <td>지정 Node에서만 실행</td>
+      <td>단일 Stateful Application</td>
+      <td>Node 장애 시 Service 중단 가능</td>
+    </tr>
+    <tr>
+      <td>NFS·Network Storage</td>
+      <td>Network Storage</td>
+      <td>같은 Data에 접근 가능</td>
+      <td>여러 Node에서 Data 공유</td>
+      <td>Storage 가용성·성능·권한 관리 필요</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Stateful Service를 운영할 때는 Container Replica 수만 늘리는 것으로 Data 고가용성이 완성되지 않는다. Database 자체의 Replication과 Backup, Storage 장애 복구 방식까지 함께 설계해야 한다.</p>
+
 <hr />
 
 <blockquote>
@@ -986,6 +2689,9 @@ docker stack ps dailylog
     </li>
     <li>
       <p><code class="language-plaintext highlighter-rouge">docker stack deploy</code>는 여러 Service와 Network를 하나의 Application Stack으로 배포한다.</p>
+    </li>
+    <li>
+      <p>Swarm의 기본 Named Volume은 Node Local Storage이므로 Task 재배치 시 Data가 자동으로 따라가지 않는다.</p>
     </li>
   </ul>
 </blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><category term="DockerSwarm" /><summary type="html"><![CDATA[Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포]]></summary></entry><entry><title type="html">Docker Health Check와 Config 및 Secret</title><link href="https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret/" rel="alternate" type="text/html" title="Docker Health Check와 Config 및 Secret" /><published>2026-08-24T00:00:00+09:00</published><updated>2026-08-24T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-19-healthcheck-config-secret/"><![CDATA[<h2 id="1--process-상태와-application-상태">1 ) Process 상태와 Application 상태</h2>
@@ -4226,2086 +5932,4 @@ docker container run <span class="se">\</span>
       <p>Local Tar Archive의 자동 압축 해제가 필요한 경우 <code class="language-plaintext highlighter-rouge">ADD</code>를 사용하고 일반 복사에는 <code class="language-plaintext highlighter-rouge">COPY</code>를 사용한다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Django, FastAPI, Spring Boot, Node.js, Go 애플리케이션을 Docker 이미지로 빌드하고 실행하는 방법]]></summary></entry><entry><title type="html">Docker Volume</title><link href="https://kkr010128.github.io/cloud-native-12-docker-volume/" rel="alternate" type="text/html" title="Docker Volume" /><published>2026-08-18T00:00:00+09:00</published><updated>2026-08-18T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-12-docker-volume</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-12-docker-volume/"><![CDATA[<h2 id="1--docker-volume">1 ) Docker Volume</h2>
-
-<hr />
-
-<p>Container의 쓰기 Layer는 Container의 생명주기에 종속된다. Container를 삭제하면 쓰기 Layer에 저장된 데이터도 함께 사라지므로 Database, Upload File, Log처럼 보존해야 하는 데이터는 Container 밖에 저장해야 한다.</p>
-
-<p>Docker는 Container와 분리하여 데이터를 관리할 수 있도록 세 가지 Mount 방식을 제공한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>저장 위치</th>
-      <th>관리 주체</th>
-      <th>주요 용도</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Volume Mount</td>
-      <td>Docker가 관리하는 Host 영역</td>
-      <td>Docker Engine</td>
-      <td>Database 등 영속 데이터</td>
-    </tr>
-    <tr>
-      <td>Bind Mount</td>
-      <td>사용자가 지정한 Host File 또는 Directory</td>
-      <td>사용자</td>
-      <td>Source Code, 설정, Log 공유</td>
-    </tr>
-    <tr>
-      <td>tmpfs Mount</td>
-      <td>Host Memory</td>
-      <td>Host OS</td>
-      <td>일시적인 데이터, 민감 정보</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Volume은 Container를 삭제해도 유지되며 다른 Container에 다시 연결할 수 있다. 직접 Host 경로를 지정하지 않기 때문에 일반적으로 영속 데이터를 저장할 때 권장된다.</p>
-
-<h2 id="2--volume-생성과-연결">2 ) Volume 생성과 연결</h2>
-
-<hr />
-
-<h3 id="volume-생성-및-조회">Volume 생성 및 조회</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create my-app-vol-1
-docker volume <span class="nb">ls
-</span>docker volume inspect my-app-vol-1
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker volume inspect</code>를 실행하면 Driver, 생성 시각, Host의 실제 저장 위치인 <code class="language-plaintext highlighter-rouge">Mountpoint</code> 등을 확인할 수 있다. Docker가 관리하는 경로의 File을 Host에서 직접 수정하기보다는 Container를 통해 다루는 것이 안전하다.</p>
-
-<h3 id="container에-volume-mount">Container에 Volume Mount</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> vol-test <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-v</span> my-app-vol-1:/var/log <span class="se">\</span>
-  ubuntu:24.04 <span class="se">\</span>
-  <span class="nb">sleep </span>infinity
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">-v VOLUME_NAME:CONTAINER_PATH</code> 형식으로 Volume을 Container의 경로에 연결한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">--mount</code>를 사용하면 같은 설정을 더 명확하게 표현할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> vol-test-mount <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span>volume,src<span class="o">=</span>my-app-vol-1,dst<span class="o">=</span>/var/log <span class="se">\</span>
-  ubuntu:24.04 <span class="se">\</span>
-  <span class="nb">sleep </span>infinity
-</code></pre></div></div>
-
-<h3 id="데이터-영속성-확인">데이터 영속성 확인</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec </span>vol-test <span class="se">\</span>
-  sh <span class="nt">-c</span> <span class="s1">'echo "volume data" &gt; /var/log/message.txt'</span>
-
-docker container stop vol-test vol-test-mount
-docker container <span class="nb">rm </span>vol-test vol-test-mount
-
-docker container run <span class="nt">--rm</span> <span class="se">\</span>
-  <span class="nt">-v</span> my-app-vol-1:/data <span class="se">\</span>
-  ubuntu:24.04 <span class="se">\</span>
-  <span class="nb">cat</span> /data/message.txt
-</code></pre></div></div>
-
-<p>기존 Container를 삭제한 뒤 새 Container에 같은 Volume을 연결해도 <code class="language-plaintext highlighter-rouge">volume data</code>가 출력된다. Container와 Volume의 생명주기가 서로 분리되어 있기 때문이다.</p>
-
-<h3 id="volume-삭제">Volume 삭제</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume <span class="nb">rm </span>my-app-vol-1
-
-<span class="c"># 사용하지 않는 Volume 일괄 삭제</span>
-docker volume prune
-</code></pre></div></div>
-
-<p>실행 여부와 관계없이 Volume을 참조하는 Container가 남아 있으면 Volume을 삭제할 수 없다. 해당 Container를 먼저 제거해야 한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">docker volume prune</code>은 사용하지 않는 Volume을 한꺼번에 삭제하므로 삭제 대상을 확인한 뒤 실행한다.</p>
-
-<h2 id="3--bind-mount">3 ) Bind Mount</h2>
-
-<hr />
-
-<p>Bind Mount는 Host의 기존 File 또는 Directory를 Container 경로에 직접 연결한다. Host와 Container가 같은 내용을 바로 확인할 수 있어 개발 중 Source Code나 설정 File을 공유하거나 Container의 Log를 Host에 저장할 때 유용하다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> /home/user/apache
-
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> apache <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
-  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs <span class="se">\</span>
-  httpd:2
-</code></pre></div></div>
-
-<p>짧은 <code class="language-plaintext highlighter-rouge">-v</code> 형식도 사용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> apache-volume <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9001:80 <span class="se">\</span>
-  <span class="nt">-v</span> /home/user/apache:/usr/local/apache2/htdocs <span class="se">\</span>
-  httpd:2
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">--mount</code>는 Host 경로가 없으면 오류를 반환한다. 반면 <code class="language-plaintext highlighter-rouge">-v</code>는 존재하지 않는 Host 경로를 Directory로 자동 생성할 수 있으며, 생성된 Directory의 소유자가 <code class="language-plaintext highlighter-rouge">root</code>가 될 수 있다. 경로 오타와 권한 문제를 줄이려면 Mount 전에 Host 경로를 만들고 절대 경로를 확인한다.</p>
-
-<p>Container Process도 Mount된 Host File을 변경할 수 있다. 읽기만 허용하려면 <code class="language-plaintext highlighter-rouge">readonly</code> 또는 <code class="language-plaintext highlighter-rouge">ro</code> Option을 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> readonly-web <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/apache,dst<span class="o">=</span>/usr/local/apache2/htdocs,readonly <span class="se">\</span>
-  httpd:2
-</code></pre></div></div>
-
-<p>Container를 제거하면 Bind Mount 연결은 해제되지만 Host의 원본 File과 Directory는 그대로 유지된다.</p>
-
-<h2 id="4--tmpfs-mount">4 ) tmpfs Mount</h2>
-
-<hr />
-
-<p>tmpfs Mount는 데이터를 Host의 Memory에만 저장한다. Container가 중지되거나 제거되면 데이터가 사라지므로 영속화가 목적이 아닌 임시 작업 File이나 민감한 Runtime Data에 적합하다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> webserver <span class="se">\</span>
-  <span class="nt">-dit</span> <span class="se">\</span>
-  <span class="nt">--tmpfs</span> /var/www/html <span class="se">\</span>
-  httpd:2
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">--mount type=tmpfs,dst=/var/www/html</code> 형식으로도 지정할 수 있다. tmpfs는 Linux Container에서 사용할 수 있으며 Host의 Memory를 사용하므로 크기 제한 등 Resource 설정을 함께 고려해야 한다.</p>
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Volume Mount는 Docker Engine이 관리하는 영역에 데이터를 저장한다.</p>
-    </li>
-    <li>
-      <p>Bind Mount는 Host의 File이나 Directory를 Container에 직접 연결한다.</p>
-    </li>
-    <li>
-      <p>tmpfs Mount는 Host Memory를 사용하며 Container가 제거되면 데이터가 사라진다.</p>
-    </li>
-    <li>
-      <p>보존 목적과 Host에서의 직접 관리 여부에 따라 Mount 방식을 선택한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<h2 id="5--mysql-데이터-영속화">5 ) MySQL 데이터 영속화</h2>
-
-<hr />
-
-<p>MySQL 공식 Image는 <code class="language-plaintext highlighter-rouge">/var/lib/mysql</code>에 Database Data를 저장한다. 이 경로에 이름이 있는 Volume을 연결하면 Image나 Container를 삭제하고 다시 생성해도 데이터를 유지할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>값</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Image</td>
-      <td><code class="language-plaintext highlighter-rouge">mysql</code></td>
-    </tr>
-    <tr>
-      <td>기본 Port</td>
-      <td><code class="language-plaintext highlighter-rouge">3306</code></td>
-    </tr>
-    <tr>
-      <td>데이터 Directory</td>
-      <td><code class="language-plaintext highlighter-rouge">/var/lib/mysql</code></td>
-    </tr>
-    <tr>
-      <td>Root 비밀번호 환경 변수</td>
-      <td><code class="language-plaintext highlighter-rouge">MYSQL_ROOT_PASSWORD</code></td>
-    </tr>
-    <tr>
-      <td>기본 Database 환경 변수</td>
-      <td><code class="language-plaintext highlighter-rouge">MYSQL_DATABASE</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">docker search mysql</code>로 Docker Hub의 관련 Repository를 검색할 수 있으며 <code class="language-plaintext highlighter-rouge">OFFICIAL</code> 항목에서 공식 Image 여부를 확인할 수 있다.</p>
-
-<p><img src="../../assets/post/2026-08-18-cloud-native-12-docker-volume/06.webp" alt="" /></p>
-
-<h3 id="container-생성">Container 생성</h3>
-
-<p>MySQL Container를 생성하고 Named Volume을 <code class="language-plaintext highlighter-rouge">/var/lib/mysql</code>에 Mount한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> mysql-volume <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>1234 <span class="se">\</span>
-  <span class="nt">-e</span> <span class="nv">MYSQL_DATABASE</span><span class="o">=</span>itstudy <span class="se">\</span>
-  <span class="nt">-v</span> mysql-data-vol:/var/lib/mysql <span class="se">\</span>
-  mysql
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--name mysql-volume</code></td>
-      <td>Container 이름을 <code class="language-plaintext highlighter-rouge">mysql-volume</code>으로 지정한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-d</code></td>
-      <td>Container를 Background에서 실행한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-e MYSQL_ROOT_PASSWORD=1234</code></td>
-      <td>MySQL <code class="language-plaintext highlighter-rouge">root</code> 계정의 비밀번호를 설정한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-e MYSQL_DATABASE=itstudy</code></td>
-      <td>Container 최초 실행 시 <code class="language-plaintext highlighter-rouge">itstudy</code> Database를 생성한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-v mysql-data-vol:/var/lib/mysql</code></td>
-      <td><code class="language-plaintext highlighter-rouge">mysql-data-vol</code> Named Volume을 MySQL Data 저장 경로에 Mount한다.</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">mysql</code></td>
-      <td>MySQL Image를 사용한다.</td>
-    </tr>
-  </tbody>
-</table>
-
-<h4 id="architecture-확인">Architecture 확인</h4>
-
-<p>Apple Silicon처럼 Host Architecture와 Image가 지원하는 Architecture가 다른 경우에는 Image Tag의 Architecture 지원 여부를 먼저 확인한다.</p>
-
-<p>필요한 경우 다음과 같이 <code class="language-plaintext highlighter-rouge">--platform</code> Option을 지정할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">--platform</span> linux/amd64
-</code></pre></div></div>
-
-<p>다만 Host와 다른 Architecture를 지정하면 Emulation으로 실행될 수 있어 성능이 낮아질 수 있다.</p>
-
-<p>현재 MySQL 공식 Image에는 여러 Architecture를 지원하는 Tag가 있으므로, Mac을 사용한다는 이유만으로 <code class="language-plaintext highlighter-rouge">--platform linux/amd64</code> Option을 항상 추가할 필요는 없다.</p>
-
-<h4 id="비밀번호-관리">비밀번호 관리</h4>
-
-<p>실제 운영 환경에서는 다음과 같이 비밀번호를 명령어나 Source Code에 평문으로 직접 기록하지 않는다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>1234
-</code></pre></div></div>
-
-<p>운영 환경에서는 비밀번호와 같은 민감한 정보를 별도의 Secret 관리 수단을 통해 관리한다.</p>
-
-<p>Container와 Volume의 연결 정보는 다음과 같이 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-docker container <span class="nb">ls</span> <span class="nt">-a</span>
-docker volume <span class="nb">ls
-</span>docker volume inspect mysql-data-vol
-docker container inspect mysql-volume <span class="se">\</span>
-  <span class="nt">--format</span> <span class="s1">'{{json .Mounts}}'</span> | jq
-
-</code></pre></div></div>
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">-v mysql-data-vol:/var/lib/mysql</code>을 통해 MySQL Data를 Named Volume에 저장한다.</p>
-    </li>
-    <li>
-      <p>Host와 Image의 Architecture가 다르다면 Image의 지원 Architecture를 먼저 확인한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">--platform linux/amd64</code>는 필요한 경우에만 사용하며, Emulation에 따른 성능 저하가 발생할 수 있다.</p>
-    </li>
-    <li>
-      <p>운영 환경에서는 비밀번호를 명령어나 Source Code에 평문으로 기록하지 않는다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<h3 id="sample-data-생성">Sample Data 생성</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec</span> <span class="nt">-it</span> mysql-volume <span class="se">\</span>
-  mysql <span class="nt">-uroot</span> <span class="nt">-p</span> itstudy
-</code></pre></div></div>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">mytable</span> <span class="p">(</span>
-  <span class="n">num</span> <span class="nb">INT</span><span class="p">,</span>
-  <span class="n">name</span> <span class="nb">CHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
-<span class="p">);</span>
-
-<span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">mytable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'adam'</span><span class="p">);</span>
-<span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">mytable</span><span class="p">;</span>
-</code></pre></div></div>
-
-<h3 id="container-재생성-후-확인">Container 재생성 후 확인</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop mysql-volume
-docker container <span class="nb">rm </span>mysql-volume
-
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> mysql-volume <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-e</span> <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>1234 <span class="se">\</span>
-  <span class="nt">-e</span> <span class="nv">MYSQL_DATABASE</span><span class="o">=</span>itstudy <span class="se">\</span>
-  <span class="nt">-v</span> mysql-data-vol:/var/lib/mysql <span class="se">\</span>
-  mysql
-
-docker container <span class="nb">exec</span> <span class="nt">-it</span> mysql-volume <span class="se">\</span>
-  mysql <span class="nt">-uroot</span> <span class="nt">-p</span> itstudy
-</code></pre></div></div>
-
-<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">mytable</span><span class="p">;</span>
-</code></pre></div></div>
-
-<p>새 Container에서도 앞에서 추가한 Row가 조회되면 데이터가 Volume에 영속적으로 저장된 것이다.</p>
-
-<h2 id="6--nginx-log를-host에-저장">6 ) Nginx Log를 Host에 저장</h2>
-
-<hr />
-
-<p>Nginx의 Log Directory인 <code class="language-plaintext highlighter-rouge">/var/log/nginx</code>를 Host Directory에 Bind Mount하면 Container를 삭제한 뒤에도 Access Log와 Error Log를 확인할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> /home/user/logs
-
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> nginx-volume <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
-  <span class="nt">-v</span> /home/user/logs:/var/log/nginx <span class="se">\</span>
-  nginx
-
-curl http://localhost:9000
-<span class="nb">cat</span> /home/user/logs/access.log
-</code></pre></div></div>
-
-<p>Host Directory에는 Container의 Nginx Process가 File을 생성하고 쓸 수 있는 권한이 필요하다.</p>
-
-<h2 id="7--container-간-데이터-공유">7 ) Container 간 데이터 공유</h2>
-
-<hr />
-
-<p>하나의 Volume을 여러 Container에 Mount하면 File을 공유할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create shared-data
-
-docker container run <span class="nt">--rm</span> <span class="se">\</span>
-  <span class="nt">-v</span> shared-data:/data <span class="se">\</span>
-  ubuntu:24.04 <span class="se">\</span>
-  sh <span class="nt">-c</span> <span class="s1">'echo "container-1" &gt; /data/message.txt'</span>
-
-docker container run <span class="nt">--rm</span> <span class="se">\</span>
-  <span class="nt">-v</span> shared-data:/data:ro <span class="se">\</span>
-  ubuntu:24.04 <span class="se">\</span>
-  <span class="nb">cat</span> /data/message.txt
-</code></pre></div></div>
-
-<p>두 번째 Container는 동일한 Volume을 읽기 전용으로 연결한다. 동시에 여러 Container가 같은 데이터를 수정한다면 Application 차원의 동시성 제어가 필요하다.</p>
-
-<p>기존 Container의 Mount 설정을 그대로 물려받는 <code class="language-plaintext highlighter-rouge">--volumes-from</code>도 사용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container create <span class="se">\</span>
-  <span class="nt">--name</span> datavol <span class="se">\</span>
-  <span class="nt">-v</span> /data-volume <span class="se">\</span>
-  ubuntu:24.04
-
-docker container run <span class="nt">--rm</span> <span class="se">\</span>
-  <span class="nt">--volumes-from</span> datavol <span class="se">\</span>
-  ubuntu:24.04 <span class="se">\</span>
-  sh <span class="nt">-c</span> <span class="s1">'echo "shared data" &gt; /data-volume/message.txt'</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">--volumes-from</code>은 현재도 지원되지만, Volume 보관만을 위한 Data Volume Container Pattern은 이름이 있는 Volume이 도입되기 전에 주로 사용하던 방식이다. 새 구성에서는 이름이 있는 Volume을 각 Container에 명시적으로 Mount하는 편이 데이터의 위치와 연결 관계를 이해하기 쉽다.</p>
-
-<h2 id="8--mount-시-주의-사항">8 ) Mount 시 주의 사항</h2>
-
-<hr />
-
-<p>Container의 Mount 대상 Directory에 Image가 제공하는 File이 이미 존재하더라도 Volume이나 Bind Mount를 연결하면 해당 File은 Mount 내용에 가려진다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Image의 /app
-├── config.yml
-└── default.txt
-
-빈 Volume을 /app에 Mount
-└── Mount된 Volume의 내용만 표시
-</code></pre></div></div>
-
-<p>가려진 Image File이 삭제된 것은 아니지만 Mount를 해제한 새 Container를 만들기 전에는 해당 경로에서 볼 수 없다. 설정 Directory나 Application Directory 전체를 Mount할 때는 Image의 기본 File이 필요한지 먼저 확인해야 한다.</p>
-
-<p>Host의 File 하나를 Container의 특정 File 경로에 Bind Mount하면 그 File만 Mount 내용으로 대체되고 같은 Directory의 다른 File은 그대로 보인다. Host File을 Container Directory 자체에 Mount하면 File과 Directory Type이 달라 오류가 발생할 수 있으므로 대상에도 File 경로를 명시해야 한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--rm</span> <span class="se">\</span>
-  <span class="nt">--mount</span> <span class="nb">type</span><span class="o">=</span><span class="nb">bind</span>,src<span class="o">=</span>/home/user/nginx.conf,dst<span class="o">=</span>/etc/nginx/nginx.conf,readonly <span class="se">\</span>
-  nginx
-</code></pre></div></div>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Volume Mount는 Docker가 관리하는 저장 영역을 사용하며 Container를 삭제해도 데이터를 유지한다.</p>
-    </li>
-    <li>
-      <p>Bind Mount는 Host의 File이나 Directory를 직접 연결하며 Container를 제거해도 Host 데이터는 남는다.</p>
-    </li>
-    <li>
-      <p>tmpfs Mount는 Host Memory를 사용하므로 Container가 제거되면 데이터도 사라진다.</p>
-    </li>
-    <li>
-      <p>MySQL 데이터와 Nginx Log처럼 보존해야 하는 데이터는 목적에 맞는 Mount 방식으로 Container 밖에 저장한다.</p>
-    </li>
-    <li>
-      <p>여러 Container가 같은 Volume을 연결하면 데이터를 공유할 수 있다.</p>
-    </li>
-    <li>
-      <p>기존 File이 있는 Container Directory에 Mount하면 Image의 File이 Mount 내용에 가려질 수 있다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Volume, Bind Mount, tmpfs의 차이와 데이터 영속화 및 공유 방법]]></summary></entry><entry><title type="html">Dockerfile</title><link href="https://kkr010128.github.io/cloud-native-13-dockerfile/" rel="alternate" type="text/html" title="Dockerfile" /><published>2026-08-18T00:00:00+09:00</published><updated>2026-08-18T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-13-dockerfile</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-13-dockerfile/"><![CDATA[<h2 id="1--infrastructure-as-code-iac">1 ) Infrastructure as Code, IaC</h2>
-
-<hr />
-
-<p>Infrastructure를 CLI로 직접 구성하면 설치 순서, Package의 의존 관계, 환경 설정을 모두 사람이 관리해야 한다. APM(Apache, PHP, MySQL)처럼 여러 Software가 연동되는 환경은 작업 누락과 설정 오류가 발생하기 쉽고, 동일한 환경을 다시 만드는 데에도 많은 시간이 든다.</p>
-
-<p>IaC(Infrastructure as Code)는 Infrastructure의 구성과 절차를 Code로 정의하고 Version을 관리하는 방식이다. Dockerfile 역시 Application 실행 환경과 Image 생성 과정을 Text로 기록하므로 동일한 Image를 반복해서 Build하고 배포할 수 있다.</p>
-
-<h2 id="2--dockerfile-개요">2 ) Dockerfile 개요</h2>
-
-<hr />
-
-<p>Dockerfile은 Docker Image를 생성하기 위한 Instruction을 순서대로 작성한 Text File이다.</p>
-
-<ul>
-  <li>
-    <p>Image를 어떤 Base Image와 명령으로 만들었는지 기록할 수 있다.</p>
-  </li>
-  <li>
-    <p>동일한 실행 환경을 반복해서 생성할 수 있다.</p>
-  </li>
-  <li>
-    <p>Source Code와 함께 Version을 관리하고 배포할 수 있다.</p>
-  </li>
-  <li>
-    <p>Container가 시작될 때 실행할 명령과 기본 설정을 정의할 수 있다.</p>
-  </li>
-</ul>
-
-<p>Dockerfile의 각 Instruction은 Image Layer와 Build Cache에 영향을 준다. 변경 빈도가 낮은 작업을 앞에, Source Code처럼 자주 변경되는 작업을 뒤에 배치하면 Cache를 효율적으로 재사용할 수 있다.</p>
-
-<h2 id="3--dockerfile-주요-instruction">3 ) Dockerfile 주요 Instruction</h2>
-
-<hr />
-
-<h3 id="from">FROM</h3>
-
-<p>Build의 기반이 되는 Base Image를 지정한다. 일반적인 Dockerfile은 <code class="language-plaintext highlighter-rouge">FROM</code>으로 시작하며 Multi-stage Build에서는 여러 번 사용할 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:24.04</span>
-<span class="k">FROM</span><span class="s"> python:3.13-slim</span>
-</code></pre></div></div>
-
-<p>Tag를 생략하면 기본적으로 <code class="language-plaintext highlighter-rouge">latest</code>가 사용되지만 Build 결과를 예측하기 어려워질 수 있으므로 Version Tag나 Digest를 명시하는 편이 좋다. <code class="language-plaintext highlighter-rouge">slim</code>이나 <code class="language-plaintext highlighter-rouge">alpine</code>은 Image 크기를 줄이는 데 도움이 되지만 C Library와 Package 구성이 다르므로 Application 호환성을 먼저 확인한다.</p>
-
-<h3 id="maintainer">MAINTAINER</h3>
-
-<p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>는 Image 작성자 정보를 기록하던 Instruction이다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">MAINTAINER</span><span class="s"> adam.park &lt;itstudy@example.com&gt;</span>
-</code></pre></div></div>
-
-<p>현재 <code class="language-plaintext highlighter-rouge">MAINTAINER</code>는 사용이 중단된 Deprecated Instruction이다. 새 Dockerfile에서는 OCI Annotation에 해당하는 <code class="language-plaintext highlighter-rouge">LABEL</code>을 사용한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">LABEL</span><span class="s"> org.opencontainers.image.authors="adam.park &lt;itstudy@example.com&gt;"</span>
-</code></pre></div></div>
-
-<h3 id="label">LABEL</h3>
-
-<p>Image의 Version, 설명, License와 같은 Metadata를 Key-Value 형식으로 기록한다. 여러 개를 지정할 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">LABEL</span><span class="s"> org.opencontainers.image.version="1.0"</span>
-<span class="k">LABEL</span><span class="s"> org.opencontainers.image.description="web service"</span>
-<span class="k">LABEL</span><span class="s"> org.opencontainers.image.licenses="MIT"</span>
-</code></pre></div></div>
-
-<h3 id="run">RUN</h3>
-
-<p>Image를 Build하는 동안 Package를 설치하거나 File을 변경하는 명령을 실행한다. Shell 형식과 Exec 형식을 사용할 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Shell 형식</span>
-<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
-</span>      curl <span class="se">\
-</span>      nginx <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
-
-<span class="c"># Exec 형식</span>
-<span class="k">RUN </span><span class="o">[</span><span class="s2">"/bin/bash"</span>, <span class="s2">"-c"</span>, <span class="s2">"echo build-complete &gt; /build.txt"</span><span class="o">]</span>
-</code></pre></div></div>
-
-<p>각 <code class="language-plaintext highlighter-rouge">RUN</code>은 Layer를 만들므로 관련 작업은 하나의 <code class="language-plaintext highlighter-rouge">RUN</code>에서 수행하고 Package 목록도 같은 Layer에서 제거한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">apt autoclean</code>, <code class="language-plaintext highlighter-rouge">apt autoremove</code> 명령은 현재도 사용할 수 있지만 Container Image Build에서는 설치 직후 <code class="language-plaintext highlighter-rouge">/var/lib/apt/lists/*</code>를 제거하고 불필요한 Package를 처음부터 설치하지 않는 방식이 더 명확하다.</p>
-
-<p>Multi-stage Build는 Compiler와 Build 도구가 들어 있는 Stage에서 결과물을 만든 뒤 실행에 필요한 File만 최종 Stage로 복사하여 Image 크기와 공격 표면을 줄이는 방식이다.</p>
-
-<h3 id="cmd">CMD</h3>
-
-<p>Container가 시작될 때 실행할 기본 명령 또는 <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>의 기본 인자를 지정한다. 여러 번 작성해도 마지막 <code class="language-plaintext highlighter-rouge">CMD</code>만 적용된다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">CMD</span><span class="s"> ["nginx", "-g", "daemon off;"]</span>
-<span class="k">CMD</span><span class="s"> ["python", "app.py"]</span>
-</code></pre></div></div>
-
-<p>Exec 형식은 불필요한 Shell을 거치지 않아 Signal 전달을 예측하기 쉬우므로 일반적으로 권장된다. <code class="language-plaintext highlighter-rouge">docker run IMAGE COMMAND</code>처럼 Image 뒤에 명령을 전달하면 <code class="language-plaintext highlighter-rouge">CMD</code>를 대체할 수 있다.</p>
-
-<h3 id="entrypoint">ENTRYPOINT</h3>
-
-<p>Container의 주 실행 명령을 지정한다. <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>를 실행 파일로, <code class="language-plaintext highlighter-rouge">CMD</code>를 기본 인자로 조합할 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ENTRYPOINT</span><span class="s"> ["python"]</span>
-<span class="k">CMD</span><span class="s"> ["runapp.py"]</span>
-</code></pre></div></div>
-
-<p>이 Image를 인자 없이 실행하면 <code class="language-plaintext highlighter-rouge">python runapp.py</code>가 실행된다. <code class="language-plaintext highlighter-rouge">docker run IMAGE other.py</code>로 실행하면 <code class="language-plaintext highlighter-rouge">CMD</code>만 바뀌어 <code class="language-plaintext highlighter-rouge">python other.py</code>가 실행된다. <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>도 <code class="language-plaintext highlighter-rouge">docker run --entrypoint</code>로 변경할 수 있으므로 절대 변경할 수 없는 명령이라는 의미는 아니다.</p>
-
-<p>초기화 Script를 사용하는 예시는 다음과 같다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> entrypoint.sh /usr/local/bin/entrypoint.sh</span>
-<span class="k">RUN </span><span class="nb">chmod</span> +x /usr/local/bin/entrypoint.sh
-<span class="k">ENTRYPOINT</span><span class="s"> ["/usr/local/bin/entrypoint.sh"]</span>
-</code></pre></div></div>
-
-<h3 id="copy">COPY</h3>
-
-<p>Build Context의 File이나 Directory를 Image에 복사한다. Build Context 밖의 경로는 복사할 수 없다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> index.html /usr/share/nginx/html/index.html</span>
-<span class="k">COPY</span><span class="s"> runapp.py /app/runapp.py</span>
-</code></pre></div></div>
-
-<p>단순한 Local File 복사에는 동작이 명확한 <code class="language-plaintext highlighter-rouge">COPY</code>를 우선 사용한다.</p>
-
-<h3 id="add">ADD</h3>
-
-<p><code class="language-plaintext highlighter-rouge">COPY</code>처럼 File을 복사하며 Local Tar Archive의 자동 압축 해제와 Remote URL 등의 추가 기능을 제공한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ADD</span><span class="s"> application.tar.gz /app/</span>
-<span class="k">ADD</span><span class="s"> https://example.com/data.json /app/data.json</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ADD</code>는 현재도 사용되는 Instruction이지만 자동 압축 해제 같은 동작이 필요할 때만 사용한다. Remote File은 <code class="language-plaintext highlighter-rouge">RUN curl</code> 또는 <code class="language-plaintext highlighter-rouge">RUN wget</code>으로 내려받으면 검증과 권한 설정 과정을 더 명시적으로 작성할 수 있다.</p>
-
-<h3 id="env">ENV</h3>
-
-<p>Build 과정과 실행될 Container에서 사용할 환경 변수를 설정한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ENV</span><span class="s"> JAVA_HOME=/usr/lib/jvm/java-21-openjdk</span>
-<span class="k">ENV</span><span class="s"> PATH="${JAVA_HOME}/bin:${PATH}"</span>
-</code></pre></div></div>
-
-<h3 id="expose">EXPOSE</h3>
-
-<p>Container가 어떤 Port와 Protocol에서 요청을 받을지 문서화한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">EXPOSE</span><span class="s"> 80</span>
-<span class="k">EXPOSE</span><span class="s"> 8080/tcp</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">EXPOSE</code>만으로 Host Port가 공개되지는 않는다. 외부에서 접근하려면 Container 실행 시 <code class="language-plaintext highlighter-rouge">-p HOST_PORT:CONTAINER_PORT</code> 또는 <code class="language-plaintext highlighter-rouge">-P</code>를 사용해야 한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>역할</th>
-      <th>실제 Listen 여부</th>
-      <th>Host 외부 접근</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>애플리케이션</td>
-      <td>Nginx, Spring Boot 등이 Container 내부 Port에서 요청을 대기한다.</td>
-      <td>O</td>
-      <td>X</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">EXPOSE 80</code></td>
-      <td>Container가 <code class="language-plaintext highlighter-rouge">80</code> Port를 사용한다는 것을 명시하는 메타데이터이다.</td>
-      <td>X</td>
-      <td>X</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-p 8080:80</code></td>
-      <td>Host의 <code class="language-plaintext highlighter-rouge">8080</code> Port를 Container의 <code class="language-plaintext highlighter-rouge">80</code> Port에 직접 연결한다.</td>
-      <td>X</td>
-      <td>O</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-P</code></td>
-      <td><code class="language-plaintext highlighter-rouge">EXPOSE</code>로 명시된 Port를 Host의 임의 Port에 자동으로 연결한다.</td>
-      <td>X</td>
-      <td>O</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">EXPOSE</code>는 Port를 실제로 열거나 Listen 상태로 만드는 명령이 아니다.</p>
-    </li>
-    <li>
-      <p>실제 Listen은 Container 내부의 Application이 수행한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">-p</code>는 <code class="language-plaintext highlighter-rouge">EXPOSE</code> 여부와 관계없이 Host와 Container의 Port를 직접 연결한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">-P</code>는 <code class="language-plaintext highlighter-rouge">EXPOSE</code>에 명시된 Port를 기준으로 Host의 임의 Port에 연결한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<h3 id="volume">VOLUME</h3>
-
-<p>Container에서 Volume으로 사용할 Mount Point를 지정한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">VOLUME</span><span class="s"> ["/var/log"]</span>
-<span class="k">VOLUME</span><span class="s"> ["/var/www/html"]</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">VOLUME</code>은 해당 경로를 Host의 <code class="language-plaintext highlighter-rouge">/var/lib/docker</code>와 문자 그대로 Bind Mount하는 명령이 아니다. Container 실행 시 Docker가 관리하는 Anonymous Volume의 Mount Point를 선언한다. Volume 이름, Host Bind Mount 경로 등 구체적인 연결은 <code class="language-plaintext highlighter-rouge">docker run --mount</code>나 Compose File에서 지정하는 편이 관리하기 쉽다.</p>
-
-<h3 id="user">USER</h3>
-
-<p>이후의 <code class="language-plaintext highlighter-rouge">RUN</code>과 Container 실행 시 사용할 사용자 또는 Group을 지정한다. 기본 사용자는 <code class="language-plaintext highlighter-rouge">root</code>이므로 Application에 관리자 권한이 필요하지 않다면 별도 사용자를 만드는 것이 안전하다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">RUN </span>useradd <span class="nt">--create-home</span> appuser
-<span class="k">USER</span><span class="s"> appuser</span>
-</code></pre></div></div>
-
-<h3 id="workdir">WORKDIR</h3>
-
-<p>이후 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">CMD</code>, <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>, <code class="language-plaintext highlighter-rouge">COPY</code>, <code class="language-plaintext highlighter-rouge">ADD</code>의 기준 Directory를 지정한다. 경로가 없으면 자동으로 생성된다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">WORKDIR</span><span class="s"> /workspace</span>
-<span class="k">COPY</span><span class="s"> . .</span>
-</code></pre></div></div>
-
-<h3 id="arg">ARG</h3>
-
-<p>Build할 때만 사용할 변수를 선언하고 <code class="language-plaintext highlighter-rouge">--build-arg</code>로 값을 전달한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ARG</span><span class="s"> DB_NAME=itstudy</span>
-<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"database=</span><span class="k">${</span><span class="nv">DB_NAME</span><span class="k">}</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">--build-arg</span> <span class="nv">DB_NAME</span><span class="o">=</span>production <span class="nt">-t</span> my-app:1.0 <span class="nb">.</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ARG</code>는 비밀번호나 Secret을 안전하게 숨기는 기능이 아니다. 값이 Image History나 Build Cache에 남을 수 있으므로 민감 정보를 전달하는 용도로 사용하지 않는다.</p>
-
-<h3 id="onbuild">ONBUILD</h3>
-
-<p>현재 Image가 다른 Dockerfile의 Base Image로 사용될 때 실행할 Trigger Instruction을 등록한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">ONBUILD</span><span class="w"> </span><span class="k">COPY</span><span class="s"> . /app/src</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ONBUILD</code>는 현재도 지원되지만 상속된 동작이 눈에 잘 드러나지 않아 예상하지 못한 Build 실패를 만들 수 있다. 전용 Base Image처럼 사용 목적이 명확한 경우에 제한적으로 사용한다.</p>
-
-<h3 id="stopsignal">STOPSIGNAL</h3>
-
-<p>Container를 중지할 때 주 Process에 전달할 System Call Signal을 지정한다. 기본값은 일반적으로 <code class="language-plaintext highlighter-rouge">SIGTERM</code>이다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">STOPSIGNAL</span><span class="s"> SIGTERM</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">STOPSIGNAL SIGKILL</code>도 문법상 지정할 수 있지만 Process가 종료 작업을 수행할 기회를 잃으므로 일반적인 설정으로는 권장하지 않는다.</p>
-
-<h3 id="shell">SHELL</h3>
-
-<p>Shell 형식의 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">CMD</code>, <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>에 사용할 기본 Shell을 변경한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SHELL</span><span class="s"> ["/bin/bash", "-c"]</span>
-</code></pre></div></div>
-
-<h3 id="healthcheck">HEALTHCHECK</h3>
-
-<p>Container 내부에서 명령을 주기적으로 실행하여 Application의 상태를 확인한다. 여러 번 작성하면 마지막 하나만 적용된다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">HEALTHCHECK</span><span class="s"> --interval=1m --timeout=3s --retries=5 \</span>
-  CMD curl --fail http://localhost/ || exit 1
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>종료 Code</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">0</code></td>
-      <td>정상 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">1</code></td>
-      <td>비정상 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">2</code></td>
-      <td>예약된 값이므로 사용하지 않음</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>기본 <code class="language-plaintext highlighter-rouge">interval</code>과 <code class="language-plaintext highlighter-rouge">timeout</code>은 각각 30초이며 기본 <code class="language-plaintext highlighter-rouge">retries</code>는 3회이다.</p>
-
-<h2 id="4--dockerfile-작성-방법">4 ) Dockerfile 작성 방법</h2>
-
-<hr />
-
-<p>Dockerfile은 보통 다음 원칙으로 작성한다.</p>
-
-<ul>
-  <li>
-    <p>필요한 Application이나 Runtime이 이미 설치된 신뢰할 수 있는 Base Image를 선택한다.</p>
-  </li>
-  <li>
-    <p>Version Tag를 명시하여 Build 결과를 일정하게 유지한다.</p>
-  </li>
-  <li>
-    <p>변경 빈도가 낮은 Instruction을 먼저 배치하여 Build Cache를 활용한다.</p>
-  </li>
-  <li>
-    <p>Package 설치와 Cache 삭제를 같은 <code class="language-plaintext highlighter-rouge">RUN</code>에서 처리한다.</p>
-  </li>
-  <li>
-    <p>가능한 경우 권한이 제한된 사용자로 Application을 실행한다.</p>
-  </li>
-  <li>
-    <p>Compiler가 필요한 Application은 Multi-stage Build를 고려한다.</p>
-  </li>
-</ul>
-
-<h2 id="5--image-build">5 ) Image Build</h2>
-
-<hr />
-
-<p>기본 형식은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build [OPTIONS] PATH | URL | -
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 현재 Directory를 Build Context로 사용하고 이름과 Tag 지정</span>
-docker build <span class="nt">-t</span> apache-example:1.0 <span class="nb">.</span>
-
-<span class="c"># 다른 이름의 Dockerfile 지정</span>
-docker build <span class="nt">-f</span> Dockerfile.dev <span class="nt">-t</span> apache-example:dev <span class="nb">.</span>
-
-<span class="c"># Git Repository를 Build Context로 사용</span>
-docker build <span class="nt">-t</span> php-server:2.0 <span class="se">\</span>
-  https://github.com/example/docker-phpserver.git
-
-<span class="c"># 표준 입력으로 전달한 Tar Archive를 Build Context로 사용</span>
-docker build - &lt; context.tar.gz
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">-t</code>는 Image의 이름과 Tag를 지정하고 <code class="language-plaintext highlighter-rouge">-f</code>는 Dockerfile의 경로 또는 이름을 지정한다. 마지막 인자인 <code class="language-plaintext highlighter-rouge">PATH</code>, <code class="language-plaintext highlighter-rouge">URL</code>, <code class="language-plaintext highlighter-rouge">-</code>는 Dockerfile 자체가 아니라 Build Context를 뜻한다. 압축된 Build Context는 <code class="language-plaintext highlighter-rouge">-f</code>가 아니라 표준 입력으로 전달한다.</p>
-
-<h2 id="6--apache-main-page-image">6 ) Apache Main Page Image</h2>
-
-<hr />
-
-<h3 id="indexhtml">index.html</h3>
-
-<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!doctype html&gt;</span>
-<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"ko"</span><span class="nt">&gt;</span>
-  <span class="nt">&lt;head&gt;</span>
-    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;title&gt;</span>Docker Image Build<span class="nt">&lt;/title&gt;</span>
-  <span class="nt">&lt;/head&gt;</span>
-  <span class="nt">&lt;body&gt;</span>
-    <span class="nt">&lt;h1&gt;</span>Apache Web Server<span class="nt">&lt;/h1&gt;</span>
-  <span class="nt">&lt;/body&gt;</span>
-<span class="nt">&lt;/html&gt;</span>
-</code></pre></div></div>
-
-<h3 id="dockerfile">Dockerfile</h3>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> httpd:2.4</span>
-<span class="k">COPY</span><span class="s"> index.html /usr/local/apache2/htdocs/index.html</span>
-</code></pre></div></div>
-
-<h3 id="build-및-실행">Build 및 실행</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> apache-example:1.0 <span class="nb">.</span>
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> apache-example <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
-  apache-example:1.0
-</code></pre></div></div>
-
-<p>Browser 또는 <code class="language-plaintext highlighter-rouge">curl http://localhost:8000</code>으로 변경된 Page를 확인한다.</p>
-
-<h2 id="7--nginx-main-page-image">7 ) Nginx Main Page Image</h2>
-
-<hr />
-
-<p>Nginx 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
-
-<p>본 실습의 <code class="language-plaintext highlighter-rouge">/var/www/html</code>은 Ubuntu 등에 Package로 설치한 Nginx에서 자주 사용하는 경로이며 공식 Docker Image의 기본 경로와 다르다.</p>
-
-<h3 id="dockerfile-1">Dockerfile</h3>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> nginx</span>
-<span class="k">COPY</span><span class="s"> index.html /usr/share/nginx/html/index.html</span>
-</code></pre></div></div>
-
-<h3 id="build-및-실행-1">Build 및 실행</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> nginx-example:1.0 <span class="nb">.</span>
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> nginx-example <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
-  nginx-example:1.0
-</code></pre></div></div>
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Dockerfile과 <code class="language-plaintext highlighter-rouge">index.html</code>을 같은 Build Context에 두고 Image를 Build한다.</p>
-    </li>
-    <li>
-      <p>Apache 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/local/apache2/htdocs</code>이다.</p>
-    </li>
-    <li>
-      <p>Nginx 공식 Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
-    </li>
-    <li>
-      <p>Build한 Image를 Container로 실행하고 Host Port를 연결하여 Page를 확인한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<h2 id="8--dockerfile을-사용하는-이유">8 ) Dockerfile을 사용하는 이유</h2>
-
-<hr />
-
-<p>Dockerfile을 사용하지 않아도 실행 중인 Container를 수정한 뒤 <code class="language-plaintext highlighter-rouge">docker commit</code>으로 Image를 만들 수 있다. 다음 실습은 Ubuntu Container에 Apache와 PHP를 직접 설치하고 그 결과를 Image로 저장한다.</p>
-
-<h3 id="container를-직접-수정하여-image-생성">Container를 직접 수정하여 Image 생성</h3>
-
-<ol>
-  <li>
-    <p>Ubuntu Container를 생성하고 Terminal에 접속한다.</p>
-
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> myweb <span class="se">\</span>
-  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
-  <span class="nt">-it</span> <span class="se">\</span>
-  ubuntu:20.04
-</code></pre></div>    </div>
-  </li>
-  <li>
-    <p>Package 정보를 갱신하고 Apache와 PHP를 설치한다. Base Image는 실행에 필요한 최소 Package만 포함하므로 설치 전에 Package Index를 갱신해야 한다.</p>
-
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>apt-get update
-<span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> apache2 php
-service apache2 start
-</code></pre></div>    </div>
-  </li>
-  <li>
-    <p>기본 Page를 보관하고 새로운 HTML 및 PHP Page를 작성한다.</p>
-
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mv</span> /var/www/html/index.html /var/www/html/index.html.org
-<span class="nb">echo</span> <span class="s1">'&lt;h1&gt;Hello Docker Application&lt;/h1&gt;'</span> <span class="o">&gt;</span> /var/www/html/index.html
-<span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s1">'&lt;?php phpinfo(); ?&gt;'</span> <span class="o">&gt;</span> /var/www/html/index.php
-</code></pre></div>    </div>
-  </li>
-  <li>
-    <p>다른 Terminal에서 두 Page에 접속한다.</p>
-
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://localhost:8000
-curl http://localhost:8000/index.php
-</code></pre></div>    </div>
-  </li>
-  <li>
-    <p>실행 중인 Container를 새로운 Image로 저장한다.</p>
-
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container commit myweb myphpapp:1.0
-</code></pre></div>    </div>
-  </li>
-  <li>
-    <p>저장한 Image로 새로운 Container를 실행한다. 기존 <code class="language-plaintext highlighter-rouge">myweb</code>이 Host의 8000번 Port를 사용하고 있다면 먼저 중지하거나 다른 Host Port를 선택한다.</p>
-
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop myweb
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> myphpapp <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
-  myphpapp:1.0
-</code></pre></div>    </div>
-  </li>
-</ol>
-
-<p><code class="language-plaintext highlighter-rouge">docker commit</code>은 현재 Container의 File System 변경 사항을 빠르게 Image로 저장한다. 하지만 설치 명령과 수정 순서가 Image만으로는 드러나지 않으므로 같은 환경을 검토하고 반복해서 만들기 어렵다.</p>
-
-<p>강의에서 사용한 <code class="language-plaintext highlighter-rouge">ubuntu:14.04</code>와 <code class="language-plaintext highlighter-rouge">php5</code> 조합은 과거 환경을 재현하는 Legacy 예제이다. Ubuntu 14.04의 일반 지원은 종료되었으며 PHP 5도 공식 지원이 종료되었다. 실습의 수동 구성 흐름은 유지하되, 실행 가능한 예제에는 <code class="language-plaintext highlighter-rouge">ubuntu:20.04</code>와 해당 배포판에서 제공하는 <code class="language-plaintext highlighter-rouge">php</code> Package를 사용한다.</p>
-
-<h3 id="dockerfile로-동일한-과정-자동화">Dockerfile로 동일한 과정 자동화</h3>
-
-<p>수동 작업을 Dockerfile로 옮기면 Image 생성 절차를 Source Code와 함께 관리할 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
-
-<span class="k">LABEL</span><span class="s"> org.opencontainers.image.authors="adam &lt;itstudy@kakao.com&gt;"</span>
-<span class="k">LABEL</span><span class="s"> org.opencontainers.image.title="IaC PHP Web Application"</span>
-
-<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    <span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
-</span>      apache2 <span class="se">\
-</span>      php <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
-
-<span class="k">ENV</span><span class="s"> APACHE2_RUN_USER=www-data \</span>
-    APACHE2_RUN_GROUP=www-data \
-    APACHE2_LOG_DIR=/var/log/apache2 \
-    APACHE2_WEB_DIR=/var/www/html \
-    APACHE2_PID_FILE=/var/run/apache2/apache2.pid
-
-<span class="k">RUN </span><span class="nb">echo</span> <span class="s1">'Hello Docker Application.'</span> <span class="o">&gt;</span> /var/www/html/index.html <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    <span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s1">'&lt;?php phpinfo(); ?&gt;'</span> <span class="o">&gt;</span> /var/www/html/index.php
-
-<span class="k">WORKDIR</span><span class="s"> /var/www/html</span>
-
-<span class="k">EXPOSE</span><span class="s"> 80</span>
-
-<span class="k">CMD</span><span class="s"> ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]</span>
-</code></pre></div></div>
-
-<p>Image를 Build하고 Container로 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> myphpapp:latest <span class="nb">.</span>
-docker container run <span class="se">\</span>
-  <span class="nt">--name</span> myphpapp <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 8000:80 <span class="se">\</span>
-  myphpapp:latest
-</code></pre></div></div>
-
-<p>두 방식의 차이는 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>Container 수정 후 <code class="language-plaintext highlighter-rouge">commit</code></th>
-      <th>Dockerfile Build</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>작업 기록</td>
-      <td>별도로 기록해야 함</td>
-      <td>Instruction으로 남음</td>
-    </tr>
-    <tr>
-      <td>반복 생성</td>
-      <td>수동 작업을 다시 수행</td>
-      <td>같은 명령으로 재Build</td>
-    </tr>
-    <tr>
-      <td>변경 검토</td>
-      <td>Image 결과만으로 확인하기 어려움</td>
-      <td>Text 변경 이력으로 검토 가능</td>
-    </tr>
-    <tr>
-      <td>주요 용도</td>
-      <td>임시 상태 저장, 조사</td>
-      <td>반복 가능한 Image 제작</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Dockerfile은 Package, 설정, Source Code와 실행 명령을 선언하므로 다음 장점이 있다.</p>
-
-<ul>
-  <li>
-    <p>누락하기 쉬운 설치 및 설정 순서를 Code로 고정한다.</p>
-  </li>
-  <li>
-    <p>동일한 실행 환경을 반복해서 생성한다.</p>
-  </li>
-  <li>
-    <p>변경 이력을 Version Control로 관리한다.</p>
-  </li>
-  <li>
-    <p>CI/CD Pipeline에서 대화 없이 Image를 자동으로 Build한다.</p>
-  </li>
-</ul>
-
-<p>다만 Dockerfile만으로 Database와 Web Application처럼 여러 Container의 실행 관계까지 모두 정의하지는 않는다. 여러 Service의 Network, Volume, 환경 변수와 실행 순서는 Docker Compose 같은 도구로 함께 관리한다.</p>
-
-<h2 id="9--image-build-과정과-주의-사항">9 ) Image Build 과정과 주의 사항</h2>
-
-<hr />
-
-<p>Dockerfile Build는 사용자와 대화하면서 명령을 처리하지 않는다. Docker는 Dockerfile의 Instruction을 위에서 아래로 읽고 각 단계를 자동으로 실행하므로 Package 설치와 설정 명령도 비대화식으로 완료되어야 한다.</p>
-
-<h3 id="package-설치-오류">Package 설치 오류</h3>
-
-<p>다음 Dockerfile은 Package Index를 갱신하지 않아 <code class="language-plaintext highlighter-rouge">Unable to locate package</code> 오류가 발생할 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
-
-<span class="k">RUN </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> python3
-</code></pre></div></div>
-
-<p>Package Index를 먼저 갱신하더라도 <code class="language-plaintext highlighter-rouge">-y</code>가 없으면 설치 확인 질문에 답할 수 없어 Build가 중단될 수 있다. 두 작업은 같은 <code class="language-plaintext highlighter-rouge">RUN</code>에서 수행한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
-
-<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> python3 <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span>
-</code></pre></div></div>
-
-<p>이 형식에는 다음 이유가 있다.</p>
-
-<ul>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">apt-get update</code>로 현재 Package Index를 내려받는다.</p>
-  </li>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">-y</code>로 설치 확인 질문에 자동으로 동의한다.</p>
-  </li>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">--no-install-recommends</code>로 필수적이지 않은 권장 Package 설치를 줄인다.</p>
-  </li>
-  <li>
-    <p>같은 Layer에서 <code class="language-plaintext highlighter-rouge">/var/lib/apt/lists</code>를 삭제하여 불필요한 Package Index가 Image에 남지 않게 한다.</p>
-  </li>
-</ul>
-
-<p>원문의 <code class="language-plaintext highlighter-rouge">apt install python</code>은 Ubuntu 20.04에서 의도한 Python 3 Package를 정확히 가리키지 않으므로 <code class="language-plaintext highlighter-rouge">apt-get install python3</code>로 정리했다. Script와 Dockerfile에서는 사용자용 CLI인 <code class="language-plaintext highlighter-rouge">apt</code>보다 안정적인 Interface를 제공하는 <code class="language-plaintext highlighter-rouge">apt-get</code>을 사용한다.</p>
-
-<h3 id="build-context와-dockerignore">Build Context와 <code class="language-plaintext highlighter-rouge">.dockerignore</code></h3>
-
-<p><code class="language-plaintext highlighter-rouge">docker build</code>의 마지막 인자는 Build Context이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">-t</span> myapp:1.0 <span class="nb">.</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">.</code>을 지정하면 현재 Directory가 Build Context가 된다. 불필요한 File이 많으면 Builder로 전송되는 범위가 커지고 <code class="language-plaintext highlighter-rouge">COPY . .</code>에 의도하지 않은 File이 포함될 수 있으므로 다음 순서로 준비한다.</p>
-
-<ol>
-  <li>
-    <p>Application Build에 필요한 File만 별도 Directory에 모은다.</p>
-  </li>
-  <li>
-    <p>Dockerfile을 해당 Directory에 작성한다.</p>
-  </li>
-  <li>
-    <p>Log, 가상 환경, Build 산출물과 Secret File을 <code class="language-plaintext highlighter-rouge">.dockerignore</code>에 등록한다.</p>
-  </li>
-  <li>
-    <p>해당 Directory를 Build Context로 지정한다.</p>
-  </li>
-</ol>
-
-<p>Dockerfile의 이름이나 위치가 기본값과 다르면 <code class="language-plaintext highlighter-rouge">-f</code>로 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="se">\</span>
-  <span class="nt">-f</span> docker/Dockerfile.dev <span class="se">\</span>
-  <span class="nt">-t</span> myapp:dev <span class="se">\</span>
-  <span class="nb">.</span>
-</code></pre></div></div>
-
-<p>여기서 <code class="language-plaintext highlighter-rouge">docker/Dockerfile.dev</code>는 Dockerfile 경로이고 마지막 <code class="language-plaintext highlighter-rouge">.</code>은 Build Context이다.</p>
-
-<h3 id="build-cache">Build Cache</h3>
-
-<p>Docker는 이전 Build 결과를 Cache로 저장하고 Dockerfile의 각 단계에서 재사용할 수 있는지 판단한다. Cache를 효율적으로 사용하려면 변경 빈도가 낮은 File을 먼저 복사하고 자주 변경되는 Source Code는 뒤에서 복사한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> requirements.txt ./</span>
-<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">-r</span> requirements.txt
-
-<span class="k">COPY</span><span class="s"> . .</span>
-</code></pre></div></div>
-
-<p>이 순서에서는 Source Code만 변경된 경우 Package 설치 Layer를 다시 사용할 수 있다.</p>
-
-<p>주요 Cache Option은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>용도</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--no-cache</code></td>
-      <td>기존 Build Cache를 사용하지 않고 모든 단계를 다시 실행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--cache-from</code></td>
-      <td>지정한 외부 Cache Source에서 Cache 가져오기</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--cache-to</code></td>
-      <td>Build Cache를 지정한 위치로 내보내기</td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="nt">--no-cache</span> <span class="nt">-t</span> myapp:clean <span class="nb">.</span>
-docker build <span class="nt">--cache-from</span> myapp:cache <span class="nt">-t</span> myapp:latest <span class="nb">.</span>
-</code></pre></div></div>
-
-<h3 id="build-secret">Build Secret</h3>
-
-<p>비밀번호, Token, 인증서 같은 민감 정보는 <code class="language-plaintext highlighter-rouge">ARG</code>, <code class="language-plaintext highlighter-rouge">ENV</code>, <code class="language-plaintext highlighter-rouge">COPY</code>로 Image에 넣지 않는다. 값이 Image Metadata, History 또는 Layer에 남을 수 있기 때문이다. Build 중에만 필요한 Secret은 BuildKit의 Secret Mount로 전달한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># syntax=docker/dockerfile:1</span>
-<span class="k">RUN </span><span class="nt">--mount</span><span class="o">=</span><span class="nb">type</span><span class="o">=</span>secret,id<span class="o">=</span>github_token <span class="se">\
-</span>    <span class="nv">GITHUB_TOKEN</span><span class="o">=</span><span class="s2">"</span><span class="si">$(</span><span class="nb">cat</span> /run/secrets/github_token<span class="si">)</span><span class="s2">"</span> ./download-private-source.sh
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker build <span class="se">\</span>
-  <span class="nt">--secret</span> <span class="nb">id</span><span class="o">=</span>github_token,src<span class="o">=</span>github-token.txt <span class="se">\</span>
-  <span class="nt">-t</span> myapp:latest <span class="se">\</span>
-  <span class="nb">.</span>
-</code></pre></div></div>
-
-<p>Secret을 Mount하면 해당 Build Step에서만 <code class="language-plaintext highlighter-rouge">/run/secrets/github_token</code>으로 읽을 수 있으며 최종 Image에 File로 복사되지 않는다.</p>
-
-<h2 id="10--image-용량-절감">10 ) Image 용량 절감</h2>
-
-<hr />
-
-<p>Image가 커지면 Registry에 저장하는 공간이 늘고 Network를 통한 Push와 Pull에도 시간이 더 걸린다. Ubuntu 같은 OS Base Image에서 Package를 설치할 때는 실행에 필요하지 않은 Package와 Package Manager의 Cache가 최종 Image에 남지 않도록 관리한다.</p>
-
-<h3 id="package-설치와-cache-정리">Package 설치와 Cache 정리</h3>
-
-<p>다음 예제는 Ubuntu에 PHP와 Apache를 설치하고 <code class="language-plaintext highlighter-rouge">index.html</code>을 배치한다.</p>
-
-<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;h1&gt;</span>Hello Docker<span class="nt">&lt;/h1&gt;</span>
-</code></pre></div></div>
-
-<p>Package 설치와 정리를 여러 <code class="language-plaintext highlighter-rouge">RUN</code>으로 분리하면 앞선 Layer에 저장된 File이 그대로 남을 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
-
-<span class="k">RUN </span>apt-get update
-<span class="k">RUN </span><span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> tzdata php apache2
-<span class="k">RUN </span>apt-get clean
-<span class="k">RUN </span><span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span> /tmp/<span class="k">*</span> /var/tmp/<span class="k">*</span>
-
-<span class="k">WORKDIR</span><span class="s"> /var/www/html</span>
-<span class="k">COPY</span><span class="s"> index.html ./</span>
-
-<span class="k">EXPOSE</span><span class="s"> 80</span>
-
-<span class="k">CMD</span><span class="s"> ["apachectl", "-D", "FOREGROUND"]</span>
-</code></pre></div></div>
-
-<p>Image Layer의 크기를 줄이려면 Package 설치와 Cache 삭제를 하나의 <code class="language-plaintext highlighter-rouge">RUN</code>에서 처리한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> ubuntu:20.04</span>
-
-<span class="k">RUN </span>apt-get update <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    <span class="nv">DEBIAN_FRONTEND</span><span class="o">=</span>noninteractive apt-get <span class="nb">install</span> <span class="nt">-y</span> <span class="nt">--no-install-recommends</span> <span class="se">\
-</span>      tzdata <span class="se">\
-</span>      php <span class="se">\
-</span>      apache2 <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    apt-get clean <span class="o">&amp;&amp;</span> <span class="se">\
-</span>    <span class="nb">rm</span> <span class="nt">-rf</span> /var/lib/apt/lists/<span class="k">*</span> /tmp/<span class="k">*</span> /var/tmp/<span class="k">*</span>
-
-<span class="k">WORKDIR</span><span class="s"> /var/www/html</span>
-<span class="k">COPY</span><span class="s"> index.html ./</span>
-
-<span class="k">EXPOSE</span><span class="s"> 80</span>
-
-<span class="k">CMD</span><span class="s"> ["apachectl", "-D", "FOREGROUND"]</span>
-</code></pre></div></div>
-
-<p>관련 명령의 역할은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>명령</th>
-      <th>역할</th>
-      <th>Dockerfile에서의 주의 사항</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">apt-get clean</code></td>
-      <td>내려받은 Package File 정리</td>
-      <td>Package 설치와 같은 Layer에서 실행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">apt-get autoclean</code></td>
-      <td>더 이상 내려받을 수 없는 오래된 Package File 정리</td>
-      <td>Build에 필요한 명령은 아님</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">apt-get autoremove</code></td>
-      <td>자동 설치된 뒤 불필요해진 의존 Package 제거</td>
-      <td>필요한 Runtime 의존성까지 제거하지 않는지 확인</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">rm -rf /var/lib/apt/lists/*</code></td>
-      <td><code class="language-plaintext highlighter-rouge">apt-get update</code>로 받은 Package Index 삭제</td>
-      <td>이후 Package 설치가 필요하면 다시 <code class="language-plaintext highlighter-rouge">apt-get update</code> 실행</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Host OS에서는 이미 저장된 File을 삭제하면 사용 가능한 Disk 공간이 늘어난다. 반면 Docker Image는 이전 Layer가 보존되므로 후속 Layer에서 File을 삭제하는 것만으로는 앞선 Layer의 크기가 줄지 않는다. 생성한 Layer 안에서 불필요한 File을 함께 제거해야 효과가 있다.</p>
-
-<h2 id="11--dockerfile-작성-시-유의사항">11 ) Dockerfile 작성 시 유의사항</h2>
-
-<hr />
-
-<h3 id="작은-image-구성">작은 Image 구성</h3>
-
-<ul>
-  <li>
-    <p>Application 실행에 필요한 Runtime을 포함한 <code class="language-plaintext highlighter-rouge">slim</code>, <code class="language-plaintext highlighter-rouge">alpine</code> 등의 Base Image를 검토한다.</p>
-  </li>
-  <li>
-    <p>불필요한 Package를 설치하지 않고 <code class="language-plaintext highlighter-rouge">--no-install-recommends</code> 같은 Option을 활용한다.</p>
-  </li>
-  <li>
-    <p>서로 관련된 Package 설치와 정리 작업은 하나의 <code class="language-plaintext highlighter-rouge">RUN</code>에서 수행한다.</p>
-  </li>
-  <li>
-    <p>Build 도구가 실행 단계에 필요하지 않다면 Multi-stage Build로 분리한다.</p>
-  </li>
-</ul>
-
-<p>경량 Base Image는 크기를 줄이는 데 도움이 되지만 Library와 Package 구성이 다를 수 있으므로 Application 호환성을 함께 확인한다.</p>
-
-<h3 id="build-cache-활용">Build Cache 활용</h3>
-
-<p>Docker는 변경되지 않은 Layer를 재사용한다. 변경 빈도가 낮은 의존성 File을 먼저 복사하고 자주 변경되는 Source Code를 나중에 복사한다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">COPY</span><span class="s"> package*.json ./</span>
-<span class="k">RUN </span>npm <span class="nb">install</span>
-
-<span class="k">COPY</span><span class="s"> . .</span>
-</code></pre></div></div>
-
-<p>Build Context에는 Image 생성에 필요한 File만 포함한다. <code class="language-plaintext highlighter-rouge">.dockerignore</code>에는 다음과 같은 대상을 등록할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.git/
-node_modules/
-*.log
-.env
-</code></pre></div></div>
-
-<h3 id="보안과-관리">보안과 관리</h3>
-
-<ul>
-  <li>
-    <p>Container Process를 항상 <code class="language-plaintext highlighter-rouge">root</code>로 실행하지 않고 <code class="language-plaintext highlighter-rouge">USER</code>로 일반 사용자를 지정한다.</p>
-  </li>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">latest</code>에만 의존하지 않고 용도를 확인할 수 있는 Version Tag를 사용한다.</p>
-  </li>
-  <li>
-    <p>비밀번호와 Token은 Dockerfile의 <code class="language-plaintext highlighter-rouge">ARG</code>, <code class="language-plaintext highlighter-rouge">ENV</code>, <code class="language-plaintext highlighter-rouge">COPY</code>에 직접 기록하지 않는다.</p>
-  </li>
-  <li>
-    <p>하나의 Container에는 하나의 주요 관심사를 배치하여 Application 간 결합을 낮춘다.</p>
-  </li>
-</ul>
-
-<p>하나의 관심사가 반드시 하나의 Process만을 의미하는 것은 아니다. 핵심은 Web Server, Database, Message Broker처럼 독립적으로 배포하고 확장해야 하는 구성 요소를 서로 다른 Container로 분리하는 것이다.</p>
-
-<h3 id="directory-단위의-build-context">Directory 단위의 Build Context</h3>
-
-<p>Image Build는 지정한 Directory를 Build Context로 사용한다. 다음 순서로 작업 Directory를 구성하면 불필요한 File이 Image에 포함되는 것을 줄일 수 있다.</p>
-
-<ol>
-  <li>
-    <p>Application마다 별도의 Directory를 생성한다.</p>
-  </li>
-  <li>
-    <p>Source Code, 의존성 File과 Dockerfile을 함께 관리한다.</p>
-  </li>
-  <li>
-    <p>Build에 필요하지 않은 File을 <code class="language-plaintext highlighter-rouge">.dockerignore</code>로 제외한다.</p>
-  </li>
-  <li>
-    <p>해당 Directory를 Build Context로 지정한다.</p>
-  </li>
-</ol>
-
-<p>Dockerfile로 만든 Image는 Container 기반 Serverless Platform에도 배포할 수 있다. 다만 Dockerfile 자체가 Serverless 환경을 생성하거나 Server의 배포·확장·고가용성을 자동으로 관리하는 것은 아니다. 이러한 기능은 Image를 실행하는 Cloud Platform이 제공한다.</p>
-
-<h2 id="12--multi-stage-build">12 ) Multi-stage Build</h2>
-
-<hr />
-
-<p>Multi-stage Build는 Dockerfile을 여러 Build Stage로 나누는 방식이다. 각 Stage는 <code class="language-plaintext highlighter-rouge">FROM</code>으로 시작하며 <code class="language-plaintext highlighter-rouge">AS</code>로 이름을 지정할 수 있다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="w"> </span><span class="s">build-image</span><span class="w"> </span><span class="k">AS</span><span class="w"> </span><span class="s">builder</span>
-
-<span class="c"># 의존성 설치와 Application Build</span>
-
-<span class="k">FROM</span><span class="s"> runtime-image</span>
-
-<span class="k">COPY</span><span class="s"> --from=builder /path/to/artifact /app/artifact</span>
-
-<span class="c"># Application 실행</span>
-</code></pre></div></div>
-
-<p>동작 순서는 다음과 같다.</p>
-
-<ol>
-  <li>
-    <p>Builder Stage에서 Compiler, Package Manager와 Build 도구를 사용한다.</p>
-  </li>
-  <li>
-    <p>Source Code를 Build하여 JAR, 실행 Binary 또는 정적 File 같은 산출물을 생성한다.</p>
-  </li>
-  <li>
-    <p>Runtime Stage를 새로운 <code class="language-plaintext highlighter-rouge">FROM</code>으로 시작한다.</p>
-  </li>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">COPY --from=builder</code>로 실행에 필요한 산출물만 가져온다.</p>
-  </li>
-  <li>
-    <p>최종 Image에는 Builder와 중간 File을 포함하지 않는다.</p>
-  </li>
-</ol>
-
-<p>각 Stage는 독립된 File System을 사용하지만 앞선 Stage의 File을 선택적으로 복사할 수 있다. 최종 Image는 마지막 Stage를 기준으로 생성되므로 Compiler와 Build Cache를 제외하여 Image 크기와 공격 표면을 줄일 수 있다.</p>
-
-<p>Node.js, Spring Boot, Go, Python, React에 Multi-stage Build를 적용하는 구체적인 차이는 다음 문서에서 다룬다.</p>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Dockerfile은 Image 생성 과정을 Code로 기록하여 동일한 환경을 반복해서 Build할 수 있게 한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">FROM</code>으로 Base Image를 지정하고 <code class="language-plaintext highlighter-rouge">RUN</code>, <code class="language-plaintext highlighter-rouge">COPY</code>, <code class="language-plaintext highlighter-rouge">ENV</code> 등으로 실행 환경을 구성한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>는 주 실행 명령을, <code class="language-plaintext highlighter-rouge">CMD</code>는 기본 명령이나 기본 인자를 정의한다.</p>
-    </li>
-    <li>
-      <p>Dockerfile의 Instruction 순서는 Image Layer와 Build Cache에 영향을 준다.</p>
-    </li>
-    <li>
-      <p>Package 설치와 Cache 삭제를 같은 Layer에서 수행해야 Image 용량을 줄이는 데 효과가 있다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">.dockerignore</code>로 불필요한 Build Context를 제외하고 Build Secret은 전용 Secret Mount로 전달한다.</p>
-    </li>
-    <li>
-      <p>Multi-stage Build는 Build 환경과 Runtime 환경을 분리하여 최종 Image에 필요한 산출물만 남긴다.</p>
-    </li>
-    <li>
-      <p>Dockerfile은 Serverless Platform에 배포할 Image를 만들 수 있지만 확장과 운영 자동화는 실행 Platform의 역할이다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">MAINTAINER</code>처럼 현재 Deprecated된 Instruction은 그대로 이해하되 새 Dockerfile에서는 대체 방법을 사용한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Dockerfile의 주요 Instruction과 Image Build 방법 및 작성 시 주의 사항]]></summary></entry><entry><title type="html">Docker 컨테이너</title><link href="https://kkr010128.github.io/cloud-native-11-docker-container/" rel="alternate" type="text/html" title="Docker 컨테이너" /><published>2026-08-17T00:00:00+09:00</published><updated>2026-08-17T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-11-docker-container</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-11-docker-container/"><![CDATA[<h2 id="1--docker-container">1 ) Docker Container</h2>
-
-<hr />
-
-<p>Docker Image는 Application 실행에 필요한 File System을 담은 읽기 전용 Template이다. Docker Engine은 Image Layer 위에 읽고 쓸 수 있는 Container Layer를 추가하여 Container를 생성한다.</p>
-
-<p>Container는 독립된 Virtual Machine이 아니라 Host의 Kernel을 공유하면서 격리된 공간에서 실행되는 Process이다. Image가 실행에 필요한 Content를 제공하고, Container의 주 Process가 실제 Application을 실행한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Container Layer     ← Read / Write
------------------
-Image Layer         ← Read Only
-Image Layer         ← Read Only
-Base Image Layer    ← Read Only
-</code></pre></div></div>
-
-<p>Container Format과 Runtime의 개방형 업계 표준은 OCI(Open Container Initiative)에서 정의한다. OCI는 Linux Foundation 산하 Project이며, Docker를 포함한 여러 Container 도구가 상호 운용될 수 있는 기반을 제공한다.</p>
-
-<h2 id="2--container-생성과-수동-제어">2 ) Container 생성과 수동 제어</h2>
-
-<hr />
-
-<p>Image 다운로드, Container 생성, 시작은 각각 별도의 명령으로 수행할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Image 다운로드</span>
-docker image pull ubuntu:24.04
-
-<span class="c"># Container 생성</span>
-docker container create <span class="nt">-it</span> <span class="nt">--name</span> container-test1 ubuntu:24.04
-
-<span class="c"># 정지된 Container까지 모두 확인</span>
-docker container <span class="nb">ls</span> <span class="nt">-a</span>
-
-<span class="c"># Container 시작</span>
-docker container start container-test1
-
-<span class="c"># 실행 중인 Container 확인</span>
-docker container <span class="nb">ls</span>
-
-<span class="c"># Container의 표준 입출력에 연결</span>
-docker container attach container-test1
-
-<span class="c"># 정지된 Container 삭제</span>
-docker container <span class="nb">rm </span>container-test1
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker ps</code>는 <code class="language-plaintext highlighter-rouge">docker container ls</code>와 같은 역할을 한다. 기본 출력에는 실행 중인 Container만 표시되고, <code class="language-plaintext highlighter-rouge">-a</code>를 사용하면 정지된 Container도 함께 표시된다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">attach</code>는 Container의 주 Process에 연결한다. 연결한 Terminal에서 종료 명령을 실행하면 주 Process와 Container가 함께 종료될 수 있다. 실행 중인 Container에서 별도의 Shell을 사용하려면 <code class="language-plaintext highlighter-rouge">docker container exec</code>가 더 적합하다.</p>
-
-<h2 id="3--container-생명주기">3 ) Container 생명주기</h2>
-
-<hr />
-
-<p>Container의 기본 생명주기는 생성, 실행, 중지, 삭제 단계로 구분할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Image
-  ↓ create
-Created
-  ↓ start
-Running
-  ↓ stop 또는 Process 종료
-Stopped
-  ↓ rm
-Removed
-</code></pre></div></div>
-
-<h3 id="생성">생성</h3>
-
-<p><code class="language-plaintext highlighter-rouge">docker container create</code>는 Image를 기반으로 Container를 만들지만 주 Process를 시작하지는 않는다. 생성된 Container에는 이름, Network 설정, Mount 정보와 쓰기 가능한 Container Layer가 준비된다.</p>
-
-<h3 id="실행">실행</h3>
-
-<p><code class="language-plaintext highlighter-rouge">docker container start</code> 또는 <code class="language-plaintext highlighter-rouge">docker container run</code>으로 Container를 시작하면 Image에 정의된 <code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>와 <code class="language-plaintext highlighter-rouge">CMD</code>를 바탕으로 주 Process가 실행된다.</p>
-
-<p>Web Server처럼 계속 동작하는 Process가 실행되면 Container도 실행 상태를 유지한다. 반면 명령을 한 번 수행하고 끝나는 Process라면 해당 Process가 종료될 때 Container도 정지한다.</p>
-
-<h3 id="중지">중지</h3>
-
-<p>사용자가 Container를 중지하거나 주 Process가 정상 또는 오류 상태로 종료되면 Container는 정지 상태가 된다. 정지된 Container의 쓰기 Layer와 설정은 남아 있으므로 다시 시작할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop CONTAINER
-docker container start CONTAINER
-</code></pre></div></div>
-
-<h3 id="삭제">삭제</h3>
-
-<p>정지된 Container는 명시적으로 삭제하기 전까지 Disk에 남는다. 삭제하면 해당 Container는 다시 시작할 수 없고 쓰기 Layer의 데이터도 사라진다. 보존해야 하는 데이터는 Volume 또는 Bind Mount에 저장한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">rm </span>CONTAINER
-docker container <span class="nb">rm</span> <span class="nt">--force</span> CONTAINER
-</code></pre></div></div>
-
-<h2 id="4--application-실행">4 ) Application 실행</h2>
-
-<hr />
-
-<h3 id="docker-run">docker run</h3>
-
-<p><code class="language-plaintext highlighter-rouge">docker container run</code>은 필요한 Image가 Local에 없으면 내려받고, 새 Container를 생성한 뒤 바로 시작한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image pull
-        +
-docker container create
-        +
-docker container start
-        ↓
-docker container run
-</code></pre></div></div>
-
-<p>기본 형식은 다음과 같다.</p>
-
-<pre><code class="language-txt">docker container run [OPTIONS] IMAGE [COMMAND] [ARG...]
-</code></pre>
-
-<p>자주 사용하는 Option은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--name NAME</code></td>
-      <td>Container 이름 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-d</code>, <code class="language-plaintext highlighter-rouge">--detach</code></td>
-      <td>Background에서 실행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-i</code>, <code class="language-plaintext highlighter-rouge">--interactive</code></td>
-      <td>표준 입력을 열린 상태로 유지</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-t</code>, <code class="language-plaintext highlighter-rouge">--tty</code></td>
-      <td>가상 Terminal 할당</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-e</code>, <code class="language-plaintext highlighter-rouge">--env</code></td>
-      <td>환경 변수 설정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-p HOST:CONTAINER</code></td>
-      <td>Host Port와 Container Port 연결</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-P</code>, <code class="language-plaintext highlighter-rouge">--publish-all</code></td>
-      <td>Image가 공개한 Port를 임의의 Host Port에 연결</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-v</code>, <code class="language-plaintext highlighter-rouge">--volume</code></td>
-      <td>Volume 또는 Host 경로 Mount</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--network NETWORK</code></td>
-      <td>Container가 연결될 Network 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--link CONTAINER[:ALIAS]</code></td>
-      <td>다른 Container의 정보를 연결하는 Legacy Option</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--hostname NAME</code></td>
-      <td>Container Hostname 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--restart POLICY</code></td>
-      <td>Container 재시작 정책 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--rm</code></td>
-      <td>Container 종료 시 자동 삭제</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">-i</code>와 <code class="language-plaintext highlighter-rouge">-t</code>는 역할이 다르지만 대화형 Shell을 사용할 때 보통 <code class="language-plaintext highlighter-rouge">-it</code>로 함께 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--rm</span> <span class="nt">-it</span> ubuntu:24.04 /bin/bash
-</code></pre></div></div>
-
-<p>Server Application은 Terminal을 점유하지 않도록 주로 <code class="language-plaintext highlighter-rouge">-d</code>로 실행한다. 다만 <code class="language-plaintext highlighter-rouge">-d</code>가 Process를 Daemon으로 바꾸는 것은 아니며, Docker가 Container를 Background에서 실행하고 ID를 반환하는 Option이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> nginx <span class="nt">-d</span> nginx:1.18
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">--restart</code>에는 다음과 같은 정책을 지정할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>정책</th>
-      <th>동작</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">no</code></td>
-      <td>자동으로 다시 시작하지 않음</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">on-failure[:N]</code></td>
-      <td>Process가 오류 상태로 끝나면 지정 횟수까지 재시작</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">always</code></td>
-      <td>종료되면 항상 재시작</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">unless-stopped</code></td>
-      <td>사용자가 직접 중지하지 않았다면 재시작</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">--link</code>는 현재도 호환성을 위해 남아 있지만 Legacy 기능이다. 새 구성에서는 사용자 정의 Network에 Container를 연결하고 내장 DNS를 통해 Container 이름으로 통신하는 방식을 사용한다.</p>
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Container는 생성, 실행, 중지, 삭제의 생명주기를 가진다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">docker run</code>은 Image를 준비하고 새 Container를 생성한 뒤 시작한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">-it</code>는 대화형 Terminal에, <code class="language-plaintext highlighter-rouge">-d</code>는 Background 실행에 사용한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">--link</code>는 Legacy 기능이므로 새 구성에서는 사용자 정의 Network를 사용한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<h2 id="5--container-조회와-관리">5 ) Container 조회와 관리</h2>
-
-<hr />
-
-<h3 id="container-목록">Container 목록</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">ls
-</span>docker ps
-</code></pre></div></div>
-
-<p><img src="../../assets/post/2026-08-17-cloud-native-11-docker-container/02.webp" alt="" /></p>
-
-<p>출력 항목의 의미는 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">CONTAINER ID</code></td>
-      <td>Container 식별자의 축약 값</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">IMAGE</code></td>
-      <td>Container 생성에 사용한 Image</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">COMMAND</code></td>
-      <td>Container의 주 Process를 시작한 명령</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">CREATED</code></td>
-      <td>Container를 생성한 뒤 지난 시간</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">STATUS</code></td>
-      <td>실행, 종료 등 현재 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">PORTS</code></td>
-      <td>공개 및 연결된 Port 정보</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">NAMES</code></td>
-      <td>Container 이름</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>주요 Option은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>설명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-a</code>, <code class="language-plaintext highlighter-rouge">--all</code></td>
-      <td>정지된 Container까지 모두 표시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-q</code>, <code class="language-plaintext highlighter-rouge">--quiet</code></td>
-      <td>Container ID만 표시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-l</code>, <code class="language-plaintext highlighter-rouge">--latest</code></td>
-      <td>가장 최근에 생성한 Container 표시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-n NUMBER</code>, <code class="language-plaintext highlighter-rouge">--last NUMBER</code></td>
-      <td>최근에 생성한 Container를 지정한 수만큼 표시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-s</code>, <code class="language-plaintext highlighter-rouge">--size</code></td>
-      <td>Container File System 크기 표시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--no-trunc</code></td>
-      <td>ID와 명령을 줄이지 않고 표시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--filter</code></td>
-      <td>조건에 맞는 Container만 표시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--format</code></td>
-      <td>출력 형식 지정</td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-docker container <span class="nb">ls</span> <span class="nt">-a</span>
-docker container <span class="nb">ls</span> <span class="nt">-aq</span>
-docker container <span class="nb">ls</span> <span class="nt">--filter</span> <span class="nv">status</span><span class="o">=</span>running
-docker container <span class="nb">ls</span> <span class="nt">--format</span> <span class="s1">'{{.ID}} {{.Names}}'</span>
-
-</code></pre></div></div>
-
-<p>여러 Container ID를 명령 치환으로 전달할 수도 있다. 다음 명령은 실행 중인 모든 Container를 중지한 뒤 모든 Container를 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stop <span class="si">$(</span>docker container <span class="nb">ls</span> <span class="nt">-q</span><span class="si">)</span>
-docker container <span class="nb">rm</span> <span class="si">$(</span>docker container <span class="nb">ls</span> <span class="nt">-aq</span><span class="si">)</span>
-</code></pre></div></div>
-
-<p>대상이 없으면 명령에 인수가 전달되지 않아 오류가 발생할 수 있다. 실제 환경에서는 목록을 먼저 확인한 뒤 일괄 작업을 수행한다.</p>
-
-<h3 id="resource와-log-확인">Resource와 Log 확인</h3>
-
-<p><code class="language-plaintext highlighter-rouge">docker container stats</code>는 CPU, Memory, Network I/O 등 Container의 Resource 사용량을 실시간으로 보여준다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container stats
-docker container stats webserver
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker container logs</code>는 Container Process가 표준 출력과 표준 오류에 기록한 Log를 확인한다. <code class="language-plaintext highlighter-rouge">-f</code>를 사용하면 새 Log를 계속 따라간다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container logs webserver
-docker container logs <span class="nt">-f</span> webserver
-</code></pre></div></div>
-
-<h2 id="6--port-공개와-web-server-실습">6 ) Port 공개와 Web Server 실습</h2>
-
-<hr />
-
-<p>Container는 격리된 Network 공간에서 실행되므로 Container 내부의 Port가 Host에 자동으로 공개되지는 않는다. 외부에서 Service에 접근하려면 <code class="language-plaintext highlighter-rouge">-p</code>로 Host Port를 Container Port에 연결한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client → Host:9000 → Container:80 → Web Server
-</code></pre></div></div>
-
-<h3 id="nginx-실행">Nginx 실행</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> webserver <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
-  nginx
-</code></pre></div></div>
-
-<p>Browser에서 <code class="language-plaintext highlighter-rouge">http://localhost:9000</code>에 접속하면 Container의 80번 Port로 요청이 전달된다.</p>
-
-<h3 id="apache-http-server-실행">Apache HTTP Server 실행</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="se">\</span>
-  <span class="nt">--name</span> apacheweb <span class="se">\</span>
-  <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">-p</span> 9000:80 <span class="se">\</span>
-  httpd
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">-p 9000:80</code>의 왼쪽은 Host Port이고 오른쪽은 Container Port이다. 동일한 Host의 같은 Port를 여러 Container에 동시에 연결할 수는 없다.</p>
-
-<h2 id="7--base-image">7 ) Base Image</h2>
-
-<hr />
-
-<p>Dockerfile은 목적에 맞는 Base Image에서 시작한다. 필요한 Runtime과 배포 환경을 고려해 적절한 Image와 Version Tag를 선택한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>분류</th>
-      <th>대표 Image</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Operating System</td>
-      <td><code class="language-plaintext highlighter-rouge">ubuntu</code>, <code class="language-plaintext highlighter-rouge">debian</code>, <code class="language-plaintext highlighter-rouge">fedora</code>, <code class="language-plaintext highlighter-rouge">alpine</code>, <code class="language-plaintext highlighter-rouge">busybox</code></td>
-    </tr>
-    <tr>
-      <td>Web Server</td>
-      <td><code class="language-plaintext highlighter-rouge">httpd</code>, <code class="language-plaintext highlighter-rouge">nginx</code></td>
-    </tr>
-    <tr>
-      <td>Database</td>
-      <td><code class="language-plaintext highlighter-rouge">mysql</code>, <code class="language-plaintext highlighter-rouge">postgres</code>, <code class="language-plaintext highlighter-rouge">mariadb</code>, <code class="language-plaintext highlighter-rouge">redis</code>, <code class="language-plaintext highlighter-rouge">mongo</code></td>
-    </tr>
-    <tr>
-      <td>Language Runtime</td>
-      <td><code class="language-plaintext highlighter-rouge">eclipse-temurin</code>, <code class="language-plaintext highlighter-rouge">python</code>, <code class="language-plaintext highlighter-rouge">php</code>, <code class="language-plaintext highlighter-rouge">ruby</code>, <code class="language-plaintext highlighter-rouge">golang</code>, <code class="language-plaintext highlighter-rouge">node</code></td>
-    </tr>
-    <tr>
-      <td>Service</td>
-      <td><code class="language-plaintext highlighter-rouge">registry</code>, <code class="language-plaintext highlighter-rouge">nextcloud</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Alpine과 BusyBox는 크기가 작은 Linux 환경이지만, Library와 Package 구성이 Ubuntu나 Debian과 다르다. 단순히 크기만 비교하지 않고 Application 호환성도 함께 확인한다.</p>
-
-<h2 id="8--host와-container-사이의-파일-복사">8 ) Host와 Container 사이의 파일 복사</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">docker container cp</code>는 Host와 Container 사이에서 File 또는 Directory를 복사한다. 앞의 경로가 원본이고 뒤의 경로가 목적지이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Host에서 Container로 복사</span>
-docker container <span class="nb">cp </span>HOST_PATH CONTAINER:CONTAINER_PATH
-
-<span class="c"># Container에서 Host로 복사</span>
-docker container <span class="nb">cp </span>CONTAINER:CONTAINER_PATH HOST_PATH
-</code></pre></div></div>
-
-<h3 id="apache-기본-page-변경">Apache 기본 Page 변경</h3>
-
-<p>Apache HTTP Server Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/local/apache2/htdocs</code>이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Container 실행</span>
-docker container run <span class="nt">--name</span> webserver <span class="nt">-d</span> <span class="nt">-p</span> 9000:80 httpd
-
-<span class="c"># 기존 Page를 Host로 복사</span>
-docker container <span class="nb">cp</span> <span class="se">\</span>
-  webserver:/usr/local/apache2/htdocs/index.html <span class="se">\</span>
-  index.html
-
-<span class="c"># Host에서 수정한 Page를 다시 Container로 복사</span>
-docker container <span class="nb">cp</span> <span class="se">\</span>
-  index.html <span class="se">\</span>
-  webserver:/usr/local/apache2/htdocs/index.html
-</code></pre></div></div>
-
-<h3 id="nginx-기본-page-변경">Nginx 기본 Page 변경</h3>
-
-<p>Nginx Image의 기본 문서 경로는 <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html</code>이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> nginx <span class="nt">-d</span> <span class="nt">-p</span> 9001:80 nginx
-
-docker container <span class="nb">cp</span> <span class="se">\</span>
-  nginx:/usr/share/nginx/html/index.html <span class="se">\</span>
-  nginx.html
-
-docker container <span class="nb">cp</span> <span class="se">\</span>
-  nginx.html <span class="se">\</span>
-  nginx:/usr/share/nginx/html/index.html
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker cp</code>로 변경한 File은 Container의 쓰기 Layer에 저장되므로 Container를 삭제하면 사라진다. 개발 중 File을 반복해서 수정하거나 데이터를 영구 보관해야 한다면 Bind Mount 또는 Volume을 사용한다.</p>
-
-<h2 id="9--실행-중인-container에서-명령-수행">9 ) 실행 중인 Container에서 명령 수행</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">docker container exec</code>는 실행 중인 Container 안에서 새로운 명령을 실행한다.</p>
-
-<pre><code class="language-txt">docker container exec [OPTIONS] CONTAINER COMMAND [ARG...]
-</code></pre>
-
-<p>Container 안에서 대화형 Shell을 실행하는 예시는 다음과 같다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> ubuntu-server <span class="nt">-dit</span> ubuntu:24.04
-docker container <span class="nb">exec</span> <span class="nt">-it</span> ubuntu-server /bin/bash
-</code></pre></div></div>
-
-<h3 id="attach와-exec의-차이">attach와 exec의 차이</h3>
-
-<blockquote>
-  <p>두 명령 모두 실행 중인 Container와 상호작용하지만 연결되는 Process가 다르다.</p>
-</blockquote>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th><code class="language-plaintext highlighter-rouge">docker attach</code></th>
-      <th><code class="language-plaintext highlighter-rouge">docker exec</code></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>동작</td>
-      <td>기존 주 Process의 표준 입력·출력·오류에 Terminal을 연결</td>
-      <td>Container 안에서 새로운 Process 실행</td>
-    </tr>
-    <tr>
-      <td>대상</td>
-      <td><code class="language-plaintext highlighter-rouge">ENTRYPOINT</code>와 <code class="language-plaintext highlighter-rouge">CMD</code>로 시작된 주 Process</td>
-      <td>사용자가 지정한 Shell 또는 명령</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">exit</code>의 영향</td>
-      <td>주 Process가 Shell이라면 Shell과 Container가 함께 종료</td>
-      <td>새로 실행한 Shell만 종료되고 주 Process는 계속 실행</td>
-    </tr>
-    <tr>
-      <td>주요 용도</td>
-      <td>주 Process와 직접 대화하거나 현재 출력을 확인</td>
-      <td>점검, Debugging, File 확인, 관리 명령 수행</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Container가 다음과 같이 실행되었다고 가정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> attach-test <span class="nt">-dit</span> ubuntu:24.04 /bin/bash
-</code></pre></div></div>
-
-<p>이때 <code class="language-plaintext highlighter-rouge">/bin/bash</code>는 Container를 유지하는 주 Process, 즉 Container 내부의 PID 1이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container attach attach-test
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">attach</code>는 새 Shell을 만들지 않고 이미 PID 1로 실행 중인 <code class="language-plaintext highlighter-rouge">/bin/bash</code>에 현재 Terminal을 연결한다. 여기에서 <code class="language-plaintext highlighter-rouge">exit</code>를 입력하면 PID 1인 Bash가 종료되고, 주 Process가 사라졌으므로 Container도 정지한다. Container를 계속 실행하면서 Terminal만 분리하려면 일반적으로 <code class="language-plaintext highlighter-rouge">Ctrl-p</code>, <code class="language-plaintext highlighter-rouge">Ctrl-q</code>를 차례로 입력한다. <code class="language-plaintext highlighter-rouge">Ctrl-c</code>는 설정과 주 Process의 Signal 처리 방식에 따라 Container를 종료할 수 있으므로 주의한다.</p>
-
-<p>반면 다음 명령은 같은 Container 안에 새로운 Bash Process를 하나 더 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container <span class="nb">exec</span> <span class="nt">-it</span> attach-test /bin/bash
-</code></pre></div></div>
-
-<p>이 Shell은 PID 1이 아니다. 따라서 여기서 <code class="language-plaintext highlighter-rouge">exit</code>를 입력하면 <code class="language-plaintext highlighter-rouge">exec</code>로 만든 Bash만 종료되고 원래의 PID 1은 계속 실행되므로 Container도 실행 상태를 유지한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>attach
-Terminal ─────────→ PID 1: /bin/bash
-                         └─ exit → 주 Process 종료 → Container 정지
-
-exec
-PID 1: /bin/bash   ← 계속 실행
-└─ 새 Process: /bin/bash ← Terminal 연결
-                         └─ exit → 새 Process만 종료
-</code></pre></div></div>
-
-<p>Web Server Container도 같은 원리로 동작한다. <code class="language-plaintext highlighter-rouge">attach</code>를 실행하면 Nginx나 Apache 주 Process의 입출력에 연결될 뿐 Shell이 생기지 않는다. 반면 <code class="language-plaintext highlighter-rouge">exec -it CONTAINER sh</code>는 점검에 사용할 별도의 Shell을 실행한다. 이 때문에 운영 중인 Service를 중단할 위험이 비교적 작고 원하는 명령을 바로 실행할 수 있는 <code class="language-plaintext highlighter-rouge">exec</code>를 실무에서 더 자주 사용한다고 한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Nginx 주 Process에 연결</span>
-docker container attach webserver
-
-<span class="c"># Nginx Container 내부에 점검용 Shell을 별도로 실행</span>
-docker container <span class="nb">exec</span> <span class="nt">-it</span> webserver /bin/sh
-
-<span class="c"># Shell 없이 설정 File만 확인</span>
-docker container <span class="nb">exec </span>webserver nginx <span class="nt">-T</span>
-</code></pre></div></div>
-
-<p>다만 <code class="language-plaintext highlighter-rouge">exec</code>는 Container의 주 Process가 실행 중일 때만 사용할 수 있다. Container가 이미 정지했다면 먼저 <code class="language-plaintext highlighter-rouge">docker logs</code>나 <code class="language-plaintext highlighter-rouge">docker inspect</code>로 종료 원인을 확인하고 필요에 따라 Container를 다시 시작해야 한다. 단순히 Application Log를 확인하려는 목적이라면 주 Process에 직접 연결하는 <code class="language-plaintext highlighter-rouge">attach</code>보다 <code class="language-plaintext highlighter-rouge">docker logs</code>가 안전하고 편리하다.</p>
-
-<blockquote>
-  <p><strong>중간 정리</strong></p>
-
-  <ul>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">attach</code>는 Container의 기존 주 Process에 Terminal을 연결한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">exec</code>는 실행 중인 Container 안에서 새로운 Process를 실행한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">attach</code>로 연결한 주 Process를 종료하면 Container도 정지할 수 있다.</p>
-    </li>
-    <li>
-      <p>점검 명령이나 별도 Shell 실행에는 <code class="language-plaintext highlighter-rouge">exec</code>를 주로 사용한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<h3 id="python-program-실행">Python Program 실행</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> python-test <span class="nt">-dit</span> python:3
-docker container <span class="nb">cp </span>lotto.py python-test:/lotto.py
-docker container <span class="nb">exec</span> <span class="nt">-it</span> python-test python /lotto.py
-</code></pre></div></div>
-
-<h3 id="nodejs-program-실행">Node.js Program 실행</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container run <span class="nt">--name</span> nodejs <span class="nt">-dit</span> node
-docker container <span class="nb">cp </span>index.js nodejs:/app-node.js
-docker container <span class="nb">exec</span> <span class="nt">-it</span> nodejs node /app-node.js
-</code></pre></div></div>
-
-<p>일회성 Program이라면 Container를 계속 실행해 두고 <code class="language-plaintext highlighter-rouge">exec</code>하는 대신 Source Code를 Mount하고 <code class="language-plaintext highlighter-rouge">docker run --rm</code>으로 실행하는 방식도 사용할 수 있다.</p>
-
-<h2 id="10--container를-image로-저장">10 ) Container를 Image로 저장</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">docker container commit</code>은 Container의 변경된 File System을 새 Image로 저장한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker container commit CONTAINER REPOSITORY[:TAG]
-docker container commit nodejs my-node-app:1.0
-docker image <span class="nb">ls </span>my-node-app
-</code></pre></div></div>
-
-<p>실습 중 변경 사항을 임시로 보관하거나 상태를 분석할 때 사용할 수 있지만, 실행한 명령과 변경 이유를 재현하기 어렵다. 배포용 Image는 변경 과정을 코드로 관리할 수 있도록 Dockerfile로 Build하는 것이 좋다.</p>
-
-<p>Mount에 저장된 데이터는 Container File System에 포함되지 않으므로 <code class="language-plaintext highlighter-rouge">commit</code>으로 만든 Image에도 포함되지 않는다.</p>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Container는 Image에 쓰기 가능한 Layer를 추가하여 생성한 격리된 Process 실행 환경이다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">docker run</code>은 Image Pull, Container 생성, 시작 과정을 한 번에 수행한다.</p>
-    </li>
-    <li>
-      <p>Container의 주 Process가 종료되면 Container도 정지하며, 삭제 전에는 다시 시작할 수 있다.</p>
-    </li>
-    <li>
-      <p>외부에서 Service에 접근하려면 Host Port와 Container Port를 연결한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">docker cp</code>는 Host와 Container 사이에서 File을 복사하고 <code class="language-plaintext highlighter-rouge">docker exec</code>는 실행 중인 Container에서 새 Process를 실행한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">docker commit</code>으로 Container 상태를 Image로 저장할 수 있지만 반복 가능한 Image 생성에는 Dockerfile을 사용한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Docker Container의 생명주기와 실행 방법, Port 공개, 명령 실행 및 파일 복사]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Docker" /><summary type="html"><![CDATA[Django, FastAPI, Spring Boot, Node.js, Go 애플리케이션을 Docker 이미지로 빌드하고 실행하는 방법]]></summary></entry></feed>

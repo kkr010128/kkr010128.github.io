@@ -1,0 +1,717 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Kubernetes 개요와 Architecture | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Container Runtime과 Orchestration의 개념부터 Kubernetes Resource, Pod, Control Plane과 Worker Node 구조까지 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-20-kubernetes-overview/">
+<meta property="og:title" content="Kubernetes 개요와 Architecture | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Container Runtime과 Orchestration의 개념부터 Kubernetes Resource, Pod, Control Plane과 Worker Node 구조까지 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-20-kubernetes-overview/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes 개요와 Architecture | renamed.log">
+<meta name="twitter:description" content="Container Runtime과 Orchestration의 개념부터 Kubernetes Resource, Pod, Control Plane과 Worker Node 구조까지 정리">
+
+  <meta property="article:published_time" content="2026-08-25T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787702029" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787702029" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787702029">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787702029" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787702029">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Kubernetes 개요와 Architecture | renamed.log",
+    "description": "Container Runtime과 Orchestration의 개념부터 Kubernetes Resource, Pod, Control Plane과 Worker Node 구조까지 정리",
+    "url": "https://kkr010128.github.io/cloud-native-20-kubernetes-overview/",
+    "datePublished": "2026-08-25T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Kubernetes 개요와 Architecture</h1>
+    
+      <p class="post-head__description">Container Runtime과 Orchestration의 개념부터 Kubernetes Resource, Pod, Control Plane과 Worker Node 구조까지 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 25일 · 6분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Kubernetes">Kubernetes</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>Kubernetes는 여러 Node에서 Container Application을 배포하고, 확장하며, 선언한 상태로 유지하는 Container Orchestration Platform이다. Kubernetes를 이해하려면 먼저 Container Runtime이 Application을 실행하는 범위와 Orchestrator가 Cluster를 관리하는 범위를 구분해야 한다.</p>
+
+<h2 id="1--container-runtime">1 ) Container Runtime</h2>
+
+<hr />
+
+<p>일반적인 Virtual Machine은 Hardware Resource를 가상화하고 각 Virtual Machine에 Guest OS를 실행한다. Container는 Host OS의 Kernel을 공유하면서 Process, File System과 Network를 격리한다. Guest OS 전체를 실행하지 않으므로 상대적으로 적은 Resource로 더 많은 Application을 실행할 수 있다.</p>
+
+<p>Runtime은 Program이 실행되는 환경을 의미한다. JavaScript가 Browser에서 실행된다면 Browser가 Runtime 역할을 한다. 같은 관점에서 <strong>Container Runtime은 Container Image를 가져오고 Container를 생성·실행·감독하는 Software</strong>이다.</p>
+
+<h3 id="containerd">containerd</h3>
+
+<p>containerd는 Container 실행과 Image 관리를 담당하는 Open Source Container Runtime이다.</p>
+
+<ul>
+  <li>
+    <p>Registry에서 Container Image를 내려받는다.</p>
+  </li>
+  <li>
+    <p>Image Layer의 압축을 풀고 Local Storage에 관리한다.</p>
+  </li>
+  <li>
+    <p>Container를 생성·시작·중지·삭제한다.</p>
+  </li>
+  <li>
+    <p>실행 중인 Container의 상태를 감독한다.</p>
+  </li>
+</ul>
+
+<p>Docker Engine은 내부적으로 containerd를 사용하며 Kubernetes도 CRI Plugin을 갖춘 containerd를 Runtime으로 사용할 수 있다.</p>
+
+<h3 id="docker-engine">Docker Engine</h3>
+
+<p>Docker Engine은 Image Build, Registry 전송, Network, Volume과 Container Lifecycle을 포함한 개발·운영 기능을 제공한다. containerd보다 넓은 범위를 담당하며 내부의 Container 실행 계층에서 containerd를 사용한다.</p>
+
+<p>Kubernetes <code class="language-plaintext highlighter-rouge">v1.20</code>에서 Docker Engine 연동을 담당하던 Dockershim이 Deprecated되었고 <code class="language-plaintext highlighter-rouge">v1.24</code>에서 제거되었다. 이는 Docker로 만든 Image를 Kubernetes에서 사용할 수 없다는 의미는 아니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Docker Build
+    │
+    ▼
+OCI 호환 Container Image
+    │
+    ├── containerd
+    ├── CRI-O
+    └── Docker Engine + cri-dockerd
+</code></pre></div></div>
+
+<p>Docker로 Build한 OCI 호환 Image를 Registry에 Push하면 containerd와 CRI-O를 사용하는 Kubernetes Cluster에서도 실행할 수 있다. Docker Engine을 Kubernetes Runtime으로 연결해야 한다면 외부 CRI Adapter인 <code class="language-plaintext highlighter-rouge">cri-dockerd</code>가 필요하다.</p>
+
+<h3 id="cri-o">CRI-O</h3>
+
+<p>CRI-O는 Kubernetes의 CRI(Container Runtime Interface)를 구현하기 위해 만들어진 Open Source Runtime이다. Kubernetes에서 OCI 호환 Container를 실행하는 데 필요한 범위에 집중한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Docker Engine</th>
+      <th>containerd</th>
+      <th>CRI-O</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>주요 범위</td>
+      <td>Image Build·배포·Container 관리</td>
+      <td>Image 관리·Container 실행</td>
+      <td>Kubernetes용 Container 실행</td>
+    </tr>
+    <tr>
+      <td>Kubernetes 연결</td>
+      <td><code class="language-plaintext highlighter-rouge">cri-dockerd</code> 필요</td>
+      <td>CRI Plugin 사용</td>
+      <td>CRI 직접 구현</td>
+    </tr>
+    <tr>
+      <td>Image Build</td>
+      <td>지원</td>
+      <td>기본 역할 아님</td>
+      <td>기본 역할 아님</td>
+    </tr>
+    <tr>
+      <td>주요 용도</td>
+      <td>개발과 Container Platform 운영</td>
+      <td>Docker와 Kubernetes의 Runtime</td>
+      <td>Kubernetes Runtime</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="2--container-orchestration">2 ) Container Orchestration</h2>
+
+<hr />
+
+<p>Container 수가 많아지고 여러 Machine에 분산되면 개별 명령으로 상태를 관리하기 어렵다. Container Orchestration은 여러 Container를 배치하고 연결하며, 상태를 추적하고, 장애가 발생했을 때 원하는 상태로 복구하는 역할을 수행한다.</p>
+
+<p>주요 기능은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>여러 Node에 Workload를 배치한다.</p>
+  </li>
+  <li>
+    <p>Container 장애를 감지하고 대체 실행 단위를 생성한다.</p>
+  </li>
+  <li>
+    <p>Replica 수를 조정하여 Application을 확장하거나 축소한다.</p>
+  </li>
+  <li>
+    <p>Service Discovery와 Traffic Routing을 제공한다.</p>
+  </li>
+  <li>
+    <p>설정, Secret과 Persistent Storage를 Application에 연결한다.</p>
+  </li>
+  <li>
+    <p>선언한 상태와 실제 상태가 일치하도록 지속적으로 조정한다.</p>
+  </li>
+</ul>
+
+<h3 id="orchestration-도구">Orchestration 도구</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>도구</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Docker Swarm</td>
+      <td>Docker Engine에 내장되어 구성과 사용이 비교적 단순</td>
+    </tr>
+    <tr>
+      <td>Apache Mesos</td>
+      <td>분산 System Resource를 관리하며 Framework와 결합하여 사용</td>
+    </tr>
+    <tr>
+      <td>Nomad</td>
+      <td>HashiCorp가 개발한 Orchestrator로 Consul, Vault와 연동 가능</td>
+    </tr>
+    <tr>
+      <td>Kubernetes</td>
+      <td>Container Workload 배포·확장·상태 관리를 위한 CNCF Platform</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Docker Swarm은 작은 Cluster나 Docker 중심 환경에서 비교적 쉽게 시작할 수 있다. Mesos는 분산 Resource 관리 Framework와 다른 System을 함께 구성해야 하며, Nomad는 Consul의 Service Discovery 및 Vault의 Secret 관리와 결합할 수 있다. Kubernetes는 폭넓은 Cloud·Network·Storage 생태계를 갖추고 있다.</p>
+
+<h2 id="3--kubernetes">3 ) Kubernetes</h2>
+
+<hr />
+
+<p>Kubernetes는 <code class="language-plaintext highlighter-rouge">K8s</code>라고도 표기한다. <code class="language-plaintext highlighter-rouge">K</code>와 <code class="language-plaintext highlighter-rouge">s</code> 사이의 여덟 글자 <code class="language-plaintext highlighter-rouge">ubernete</code>를 숫자 <code class="language-plaintext highlighter-rouge">8</code>로 줄인 표현이다.</p>
+
+<p>Kubernetes에 배포할 Application은 Container 환경에서 독립적으로 실행되고, 외부 설정을 주입받으며, Replica가 교체되어도 Service를 유지할 수 있도록 설계해야 장점을 충분히 활용할 수 있다.</p>
+
+<p>Kubernetes Cluster는 한 대의 Machine으로도 구성할 수 있지만 실제 운영 환경에서는 일반적으로 여러 Node를 사용한다. 각 Node에서 여러 Pod가 실행되며 Kubernetes는 YAML Manifest에 선언한 상태를 기준으로 Pod와 관련 Resource를 생성하고 관리한다.</p>
+
+<h3 id="kubernetes를-사용하는-이유">Kubernetes를 사용하는 이유</h3>
+
+<h4 id="자동화된-container-orchestration">자동화된 Container Orchestration</h4>
+
+<p>Scheduler가 Resource와 조건을 확인하여 Pod를 Node에 배치하고 Controller가 선언한 Replica 수를 유지한다.</p>
+
+<h4 id="service-지속성과-self-healing">Service 지속성과 Self-healing</h4>
+
+<p>Pod나 Container에 장애가 발생하면 Controller와 kubelet이 필요한 복구 작업을 수행한다. Node가 사용할 수 없는 상태가 되면 Controller가 다른 가용 Node에 대체 Pod를 생성할 수 있다.</p>
+
+<p>대체 Pod가 생성되는 것이 기존 Process나 Local Data가 그대로 이동한다는 의미는 아니다. Stateful Application은 Persistent Volume과 Application 수준의 복구 전략이 필요하다.</p>
+
+<h4 id="효율적인-resource-사용">효율적인 Resource 사용</h4>
+
+<p>Container별 CPU와 Memory Request·Limit을 지정할 수 있으며 Scheduler가 가용 Resource를 고려하여 Pod를 배치한다. Service는 변하는 Pod 집합에 안정적인 Endpoint를 제공하고 Ingress 또는 Gateway API는 HTTP·HTTPS Traffic Routing을 구성한다.</p>
+
+<h4 id="유연한-확장">유연한 확장</h4>
+
+<p>Replica 수를 직접 조정하거나 HorizontalPodAutoscaler를 사용하여 Metric에 따라 Workload를 확장·축소할 수 있다.</p>
+
+<h4 id="desired-state-유지">Desired State 유지</h4>
+
+<p>사용자는 YAML Manifest로 원하는 상태를 선언한다. Controller는 실제 Cluster 상태를 관찰하고 필요한 Resource를 생성·수정·삭제하여 두 상태를 일치시킨다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자가 선언한 상태
+Deployment Replica: 3
+          │
+          ▼
+Controller가 실제 상태 관찰
+          │
+          ├── Pod 2개 → Pod 1개 추가
+          └── Pod 4개 → Pod 1개 제거
+</code></pre></div></div>
+
+<h4 id="infrastructure-선택의-유연성">Infrastructure 선택의 유연성</h4>
+
+<p>Kubernetes는 On-premises, Virtual Machine과 여러 Public Cloud에서 사용할 수 있다. 다만 Kubernetes를 사용한다고 Application과 Infrastructure가 자동으로 모든 Cloud Provider에서 동일하게 동작하는 것은 아니다. Load Balancer, Storage와 IAM 같은 Provider별 연동 요소를 함께 고려해야 한다.</p>
+
+<h2 id="4--kubernetes-resource">4 ) Kubernetes Resource</h2>
+
+<hr />
+
+<p>Kubernetes에서 상태를 관리하는 대상을 Resource 또는 Object라고 한다. Resource는 API Group과 역할을 기준으로 구분할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>영역</th>
+      <th>주요 Resource</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Workload</td>
+      <td>Pod, ReplicaSet, Deployment, DaemonSet, StatefulSet, Job, CronJob</td>
+      <td>Container 실행과 Lifecycle 관리</td>
+    </tr>
+    <tr>
+      <td>Service와 Network</td>
+      <td>Service, EndpointSlice, Ingress, NetworkPolicy</td>
+      <td>Service Discovery, Traffic 공개와 Network 정책</td>
+    </tr>
+    <tr>
+      <td>Config와 Storage</td>
+      <td>ConfigMap, Secret, PersistentVolumeClaim, PersistentVolume, StorageClass</td>
+      <td>설정·기밀 정보와 영속 Storage 관리</td>
+    </tr>
+    <tr>
+      <td>Cluster와 접근 제어</td>
+      <td>Node, Namespace, ServiceAccount, Role, ClusterRole, RoleBinding, ClusterRoleBinding</td>
+      <td>Cluster 구성과 RBAC 관리</td>
+    </tr>
+    <tr>
+      <td>정책과 확장</td>
+      <td>ResourceQuota, LimitRange, HorizontalPodAutoscaler, PodDisruptionBudget, CustomResourceDefinition</td>
+      <td>Resource 제한·확장·가용성·API 확장</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">ReplicationController</code>도 지원되지만 현재는 일반적으로 ReplicaSet과 Deployment를 사용한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ClusterIP</code>, <code class="language-plaintext highlighter-rouge">NodePort</code>, <code class="language-plaintext highlighter-rouge">LoadBalancer</code>, <code class="language-plaintext highlighter-rouge">ExternalName</code>은 각각 별도 Resource가 아니라 Service의 <code class="language-plaintext highlighter-rouge">type</code> 값이다. External IP, Headless Service와 Selector가 없는 Service도 Service를 구성하는 방식이다. Ingress는 Service Type이 아니라 HTTP·HTTPS Routing 규칙을 표현하는 별도 Resource이다.</p>
+
+<h2 id="5--kubernetes-architecture">5 ) Kubernetes Architecture</h2>
+
+<hr />
+
+<p>Kubernetes Cluster는 Control Plane과 Worker Node로 구성된다. 과거에 Master Node라고 부르던 역할은 현재 문서에서 <strong>Control Plane Node</strong>라고 표현한다. 이 글에서는 처음 역할을 대응할 때 <code class="language-plaintext highlighter-rouge">Master(Control Plane)</code>로 함께 표기하고 이후에는 Control Plane을 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Kubernetes Cluster
+├── Control Plane Node
+│   ├── kube-apiserver
+│   ├── etcd
+│   ├── kube-scheduler
+│   └── kube-controller-manager
+│
+├── Worker Node 1
+│   ├── kubelet
+│   ├── Container Runtime
+│   ├── Network 구성 요소
+│   └── Pod
+│
+└── Worker Node 2
+    ├── kubelet
+    ├── Container Runtime
+    ├── Network 구성 요소
+    └── Pod
+</code></pre></div></div>
+
+<h3 id="cluster와-node">Cluster와 Node</h3>
+
+<p>Cluster는 Kubernetes Resource를 함께 관리하는 집합이다. Node는 Pod가 배치되는 Machine이며 물리 Server나 Virtual Machine으로 구성할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>관점</th>
+      <th>Control Plane Node</th>
+      <th>Worker Node</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>주요 책임</td>
+      <td>Cluster 상태와 Scheduling 관리</td>
+      <td>할당된 Pod 실행</td>
+    </tr>
+    <tr>
+      <td>주요 구성 요소</td>
+      <td>API Server, etcd, Scheduler, Controller Manager</td>
+      <td>kubelet, Container Runtime, Network 구성 요소</td>
+    </tr>
+    <tr>
+      <td>Application Pod</td>
+      <td>기본 kubeadm 구성에서는 일반 Workload Scheduling 제한</td>
+      <td>일반적으로 Application Pod 실행</td>
+    </tr>
+    <tr>
+      <td>장애 영향</td>
+      <td>API와 Cluster 관리 기능에 영향</td>
+      <td>해당 Node의 Workload에 영향</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>운영 Cluster에서는 Control Plane을 여러 대로 구성하여 관리 기능의 고가용성을 확보할 수 있다. 학습 환경에서는 Control Plane 한 대와 Worker 두 대로 기본 구조를 확인할 수 있다.</p>
+
+<h3 id="pod">Pod</h3>
+
+<p>Pod는 Kubernetes에서 생성하고 Scheduling할 수 있는 가장 작은 배포 단위이다. 하나 이상의 Container를 포함하며 같은 Pod의 Container는 다음 Resource를 공유한다.</p>
+
+<ul>
+  <li>
+    <p>Pod IP Address와 Network Namespace</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">localhost</code> Network</p>
+  </li>
+  <li>
+    <p>연결한 Volume</p>
+  </li>
+  <li>
+    <p>Pod Lifecycle</p>
+  </li>
+</ul>
+
+<p>같은 Pod에는 Main Application과 그 Application의 동작을 직접 보조하는 Sidecar처럼 <strong>생명주기와 Resource를 밀접하게 공유해야 하는 Container</strong>를 배치한다. Web Application과 Database처럼 독립적으로 확장·배포·복구해야 하는 구성 요소는 일반적으로 서로 다른 Pod와 Workload로 분리한다.</p>
+
+<h3 id="persistent-storage">Persistent Storage</h3>
+
+<p>Pod는 교체될 수 있는 Resource이므로 Container Writable Layer에만 저장한 Data는 Pod와 함께 사라질 수 있다. 중요한 Data는 PersistentVolume과 PersistentVolumeClaim을 통해 Pod 외부의 Storage에 저장한다.</p>
+
+<p>CSI(Container Storage Interface)는 Kubernetes가 다양한 Storage System과 연결되는 표준 Interface이다. 실제 Storage는 Local Disk, NFS, Distributed Storage 또는 Cloud Provider의 Block·File Storage가 될 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Container Runtime은 Image와 Container 실행을 담당하고 Kubernetes는 여러 Node의 Workload를 Orchestration한다.</p>
+    </li>
+    <li>
+      <p>Dockershim은 제거되었지만 Docker로 Build한 OCI Image는 containerd와 CRI-O 환경에서도 사용할 수 있다.</p>
+    </li>
+    <li>
+      <p>Kubernetes는 Desired State, Self-healing, Scheduling, Service Discovery와 Scaling을 제공한다.</p>
+    </li>
+    <li>
+      <p>Control Plane은 Cluster 상태와 배치를 관리하고 Worker Node는 실제 Application Pod를 실행한다.</p>
+    </li>
+    <li>
+      <p>Pod에는 독립된 Application을 무조건 함께 넣는 것이 아니라 생명주기와 Resource를 공유해야 하는 Container를 배치한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-19-healthcheck-config-secret/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Docker Health Check와 Config 및 Secret</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-21-kubeadm-cluster/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">kubeadm으로 Kubernetes Cluster 구축</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787702029"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787702029"></script>
+  </body>
+</html>

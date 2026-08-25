@@ -49,13 +49,15 @@
   <meta property="article:published_time" content="2026-08-24T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1787628835" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787628835" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787628835">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1787628835" color="#495057">
+  <meta property="article:modified_time" content="2026-08-25T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787702029" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787702029" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787702029">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787702029" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1787628835">
+<link rel="stylesheet" href="/assets/css/main.css?v=1787702029">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -99,7 +101,8 @@
     "headline": "Docker Swarm Cluster 구성과 Service 운영 | renamed.log",
     "description": "Manager와 Worker Cluster 구성, Service 배포, Routing Mesh, 확장, Rolling Update 및 Stack 배포",
     "url": "https://kkr010128.github.io/cloud-native-18-docker-swarm-cluster/",
-    "datePublished": "2026-08-24T00:00:00+09:00"
+    "datePublished": "2026-08-24T00:00:00+09:00",
+    "dateModified": "2026-08-25T00:00:00+09:00"
   }
 </script>
 
@@ -228,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 24일 · 9분 읽기
+          2026년 8월 24일 · 10분 읽기 · 수정 2026년 8월 25일
         </span>
       </div>
     </div>
@@ -274,7 +277,7 @@ LAPTOP
            192.168.0.102
 </code></pre></div></div>
 
-<p>수업에서는 NAT 네트워크를 구성하여 한 네트워크로 묶어 사용하는 방향으로 진행했으나, VPN과 SSH를 이용해 홈 네트워크에 접속해 사용하고 있는 현재 환경에 맞게 각 VM은 Bridge Adapter를 사용하여 Host에서 SSH로 접속했다. 
+<p>각 VM은 Bridge Adapter를 사용하여 같은 Network에 연결하고 Host에서 SSH로 접속한다.
 세 VM 모두 Docker Engine과 Compose Plugin을 설치해 환경을 준비했다.</p>
 
 <p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/02.webp" alt="Manager와 Worker VM에 Docker를 설치하는 화면" /></p>
@@ -323,7 +326,7 @@ LAPTOP
 <span class="c"># docker swarm init --advertise-addr 192.168.0.100</span>
 </code></pre></div></div>
 
-<p><code class="language-plaintext highlighter-rouge">docker wsarm init</code> 으로만 실행하면 Docker가 해당 호스트의 IP 주소를 자동으로 선택해 Swarm Manager를 초기화한다.</p>
+<p><code class="language-plaintext highlighter-rouge">docker swarm init</code>으로만 실행하면 Docker가 해당 Host의 IP Address를 자동으로 선택해 Swarm Manager를 초기화한다.</p>
 
 <p><code class="language-plaintext highlighter-rouge">--advertise-addr</code>는 다른 Node가 Manager에 접속할 주소를 지정한다.</p>
 
@@ -354,6 +357,7 @@ LAPTOP
 <p><img src="../../assets/post/2026-08-24-cloud-native-18-docker-swarm-cluster/08.webp" alt="Manager에서 Worker 참여 Token을 확인한 화면" /></p>
 
 <p><code class="language-plaintext highlighter-rouge">docker swarm join-token</code>은 Manager가 가진 Cluster 상태를 조회해야 하므로 Worker에서는 실행할 수 없다.</p>
+
 <blockquote>
   <p>Kubernetes의 Join Token도 Control Plane에서 <code class="language-plaintext highlighter-rouge">kubeadm token create --print-join-command</code>로 다시 만들거나 조회한다.</p>
 </blockquote>
@@ -812,6 +816,122 @@ docker stack ps dailylog
   <p>Kubernetes에서는 여러 Resource가 작성된 YAML을 <code class="language-plaintext highlighter-rouge">kubectl apply</code>로 배포한다. Swarm Stack과 마찬가지로 선언형 File로 여러 구성 요소를 배포하지만 Kubernetes는 Deployment, Service, ConfigMap, Secret 등 Resource 종류를 각각 정의한다.</p>
 </blockquote>
 
+<h2 id="11--docker-swarm의-volume">11 ) Docker Swarm의 Volume</h2>
+
+<hr />
+
+<p>Swarm Service의 Container도 데이터를 영속적으로 보관하기 위해 Volume을 사용한다. 다만 기본 <code class="language-plaintext highlighter-rouge">local</code> Driver로 만든 Named Volume은 <strong>각 Node의 Local Disk에 독립적으로 생성</strong>된다는 점을 고려해야 한다.</p>
+
+<h3 id="named-volume과-재배치">Named Volume과 재배치</h3>
+
+<p>다음 Service가 <code class="language-plaintext highlighter-rouge">worker1</code>에서 실행되면 <code class="language-plaintext highlighter-rouge">db-data</code> Volume도 <code class="language-plaintext highlighter-rouge">worker1</code>에 생성된다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">database</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb:11</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">db-data:/var/lib/mysql</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">db-data</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>Service Task가 장애나 Node Drain으로 <code class="language-plaintext highlighter-rouge">worker2</code>에 다시 배치되면 Docker는 <code class="language-plaintext highlighter-rouge">worker2</code>에 같은 이름의 새 Local Volume을 생성한다. Volume 이름은 같지만 <code class="language-plaintext highlighter-rouge">worker1</code>의 기존 데이터가 자동으로 복사되거나 공유되지는 않는다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>worker1                          worker2
+┌────────────────────┐          ┌────────────────────┐
+│ db-data            │          │ db-data            │
+│ 기존 Database Data │          │ 새로 생성된 Volume │
+└────────────────────┘          └────────────────────┘
+
+같은 이름이지만 서로 다른 Local Data
+</code></pre></div></div>
+
+<h3 id="node-placement로-고정">Node Placement로 고정</h3>
+
+<p>단일 Database처럼 특정 Node의 Local Data를 계속 사용해야 한다면 Node에 Label을 지정하고 Placement Constraint로 Task를 고정할 수 있다.</p>
+
+<p>Manager에서 Storage를 보유한 Node에 Label을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker node update <span class="nt">--label-add</span> <span class="nv">storage</span><span class="o">=</span>db worker1
+</code></pre></div></div>
+
+<p>Stack File에서 해당 Label을 가진 Node에만 Database를 배치한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">database</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb:11</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">db-data:/var/lib/mysql</span>
+    <span class="na">deploy</span><span class="pi">:</span>
+      <span class="na">placement</span><span class="pi">:</span>
+        <span class="na">constraints</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">node.labels.storage == db</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">db-data</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>이 방식은 Local Data를 유지하지만 <code class="language-plaintext highlighter-rouge">worker1</code>에 장애가 발생하면 다른 Node에 자동으로 재배치할 수 없다. Node 고정은 공유 Storage가 아니며 고가용성을 제공하지 않는다.</p>
+
+<h3 id="nfs와-network-storage">NFS와 Network Storage</h3>
+
+<p>여러 Node에서 같은 Data에 접근해야 한다면 NFS 같은 Network File System이나 Cluster 전체에서 사용할 수 있는 Storage Driver를 구성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">database</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">mariadb:11</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">db-data:/var/lib/mysql</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">db-data</span><span class="pi">:</span>
+    <span class="na">driver</span><span class="pi">:</span> <span class="s">local</span>
+    <span class="na">driver_opts</span><span class="pi">:</span>
+      <span class="na">type</span><span class="pi">:</span> <span class="s">nfs</span>
+      <span class="na">o</span><span class="pi">:</span> <span class="s">addr=192.168.0.110,rw</span>
+      <span class="na">device</span><span class="pi">:</span> <span class="s2">"</span><span class="s">:/srv/swarm-data"</span>
+</code></pre></div></div>
+
+<p>모든 Swarm Node가 NFS Server에 연결할 수 있어야 하며 NFS Directory, 접근 권한과 방화벽을 미리 구성해야 한다. Public Cloud에서는 Network File System이나 Swarm과 호환되는 외부 Volume Driver를 사용할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>Data 위치</th>
+      <th>다른 Node 재배치</th>
+      <th>적합한 경우</th>
+      <th>주의 사항</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Local Named Volume</td>
+      <td>각 Node의 Local Disk</td>
+      <td>기존 Data 자동 연결 불가</td>
+      <td>Node와 Data의 결합이 중요하지 않은 경우</td>
+      <td>같은 이름의 별도 Volume 생성 가능</td>
+    </tr>
+    <tr>
+      <td>Placement Constraint</td>
+      <td>지정 Node의 Local Disk</td>
+      <td>지정 Node에서만 실행</td>
+      <td>단일 Stateful Application</td>
+      <td>Node 장애 시 Service 중단 가능</td>
+    </tr>
+    <tr>
+      <td>NFS·Network Storage</td>
+      <td>Network Storage</td>
+      <td>같은 Data에 접근 가능</td>
+      <td>여러 Node에서 Data 공유</td>
+      <td>Storage 가용성·성능·권한 관리 필요</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Stateful Service를 운영할 때는 Container Replica 수만 늘리는 것으로 Data 고가용성이 완성되지 않는다. Database 자체의 Replication과 Backup, Storage 장애 복구 방식까지 함께 설계해야 한다.</p>
+
 <hr />
 
 <blockquote>
@@ -838,6 +958,9 @@ docker stack ps dailylog
     </li>
     <li>
       <p><code class="language-plaintext highlighter-rouge">docker stack deploy</code>는 여러 Service와 Network를 하나의 Application Stack으로 배포한다.</p>
+    </li>
+    <li>
+      <p>Swarm의 기본 Named Volume은 Node Local Storage이므로 Task 재배치 시 Data가 자동으로 따라가지 않는다.</p>
     </li>
   </ul>
 </blockquote>
@@ -946,7 +1069,7 @@ docker stack ps dailylog
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1787628835"></script>
-    <script src="/assets/js/code-enhancements.js?v=1787628835"></script>
+    <script src="/assets/js/site.js?v=1787702029"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787702029"></script>
   </body>
 </html>
