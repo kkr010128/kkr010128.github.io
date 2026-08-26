@@ -2,6 +2,7 @@
 title: kubeadm으로 Kubernetes Cluster 구축
 description: Master와 Worker 공통 준비부터 Control Plane 초기화, CNI 설치, Worker Join과 Cluster 확인까지 단계별 구성
 date: 2026-08-25
+updated_at: 2026-08-26
 series: CloudNative
 tags:
   - CloudNative
@@ -148,9 +149,28 @@ sudo apt-get upgrade -y
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 ```
 
+#### apt-transport-https ca-certificates curl gpg
+Ubuntu/Debian에서 HTTPS 기반 외부 APT 저장소를 추가할 때 필요한 기본 도구들을 설치하는 명령이다.
+> 우분투 24.04와 같은 최신 APT에서는 HTTPS 지원이 **APT 자체에 포함되어 있어 별도로 설치할 필요 가 없다.**
+>
+>  따라서 다음 명령으로도 충분하다.
+>  
+>  `sudo apt-get install -y ca-certificates curl gpg`
+
+| 패키지                   | 역할                              |
+| --------------------- | ------------------------------- |
+| `apt-transport-https` | APT가 HTTPS 저장소에서 패키지를 받도록 지원    |
+| `ca-certificates`     | HTTPS 서버 인증서를 검증하기 위한 CA 인증서 모음 |
+| `curl`                | URL을 통해 파일/데이터 다운로드             |
+| `gpg`                 | 저장소의 GPG 서명을 검증하기 위한 도구         |
+
 ### Swap 비활성화
 
-기본 kubelet 설정은 Swap이 활성화된 Node에서 시작을 거부한다. 현재 Session의 Swap을 비활성화하고 재부팅 후에도 다시 활성화되지 않도록 `/etc/fstab`을 수정한다.
+> **Swap**
+>
+> 물리 메모리(RAM)가 부족할 때 디스크의 일부 공간을 메모리처럼 사용하는 기능이다. RAM보다 속도가 느리지만 메모리 부족 상황을 보완할 수 있다.
+
+Kubernetes가 각 Pod의 메모리 사용량을 정확하게 관리하고 예측하기 어려워지는 경우를 방지하기 위해, 기본 kubelet 설정은 Swap이 활성화된 Node에서 시작을 거부한다. 따라서 현재 Session의 Swap을 비활성화하고 재부팅 후에도 다시 활성화되지 않도록 `/etc/fstab`을 수정한다.
 
 ```bash
 sudo swapoff -a
@@ -282,9 +302,9 @@ Worker에 `kubectl`이 반드시 필요한 것은 아니지만 Package 구성을
 ## 6 ) 방화벽과 Port 확인
 
 ---
-
-방화벽 전체를 중지하지 않고 Node 역할과 CNI Plugin에 필요한 Port를 허용한다.
-
+Kubernetes Cluster에서는 Control Plane, Worker Node, CNI Plugin 사이 통신을 위해 여러 Port를 사용한다.
+운영 환경에서는 방화벽 전체를 중지하기보다 Node 역할과 CNI Plugin에 필요한 Port만 허용하는 방식으로 구성할 수 있다.
+따라서 운영 환경 기준으로, 방화벽 전체를 중지하지 않고 Node 역할과 CNI Plugin에 필요한 Port를 허용한다.
 ### Control Plane Port
 
 | Port | Protocol | 용도 |
@@ -295,15 +315,63 @@ Worker에 `kubectl`이 반드시 필요한 것은 아니지만 Package 구성을
 | `10257` | TCP | kube-controller-manager |
 | `10259` | TCP | kube-scheduler |
 
+```bash
+# Kubernetes API Server
+sudo ufw allow 6443/tcp
+
+# etcd Client / Peer
+sudo ufw allow 2379:2380/tcp
+
+# kubelet API
+sudo ufw allow 10250/tcp
+
+# kube-controller-manager
+sudo ufw allow 10257/tcp
+
+# kube-scheduler
+sudo ufw allow 10259/tcp
+
+# Flannel VXLAN
+sudo ufw allow 8472/udp
+```
 ### Worker Port
 
-| Port | Protocol | 용도 |
-|---|---|---|
-| `10250` | TCP | kubelet API |
-| `10256` | TCP | kube-proxy Health Endpoint |
-| `30000-32767` | TCP/UDP | 기본 NodePort 범위 |
+| Port          | Protocol | 용도                         |
+| ------------- | -------- | -------------------------- |
+| `10250`       | TCP      | kubelet API                |
+| `10256`       | TCP      | kube-proxy Health Endpoint |
+| `30000-32767` | TCP/UDP  | 기본 NodePort 범위             |
+
+```bash
+# kubelet API
+sudo ufw allow 10250/tcp
+
+# kube-proxy Health Endpoint
+sudo ufw allow 10256/tcp
+
+# NodePort
+sudo ufw allow 30000:32767/tcp
+sudo ufw allow 30000:32767/udp
+
+# Flannel VXLAN
+sudo ufw allow 8472/udp
+```
+
+`sudo ufw allow 10250`도 정상 동작하지만, kubernetes에서 필요한 프로토콜이 명시적으로 정해져 있다면 `10250/tcp` 처럼 프로토콜을 명시한 문법을 사용하는 것이 적절하다.
 
 Flannel VXLAN은 Node 사이의 UDP `8472` 등 별도 Port가 필요할 수 있다. 실제 허용 Port는 사용하는 CNI와 운영체제 방화벽 정책을 함께 확인한다.
+
+Flannel의 `8472/udp`는 **Control Plane/Worker를 포함해 Flannel이 실행되는 각 Node 간 통신**에 필요하다.
+
+### 실습 환경에서의 방화벽 비활성화
+학습 및 실습용 Cluster에서는 UFW를 비활성화 하여 방화벽 설정으로 인한 노드 간 통신 문제를 피하고, 구축 과정을 단순화하는 방법을 사용할 수도 있다.
+```bash
+sudo systemctl stop ufw       # 현재 실행 중인 UFW 중지
+
+sudo systemctl disable ufw    # 부팅 시 UFW 자동 실행 비활성화
+```
+이 방법으로 방화벽을 비활성화하면 K8s에서 사용하는 포트를 개별적으로 허용하지 않아도 된다.
+다만 실제 운영 환경에서는 보안을 위해 방화벽 전체를 비활성화하기보다는 필요한 포트만 허용하는 방식으로 구성하는 것이 적절하다.
 
 ## 7 ) Master에서 Control Plane 초기화
 
