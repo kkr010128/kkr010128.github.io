@@ -1,0 +1,941 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Kubernetes Resource 조회와 Pod Debugging | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-26-resource-inspection-debugging/">
+<meta property="og:title" content="Kubernetes Resource 조회와 Pod Debugging | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-26-resource-inspection-debugging/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes Resource 조회와 Pod Debugging | renamed.log">
+<meta name="twitter:description" content="kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리">
+
+  <meta property="article:published_time" content="2026-08-26T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787738254" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787738254" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787738254">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787738254" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787738254">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Kubernetes Resource 조회와 Pod Debugging | renamed.log",
+    "description": "kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리",
+    "url": "https://kkr010128.github.io/cloud-native-26-resource-inspection-debugging/",
+    "datePublished": "2026-08-26T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Kubernetes Resource 조회와 Pod Debugging</h1>
+    
+      <p class="post-head__description">kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 26일 · 6분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Kubernetes">Kubernetes</a>
+        
+          <a class="tag-chip" href="/?tag=kubectl">kubectl</a>
+        
+          <a class="tag-chip" href="/?tag=Debugging">Debugging</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>Kubernetes Resource를 운영하려면 생성 명령뿐 아니라 현재 상태를 정확하게 조회하고 실행 중인 Container를 확인할 수 있어야 한다. <code class="language-plaintext highlighter-rouge">kubectl get</code>과 <code class="language-plaintext highlighter-rouge">describe</code>로 Control Plane에 저장된 상태를 확인하고, Metrics Server, <code class="language-plaintext highlighter-rouge">exec</code>, <code class="language-plaintext highlighter-rouge">port-forward</code>와 <code class="language-plaintext highlighter-rouge">logs</code>로 Worker에서 실행되는 Pod를 점검한다.</p>
+
+<h2 id="1--resource-조회-범위">1 ) Resource 조회 범위</h2>
+
+<hr />
+
+<p>현재 API Server가 제공하는 Resource 종류를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master에서 실행</span>
+kubectl api-resources
+</code></pre></div></div>
+
+<p>Namespace에 속하는 Resource와 Cluster 전체 범위 Resource를 구분한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">true
+</span>kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div></div>
+
+<p>조회할 Resource의 Namespace 범위를 이해해야 원하는 결과를 얻을 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Resource</th>
+      <th>범위</th>
+      <th>조회 예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Pod, Deployment, Service</td>
+      <td>Namespace</td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl get pods -n default</code></td>
+    </tr>
+    <tr>
+      <td>Node, PersistentVolume</td>
+      <td>Cluster</td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl get nodes</code></td>
+    </tr>
+    <tr>
+      <td>Namespace</td>
+      <td>Cluster</td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl get namespaces</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="2--kubectl-get">2 ) kubectl get</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>kubectl get</strong></p>
+
+  <p>API Server에서 하나 이상의 Kubernetes Resource 목록이나 현재 상태를 조회하는 명령이다.</p>
+</blockquote>
+
+<h3 id="기본-조회">기본 조회</h3>
+
+<p>현재 Namespace의 Pod를 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
+</code></pre></div></div>
+
+<p>특정 종류의 Resource를 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployments
+kubectl get services
+</code></pre></div></div>
+
+<p>특정 이름의 Resource를 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-pod
+</code></pre></div></div>
+
+<p>Node 목록은 Cluster 범위에서 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes
+</code></pre></div></div>
+
+<h3 id="get-all의-범위">get all의 범위</h3>
+
+<p>현재 Namespace의 대표적인 Workload와 Service Resource를 함께 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">all</code>은 Kubernetes의 모든 Resource 종류를 뜻하지 않는다. ConfigMap, Secret, Ingress, PersistentVolumeClaim 등은 출력에 포함되지 않을 수 있으므로 필요한 Resource 종류를 명시해서 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get configmaps,secrets,ingresses,persistentvolumeclaims
+</code></pre></div></div>
+
+<h3 id="namespace-지정">Namespace 지정</h3>
+
+<p>특정 Namespace의 Resource를 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--namespace</span> kube-system
+</code></pre></div></div>
+
+<p>축약 Option을 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> kube-system
+</code></pre></div></div>
+
+<p>모든 Namespace의 Pod를 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--all-namespaces</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-A</code>는 <code class="language-plaintext highlighter-rouge">--all-namespaces</code>의 축약 Option이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-A</span>
+</code></pre></div></div>
+
+<h3 id="label-selector">Label Selector</h3>
+
+<p>특정 Label을 가진 Pod를 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
+</code></pre></div></div>
+
+<p>Label 이름과 값은 <code class="language-plaintext highlighter-rouge">-l</code> 또는 <code class="language-plaintext highlighter-rouge">--selector</code> 뒤에 지정해야 한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--selector</span> <span class="nv">app</span><span class="o">=</span>sample-app
+</code></pre></div></div>
+
+<p>Pod가 가진 Label을 함께 출력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--show-labels</span>
+</code></pre></div></div>
+
+<h2 id="3--출력-형식">3 ) 출력 형식</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">--output</code> 또는 <code class="language-plaintext highlighter-rouge">-o</code> Option으로 JSON, YAML, Custom Columns, JSONPath와 Go Template 등 다양한 출력 형식을 선택할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>형식</th>
+      <th>용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">wide</code></td>
+      <td>Node, Pod IP 등 기본 표보다 많은 Column 표시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">yaml</code></td>
+      <td>Resource 전체 내용을 YAML로 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">json</code></td>
+      <td>Resource 전체 내용을 JSON으로 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">custom-columns</code></td>
+      <td>필요한 Field를 표의 Column으로 구성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">jsonpath</code></td>
+      <td>JSONPath 표현식으로 특정 Field 추출</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">name</code></td>
+      <td><code class="language-plaintext highlighter-rouge">resource/name</code> 형식만 출력</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="wide-출력">Wide 출력</h3>
+
+<p>Pod가 어느 Worker에서 실행되는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<h3 id="yaml과-json">YAML과 JSON</h3>
+
+<p>Pod 전체 정보를 YAML로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-pod <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<p>JSON으로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-pod <span class="nt">-o</span> json
+</code></pre></div></div>
+
+<h3 id="custom-columns">Custom Columns</h3>
+
+<p>Pod 이름과 실행 중인 Worker의 Host IP를 표로 출력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="se">\</span>
+  <span class="nt">-o</span> custom-columns<span class="o">=</span><span class="s1">'NAME:.metadata.name,NODE_IP:.status.hostIP'</span>
+</code></pre></div></div>
+
+<p>출력 예시는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NAME         NODE_IP
+sample-pod   192.168.0.101
+</code></pre></div></div>
+
+<h3 id="jsonpath">JSONPath</h3>
+
+<p>특정 Pod의 이름만 추출한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-pod <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.metadata.name}'</span>
+</code></pre></div></div>
+
+<p>줄바꿈까지 출력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-pod <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.metadata.name}{"\n"}'</span>
+</code></pre></div></div>
+
+<p>Shell이 <code class="language-plaintext highlighter-rouge">{}</code>와 특수 문자를 먼저 해석하지 않도록 JSONPath 표현식은 작은따옴표로 감싼다.</p>
+
+<h2 id="4--kubectl-describe">4 ) kubectl describe</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">kubectl describe</code>는 Resource의 주요 Field, 상태와 관련 Event를 사람이 읽기 쉬운 형식으로 출력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe pod sample-pod
+</code></pre></div></div>
+
+<p>Pod를 점검할 때 다음 내용을 확인한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>확인 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Node</code></td>
+      <td>Pod가 배치된 Worker</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Status</code></td>
+      <td>Pod Phase</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Containers</code></td>
+      <td>Image, State, Ready, Restart Count</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Conditions</code></td>
+      <td>Initialized, Ready, PodScheduled 등</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Volumes</code></td>
+      <td>Pod에 연결된 Volume</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Events</code></td>
+      <td>Scheduling, Image Pull, Mount와 Probe 관련 Event</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Control Plane은 Worker의 kubelet이 보고한 Pod 상태를 API Server에 저장한다. <code class="language-plaintext highlighter-rouge">describe</code>는 이 상태와 Event를 조회하므로 Worker에서 발생한 문제를 Master의 kubectl로 확인할 수 있다.</p>
+
+<h2 id="5--metrics-server와-kubectl-top">5 ) Metrics Server와 kubectl top</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Metrics Server</strong></p>
+
+  <p>각 Node의 kubelet에서 CPU와 Memory 사용량을 수집하고 Kubernetes Metrics API로 제공하는 Cluster Add-on이다.</p>
+</blockquote>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl top</code>으로 Node와 Pod의 Resource 사용량을 조회하려면 Metrics API를 제공하는 Metrics Server가 필요하다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Worker의 Container Runtime·cAdvisor
+              │
+              ▼
+           kubelet
+              │ CPU·Memory Metric
+              ▼
+        Metrics Server
+              │
+              ▼
+API Server의 metrics.k8s.io API
+              │
+              ▼
+          kubectl top
+</code></pre></div></div>
+
+<p>Metrics Server는 장기간 Metric 저장과 상세 Monitoring을 위한 System이 아니다. Autoscaling과 <code class="language-plaintext highlighter-rouge">kubectl top</code>에 필요한 CPU·Memory 중심의 짧은 수명 Metric을 제공한다.</p>
+
+<h3 id="metrics-server-설치">Metrics Server 설치</h3>
+
+<p>Master에서 공식 Release Manifest를 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> <span class="se">\</span>
+  https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">latest</code> URL은 실행 시점의 최신 Release를 가리킨다. 재현 가능한 운영 배포에서는 Cluster와 호환되는 Version을 확인하고 Release Version이 포함된 URL로 고정하는 방식이 적합하다.</p>
+
+<p>Metrics Server는 <code class="language-plaintext highlighter-rouge">kube-system</code> Namespace에 배포된다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nt">-n</span> kube-system get deployment metrics-server
+kubectl <span class="nt">-n</span> kube-system get pods | <span class="nb">grep </span>metrics-server
+</code></pre></div></div>
+
+<p>Metrics API 등록 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get apiservice v1beta1.metrics.k8s.io
+</code></pre></div></div>
+
+<h3 id="kubelet-인증서-확인">kubelet 인증서 확인</h3>
+
+<p>일부 학습용 Cluster에서는 kubelet Serving Certificate를 Metrics Server가 검증하지 못해 Metric 수집이 실패할 수 있다. 먼저 Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nt">-n</span> kube-system logs deployment/metrics-server
+</code></pre></div></div>
+
+<p>인증서 검증 오류가 명확하고 학습용 Cluster에서만 우회가 필요하다면 Deployment를 편집한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl edit deployment metrics-server <span class="nt">-n</span> kube-system
+</code></pre></div></div>
+
+<p>Container <code class="language-plaintext highlighter-rouge">args</code>에 다음 Option을 추가할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="s">--kubelet-insecure-tls</span>
+</code></pre></div></div>
+
+<p>변경 후 Deployment를 재시작하고 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout restart deployment/metrics-server <span class="nt">-n</span> kube-system
+kubectl rollout status deployment/metrics-server <span class="nt">-n</span> kube-system
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--kubelet-insecure-tls</code>는 kubelet이 제시하는 인증서의 CA 검증을 생략하는 Test용 Option이다. 모든 Local Kubernetes에 필요한 설정이 아니며 운영 환경에서는 올바른 CA와 kubelet Certificate를 구성하여 검증을 유지한다.</p>
+
+<h3 id="resource-사용량-조회">Resource 사용량 조회</h3>
+
+<p>Node의 CPU와 Memory 사용량을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl top nodes
+</code></pre></div></div>
+
+<p>현재 Namespace의 Pod 사용량을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl top pods
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kube-system</code> Namespace의 Pod를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl top pods <span class="nt">-n</span> kube-system
+</code></pre></div></div>
+
+<p>Pod 안의 Container별 사용량을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl top pods <span class="nt">-n</span> kube-system <span class="nt">--containers</span>
+</code></pre></div></div>
+
+<p>Metrics Server를 설치한 직후에는 첫 Metric이 수집될 때까지 잠시 결과가 나오지 않을 수 있다. Pod와 APIService가 정상인데도 조회되지 않으면 Metrics Server Log와 Worker의 kubelet 연결 상태를 확인한다.</p>
+
+<h2 id="6--container에서-명령-실행">6 ) Container에서 명령 실행</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>kubectl exec</strong></p>
+
+  <p>실행 중인 Pod의 Container 안에서 Command를 실행하도록 API Server를 통해 요청하는 명령이다.</p>
+</blockquote>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-pod.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
+</code></pre></div></div>
+
+<p>Manifest를 적용하고 Ready 상태를 기다린다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-pod.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/sample-pod <span class="nt">--timeout</span><span class="o">=</span>60s
+</code></pre></div></div>
+
+<p>Container의 Root Directory를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/sample-pod <span class="nt">--</span> /bin/ls /
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--</code> 앞은 kubectl Option이고 뒤는 Container 안에서 실행할 Command이다.</p>
+
+<h3 id="interactive-shell">Interactive Shell</h3>
+
+<p>Container Shell에 접속한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec</span> <span class="nt">-it</span> pod/sample-pod <span class="nt">--</span> /bin/sh
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-i</code></td>
+      <td>표준 입력을 열린 상태로 유지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-t</code></td>
+      <td>TTY 할당</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--</code></td>
+      <td>kubectl 인자와 Container Command 구분</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>모든 Container Image에 <code class="language-plaintext highlighter-rouge">/bin/bash</code>가 포함되는 것은 아니다. Nginx처럼 작은 Image에서는 <code class="language-plaintext highlighter-rouge">/bin/sh</code>를 먼저 사용하고 실제 Image에 존재하는 Shell을 확인한다.</p>
+
+<h3 id="container-지정">Container 지정</h3>
+
+<p>Pod에 Container가 여러 개 있으면 <code class="language-plaintext highlighter-rouge">-c</code>로 대상을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec</span> <span class="nt">-it</span> pod/sample-pod <span class="se">\</span>
+  <span class="nt">-c</span> nginx-container <span class="se">\</span>
+  <span class="nt">--</span> /bin/sh
+</code></pre></div></div>
+
+<p>Shell을 열지 않고 명령을 실행할 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/sample-pod <span class="nt">--</span> <span class="se">\</span>
+  /bin/sh <span class="nt">-c</span> <span class="s1">'ls -alF / | grep lib'</span>
+</code></pre></div></div>
+
+<p>kubectl의 요청은 Control Plane의 API Server를 거쳐 대상 Pod가 실행 중인 Worker의 kubelet로 전달된다.</p>
+
+<h2 id="7--port-forwarding">7 ) Port Forwarding</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">kubectl port-forward</code>는 관리 Client의 Local Port를 Cluster 안의 Pod Port로 연결한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>관리 Client localhost:8080
+            │
+            │ kubectl port-forward
+            ▼
+      Pod Container :80
+</code></pre></div></div>
+
+<p>Pod의 <code class="language-plaintext highlighter-rouge">80</code> Port를 Master의 <code class="language-plaintext highlighter-rouge">8080</code> Port로 전달한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl port-forward pod/sample-pod 8080:80
+</code></pre></div></div>
+
+<p>다른 Terminal에서 접속한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://127.0.0.1:8080
+</code></pre></div></div>
+
+<p>Resource 종류별 예시는 다음과 같다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 특정 Pod</span>
+kubectl port-forward pod/sample-pod 8080:80
+
+<span class="c"># sample-deployment가 관리하는 Pod 중 하나</span>
+kubectl port-forward deployment/sample-deployment 8080:80
+
+<span class="c"># sample-replicaset이 관리하는 Pod 중 하나</span>
+kubectl port-forward replicaset/sample-replicaset 8080:80
+
+<span class="c"># sample-service가 선택한 Pod 중 하나</span>
+kubectl port-forward service/sample-service 8080:80
+</code></pre></div></div>
+
+<p>Deployment, ReplicaSet과 Service 예시는 Cluster에 해당 이름의 Resource가 존재할 때 실행할 수 있다. Service를 지정할 때 두 번째 Port에는 Service의 <code class="language-plaintext highlighter-rouge">port</code> 값을 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>값</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>첫 번째 Port</td>
+      <td>kubectl을 실행한 Machine의 Local Port</td>
+    </tr>
+    <tr>
+      <td>두 번째 Port</td>
+      <td>대상 Pod 또는 Service의 Port</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Deployment나 Service를 지정하면 일치하는 Pod 하나가 선택된다. 선택된 Pod가 종료되면 Port Forwarding Session도 끝날 수 있다. 이 기능은 TCP Port에 사용하며 Debugging과 임시 접근에 적합하다.</p>
+
+<h2 id="8--pod-log-확인">8 ) Pod Log 확인</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>kubectl logs</strong></p>
+
+  <p>Pod Container가 표준 출력과 표준 오류로 기록한 Log를 조회하는 명령이다.</p>
+</blockquote>
+
+<p>Pod의 기본 Container Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl logs pod/sample-pod
+</code></pre></div></div>
+
+<p>Pod에 Container가 여러 개 있으면 이름을 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl logs pod/sample-pod <span class="nt">-c</span> nginx-container
+</code></pre></div></div>
+
+<p>새 Log를 실시간으로 이어서 출력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl logs <span class="nt">-f</span> pod/sample-pod <span class="nt">-c</span> nginx-container
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-c</code>, <code class="language-plaintext highlighter-rouge">--container</code></td>
+      <td>조회할 Container 지정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-f</code>, <code class="language-plaintext highlighter-rouge">--follow</code></td>
+      <td>새 Log를 계속 출력</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl logs</code>도 API Server를 통해 대상 Worker의 kubelet과 연결된다. Application이 File에만 Log를 기록하면 기본 <code class="language-plaintext highlighter-rouge">kubectl logs</code>로 확인되지 않을 수 있으므로 Container Application은 표준 출력과 표준 오류를 사용하는 방식이 적합하다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">kubectl get</code>은 Resource 종류, 이름, Namespace와 Label Selector를 조합하여 API Server의 상태를 조회한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">all</code>은 모든 Kubernetes Resource를 의미하지 않으며 필요한 종류를 명시해서 조회해야 한다.</p>
+    </li>
+    <li>
+      <p>Custom Columns와 JSONPath를 사용하면 Script에 필요한 Field만 추출할 수 있다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">describe</code>는 Pod의 Worker 배치, Container 상태, Condition과 Event를 함께 확인할 때 사용한다.</p>
+    </li>
+    <li>
+      <p>Metrics Server는 Worker kubelet의 CPU·Memory Metric을 Metrics API로 제공하며 <code class="language-plaintext highlighter-rouge">kubectl top</code>이 이를 조회한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">exec</code>, <code class="language-plaintext highlighter-rouge">port-forward</code>와 <code class="language-plaintext highlighter-rouge">logs</code> 요청은 API Server를 거쳐 대상 Pod가 실행 중인 Worker로 전달된다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">--kubelet-insecure-tls</code>는 인증서 검증을 생략하므로 학습용 문제 확인에만 제한적으로 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-25-manifest-metadata-management/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Manifest와 Metadata 관리</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787738254"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787738254"></script>
+  </body>
+</html>

@@ -4,6 +4,66 @@
       
       
       {
+        "title": "Kubernetes Resource 조회와 Pod Debugging",
+        "url": "/cloud-native-26-resource-inspection-debugging/",
+        "description": "kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","kubectl","Debugging"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 26일",
+        "reading_time_label": "6분 읽기",
+        "search": "kubernetes resource 조회와 pod debugging kubectl get 출력 형식과 describe, metrics server 기반 resource 사용량, exec·port-forward·logs를 이용한 pod 확인 방법 정리 cloudnative autoeversw kubernetes kubectl debugging cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Manifest와 Metadata 관리",
+        "url": "/cloud-native-25-manifest-metadata-management/",
+        "description": "여러 Resource를 정의하는 Manifest 구성과 Directory 적용, Label·Annotation, prune, kubectl set과 diff를 이용한 변경 관리 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","Manifest","Metadata"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 26일",
+        "reading_time_label": "7분 읽기",
+        "search": "kubernetes manifest와 metadata 관리 여러 resource를 정의하는 manifest 구성과 directory 적용, label·annotation, prune, kubectl set과 diff를 이용한 변경 관리 정리 cloudnative autoeversw kubernetes manifest metadata cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Pod Lifecycle과 kubectl wait",
+        "url": "/cloud-native-24-pod-lifecycle-kubectl-wait/",
+        "description": "Deployment 재시작과 generateName 사용법, Pod Phase와 kubectl 상태 표시의 차이, Condition 기반 작업 완료 대기 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","Pod","kubectl"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 26일",
+        "reading_time_label": "6분 읽기",
+        "search": "kubernetes pod lifecycle과 kubectl wait deployment 재시작과 generatename 사용법, pod phase와 kubectl 상태 표시의 차이, condition 기반 작업 완료 대기 정리 cloudnative autoeversw kubernetes pod kubectl cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Namespace와 kubectl 기본 사용",
+        "url": "/cloud-native-23-kubernetes-namespace-kubectl/",
+        "description": "Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","kubectl","Namespace"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 26일",
+        "reading_time_label": "6분 읽기",
+        "search": "kubernetes namespace와 kubectl 기본 사용 namespace의 분리 범위와 rbac·networkpolicy의 역할부터 kubeconfig, context, kubectl을 이용한 resource 생성·갱신·삭제까지 정리 cloudnative autoeversw kubernetes kubectl namespace cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Component와 Service Network",
         "url": "/cloud-native-22-kubernetes-components-networking/",
         "description": "Control Plane과 Worker Component의 동작 흐름, Controller 종류, Service와 Pod Network 및 CNI 구조",
@@ -27,7 +87,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 25일",
-        "reading_time_label": "8분 읽기",
+        "reading_time_label": "9분 읽기",
         "search": "kubeadm으로 kubernetes cluster 구축 master와 worker 공통 준비부터 control plane 초기화, cni 설치, worker join과 cluster 확인까지 단계별 구성 cloudnative autoeversw kubernetes kubeadm cloudnative"
       },
     

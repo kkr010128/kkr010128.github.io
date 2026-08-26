@@ -1,0 +1,819 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Kubernetes Namespace와 kubectl 기본 사용 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-23-kubernetes-namespace-kubectl/">
+<meta property="og:title" content="Kubernetes Namespace와 kubectl 기본 사용 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-23-kubernetes-namespace-kubectl/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes Namespace와 kubectl 기본 사용 | renamed.log">
+<meta name="twitter:description" content="Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리">
+
+  <meta property="article:published_time" content="2026-08-26T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787738254" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787738254" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787738254">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787738254" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787738254">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Kubernetes Namespace와 kubectl 기본 사용 | renamed.log",
+    "description": "Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리",
+    "url": "https://kkr010128.github.io/cloud-native-23-kubernetes-namespace-kubectl/",
+    "datePublished": "2026-08-26T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Kubernetes Namespace와 kubectl 기본 사용</h1>
+    
+      <p class="post-head__description">Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 26일 · 6분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Kubernetes">Kubernetes</a>
+        
+          <a class="tag-chip" href="/?tag=kubectl">kubectl</a>
+        
+          <a class="tag-chip" href="/?tag=Namespace">Namespace</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>Kubernetes Cluster를 구축한 다음에는 <code class="language-plaintext highlighter-rouge">kubectl</code>로 API Server에 요청을 보내 Resource를 생성하고 관리한다. 여러 팀이나 Application이 하나의 Cluster를 함께 사용한다면 Namespace로 Resource의 논리적인 범위를 나누고, RBAC와 NetworkPolicy를 결합하여 접근 권한과 Network Traffic을 제어할 수 있다.</p>
+
+<h2 id="1--namespace">1 ) Namespace</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Namespace</strong></p>
+
+  <p>하나의 Kubernetes Cluster 안에서 Resource Group을 논리적으로 구분하는 범위이다. 같은 종류의 Resource 이름은 하나의 Namespace 안에서 고유해야 하지만 서로 다른 Namespace에서는 같은 이름을 사용할 수 있다.</p>
+</blockquote>
+
+<p>Namespace는 Cluster 자체를 여러 개로 나누는 기능이 아니다. 하나의 Control Plane과 Worker 집합을 공유하면서 Pod, Deployment, Service처럼 Namespace에 속하는 Resource를 구분한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Kubernetes Cluster
+├── Namespace: development
+│   ├── Deployment: web
+│   └── Service: web
+│
+└── Namespace: production
+    ├── Deployment: web
+    └── Service: web
+</code></pre></div></div>
+
+<p>두 Namespace에 같은 이름의 <code class="language-plaintext highlighter-rouge">web</code> Deployment와 Service가 존재할 수 있다. 그러나 Node, PersistentVolume과 StorageClass처럼 Cluster 전체 범위에서 관리되는 Resource에는 Namespace가 적용되지 않는다.</p>
+
+<h3 id="기본-namespace">기본 Namespace</h3>
+
+<p>Kubernetes Cluster에는 다음 Namespace가 기본으로 존재한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Namespace</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">default</code></td>
+      <td>별도 Namespace를 지정하지 않았을 때 사용하는 기본 범위</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kube-system</code></td>
+      <td>Control Plane Component와 Cluster Add-on 등 Kubernetes System Resource 배치</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kube-public</code></td>
+      <td>모든 Client가 읽을 수 있도록 공개할 Resource를 배치하는 범위</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kube-node-lease</code></td>
+      <td>kubelet의 Node Heartbeat를 위한 Lease Resource 저장</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Master에서 현재 Namespace를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get namespaces
+</code></pre></div></div>
+
+<p>축약 Resource 이름도 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get ns
+</code></pre></div></div>
+
+<h3 id="namespace-범위-resource">Namespace 범위 Resource</h3>
+
+<p>Namespace에 속하는 Resource와 Cluster 전체 범위 Resource를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Namespace에 속하는 Resource</span>
+kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">true</span>
+
+<span class="c"># Cluster 전체 범위 Resource</span>
+kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">false</span>
+</code></pre></div></div>
+
+<p>Namespace 자체는 특정 Namespace 안에 속하지 않는 Cluster 범위 Resource이다. Namespace를 삭제하면 그 안에 속한 Resource도 함께 삭제되므로 삭제 전에 대상을 확인해야 한다.</p>
+
+<h2 id="2--namespace-rbac와-networkpolicy">2 ) Namespace, RBAC와 NetworkPolicy</h2>
+
+<hr />
+
+<p>Namespace만 생성했다고 해서 사용자 권한과 Pod Traffic이 자동으로 차단되는 것은 아니다. 분리 목적에 따라 RBAC, ResourceQuota와 NetworkPolicy 같은 Resource를 함께 구성해야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성</th>
+      <th>제어 대상</th>
+      <th>주요 역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Namespace</td>
+      <td>Kubernetes Resource의 논리적 범위</td>
+      <td>이름 충돌 방지, 팀·환경·Application 단위 구분</td>
+    </tr>
+    <tr>
+      <td>RBAC</td>
+      <td>Kubernetes API 요청 권한</td>
+      <td>사용자와 ServiceAccount가 조회·생성·변경할 수 있는 Resource 제한</td>
+    </tr>
+    <tr>
+      <td>NetworkPolicy</td>
+      <td>Pod의 Network Traffic</td>
+      <td>허용할 Ingress·Egress Traffic 정의</td>
+    </tr>
+    <tr>
+      <td>ResourceQuota</td>
+      <td>Namespace의 Resource 총량</td>
+      <td>CPU, Memory와 Resource 개수 제한</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>RBAC(Role-Based Access Control)는 API Server에 전달된 요청의 권한을 검사한다. Namespace 범위의 <code class="language-plaintext highlighter-rouge">Role</code>과 <code class="language-plaintext highlighter-rouge">RoleBinding</code>을 사용하면 특정 Namespace 안의 Resource만 조작하도록 권한을 제한할 수 있다.</p>
+
+<p>NetworkPolicy는 Pod 사이의 Network Traffic을 제어한다. NetworkPolicy Resource를 생성하더라도 사용하는 CNI가 NetworkPolicy 적용을 지원해야 실제 Traffic이 제어된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자 또는 ServiceAccount
+        │
+        ├── RBAC ────────── API Resource 조작 권한
+        │
+        ▼
+Namespace의 Pod
+        │
+        └── NetworkPolicy ─ Pod Ingress·Egress Traffic
+</code></pre></div></div>
+
+<p>Namespace는 분리의 기준을 제공하고 RBAC와 NetworkPolicy는 그 범위에 맞는 권한과 통신 정책을 적용한다.</p>
+
+<h2 id="3--kubectl과-cluster-조작-흐름">3 ) kubectl과 Cluster 조작 흐름</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>kubectl</strong></p>
+
+  <p>Kubernetes API Server에 Resource 조회·생성·변경·삭제 요청을 보내는 Command Line Client이다.</p>
+</blockquote>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl</code>은 반드시 Master에서만 실행해야 하는 명령이 아니다. API Server 주소와 인증 정보가 담긴 Kubeconfig를 사용할 수 있다면 별도 관리 PC에서도 실행할 수 있다.</p>
+
+<p>이 글의 명령은 앞에서 구축한 학습용 Cluster의 <strong>Master에서 실행</strong>한다. Master에는 <code class="language-plaintext highlighter-rouge">kubeadm init</code> 후 생성한 Kubeconfig가 설정되어 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master의 kubectl
+        │
+        ▼
+Control Plane의 kube-apiserver
+        │
+        ├── 인증·인가·요청 검증
+        ├── Resource 상태 저장
+        └── Controller·Scheduler가 상태 관찰
+                    │
+                    ▼
+             선택된 Worker의 kubelet
+                    │
+                    ▼
+             Container Runtime이 Pod 실행
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl</code>이 Worker에서 Container를 직접 실행하는 것은 아니다. <code class="language-plaintext highlighter-rouge">kubectl</code>이 API Server에 원하는 상태를 전달하면 Control Plane Component가 상태를 조정하고, Pod가 배치된 Worker의 kubelet과 Container Runtime이 실제 Container를 실행한다.</p>
+
+<h2 id="4--kubeconfig와-context">4 ) Kubeconfig와 Context</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Kubeconfig</strong></p>
+
+  <p>kubectl이 접속할 Cluster, 사용자 인증 정보와 Context를 저장하는 YAML 형식의 설정이다.</p>
+</blockquote>
+
+<p>Linux에서 kubectl은 기본적으로 다음 File을 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~/.kube/config
+</code></pre></div></div>
+
+<p>Kubeconfig의 주요 구성은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성</th>
+      <th>내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">clusters</code></td>
+      <td>API Server 주소와 Cluster 인증서 정보</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">users</code></td>
+      <td>Client 인증서, Token 등 사용자 인증 정보</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">contexts</code></td>
+      <td>Cluster, User와 기본 Namespace의 조합</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">current-context</code></td>
+      <td>현재 kubectl이 기본으로 사용하는 Context</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>현재 Context를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config current-context
+</code></pre></div></div>
+
+<p>Kubeconfig에서 현재 선택된 정보만 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config view <span class="nt">--minify</span>
+</code></pre></div></div>
+
+<p>특정 Context를 한 명령에만 적용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--context</span> &lt;context-name&gt;
+</code></pre></div></div>
+
+<p>현재 Context를 변경하면 이후 명령에 새 Context가 기본으로 사용된다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config use-context &lt;context-name&gt;
+</code></pre></div></div>
+
+<p>특정 Namespace를 한 요청에 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--namespace</span> kube-system
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-n</code>은 <code class="language-plaintext highlighter-rouge">--namespace</code>의 축약 Option이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> kube-system
+</code></pre></div></div>
+
+<p>현재 Context의 기본 Namespace를 변경할 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config set-context <span class="nt">--current</span> <span class="nt">--namespace</span><span class="o">=</span>default
+</code></pre></div></div>
+
+<p>Context의 기본 Namespace를 변경하면 Namespace Option을 생략한 후속 명령에 적용된다. 현재 작업 대상이 어느 Cluster와 Namespace인지 먼저 확인하는 습관이 중요하다.</p>
+
+<h2 id="5--명령형-resource-생성">5 ) 명령형 Resource 생성</h2>
+
+<hr />
+
+<p>kubectl은 실행 명령에 필요한 값을 직접 전달하는 명령형 방식과 YAML Manifest에 원하는 상태를 기록하는 선언형 방식을 제공한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>예시</th>
+      <th>적합한 용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>명령형 Command</td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl run</code>, <code class="language-plaintext highlighter-rouge">kubectl create deployment</code></td>
+      <td>빠른 Test와 간단한 Resource 생성</td>
+    </tr>
+    <tr>
+      <td>명령형 File 관리</td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl create -f</code></td>
+      <td>Manifest를 이용한 최초 생성</td>
+    </tr>
+    <tr>
+      <td>선언형 File 관리</td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl apply -f</code></td>
+      <td>반복 적용, 변경 관리와 자동화</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="kubectl-run">kubectl run</h3>
+
+<p>가장 간단하게 Pod를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master에서 실행</span>
+kubectl run nginx <span class="nt">--image</span><span class="o">=</span>nginx
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>인자</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">nginx</code></td>
+      <td>생성할 Pod 이름</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--image=nginx</code></td>
+      <td>Container에 사용할 Image</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>생성 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl run</code>은 Test Pod를 빠르게 만들 때 유용하다. 실행에 사용한 Option이 별도 Manifest File로 남지 않으므로 설정이 많아지면 재현과 변경 이력 관리가 어렵다.</p>
+
+<h3 id="kubectl-create">kubectl create</h3>
+
+<p>Resource 종류를 지정하여 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create deployment dpy-nginx <span class="nt">--image</span><span class="o">=</span>nginx
+</code></pre></div></div>
+
+<p>Deployment와 Deployment가 관리하는 Pod를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployments
+kubectl get pods
+</code></pre></div></div>
+
+<p>Control Plane에는 Deployment와 Pod의 원하는 상태가 저장되고 Scheduler가 Pod를 실행할 Worker를 선택한다. 선택된 Worker의 kubelet이 Container Runtime을 통해 Nginx Container를 실행한다.</p>
+
+<h2 id="6--manifest를-이용한-생성과-갱신">6 ) Manifest를 이용한 생성과 갱신</h2>
+
+<hr />
+
+<p>실제 설정을 반복해서 적용하려면 Manifest File을 작성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-pod.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
+</code></pre></div></div>
+
+<h3 id="kubectl-create--f">kubectl create -f</h3>
+
+<p>Manifest에 정의한 Resource를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create <span class="nt">-f</span> sample-pod.yaml
+</code></pre></div></div>
+
+<p>같은 이름의 Resource가 이미 존재하면 <code class="language-plaintext highlighter-rouge">AlreadyExists</code> 오류가 발생한다. <code class="language-plaintext highlighter-rouge">create</code>는 존재하지 않는 Resource의 최초 생성에 사용한다.</p>
+
+<h3 id="kubectl-apply--f">kubectl apply -f</h3>
+
+<p>Manifest의 선언 상태를 Cluster에 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-pod.yaml
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>현재 상태</th>
+      <th>apply 결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Resource가 없음</td>
+      <td>새 Resource 생성</td>
+    </tr>
+    <tr>
+      <td>Resource가 있고 Manifest가 변경됨</td>
+      <td>변경 사항 적용</td>
+    </tr>
+    <tr>
+      <td>선언 상태에 차이가 없음</td>
+      <td>변경 없이 현재 상태 유지</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>생성과 갱신을 같은 명령으로 처리할 수 있어 Script와 CI/CD에서 조건 분기를 줄일 수 있다. 하나의 Resource를 계속 선언형으로 관리하려면 처음부터 <code class="language-plaintext highlighter-rouge">apply</code>를 사용하고 Manifest를 Git에서 관리하는 방식이 적합하다.</p>
+
+<p>명령형 Command와 선언형 <code class="language-plaintext highlighter-rouge">apply</code>를 혼합하면 Cluster의 실제 상태와 저장된 Manifest 사이의 변경 주체를 파악하기 어려워질 수 있다. 운영 방식은 Resource별로 일관되게 유지한다.</p>
+
+<h2 id="7--resource-삭제">7 ) Resource 삭제</h2>
+
+<hr />
+
+<p>종류와 이름으로 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-pod
+</code></pre></div></div>
+
+<p>Manifest에 포함된 Resource를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-pod.yaml
+</code></pre></div></div>
+
+<p>특정 종류의 모든 Resource를 현재 Namespace에서 삭제하려면 Resource 종류와 <code class="language-plaintext highlighter-rouge">--all</code>을 함께 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pods <span class="nt">--all</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl delete --all</code>처럼 Resource 종류를 생략해서는 삭제 대상을 결정할 수 없다. 또한 <code class="language-plaintext highlighter-rouge">kubectl delete all --all</code>의 <code class="language-plaintext highlighter-rouge">all</code>은 일부 대표 Resource를 묶은 Category이므로 Namespace의 모든 Resource 종류를 뜻하지 않는다.</p>
+
+<h3 id="삭제-대기">삭제 대기</h3>
+
+<p>일반적인 <code class="language-plaintext highlighter-rouge">kubectl delete</code>는 기본적으로 Resource가 삭제될 때까지 기다린다. <code class="language-plaintext highlighter-rouge">--wait</code>를 명시할 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-pod.yaml <span class="nt">--wait</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div></div>
+
+<p>Kubernetes Resource 삭제는 API에서 삭제 요청을 받은 뒤 Graceful Termination과 Finalizer 처리를 거칠 수 있어 즉시 완료되지 않을 수 있다.</p>
+
+<h3 id="강제-삭제">강제 삭제</h3>
+
+<p>Pod를 정상 종료할 수 없는 특별한 상황에는 Grace Period를 <code class="language-plaintext highlighter-rouge">0</code>으로 설정하고 강제로 삭제할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-pod <span class="nt">--grace-period</span><span class="o">=</span>0 <span class="nt">--force</span>
+</code></pre></div></div>
+
+<p>강제 삭제는 kubelet이 실제 Process 종료를 확인하기 전에 API에서 Pod를 제거할 수 있다. 같은 이름이나 Identity를 사용하는 Process가 동시에 실행되어 Data 불일치가 발생할 수 있으므로 일반적인 삭제 방법으로 사용하지 않는다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Namespace는 하나의 Cluster 안에서 Namespaced Resource의 논리적인 범위와 이름 공간을 구분한다.</p>
+    </li>
+    <li>
+      <p>Namespace만으로 사용자 권한과 Pod Traffic이 완전히 격리되지는 않으며 RBAC와 NetworkPolicy 같은 정책을 함께 구성한다.</p>
+    </li>
+    <li>
+      <p>kubectl은 Kubeconfig의 Cluster·사용자·Context 정보를 사용하여 API Server에 요청한다.</p>
+    </li>
+    <li>
+      <p>Control Plane이 원하는 상태를 저장하고 조정하면 선택된 Worker의 kubelet과 Container Runtime이 실제 Pod를 실행한다.</p>
+    </li>
+    <li>
+      <p>빠른 Test에는 <code class="language-plaintext highlighter-rouge">run</code>과 <code class="language-plaintext highlighter-rouge">create</code>, 반복 가능한 선언형 관리에는 Manifest와 <code class="language-plaintext highlighter-rouge">apply</code>를 사용할 수 있다.</p>
+    </li>
+    <li>
+      <p>강제 삭제는 정상 종료 확인을 생략할 수 있으므로 Data 불일치 위험을 이해한 뒤 제한적으로 사용한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-22-kubernetes-components-networking/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Component와 Service Network</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-24-pod-lifecycle-kubectl-wait/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Pod Lifecycle과 kubectl wait</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787738254"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787738254"></script>
+  </body>
+</html>
