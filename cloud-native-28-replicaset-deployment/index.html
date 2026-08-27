@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Kubernetes ReplicaSet과 Deployment | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-28-replicaset-deployment/">
+<meta property="og:title" content="Kubernetes ReplicaSet과 Deployment | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-28-replicaset-deployment/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes ReplicaSet과 Deployment | renamed.log">
+<meta name="twitter:description" content="Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리">
+
+  <meta property="article:published_time" content="2026-08-27T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1787831952" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1787831952" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1787831952">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1787831952" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1787831952">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Kubernetes ReplicaSet과 Deployment | renamed.log",
+    "description": "Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리",
+    "url": "https://kkr010128.github.io/cloud-native-28-replicaset-deployment/",
+    "datePublished": "2026-08-27T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Kubernetes ReplicaSet과 Deployment</h1>
+    
+      <p class="post-head__description">Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 27일 · 6분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Kubernetes">Kubernetes</a>
+        
+          <a class="tag-chip" href="/?tag=ReplicaSet">ReplicaSet</a>
+        
+          <a class="tag-chip" href="/?tag=Deployment">Deployment</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>ReplicaSet은 Label Selector와 일치하는 Pod를 지정한 수만큼 유지한다. Deployment는 ReplicaSet을 한 단계 위에서 관리하여 Pod 수 유지뿐 아니라 Application의 Rolling Update와 Rollback까지 수행한다.</p>
+
+<h2 id="1--replicaset">1 ) ReplicaSet</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>ReplicaSet</strong></p>
+
+  <p>Label Selector와 일치하는 Pod가 <code class="language-plaintext highlighter-rouge">spec.replicas</code>에 지정한 수만큼 실행되도록 지속적으로 조정하는 Controller Resource이다.</p>
+</blockquote>
+
+<p>Pod만 직접 생성하면 Container Process가 실패했을 때 kubelet이 Container를 재시작할 수는 있지만, Pod가 삭제되거나 Node 장애로 사라진 Pod를 대신할 새 Pod를 생성하는 상위 Controller는 없다. ReplicaSet은 현재 Pod 수가 원하는 수보다 적으면 새 Pod를 만들고, 많으면 일치하는 Pod를 줄인다.</p>
+
+<p>ReplicationController도 Pod 복제 수를 관리하지만 Legacy Resource이다. 신규 구성에서는 ReplicaSet을 사용하며, 일반적인 Application은 ReplicaSet을 직접 배포하기보다 Deployment를 통해 관리한다.</p>
+
+<h3 id="control-plane과-worker의-조정-흐름">Control Plane과 Worker의 조정 흐름</h3>
+
+<p>ReplicaSet의 상태 조정은 다음과 같이 이루어진다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Plane
+ReplicaSet Controller
+  │ Label Selector와 일치하는 Pod 수 계산
+  ├── 부족함 ──▶ Pod 생성 요청
+  └── 초과함 ──▶ Pod 삭제 요청
+                    │
+                    ▼
+               Scheduler
+                    │ Worker 선택
+                    ▼
+Worker의 kubelet ──▶ Container Runtime ──▶ Container 실행
+</code></pre></div></div>
+
+<p>Worker나 Pod에 장애가 생기면 Control Plane은 API Server에 기록된 상태를 기준으로 부족한 Replica를 감지한다. Scheduler가 새 Pod를 실행할 Worker를 선택하고 해당 Worker의 kubelet이 Container를 실행한다.</p>
+
+<p>ReplicaSet은 Application 자체의 Data 복제나 Session 복구를 수행하지 않는다. 여러 Pod가 대체 가능하도록 Application을 구성하고 필요한 Data는 외부 저장소에서 관리해야 한다.</p>
+
+<h2 id="2--replicaset-생성">2 ) ReplicaSet 생성</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-rs.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ReplicaSet</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-rs</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.replicas</code></td>
+      <td>유지할 Pod 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.selector.matchLabels</code></td>
+      <td>ReplicaSet이 관리 대상으로 계산할 Pod Label</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.template</code></td>
+      <td>Pod 수가 부족할 때 새로 생성할 Pod Template</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">template.metadata.labels</code></td>
+      <td>생성되는 Pod에 부여할 Label</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Master 또는 kubeconfig가 설정된 관리 Client에서 Manifest를 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-rs.yaml
+</code></pre></div></div>
+
+<p>ReplicaSet과 생성된 Pod를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get replicasets
+kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>ReplicaSet이 생성한 Pod의 이름은 <code class="language-plaintext highlighter-rouge">sample-rs-&lt;임의 문자열&gt;</code> 형태이다. 각 Pod의 이름은 다르지만 같은 Pod Template과 Label을 사용한다.</p>
+
+<p>상세 상태와 최근 Event를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe replicaset sample-rs
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">describe</code>는 장기간 증감 이력을 제공하는 명령이 아니다. 현재 Replica 수, Selector, Pod Template, Condition과 최근 Event를 확인하는 데 사용한다.</p>
+
+<h2 id="3--label-selector와-pod-수-조정">3 ) Label Selector와 Pod 수 조정</h2>
+
+<hr />
+
+<p>ReplicaSet의 <code class="language-plaintext highlighter-rouge">selector</code>는 <code class="language-plaintext highlighter-rouge">template</code>에 지정한 Label을 포함해야 한다. 두 값이 일치하지 않으면 API Server가 Resource 생성을 거부한다.</p>
+
+<p>다음 잘못된 Manifest를 <code class="language-plaintext highlighter-rouge">sample-rs-fail.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ReplicaSet</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-rs-fail</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app-fail</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
+</code></pre></div></div>
+
+<p>적용하면 Selector가 Pod Template Label과 일치하지 않는다는 오류가 발생한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-rs-fail.yaml
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The ReplicaSet "sample-rs-fail" is invalid:
+spec.template.metadata.labels: Invalid value:
+selector does not match template labels
+</code></pre></div></div>
+
+<p>오류를 해결하려면 <code class="language-plaintext highlighter-rouge">spec.selector.matchLabels</code>와 <code class="language-plaintext highlighter-rouge">spec.template.metadata.labels</code>의 <code class="language-plaintext highlighter-rouge">app</code> 값을 같게 설정한다.</p>
+
+<h3 id="같은-label의-독립-pod-생성">같은 Label의 독립 Pod 생성</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-rs-pod.yaml</code>로 저장한다. 이 Pod는 ReplicaSet과 같은 <code class="language-plaintext highlighter-rouge">app: sample-app</code> Label을 사용하지만 <code class="language-plaintext highlighter-rouge">ownerReferences</code>는 없는 독립 Pod로 요청된다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-rs-pod</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
+</code></pre></div></div>
+
+<p>Pod를 생성하고 즉시 상태 변화를 관찰한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-rs-pod.yaml
+kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>API Server는 Pod 생성 요청을 정상적으로 처리한다. 그 결과 일치하는 Pod가 <code class="language-plaintext highlighter-rouge">replicas: 3</code>보다 많아지면 ReplicaSet Controller가 Selector와 일치하는 Pod 중 하나를 삭제하여 총수를 다시 3개로 맞춘다. 반드시 새로 생성한 <code class="language-plaintext highlighter-rouge">sample-rs-pod</code>가 삭제된다고 보장되지는 않는다.</p>
+
+<p>최종 Pod 수를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
+</code></pre></div></div>
+
+<h2 id="4--replicaset-scaling">4 ) ReplicaSet Scaling</h2>
+
+<hr />
+
+<p>Replica 수는 Manifest의 <code class="language-plaintext highlighter-rouge">spec.replicas</code>를 수정한 뒤 다시 적용하거나 <code class="language-plaintext highlighter-rouge">kubectl scale</code>로 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale replicaset sample-rs <span class="nt">--replicas</span><span class="o">=</span>5
+</code></pre></div></div>
+
+<p>변경된 원하는 수와 현재 실행 수를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get replicaset sample-rs
+kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl scale</code>은 Cluster의 Live Object를 직접 변경한다. Manifest를 기준으로 지속적으로 관리한다면 File의 <code class="language-plaintext highlighter-rouge">spec.replicas</code>도 같은 값으로 수정하여 다음 <code class="language-plaintext highlighter-rouge">apply</code>에서 원래 값으로 되돌아가지 않게 한다.</p>
+
+<h2 id="5--deployment">5 ) Deployment</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Deployment</strong></p>
+
+  <p>ReplicaSet을 생성하고 전환하여 Stateless Application의 배포, Scaling, Rolling Update와 Rollback을 관리하는 Controller Resource이다.</p>
+</blockquote>
+
+<p>Deployment의 제어 관계는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Deployment Controller
+        │ ReplicaSet 생성·전환
+        ▼
+    ReplicaSet
+        │ Pod 수 유지
+        ▼
+       Pods
+</code></pre></div></div>
+
+<p>직접 생성한 단독 Pod는 삭제된 뒤 자동으로 대체되지 않는다. ReplicaSet은 Pod 수를 유지하지만 Pod Template 변경에 대한 Rollout과 Rollback을 관리하지 않는다. 일반적인 Stateless Application은 Deployment로 배포한다.</p>
+
+<h2 id="6--deployment-생성">6 ) Deployment 생성</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-deployment.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-deployment</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-deployment</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-deployment</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.26</span>
+</code></pre></div></div>
+
+<p>Manifest를 적용하고 Deployment가 사용 가능한 상태가 될 때까지 기다린다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-deployment.yaml
+kubectl rollout status deployment/sample-deployment
+</code></pre></div></div>
+
+<p>Deployment, ReplicaSet과 Pod의 관계를 Label과 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployments
+kubectl get replicasets
+kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment <span class="nt">--show-labels</span>
+</code></pre></div></div>
+
+<p>Manifest 없이 간단한 Deployment를 생성할 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create deployment sample-deployment-by-cli <span class="nt">--image</span><span class="o">=</span>nginx
+</code></pre></div></div>
+
+<p>명령형 생성은 빠른 확인에는 편리하지만 설정을 반복하고 변경 이력을 관리하려면 Manifest를 저장하여 <code class="language-plaintext highlighter-rouge">kubectl apply</code>로 관리하는 편이 적합하다.</p>
+
+<h2 id="7--image-update와-replicaset-전환">7 ) Image Update와 ReplicaSet 전환</h2>
+
+<hr />
+
+<p>Deployment의 Pod Template에 있는 Image를 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">set </span>image deployment/sample-deployment <span class="se">\</span>
+  nginx-container<span class="o">=</span>nginx:1.27
+</code></pre></div></div>
+
+<p>Rollout 진행 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout status deployment/sample-deployment
+kubectl get replicasets
+kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment
+</code></pre></div></div>
+
+<p>Pod Template이 변경되면 Deployment는 새 ReplicaSet을 만들거나 동일한 Template의 기존 ReplicaSet을 재사용하여 전환한다. 기본 Rolling Update에서는 새 Pod를 늘리고 이전 Pod를 줄이며, 준비 상태를 확인하면서 전환한다.</p>
+
+<p>Rolling Update 중 유지할 Pod 수는 다음 Field로 조정할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.strategy.rollingUpdate.maxSurge</code></td>
+      <td>원하는 Replica 수보다 추가로 만들 수 있는 최대 Pod 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.strategy.rollingUpdate.maxUnavailable</code></td>
+      <td>Update 중 사용할 수 없어도 되는 최대 Pod 수</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">spec.replicas</code>만 변경하는 Scaling은 Pod Template 변경이 아니므로 새로운 ReplicaSet을 만들지 않는다.</p>
+
+<p>과거 <code class="language-plaintext highlighter-rouge">kubectl set image</code>의 <code class="language-plaintext highlighter-rouge">--record</code> Option은 실행 Command를 변경 원인으로 기록하는 데 사용되었지만 Deprecated되어 현재 명령에서는 사용하지 않는다. 변경 목적은 배포 절차나 Annotation 등 별도의 관리 방식으로 기록한다.</p>
+
+<h2 id="8--rollout-history와-rollback">8 ) Rollout History와 Rollback</h2>
+
+<hr />
+
+<p>Deployment의 Revision 목록을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout <span class="nb">history </span>deployment/sample-deployment
+</code></pre></div></div>
+
+<p>특정 Revision의 Pod Template을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout <span class="nb">history </span>deployment/sample-deployment <span class="nt">--revision</span><span class="o">=</span>2
+</code></pre></div></div>
+
+<p>특정 Revision으로 되돌린다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout undo deployment/sample-deployment <span class="nt">--to-revision</span><span class="o">=</span>2
+kubectl rollout status deployment/sample-deployment
+</code></pre></div></div>
+
+<p>바로 이전 Revision으로 되돌릴 때는 Revision 번호를 생략한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout undo deployment/sample-deployment
+kubectl rollout status deployment/sample-deployment
+</code></pre></div></div>
+
+<p>Rollback은 과거 Pod를 그대로 다시 실행하는 방식이 아니다. Deployment가 이전 Pod Template을 원하는 상태로 선택하고 ReplicaSet의 Replica 수를 조정하여 Pod를 다시 전환한다.</p>
+
+<h2 id="9--rollout-pause와-resume">9 ) Rollout Pause와 Resume</h2>
+
+<hr />
+
+<p>여러 Pod Template 변경을 하나의 Rollout으로 묶어 적용하려면 진행을 일시 중지할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout pause deployment/sample-deployment
+</code></pre></div></div>
+
+<p>Image를 변경한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">set </span>image deployment/sample-deployment <span class="se">\</span>
+  nginx-container<span class="o">=</span>nginx:1.28
+</code></pre></div></div>
+
+<p>Pause 상태에서도 Deployment의 Pod Template 변경은 저장되지만 새 ReplicaSet으로 전환하는 Rollout은 진행되지 않는다. <code class="language-plaintext highlighter-rouge">kubectl rollout status</code>는 Rollback 명령이 아니며 배포 완료 여부를 기다리는 명령이므로, Pause 상태에서는 완료를 기다리며 종료되지 않을 수 있다.</p>
+
+<p>현재 Image와 Pause Condition을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment sample-deployment <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.template.spec.containers[0].image}{"\n"}'</span>
+
+kubectl describe deployment sample-deployment
+</code></pre></div></div>
+
+<p>변경을 적용하려면 Rollout을 재개하고 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout resume deployment/sample-deployment
+kubectl rollout status deployment/sample-deployment
+</code></pre></div></div>
+
+<h2 id="10--deployment-scaling">10 ) Deployment Scaling</h2>
+
+<hr />
+
+<p>Manifest의 <code class="language-plaintext highlighter-rouge">spec.replicas</code>를 수정해서 적용하거나 <code class="language-plaintext highlighter-rouge">kubectl scale</code>로 Replica 수를 변경할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale deployment/sample-deployment <span class="nt">--replicas</span><span class="o">=</span>5
+</code></pre></div></div>
+
+<p>Deployment가 원하는 Replica 수와 사용 가능한 Replica 수를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment sample-deployment
+kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl scale</code> 역시 Live Object를 변경하므로 Manifest를 지속적인 기준으로 사용한다면 File의 <code class="language-plaintext highlighter-rouge">replicas</code> 값도 함께 맞춘다.</p>
+
+<h2 id="11--실습-resource-정리">11 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>Master 또는 관리 Client에서 생성한 Resource를 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-rs-pod.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-rs.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-deployment.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete deployment sample-deployment-by-cli <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>삭제 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get replicasets,deployments,pods
+</code></pre></div></div>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>ReplicaSet은 Label Selector와 일치하는 Pod를 <code class="language-plaintext highlighter-rouge">spec.replicas</code> 수만큼 유지한다.</p>
+    </li>
+    <li>
+      <p>Selector와 Pod Template Label은 일치해야 하며 같은 Label의 독립 Pod도 Replica 수 계산에 포함된다.</p>
+    </li>
+    <li>
+      <p>Deployment는 ReplicaSet을 관리하여 Stateless Application의 Rolling Update와 Rollback을 제공한다.</p>
+    </li>
+    <li>
+      <p>Pod Template 변경은 ReplicaSet 전환을 일으키지만 Replica 수만 변경하는 Scaling은 새 ReplicaSet을 만들지 않는다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">rollout history</code>는 Revision을 확인하고 <code class="language-plaintext highlighter-rouge">rollout undo</code>는 이전 Pod Template으로 전환하며 <code class="language-plaintext highlighter-rouge">rollout status</code>는 진행 상태를 기다린다.</p>
+    </li>
+    <li>
+      <p>Control Plane의 Controller가 원하는 상태를 조정하고 Worker의 kubelet과 Container Runtime이 실제 Pod를 실행한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-27-kubernetes-workload-pod/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Workload Resource와 Pod</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-29-daemonset-statefulset/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Kubernetes DaemonSet과 StatefulSet</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1787831952"></script>
+    <script src="/assets/js/code-enhancements.js?v=1787831952"></script>
+  </body>
+</html>

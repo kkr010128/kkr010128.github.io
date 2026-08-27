@@ -4,16 +4,61 @@
       
       
       {
+        "title": "Kubernetes DaemonSet과 StatefulSet",
+        "url": "/cloud-native-29-daemonset-statefulset/",
+        "description": "Node별 DaemonSet 배치와 StatefulSet의 순서·고유 식별자·Persistent Storage 및 Database 운영 관점 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","DaemonSet","StatefulSet"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 27일",
+        "reading_time_label": "7분 읽기",
+        "search": "kubernetes daemonset과 statefulset node별 daemonset 배치와 statefulset의 순서·고유 식별자·persistent storage 및 database 운영 관점 정리 cloudnative autoeversw kubernetes daemonset statefulset cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes ReplicaSet과 Deployment",
+        "url": "/cloud-native-28-replicaset-deployment/",
+        "description": "Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","ReplicaSet","Deployment"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 27일",
+        "reading_time_label": "6분 읽기",
+        "search": "kubernetes replicaset과 deployment label selector 기반 replicaset의 pod 수 조정과 deployment의 rolling update, rollback, pause 및 scaling 정리 cloudnative autoeversw kubernetes replicaset deployment cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Workload Resource와 Pod",
+        "url": "/cloud-native-27-kubernetes-workload-pod/",
+        "description": "Kubernetes Workload Resource의 제어 관계와 Pod 구조, Multi-container Pattern, command·args 및 Network 설정 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes","Workload","Pod"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 27일",
+        "reading_time_label": "6분 읽기",
+        "search": "kubernetes workload resource와 pod kubernetes workload resource의 제어 관계와 pod 구조, multi-container pattern, command·args 및 network 설정 정리 cloudnative autoeversw kubernetes workload pod cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Resource 조회와 Pod Debugging",
         "url": "/cloud-native-26-resource-inspection-debugging/",
-        "description": "kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리",
+        "description": "kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·debug·cp·port-forward·logs를 이용한 Pod 확인 방법 정리",
         "thumbnail": null,
         "tags": ["CloudNative","AutoEverSW","Kubernetes","kubectl","Debugging"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 26일",
-        "reading_time_label": "6분 읽기",
-        "search": "kubernetes resource 조회와 pod debugging kubectl get 출력 형식과 describe, metrics server 기반 resource 사용량, exec·port-forward·logs를 이용한 pod 확인 방법 정리 cloudnative autoeversw kubernetes kubectl debugging cloudnative"
+        "reading_time_label": "8분 읽기",
+        "search": "kubernetes resource 조회와 pod debugging kubectl get 출력 형식과 describe, metrics server 기반 resource 사용량, exec·debug·cp·port-forward·logs를 이용한 pod 확인 방법 정리 cloudnative autoeversw kubernetes kubectl debugging cloudnative"
       },
     
       
