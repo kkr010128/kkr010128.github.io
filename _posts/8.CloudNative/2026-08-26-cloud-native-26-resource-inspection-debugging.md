@@ -1,7 +1,8 @@
 ---
 title: Kubernetes Resource 조회와 Pod Debugging
-description: kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·port-forward·logs를 이용한 Pod 확인 방법 정리
+description: kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·debug·cp·port-forward·logs를 이용한 Pod 확인 방법 정리
 date: 2026-08-26
+updated_at: 2026-08-27
 series: CloudNative
 tags:
   - CloudNative
@@ -11,7 +12,7 @@ tags:
   - Debugging
 ---
 
-Kubernetes Resource를 운영하려면 생성 명령뿐 아니라 현재 상태를 정확하게 조회하고 실행 중인 Container를 확인할 수 있어야 한다. `kubectl get`과 `describe`로 Control Plane에 저장된 상태를 확인하고, Metrics Server, `exec`, `port-forward`와 `logs`로 Worker에서 실행되는 Pod를 점검한다.
+Kubernetes Resource를 운영하려면 생성 명령뿐 아니라 현재 상태를 정확하게 조회하고 실행 중인 Container를 확인할 수 있어야 한다. `kubectl get`과 `describe`로 Control Plane에 저장된 상태를 확인하고, Metrics Server, `exec`, `debug`, `cp`, `port-forward`와 `logs`로 Worker에서 실행되는 Pod를 점검한다.
 
 ## 1 ) Resource 조회 범위
 
@@ -491,6 +492,146 @@ kubectl logs -f pod/sample-pod -c nginx-container
 
 `kubectl logs`도 API Server를 통해 대상 Worker의 kubelet과 연결된다. Application이 File에만 Log를 기록하면 기본 `kubectl logs`로 확인되지 않을 수 있으므로 Container Application은 표준 출력과 표준 오류를 사용하는 방식이 적합하다.
 
+## 9 ) Ephemeral Container로 Pod Debugging
+
+---
+
+> **Ephemeral Container**
+>
+> 실행 중인 Pod의 기존 Container를 재시작하지 않고 문제 분석 도구를 추가하기 위한 임시 Container이다. 일반 Application Container와 달리 주로 Troubleshooting에 사용한다.
+
+Application Image에 Shell이나 `curl` 같은 분석 도구가 없으면 `kubectl exec`만으로 문제를 확인하기 어렵다. `kubectl debug`는 이러한 Pod에 Ephemeral Container를 추가하여 Network와 Process 상태를 점검하게 한다.
+
+다음 내용을 `myapp.yaml`로 저장한다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp
+  labels:
+    app: myapp
+spec:
+  containers:
+    - name: hello-server
+      image: blux2/hello-server:1.0
+      ports:
+        - containerPort: 8080
+```
+
+Master 또는 kubeconfig가 설정된 관리 Client에서 Pod를 생성하고 Ready 상태를 확인한다.
+
+```bash
+kubectl apply -f myapp.yaml
+kubectl wait --for=condition=Ready pod/myapp --timeout=60s
+```
+
+`curl`이 포함된 Image를 Ephemeral Container로 추가하고 같은 Pod의 `localhost:8080`에 접근한다.
+
+```bash
+kubectl debug --stdin --tty pod/myapp \
+  --image=curlimages/curl:8.4.0 \
+  --target=hello-server \
+  -- sh
+```
+
+Debug Container의 Shell에서 Web Server 응답을 확인한다.
+
+```bash
+curl http://127.0.0.1:8080
+```
+
+| Option | 역할 |
+|---|---|
+| `--stdin`, `-i` | Debug Container의 표준 입력 유지 |
+| `--tty`, `-t` | Interactive Terminal 할당 |
+| `--image` | 분석 도구가 포함된 Container Image 지정 |
+| `--target` | Process Namespace 확인 대상으로 삼을 기존 Container 지정 |
+| `--` | kubectl 인자와 Debug Container에서 실행할 Command 구분 |
+
+Debug Image는 목적에 맞는 Command와 도구를 포함해야 한다. Web 요청 확인에는 `curl` Image가 적합하고, Process나 Network 진단에는 해당 명령이 포함된 Image가 필요하다. `--target`을 통한 Process 확인 범위는 Worker의 Container Runtime 지원 여부에 따라 달라질 수 있다.
+
+요청이 처리되는 흐름은 다음과 같다.
+
+```text
+Master·관리 Client의 kubectl debug
+              │
+              ▼
+          API Server
+              │ Pod의 Ephemeral Container 정보 전달
+              ▼
+대상 Worker의 kubelet ──▶ Container Runtime
+                              │
+                              ▼
+                 기존 Pod 안에 Debug Container 실행
+```
+
+추가된 Ephemeral Container는 다음 명령으로 확인한다.
+
+```bash
+kubectl describe pod myapp
+```
+
+Ephemeral Container는 실행 중인 Pod에서 제거하거나 다시 변경하는 일반 Container가 아니다. Debugging이 끝난 뒤 실습 Pod를 삭제하면 함께 정리된다.
+
+```bash
+kubectl delete pod myapp
+```
+
+## 10 ) Container와 File 복사
+
+---
+
+> **kubectl cp**
+>
+> 관리 Client의 File이나 Directory를 Pod의 Container로 복사하거나 Container의 File을 관리 Client로 가져오는 명령이다.
+
+기본 형식은 Source와 Target 중 어느 쪽에 `pod-name:path`가 포함되는지에 따라 복사 방향이 결정된다.
+
+```bash
+kubectl cp <source> <target>
+```
+
+26번 문서 앞에서 작성한 `sample-pod.yaml`을 적용하고 Pod 상태를 확인한다.
+
+```bash
+kubectl apply -f sample-pod.yaml
+kubectl wait --for=condition=Ready pod/sample-pod --timeout=60s
+```
+
+Container의 `/etc/hostname`을 현재 Directory의 `hostname` File로 복사한다.
+
+```bash
+kubectl cp sample-pod:/etc/hostname ./hostname
+```
+
+복사한 File을 다시 Container의 `/tmp/newfile`로 전송한다.
+
+```bash
+kubectl cp ./hostname sample-pod:/tmp/newfile
+```
+
+Container 안에 File이 생성되었는지 확인한다.
+
+```bash
+kubectl exec pod/sample-pod -- ls -l /tmp/newfile
+kubectl exec pod/sample-pod -- cat /tmp/newfile
+```
+
+| 형식·Option | 역할 |
+|---|---|
+| `pod-name:/path` | 현재 Namespace에 있는 Pod의 경로 지정 |
+| `namespace/pod-name:/path` | 특정 Namespace의 Pod 경로 지정 |
+| `-c <container>` | 다중 Container Pod에서 복사 대상 지정 |
+
+`kubectl cp`는 복사 과정에서 Container 내부의 `tar` 명령을 사용한다. Container Image에 `tar`가 없으면 명령이 실패하므로 먼저 존재 여부를 확인한다.
+
+```bash
+kubectl exec pod/sample-pod -- /bin/sh -c 'command -v tar'
+```
+
+Symbolic Link, Wildcard 또는 세부 권한을 다루는 복잡한 복사는 `kubectl exec`와 `tar`를 직접 조합하는 방법을 검토한다.
+
 ## 전체 정리
 
 ---
@@ -508,5 +649,9 @@ kubectl logs -f pod/sample-pod -c nginx-container
 > - Metrics Server는 Worker kubelet의 CPU·Memory Metric을 Metrics API로 제공하며 `kubectl top`이 이를 조회한다.
 >
 > - `exec`, `port-forward`와 `logs` 요청은 API Server를 거쳐 대상 Pod가 실행 중인 Worker로 전달된다.
+>
+> - `kubectl debug`는 기존 Pod에 분석 도구가 없을 때 Ephemeral Container를 추가하여 문제를 확인한다.
+>
+> - `kubectl cp`는 관리 Client와 Container 사이에서 File을 복사하며 Container Image에 `tar`가 필요하다.
 >
 > - `--kubelet-insecure-tls`는 인증서 검증을 생략하므로 학습용 문제 확인에만 제한적으로 사용한다.
