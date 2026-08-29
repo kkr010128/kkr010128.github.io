@@ -1,14 +1,13 @@
 ---
 title: Kubernetes ReplicaSet과 Deployment
-description: Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리
+description: Label Selector 기반 ReplicaSet의 Pod 수 조정, Deployment의 배포와 Scaling 및 cordon·drain을 이용한 Node 유지보수 정리
 date: 2026-08-27
+updated_at: 2026-08-28
 series: CloudNative
 tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - ReplicaSet
-  - Deployment
 ---
 
 ReplicaSet은 Label Selector와 일치하는 Pod를 지정한 수만큼 유지한다. Deployment는 ReplicaSet을 한 단계 위에서 관리하여 Pod 수 유지뿐 아니라 Application의 Rolling Update와 Rollback까지 수행한다.
@@ -385,7 +384,118 @@ kubectl get pods -l app=sample-deployment
 
 `kubectl scale` 역시 Live Object를 변경하므로 Manifest를 지속적인 기준으로 사용한다면 File의 `replicas` 값도 함께 맞춘다.
 
-## 11 ) 실습 Resource 정리
+## 11 ) cordon으로 신규 Pod 배치 차단
+
+---
+
+> **cordon**
+>
+> Node를 `SchedulingDisabled` 상태로 변경하여 Scheduler가 일반적인 신규 Pod를 해당 Node에 배치하지 않도록 설정하는 작업이다.
+
+Hardware 이상 징후를 확인했거나 점검을 준비하는 Worker에는 새로운 Pod가 배치되지 않도록 먼저 Cordon을 설정할 수 있다. 모든 명령은 Master 또는 kubeconfig가 설정된 관리 Client에서 실행한다.
+
+실습 전 Worker 이름과 현재 Pod 배치를 확인한다.
+
+```bash
+kubectl get nodes
+kubectl scale deployment/sample-deployment --replicas=2
+kubectl get pods -l app=sample-deployment -o wide
+```
+
+Scheduler는 Resource 여유, Scheduling 조건과 점수에 따라 Worker를 선택한다. Worker가 두 대라고 해서 Pod가 항상 정확히 절반씩 배치되는 것은 아니다.
+
+`worker1`에 Cordon을 설정한다.
+
+```bash
+kubectl cordon worker1
+kubectl get nodes
+```
+
+`worker1`의 상태에 `SchedulingDisabled`가 표시되는지 확인한다. Cordon은 이미 실행 중인 Pod를 이동하거나 종료하지 않는다.
+
+Deployment를 4개로 확장하고 새 Pod의 배치 위치를 확인한다.
+
+```bash
+kubectl scale deployment/sample-deployment --replicas=4
+kubectl get pods -l app=sample-deployment -o wide
+```
+
+기존 `worker1` Pod는 그대로 실행되지만 새 Pod는 Scheduling 가능한 다른 Worker에 배치된다. Cluster에 사용할 수 있는 다른 Worker가 없거나 Resource가 부족하면 신규 Pod는 `Pending` 상태에 머물 수 있다.
+
+Control Plane과 Worker 관점의 동작은 다음과 같다.
+
+```text
+Master·관리 Client의 kubectl cordon
+                │
+                ▼
+            API Server
+                │ Node를 SchedulingDisabled로 변경
+                ▼
+             Scheduler
+                │ 신규 Pod 배치 대상에서 worker1 제외
+                ▼
+다른 Worker의 kubelet ──▶ Container Runtime ──▶ 신규 Container 실행
+```
+
+## 12 ) drain과 uncordon
+
+---
+
+> **drain**
+>
+> Node 유지보수를 위해 Scheduling을 차단하고 Eviction 가능한 일반 Workload Pod를 안전하게 비우는 작업이다.
+
+`worker1`의 일반 Workload Pod를 다른 Worker로 이동할 수 있도록 Drain을 실행한다.
+
+```bash
+kubectl drain worker1 --ignore-daemonsets
+```
+
+| Option | 역할 |
+|---|---|
+| `--ignore-daemonsets` | Drain이 직접 제거하지 않는 DaemonSet 관리 Pod를 무시하고 작업 계속 |
+| `--delete-emptydir-data` | `emptyDir` Data가 삭제됨을 허용하며 명시적으로 사용해야 하는 Option |
+| `--force` | Controller가 관리하지 않는 Pod가 있을 때 삭제를 허용하는 Option |
+
+`--delete-emptydir-data`와 `--force`는 Data 손실이나 독립 Pod 삭제 가능성이 있으므로 오류를 확인하지 않고 바로 추가하지 않는다. PodDisruptionBudget이 허용 중단 수를 제한하면 Drain은 Application 가용성을 지키기 위해 대기하거나 실패할 수 있다.
+
+Drain 요청이 처리되는 흐름은 다음과 같다.
+
+```text
+Master·관리 Client의 kubectl drain
+                │
+                ▼
+          API Server의 Eviction
+                │
+                ▼
+Deployment·ReplicaSet Controller가 부족한 Pod 감지
+                │
+                ▼
+Scheduler가 다른 Worker 선택
+                │
+                ▼
+다른 Worker의 kubelet이 대체 Pod 실행
+```
+
+DaemonSet Pod는 각 Node에서 수행할 역할이 있으므로 `--ignore-daemonsets`를 사용해도 Drain이 직접 삭제하지 않는다. Static Pod와 `nodeName`을 직접 지정하여 Scheduler를 우회한 Pod도 별도로 확인해야 한다.
+
+Pod가 다른 Worker에서 Ready 상태인지 확인한다.
+
+```bash
+kubectl get pods -l app=sample-deployment -o wide
+kubectl get node worker1
+```
+
+Node 점검이 끝나면 Scheduling을 다시 허용한다.
+
+```bash
+kubectl uncordon worker1
+kubectl get nodes
+```
+
+Uncordon은 이후 생성되는 Pod의 배치 대상으로 Node를 되돌린다. 다른 Worker로 이동한 기존 Pod를 자동으로 `worker1`에 재분배하지는 않는다.
+
+## 13 ) 실습 Resource 정리
 
 ---
 
@@ -419,5 +529,9 @@ kubectl get replicasets,deployments,pods
 > - Pod Template 변경은 ReplicaSet 전환을 일으키지만 Replica 수만 변경하는 Scaling은 새 ReplicaSet을 만들지 않는다.
 >
 > - `rollout history`는 Revision을 확인하고 `rollout undo`는 이전 Pod Template으로 전환하며 `rollout status`는 진행 상태를 기다린다.
+>
+> - `cordon`은 신규 Scheduling을 차단하고 `drain`은 Eviction 가능한 Workload Pod를 비우며 `uncordon`은 Scheduling을 다시 허용한다.
+>
+> - Scheduler는 여러 Worker에 Pod를 배치하지만 항상 정확히 같은 수로 균등 분배한다고 보장하지 않는다.
 >
 > - Control Plane의 Controller가 원하는 상태를 조정하고 Worker의 kubelet과 Container Runtime이 실제 Pod를 실행한다.
