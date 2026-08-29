@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Kubernetes Service Discovery와 외부 노출 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-31-kubernetes-service-network/">
+<meta property="og:title" content="Kubernetes Service Discovery와 외부 노출 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-31-kubernetes-service-network/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes Service Discovery와 외부 노출 | renamed.log">
+<meta name="twitter:description" content="Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리">
+
+  <meta property="article:published_time" content="2026-08-28T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788010223" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788010223" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788010223">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788010223" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1788010223">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Kubernetes Service Discovery와 외부 노출 | renamed.log",
+    "description": "Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리",
+    "url": "https://kkr010128.github.io/cloud-native-31-kubernetes-service-network/",
+    "datePublished": "2026-08-28T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Kubernetes Service Discovery와 외부 노출</h1>
+    
+      <p class="post-head__description">Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 28일 · 10분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Kubernetes">Kubernetes</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>Pod는 생성과 교체 과정에서 IP Address가 달라질 수 있으므로 Client가 개별 Pod IP를 직접 관리하면 Backend 변화에 대응하기 어렵다. Service는 Label Selector로 Pod 집합을 찾고 안정적인 IP Address와 DNS 이름을 제공하며, Service Type에 따라 Cluster 내부 또는 외부에서 접근할 수 있게 한다.</p>
+
+<h2 id="1--kubernetes의-통신-범위">1 ) Kubernetes의 통신 범위</h2>
+
+<hr />
+
+<p>Kubernetes에서 Container와 Pod가 통신하는 범위는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>통신 대상</th>
+      <th>주소</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>같은 Pod의 Container</td>
+      <td><code class="language-plaintext highlighter-rouge">localhost:&lt;port&gt;</code></td>
+      <td>Pod Network Namespace와 IP Address 공유</td>
+    </tr>
+    <tr>
+      <td>다른 Pod</td>
+      <td><code class="language-plaintext highlighter-rouge">&lt;pod-ip&gt;:&lt;port&gt;</code></td>
+      <td>같은 Node와 다른 Node 모두 Pod Network를 통해 통신</td>
+    </tr>
+    <tr>
+      <td>Service Backend</td>
+      <td><code class="language-plaintext highlighter-rouge">&lt;service-name&gt;:&lt;port&gt;</code></td>
+      <td>변하는 Pod 집합을 Service가 안정적인 이름으로 연결</td>
+    </tr>
+    <tr>
+      <td>Cluster 외부 Client</td>
+      <td>NodePort, LoadBalancer, Ingress·Gateway 등</td>
+      <td>외부 노출 방식과 Infrastructure 필요</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>같은 Pod의 Container는 같은 IP Address를 사용하므로 서로 다른 Port에서 Listen해야 한다. 다른 Pod와는 Cluster 전체에서 고유한 Pod IP로 통신할 수 있지만 Pod 교체 시 IP가 바뀔 수 있다.</p>
+
+<p>Pod Network는 CNI(Container Network Interface) 구현이 구성한다. <code class="language-plaintext highlighter-rouge">kubeadm</code>으로 Cluster를 초기화한 것만으로 Pod 간 Network가 완성되는 것은 아니며 Calico, Flannel 등 Cluster에 맞는 CNI Plugin을 설치해야 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Worker 1                          Worker 2
+Pod A: 10.244.1.10                Pod B: 10.244.2.20
+        │                                 │
+        └────── CNI가 구성한 Pod Network ─┘
+</code></pre></div></div>
+
+<p>CNI 구현에 따라 VXLAN 같은 Overlay, Native Routing 또는 다른 Data Plane 방식을 사용할 수 있다. 구현 방식은 달라도 NetworkPolicy 등 의도적인 제한이 없다면 Pod가 Node 경계를 넘어 통신할 수 있는 Kubernetes Network Model을 제공해야 한다.</p>
+
+<h2 id="2--service와-외부-노출-resource">2 ) Service와 외부 노출 Resource</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Service</strong></p>
+
+  <p>하나 이상의 Backend Pod에 안정적인 Network Endpoint와 Service Discovery 기능을 제공하는 Kubernetes Resource이다.</p>
+</blockquote>
+
+<p>Service와 관련 구성은 다음과 같이 구분한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>설정</th>
+      <th>용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ClusterIP</td>
+      <td><code class="language-plaintext highlighter-rouge">type: ClusterIP</code></td>
+      <td>Cluster 내부 Virtual IP와 Load Balancing</td>
+    </tr>
+    <tr>
+      <td>NodePort</td>
+      <td><code class="language-plaintext highlighter-rouge">type: NodePort</code></td>
+      <td>각 Node의 IP와 지정 Port로 외부 노출</td>
+    </tr>
+    <tr>
+      <td>LoadBalancer</td>
+      <td><code class="language-plaintext highlighter-rouge">type: LoadBalancer</code></td>
+      <td>외부 Load Balancer 구현과 연동</td>
+    </tr>
+    <tr>
+      <td>ExternalName</td>
+      <td><code class="language-plaintext highlighter-rouge">type: ExternalName</code></td>
+      <td>Service DNS를 외부 DNS 이름의 CNAME으로 연결</td>
+    </tr>
+    <tr>
+      <td>Headless</td>
+      <td><code class="language-plaintext highlighter-rouge">clusterIP: None</code></td>
+      <td>Virtual IP 없이 Backend별 DNS Record 제공</td>
+    </tr>
+    <tr>
+      <td>Selector가 없는 Service</td>
+      <td>Selector 생략, EndpointSlice 별도 관리</td>
+      <td>Cluster 밖 Backend나 수동 Endpoint 연결</td>
+    </tr>
+    <tr>
+      <td>External IP</td>
+      <td><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code></td>
+      <td>외부에서 Node로 Routing되는 특정 IP를 Service에 연결</td>
+    </tr>
+    <tr>
+      <td>Ingress</td>
+      <td>별도 Resource</td>
+      <td>HTTP·HTTPS의 Host와 Path 기반 Routing</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>External IP, Headless와 Selector가 없는 Service는 별도의 <code class="language-plaintext highlighter-rouge">type</code> 값이 아니라 Service를 구성하는 방식이다. Ingress도 Service Type이 아니며 실제 Traffic 처리를 위해 Ingress Controller가 필요하다.</p>
+
+<h2 id="3--service-backend-deployment-생성">3 ) Service Backend Deployment 생성</h2>
+
+<hr />
+
+<p>Service 실습에 사용할 Echo Server Deployment를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-service-deployment.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-service-deployment</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">amsy810/echo-nginx:v2.0</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>Master 또는 kubeconfig가 설정된 관리 Client에서 Deployment를 생성하고 Pod가 Ready 상태가 될 때까지 기다린다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-service-deployment.yaml
+kubectl rollout status deployment/sample-service-deployment
+</code></pre></div></div>
+
+<p>Pod IP와 배치된 Worker를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="se">\</span>
+  <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-service-app <span class="se">\</span>
+  <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>Pod마다 서로 다른 IP가 할당되며 Scaling, Update와 장애 복구 과정에서 Pod가 다시 생성되면 IP도 바뀔 수 있다.</p>
+
+<h2 id="4--clusterip-service-생성">4 ) ClusterIP Service 생성</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>ClusterIP</strong></p>
+
+  <p>Cluster 내부에서만 접근할 수 있는 Virtual IP를 제공하는 기본 Service Type이다.</p>
+</blockquote>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-clusterip.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-clusterip</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">type: ClusterIP</code></td>
+      <td>Cluster 내부 Virtual IP 사용</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ports[].port</code></td>
+      <td>Client가 Service에 요청할 Port</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ports[].targetPort</code></td>
+      <td>Service가 Backend Pod에 전달할 Port</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">selector</code></td>
+      <td>Backend로 사용할 Pod Label 조건</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">containerPort</code>는 Container가 사용할 Port를 문서화하는 Field이며 실제 Process가 해당 Port에서 Listen하도록 만들지는 않는다. Service의 <code class="language-plaintext highlighter-rouge">targetPort</code>는 실제 Application이 Listen하는 Port와 일치해야 한다.</p>
+
+<p>Service를 생성하고 할당된 ClusterIP를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-clusterip.yaml
+kubectl get service sample-clusterip
+kubectl describe service sample-clusterip
+</code></pre></div></div>
+
+<p>Selector와 일치하는 Backend가 EndpointSlice에 등록되었는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get endpointslices <span class="se">\</span>
+  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span>sample-clusterip
+</code></pre></div></div>
+
+<p>Endpoint가 비어 있다면 다음 항목을 확인한다.</p>
+
+<ul>
+  <li>
+    <p>Service의 <code class="language-plaintext highlighter-rouge">spec.selector</code>와 Pod Label이 일치하는가</p>
+  </li>
+  <li>
+    <p>Pod가 Ready 상태인가</p>
+  </li>
+  <li>
+    <p>Service의 <code class="language-plaintext highlighter-rouge">targetPort</code>와 Application의 Listen Port가 일치하는가</p>
+  </li>
+</ul>
+
+<h2 id="5--service-traffic-전달-흐름">5 ) Service Traffic 전달 흐름</h2>
+
+<hr />
+
+<p>Service Manifest를 적용한 뒤 Control Plane과 Worker는 다음 역할을 수행한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client의 kubectl apply
+                │
+                ▼
+            API Server
+                │
+                ├── EndpointSlice Controller가 대상 Pod 기록
+                ├── CoreDNS가 Service DNS Record 제공
+                └── Service Proxy가 참조할 상태 제공
+                                  │
+                                  ▼
+                    Worker의 kube-proxy 또는
+                    CNI Service 구현이 Data Plane 구성
+                                  │
+                                  ▼
+                         Backend Pod의 targetPort
+</code></pre></div></div>
+
+<p>Kubernetes의 기본 Service Proxy 구현은 kube-proxy이지만 CNI 구현이 Service Data Plane을 대신 구성할 수도 있다. Control Plane은 Service와 EndpointSlice 상태를 관리하고 실제 Packet 전달은 Worker의 Network Data Plane에서 처리된다.</p>
+
+<p>Cluster 내부 요청을 보낼 Test Pod를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl run testpod <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>amsy810/tools:v2.0 <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>Never
+
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/testpod <span class="se">\</span>
+  <span class="nt">--timeout</span><span class="o">=</span>60s
+</code></pre></div></div>
+
+<p>Test Pod에서 Service DNS 이름으로 여러 번 요청한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
+  curl <span class="nt">-s</span> http://sample-clusterip:8080
+</code></pre></div></div>
+
+<p>응답에 Backend Pod 정보가 포함되어 있다면 명령을 여러 번 실행하여 서로 다른 Pod가 선택되는지 확인할 수 있다. 다만 Service는 모든 HTTP 요청을 항상 정확히 같은 비율로 분배한다고 보장하지 않는다. Connection 재사용과 Service Proxy 구현에 따라 같은 Backend가 연속해서 선택될 수 있다.</p>
+
+<h2 id="6--여러-port를-제공하는-service">6 ) 여러 Port를 제공하는 Service</h2>
+
+<hr />
+
+<p>하나의 Service에 여러 Port를 정의할 수 있다. 여러 Port를 사용하면 각 항목을 구분할 수 있도록 <code class="language-plaintext highlighter-rouge">name</code>을 지정한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-clusterip-multi.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-clusterip-multi</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8443</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">443</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+</code></pre></div></div>
+
+<p>Service를 적용하고 Port 목록을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-clusterip-multi.yaml
+kubectl describe service sample-clusterip-multi
+</code></pre></div></div>
+
+<p>이 예제의 Backend Image는 <code class="language-plaintext highlighter-rouge">80</code> Port에서만 Listen하므로 <code class="language-plaintext highlighter-rouge">8080</code> 요청은 처리할 수 있지만 <code class="language-plaintext highlighter-rouge">8443</code>에서 <code class="language-plaintext highlighter-rouge">443</code>으로 전달한 요청은 응답하지 않는다. Service에 Port를 정의했다는 사실만으로 Container Process가 해당 Port에서 실행되는 것은 아니다.</p>
+
+<h2 id="7--named-port로-서로-다른-container-port-연결">7 ) Named Port로 서로 다른 Container Port 연결</h2>
+
+<hr />
+
+<p>Service의 <code class="language-plaintext highlighter-rouge">targetPort</code>에는 숫자 대신 Pod의 Port 이름을 사용할 수 있다. Pod마다 실제 Port 번호가 달라도 같은 이름을 부여하면 하나의 Service가 해당 이름을 기준으로 연결한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-named-port-pods.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-named-port-pod-80</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-named-port-app</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">amsy810/echo-nginx:v2.0</span>
+      <span class="na">ports</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+          <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-named-port-pod-81</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-named-port-app</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">amsy810/echo-nginx:v2.0</span>
+      <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">NGINX_PORT</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">81"</span>
+      <span class="na">ports</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+          <span class="na">containerPort</span><span class="pi">:</span> <span class="m">81</span>
+</code></pre></div></div>
+
+<p>두 Pod의 Port 이름은 모두 <code class="language-plaintext highlighter-rouge">http</code>이지만 실제 Port는 <code class="language-plaintext highlighter-rouge">80</code>과 <code class="language-plaintext highlighter-rouge">81</code>이다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-named-port-service.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-named-port-service</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">http</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-named-port-app</span>
+</code></pre></div></div>
+
+<p>Pod와 Service를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-named-port-pods.yaml
+kubectl apply <span class="nt">-f</span> sample-named-port-service.yaml
+</code></pre></div></div>
+
+<p>Pod 상태와 EndpointSlice의 Port를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-named-port-app
+kubectl get endpointslices <span class="se">\</span>
+  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span>sample-named-port-service <span class="se">\</span>
+  <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<p>Service는 각 Pod에서 <code class="language-plaintext highlighter-rouge">http</code>라는 이름에 대응하는 실제 Port로 Traffic을 전달한다.</p>
+
+<h2 id="8--service-discovery">8 ) Service Discovery</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Service Discovery</strong></p>
+
+  <p>Client가 직접 Backend Pod 목록을 관리하지 않고 Service 이름이나 Cluster 상태를 이용해 접근 대상을 찾는 기능이다.</p>
+</blockquote>
+
+<p>Cluster 내부 Pod는 주로 다음 두 방식으로 Service를 찾는다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>환경 변수</td>
+      <td>Pod 생성 시점에 존재하는 Service 정보를 kubelet이 주입</td>
+    </tr>
+    <tr>
+      <td>DNS</td>
+      <td>CoreDNS가 Service 이름을 ClusterIP 또는 Backend DNS Record로 해석</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Kubernetes API를 직접 사용하는 Application은 EndpointSlice를 조회할 수도 있지만 일반적인 Application은 Service DNS를 사용하는 방식이 적합하다.</p>
+
+<h3 id="환경-변수를-이용한-discovery">환경 변수를 이용한 Discovery</h3>
+
+<p>Service 이름의 <code class="language-plaintext highlighter-rouge">-</code>는 <code class="language-plaintext highlighter-rouge">_</code>로 바뀌고 대문자로 변환되어 환경 변수 이름에 사용된다. <code class="language-plaintext highlighter-rouge">sample-clusterip</code> Service는 다음과 같은 변수를 제공할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SAMPLE_CLUSTERIP_SERVICE_HOST=&lt;CLUSTER_IP&gt;
+SAMPLE_CLUSTERIP_SERVICE_PORT=8080
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">testpod</code>가 <code class="language-plaintext highlighter-rouge">sample-clusterip</code> Service보다 나중에 만들어졌다면 환경 변수를 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">env</span> | <span class="nb">grep </span>SAMPLE_CLUSTERIP
+</code></pre></div></div>
+
+<p>환경 변수는 Pod가 생성될 때 주입된다. Service보다 먼저 만들어진 Pod에는 나중에 생성된 Service 환경 변수가 자동으로 추가되지 않으므로 환경 변수 방식을 사용할 때는 Service를 먼저 생성해야 한다.</p>
+
+<h3 id="dns를-이용한-discovery">DNS를 이용한 Discovery</h3>
+
+<p>Service의 기본 FQDN은 다음 형식이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;service-name&gt;.&lt;namespace&gt;.svc.cluster.local
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">default</code> Namespace의 <code class="language-plaintext highlighter-rouge">sample-clusterip</code> Service는 다음 이름으로 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
+  dig sample-clusterip.default.svc.cluster.local
+</code></pre></div></div>
+
+<p>같은 Namespace에서는 Service 이름만으로 접근할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
+  curl <span class="nt">-s</span> http://sample-clusterip:8080
+</code></pre></div></div>
+
+<p>다른 Namespace에서는 <code class="language-plaintext highlighter-rouge">&lt;service-name&gt;.&lt;namespace&gt;</code> 또는 FQDN을 사용한다. DNS는 Service가 먼저 만들어졌는지와 관계없이 현재 Service 정보를 조회할 수 있어 환경 변수 방식보다 일반적으로 사용하기 편하다.</p>
+
+<h2 id="9--clusterip의-port와-고정-ip">9 ) ClusterIP의 Port와 고정 IP</h2>
+
+<hr />
+
+<p>ClusterIP Service의 Port 관계는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
+  │ sample-clusterip:8080
+  ▼
+Service port: 8080
+  │
+  ▼
+Pod targetPort: 80
+</code></pre></div></div>
+
+<p>Service를 생성할 때 <code class="language-plaintext highlighter-rouge">.spec.clusterIP</code>를 직접 지정할 수 있다. 지정할 주소는 API Server에 설정된 Service CIDR 안에 있어야 하고 다른 Service가 사용하지 않는 주소여야 한다.</p>
+
+<p>Master에서 Service CIDR을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo grep </span>service-cluster-ip-range <span class="se">\</span>
+  /etc/kubernetes/manifests/kube-apiserver.yaml
+
+kubectl get services <span class="nt">-A</span> <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>실습 Cluster의 Service CIDR과 사용 현황을 확인한 뒤 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-clusterip-vip.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-clusterip-vip</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">clusterIP</span><span class="pi">:</span> <span class="s">10.101.106.108</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">10.101.106.108</code>은 예시 주소이다. 실제 Service CIDR 밖에 있거나 이미 할당된 주소이면 API Server가 생성을 거부하므로 환경에 맞는 미사용 주소로 바꾼다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-clusterip-vip.yaml
+kubectl get service sample-clusterip-vip
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">.spec.clusterIP</code>는 Service 생성 후 변경할 수 없는 Field이다. 변경하려면 Service를 삭제하고 다시 생성해야 하므로 Client 설정에는 고정 IP보다 Service DNS 이름을 사용하는 편이 적합하다.</p>
+
+<p>ClusterIP 직접 접근은 DNS 문제와 Service Data Plane을 구분하여 확인하는 진단 과정에서 사용할 수 있다. DNS 조회 비용을 피하기 위해 Application 설정에 ClusterIP를 고정하는 방식은 Pod와 Service 운영의 유연성을 떨어뜨린다.</p>
+
+<h2 id="10--externalips-설정">10 ) externalIPs 설정</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>현재 상태: Deprecated</strong></p>
+
+  <p><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code>는 Kubernetes v1.36부터 Deprecated 상태이다. 수업에서 진행한 방식은 학습 기록을 위해 내용을 유지하지만, 신규 구성에서는 External Load Balancer Controller나 Gateway API 를 고려해야 한다.</p>
+</blockquote>
+
+<p><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code>는 외부에서 하나 이상의 Cluster Node로 Routing되는 IP Address와 Service Port로 들어온 Traffic을 Backend에 전달한다. Kubernetes는 해당 외부 IP를 할당하거나 Network Route를 만들어 주지 않으며 Cluster 관리자가 Infrastructure를 준비해야 한다.</p>
+
+<p>Worker 주소를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>다음 내용은 <code class="language-plaintext highlighter-rouge">192.168.0.201</code>과 <code class="language-plaintext highlighter-rouge">192.168.0.202</code>가 실제 Worker 주소이고 외부 Client에서 해당 주소로 Routing할 수 있는 실습 환경을 가정한다. <code class="language-plaintext highlighter-rouge">sample-externalip.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-externalip</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">externalIPs</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">192.168.0.201</span>
+    <span class="pi">-</span> <span class="s">192.168.0.202</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+</code></pre></div></div>
+
+<p>환경의 실제 Routing 가능한 IP로 바꾼 뒤 Service를 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-externalip.yaml
+kubectl get service sample-externalip
+</code></pre></div></div>
+
+<p>Cluster 외부 Linux Client에서 접근한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-s</span> http://192.168.0.201:8080
+curl <span class="nt">-s</span> http://192.168.0.202:8080
+</code></pre></div></div>
+
+<p>Node IP를 <code class="language-plaintext highlighter-rouge">externalIPs</code>에 넣는 동작은 Network 구성에 따라 달라질 수 있다. 해당 IP가 외부에서 Node까지 Routing되고 방화벽과 Service Data Plane이 Traffic을 허용해야 한다.</p>
+
+<h2 id="11--nodeport-service">11 ) NodePort Service</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>NodePort</strong></p>
+
+  <p>각 Node의 접근 가능한 IP Address와 지정된 Port를 통해 Service를 외부에 노출하는 Type이다.</p>
+</blockquote>
+
+<p>NodePort Service는 ClusterIP 기능을 기반으로 하고 각 Node에 동일한 NodePort를 제공한다. 기본 할당 범위는 <code class="language-plaintext highlighter-rouge">30000</code>~<code class="language-plaintext highlighter-rouge">32767</code>이며 값을 생략하면 Control Plane이 사용 가능한 Port를 할당한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-nodeport.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-nodeport</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">NodePort</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">nodePort</span><span class="pi">:</span> <span class="m">30080</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+</code></pre></div></div>
+
+<p>Service를 생성하고 ClusterIP와 NodePort를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-nodeport.yaml
+kubectl get service sample-nodeport
+</code></pre></div></div>
+
+<p>외부 Client에서 접근 가능한 Node IP로 요청한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-s</span> http://&lt;NODE_IP&gt;:30080
+</code></pre></div></div>
+
+<p>NodePort가 모든 Network Interface에 일반 Process처럼 <code class="language-plaintext highlighter-rouge">0.0.0.0</code>으로 Listen한다고 단정할 수는 없다. kube-proxy 또는 CNI Service 구현이 Packet 처리 규칙을 구성하며 NodePort Address 설정, 방화벽과 Network Route에 따라 접근 가능한 Node IP가 달라질 수 있다.</p>
+
+<p>Control Plane Node를 포함한 모든 Node IP로 항상 접근할 수 있는 것도 아니다. 해당 Node에서 Service Data Plane이 동작하고 방화벽과 외부 Routing이 허용되는지 확인해야 한다.</p>
+
+<h2 id="12--loadbalancer-service">12 ) LoadBalancer Service</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>LoadBalancer</strong></p>
+
+  <p>Cloud Provider 또는 별도의 Load Balancer Controller와 연동하여 Cluster 외부 주소를 Service에 제공하는 Type이다.</p>
+</blockquote>
+
+<p>LoadBalancer Service는 기본적으로 ClusterIP 기능을 포함하고 구현에 따라 NodePort를 통해 Node로 Traffic을 전달할 수 있다. 환경에 따라 NodePort 할당을 사용하지 않는 LoadBalancer 구성도 가능하다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-loadbalancer.yaml</code>로 저장한다. 앞서 사용한 <code class="language-plaintext highlighter-rouge">30080</code>과 충돌하지 않도록 이 예제에서는 <code class="language-plaintext highlighter-rouge">30081</code>을 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-loadbalancer</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">nodePort</span><span class="pi">:</span> <span class="m">30081</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
+</code></pre></div></div>
+
+<p>Service를 적용하고 외부 주소 할당 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-loadbalancer.yaml
+kubectl get service sample-loadbalancer <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>Public Cloud처럼 LoadBalancer 연동을 제공하는 환경에서는 Controller가 외부 IP Address 또는 Hostname을 할당한다. 외부 Load Balancer는 정상 Node로 Traffic을 전달하며 Node 장애를 감지하고 대상에서 제외하기까지 일시적인 지연이 발생할 수 있다.</p>
+
+<p>외부 Load Balancer 구현이 없는 직접 구축 Cluster에서는 <code class="language-plaintext highlighter-rouge">EXTERNAL-IP</code>가 <code class="language-plaintext highlighter-rouge">&lt;pending&gt;</code> 상태로 유지될 수 있다. 이는 Service Object가 잘못되었다는 뜻이 아니라 외부 주소를 할당할 Controller가 없거나 아직 처리를 완료하지 않았다는 뜻이다.</p>
+
+<p>Bare Metal 환경에서는 MetalLB와 같은 Load Balancer 구현을 별도로 구성할 수 있다. 이 문서에서는 외부 Package 설치나 MetalLB 배포를 진행하지 않는다.</p>
+
+<h2 id="13--service-유형-비교">13 ) Service 유형 비교</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>구성</th>
+      <th>접근 범위</th>
+      <th>Infrastructure 요구 사항</th>
+      <th>현재 사용 판단</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ClusterIP</td>
+      <td>Cluster 내부</td>
+      <td>CNI와 Service Data Plane</td>
+      <td>내부 Service의 기본 선택</td>
+    </tr>
+    <tr>
+      <td>NodePort</td>
+      <td>Node IP와 Port</td>
+      <td>외부 Route와 방화벽</td>
+      <td>Test 또는 외부 Load Balancer의 Backend</td>
+    </tr>
+    <tr>
+      <td>LoadBalancer</td>
+      <td>외부 Load Balancer 주소</td>
+      <td>Cloud 연동 또는 Load Balancer Controller</td>
+      <td>외부 L4 Service 노출</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">externalIPs</code></td>
+      <td>외부에서 Routing되는 지정 IP</td>
+      <td>IP 할당과 Route를 관리자가 구성</td>
+      <td>Deprecated, 기존 구성 이해용</td>
+    </tr>
+    <tr>
+      <td>ExternalName</td>
+      <td>Cluster DNS를 외부 FQDN에 연결</td>
+      <td>CoreDNS와 외부 DNS</td>
+      <td>DNS 수준 외부 Service 연결</td>
+    </tr>
+    <tr>
+      <td>Headless</td>
+      <td>개별 Backend DNS</td>
+      <td>CoreDNS</td>
+      <td>StatefulSet과 개별 Pod Discovery</td>
+    </tr>
+    <tr>
+      <td>Ingress</td>
+      <td>외부 HTTP·HTTPS</td>
+      <td>Ingress Controller</td>
+      <td>Host·Path 기반 L7 Routing</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>실습에서는 NodePort로 간단히 외부 접근을 확인할 수 있다. 운영 환경에서는 직접 Node IP를 Client에 고정하기보다 Infrastructure에 맞는 Load Balancer, Ingress 또는 Gateway API를 이용하여 장애 처리와 주소 관리를 분리한다.</p>
+
+<h2 id="14--실습-resource-정리">14 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>Master 또는 관리 Client에서 외부 노출 Service부터 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-loadbalancer.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-nodeport.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-externalip.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-clusterip-vip.yaml <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>나머지 Service, Pod와 Deployment를 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-named-port-service.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-named-port-pods.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-clusterip-multi.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-clusterip.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete pod testpod <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-service-deployment.yaml <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>남아 있는 Resource를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get services,deployments,pods
+</code></pre></div></div>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>같은 Pod의 Container는 <code class="language-plaintext highlighter-rouge">localhost</code>로 통신하고 서로 다른 Pod는 CNI가 구성한 Pod Network를 사용한다.</p>
+    </li>
+    <li>
+      <p>Service는 변하는 Pod 집합에 안정적인 ClusterIP와 DNS 이름을 제공하고 EndpointSlice가 Backend 정보를 기록한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">port</code>는 Client가 Service에 접근할 Port이고 <code class="language-plaintext highlighter-rouge">targetPort</code>는 Backend Application이 Listen하는 Port이다.</p>
+    </li>
+    <li>
+      <p>Service Discovery에는 환경 변수와 DNS를 사용할 수 있으며 일반적인 Application 연결에는 DNS가 적합하다.</p>
+    </li>
+    <li>
+      <p>ClusterIP는 내부 통신, NodePort는 Node 주소를 통한 외부 접근, LoadBalancer는 외부 Load Balancer 구현과의 연동에 사용한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code>는 Kubernetes가 IP나 Route를 제공하지 않으며 현재 Deprecated 상태이다.</p>
+    </li>
+    <li>
+      <p>Control Plane은 Service와 EndpointSlice 상태를 관리하고 Worker의 kube-proxy 또는 CNI Service 구현이 실제 Traffic 경로를 구성한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-30-kubernetes-job-cronjob/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Job과 CronJob</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1788010223"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788010223"></script>
+  </body>
+</html>

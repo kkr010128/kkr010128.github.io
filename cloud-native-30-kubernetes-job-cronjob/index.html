@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Kubernetes Job과 CronJob | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="완료형 Workload인 Job의 재시도·병렬 실행·자동 정리와 CronJob의 Schedule·동시 실행·History 관리 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/">
+<meta property="og:title" content="Kubernetes Job과 CronJob | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="완료형 Workload인 Job의 재시도·병렬 실행·자동 정리와 CronJob의 Schedule·동시 실행·History 관리 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes Job과 CronJob | renamed.log">
+<meta name="twitter:description" content="완료형 Workload인 Job의 재시도·병렬 실행·자동 정리와 CronJob의 Schedule·동시 실행·History 관리 정리">
+
+  <meta property="article:published_time" content="2026-08-28T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788010223" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788010223" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788010223">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788010223" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1788010223">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Kubernetes Job과 CronJob | renamed.log",
+    "description": "완료형 Workload인 Job의 재시도·병렬 실행·자동 정리와 CronJob의 Schedule·동시 실행·History 관리 정리",
+    "url": "https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/",
+    "datePublished": "2026-08-28T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Kubernetes Job과 CronJob</h1>
+    
+      <p class="post-head__description">완료형 Workload인 Job의 재시도·병렬 실행·자동 정리와 CronJob의 Schedule·동시 실행·History 관리 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 8월 28일 · 7분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Kubernetes">Kubernetes</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>Deployment와 ReplicaSet은 Application이 계속 실행되는 상태를 유지하지만 Job은 정해진 작업이 성공적으로 끝나는 상태를 목표로 한다. CronJob은 Schedule에 따라 Job을 반복 생성하므로 완료 조건과 재시도 정책을 먼저 이해해야 한다.</p>
+
+<h2 id="1--run-to-completion-workload">1 ) Run-to-Completion Workload</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Run-to-Completion</strong></p>
+
+  <p>계속 실행되는 Service가 아니라 정해진 처리를 수행하고 정상 종료하는 것을 목표로 하는 Workload이다.</p>
+</blockquote>
+
+<p>Job은 Container를 이용하여 한 번 또는 지정한 횟수만큼 작업을 완료한다. 여러 Pod를 병렬로 실행할 수도 있으며 성공한 Pod 수가 원하는 완료 횟수에 도달하도록 관리한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>ReplicaSet·Deployment</th>
+      <th>Job</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>목표</td>
+      <td>지정한 수의 Pod가 계속 실행</td>
+      <td>지정한 작업이 성공적으로 완료</td>
+    </tr>
+    <tr>
+      <td>정상 종료된 Pod</td>
+      <td>부족한 Replica로 보고 다시 생성</td>
+      <td>성공 횟수로 계산</td>
+    </tr>
+    <tr>
+      <td>대표 사례</td>
+      <td>Web Server, API Server</td>
+      <td>Batch, Migration, Report 생성</td>
+    </tr>
+    <tr>
+      <td>재시도 기준</td>
+      <td>실행 중인 Pod 수</td>
+      <td>작업 성공·실패 상태와 <code class="language-plaintext highlighter-rouge">backoffLimit</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>ReplicaSet은 정상 종료 횟수를 작업 완료로 계산하지 않으므로 Batch 처리에는 Job을 사용한다.</p>
+
+<h2 id="2--job의-control-plane과-worker-동작">2 ) Job의 Control Plane과 Worker 동작</h2>
+
+<hr />
+
+<p>Job Manifest를 적용하면 다음 순서로 처리된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client의 kubectl apply
+                │
+                ▼
+            API Server
+                │ Job의 원하는 상태 저장
+                ▼
+          Job Controller
+                │ 필요한 Pod 생성
+                ▼
+             Scheduler
+                │ Worker 선택
+                ▼
+Worker의 kubelet ──▶ Container Runtime ──▶ Command 실행
+                │
+                └── 성공·실패 상태를 API Server에 보고
+</code></pre></div></div>
+
+<p>Job Controller는 성공한 Pod 수와 실패 상태를 확인한다. 작업이 실패하면 <code class="language-plaintext highlighter-rouge">restartPolicy</code>와 <code class="language-plaintext highlighter-rouge">backoffLimit</code>에 따라 같은 Pod의 Container를 재시작하거나 새로운 Pod를 생성한다.</p>
+
+<h2 id="3--job-생성과-완료-확인">3 ) Job 생성과 완료 확인</h2>
+
+<hr />
+
+<p>다음 예제는 시작 메시지를 출력하고 10초 동안 대기한 뒤 완료 메시지를 출력한다. 내용을 <code class="language-plaintext highlighter-rouge">sample-job.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">hello-job</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">hello</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">sh</span>
+            <span class="pi">-</span> <span class="s">-c</span>
+            <span class="pi">-</span> <span class="pi">|</span>
+              <span class="s">echo "Job 시작"</span>
+              <span class="s">sleep 10</span>
+              <span class="s">echo "Job 완료"</span>
+      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Never</span>
+  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">apiVersion: batch/v1</code></td>
+      <td>Job이 속한 Batch API Version</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.template</code></td>
+      <td>작업을 실행할 Pod Template</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">restartPolicy</code></td>
+      <td>실패한 Container 또는 Pod를 다시 실행하는 방식</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">backoffLimit</code></td>
+      <td>Job 실패를 판단하기 전 허용할 재시도 한도</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Master 또는 kubeconfig가 설정된 관리 Client에서 Job을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-job.yaml
+</code></pre></div></div>
+
+<p>Job과 Job이 만든 Pod를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get <span class="nb">jobs
+</span>kubectl get pods <span class="nt">-l</span> job-name<span class="o">=</span>hello-job
+</code></pre></div></div>
+
+<p>작업이 완료될 때까지 기다린 뒤 Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span><span class="nb">complete</span> <span class="se">\</span>
+  job/hello-job <span class="se">\</span>
+  <span class="nt">--timeout</span><span class="o">=</span>120s
+
+kubectl logs job/hello-job
+</code></pre></div></div>
+
+<p>정상적으로 완료되면 Job의 <code class="language-plaintext highlighter-rouge">COMPLETIONS</code>가 <code class="language-plaintext highlighter-rouge">1/1</code>이 되고 Pod의 <code class="language-plaintext highlighter-rouge">STATUS</code>는 <code class="language-plaintext highlighter-rouge">Completed</code>로 표시된다. 완료된 Pod는 실행 중이지 않지만 Log와 종료 상태 확인을 위해 남아 있을 수 있다.</p>
+
+<h2 id="4--restartpolicy와-실패-재시도">4 ) restartPolicy와 실패 재시도</h2>
+
+<hr />
+
+<p>Job의 <code class="language-plaintext highlighter-rouge">spec.template.spec.restartPolicy</code>에는 <code class="language-plaintext highlighter-rouge">Never</code> 또는 <code class="language-plaintext highlighter-rouge">OnFailure</code>만 지정할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>값</th>
+      <th>실패 시 동작</th>
+      <th>확인 특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Never</code></td>
+      <td>실패한 Pod를 다시 사용하지 않고 Job Controller가 새 Pod를 생성할 수 있음</td>
+      <td>실패한 Pod가 여러 개 남을 수 있음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">OnFailure</code></td>
+      <td>같은 Pod 안에서 실패한 Container를 다시 시작</td>
+      <td>Pod의 <code class="language-plaintext highlighter-rouge">RESTARTS</code> 증가</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-error-job.yaml</code>로 저장한다. 존재하지 않는 경로를 <code class="language-plaintext highlighter-rouge">ls</code>로 조회하므로 Container가 실패한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">error-job</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">error-job</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">ls</span>
+            <span class="pi">-</span> <span class="s">unvalid path</span>
+      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Never</span>
+  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
+</code></pre></div></div>
+
+<p>Job을 적용하고 실패 상태와 재시도 Pod를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-error-job.yaml
+kubectl get job error-job
+kubectl get pods <span class="nt">-l</span> job-name<span class="o">=</span>error-job
+kubectl describe job error-job
+</code></pre></div></div>
+
+<p>실패한 Pod의 이름을 확인하여 Log를 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl logs &lt;ERROR_JOB_POD_NAME&gt;
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">backoffLimit</code>는 단순히 Container를 정확히 해당 횟수만큼 실행한다는 뜻이 아니라 Job Controller가 실패를 허용하고 재시도할 한도를 설정한다. 재시도 사이에는 점차 증가하는 대기 시간이 적용될 수 있다.</p>
+
+<h2 id="5--completions와-parallelism">5 ) completions와 parallelism</h2>
+
+<hr />
+
+<p>Job의 완료 횟수와 동시에 실행할 수 있는 Pod 수를 조정한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+      <th>기본 동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">completions</code></td>
+      <td>Job이 완료되기 위해 필요한 성공 횟수</td>
+      <td>일반적인 비병렬 Job에서는 1회 완료</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">parallelism</code></td>
+      <td>동시에 실행할 수 있는 최대 Pod 수</td>
+      <td>기본값 1</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">backoffLimit</code></td>
+      <td>실패 재시도 한도</td>
+      <td>명시하지 않으면 기본값 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>4번 성공해야 하며 동시에 최대 2개 Pod를 실행하는 예시는 다음과 같다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">parallel-job</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">completions</span><span class="pi">:</span> <span class="m">4</span>
+  <span class="na">parallelism</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">worker</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">sh</span>
+            <span class="pi">-</span> <span class="s">-c</span>
+            <span class="pi">-</span> <span class="pi">|</span>
+              <span class="s">echo "$(hostname) 작업 시작"</span>
+              <span class="s">sleep 10</span>
+              <span class="s">echo "$(hostname) 작업 완료"</span>
+      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Never</span>
+  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
+</code></pre></div></div>
+
+<p>내용을 <code class="language-plaintext highlighter-rouge">sample-parallel-job.yaml</code>로 저장한 뒤 적용하고 Pod 수를 관찰한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-parallel-job.yaml
+kubectl get pods <span class="nt">-l</span> job-name<span class="o">=</span>parallel-job <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>한 번만 수행할 작업에서는 <code class="language-plaintext highlighter-rouge">completions: 1</code>, <code class="language-plaintext highlighter-rouge">parallelism: 1</code>과 낮은 <code class="language-plaintext highlighter-rouge">backoffLimit</code>를 명시할 수 있다. 여러 작업을 병렬 처리할 때는 Worker Resource와 외부 System의 처리 용량을 고려하여 <code class="language-plaintext highlighter-rouge">parallelism</code>을 조정한다.</p>
+
+<p>한 번 실패하면 재시도하지 않아야 하는 Task는 <code class="language-plaintext highlighter-rouge">backoffLimit: 0</code>으로 설정할 수 있다. 반대로 일시적인 실패가 발생할 수 있는 병렬 작업은 허용할 재시도 횟수를 정해 두어야 한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">parallelism: 1</code>은 하나의 Job 안에서 동시에 실행되는 Pod 수를 제한한다. 서로 다른 여러 Job의 실행 순서를 보장하지는 않는다. Job이 동일 작업을 다시 시도할 수 있으므로 외부 Data를 변경하는 작업은 중복 실행되어도 안전하도록 설계한다.</p>
+
+<h2 id="6--완료된-job-자동-정리">6 ) 완료된 Job 자동 정리</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">spec.ttlSecondsAfterFinished</code>를 설정하면 Job이 <code class="language-plaintext highlighter-rouge">Complete</code> 또는 <code class="language-plaintext highlighter-rouge">Failed</code> 상태가 된 뒤 지정한 시간이 지나면 TTL Controller가 Job과 종속 Resource를 정리할 수 있다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-ttl-job.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-ttl-job</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ttlSecondsAfterFinished</span><span class="pi">:</span> <span class="m">30</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">sample-job</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">sh</span>
+            <span class="pi">-</span> <span class="s">-c</span>
+            <span class="pi">-</span> <span class="pi">|</span>
+              <span class="s">echo "Job 시작"</span>
+              <span class="s">sleep 10</span>
+              <span class="s">echo "Job 완료"</span>
+      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">OnFailure</span>
+  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
+</code></pre></div></div>
+
+<p>Job을 적용하고 완료 후 삭제되는 과정을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-ttl-job.yaml
+kubectl get job sample-ttl-job <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ttlSecondsAfterFinished: 30</code>은 Job 실행 시작 후 30초가 아니라 Job이 완료된 시점부터 30초를 계산한다.</p>
+
+<h2 id="7--명령형-job-생성">7 ) 명령형 Job 생성</h2>
+
+<hr />
+
+<p>간단한 일회성 작업은 Manifest 없이 생성할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create job my-job <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
+  <span class="nt">--</span> <span class="nb">date</span>
+</code></pre></div></div>
+
+<p>Job 상태와 출력 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get job my-job
+kubectl logs job/my-job
+</code></pre></div></div>
+
+<p>명령형 생성은 짧은 확인에는 편리하지만 재시도, 병렬성, TTL과 같은 설정을 반복 관리하려면 Manifest를 사용하는 편이 적합하다.</p>
+
+<h2 id="8--cronjob">8 ) CronJob</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>CronJob</strong></p>
+
+  <p>Cron 형식의 Schedule에 따라 Job Object를 반복 생성하는 Workload Controller이다.</p>
+</blockquote>
+
+<p>CronJob이 Container를 직접 실행하는 것은 아니다. CronJob Controller가 Schedule에 맞춰 Job을 생성하고, Job Controller가 Pod를 만들며 Worker의 kubelet과 Container Runtime이 실제 Command를 실행한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CronJob Controller
+      │ Schedule에 따라 Job 생성
+      ▼
+  Job Controller
+      │ Pod 생성과 완료 횟수 관리
+      ▼
+   Scheduler
+      │ Worker 선택
+      ▼
+Worker의 kubelet ──▶ Container Runtime ──▶ Command 실행
+</code></pre></div></div>
+
+<h2 id="9--cronjob-생성과-schedule">9 ) CronJob 생성과 Schedule</h2>
+
+<hr />
+
+<p>다음 CronJob은 1분마다 현재 시간과 메시지를 출력한다. 내용을 <code class="language-plaintext highlighter-rouge">sample-cronjob.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">CronJob</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">hello</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">schedule</span><span class="pi">:</span> <span class="s2">"</span><span class="s">*/1</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>
+  <span class="na">jobTemplate</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">template</span><span class="pi">:</span>
+        <span class="na">spec</span><span class="pi">:</span>
+          <span class="na">containers</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">hello</span>
+              <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
+              <span class="na">imagePullPolicy</span><span class="pi">:</span> <span class="s">IfNotPresent</span>
+              <span class="na">command</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">/bin/sh</span>
+                <span class="pi">-</span> <span class="s">-c</span>
+                <span class="pi">-</span> <span class="s">date; echo Hello from the Kubernetes cluster</span>
+          <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">OnFailure</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>위치</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.schedule</code></td>
+      <td>Job을 생성할 Cron Schedule</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.jobTemplate</code></td>
+      <td>Schedule마다 생성할 Job Template</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">jobTemplate.spec.template</code></td>
+      <td>Job이 생성할 Pod Template</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>CronJob을 생성하고 Schedule과 최근 실행 시간을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-cronjob.yaml
+kubectl get cronjobs
+kubectl get <span class="nb">jobs</span> <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>CronJob이 만든 Job과 Pod의 Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get <span class="nb">jobs</span> <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+kubectl logs job/&lt;JOB_NAME&gt;
+</code></pre></div></div>
+
+<p>CronJob이 생성한 Job 이름은 일반적으로 <code class="language-plaintext highlighter-rouge">hello-&lt;schedule 식별값&gt;</code> 형태이므로 목록에서 최근 Job 이름을 확인한다.</p>
+
+<h2 id="10--cronjob-일시-정지">10 ) CronJob 일시 정지</h2>
+
+<hr />
+
+<p>신규 Job 생성을 일시 정지한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl patch cronjob hello <span class="se">\</span>
+  <span class="nt">-p</span> <span class="s1">'{"spec":{"suspend":true}}'</span>
+</code></pre></div></div>
+
+<p>Suspend 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get cronjob hello
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">suspend: true</code>는 이후 Schedule에 대한 Job 생성을 멈추지만 이미 시작된 Job을 중단하지 않는다.</p>
+
+<p>다시 Schedule 실행을 허용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl patch cronjob hello <span class="se">\</span>
+  <span class="nt">-p</span> <span class="s1">'{"spec":{"suspend":false}}'</span>
+</code></pre></div></div>
+
+<h2 id="11--동시-실행-제어">11 ) 동시 실행 제어</h2>
+
+<hr />
+
+<p>이전 Schedule의 Job이 끝나기 전에 다음 실행 시간이 도착했을 때 <code class="language-plaintext highlighter-rouge">spec.concurrencyPolicy</code>로 동작을 결정한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>값</th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Allow</code></td>
+      <td>동시 실행을 허용하는 기본값</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Forbid</code></td>
+      <td>이전 Job이 실행 중이면 새 실행을 건너뜀</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Replace</code></td>
+      <td>이전 Job을 중단하고 새 Job으로 교체</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>하나의 CronJob 안에서 실행이 겹치지 않게 하려면 다음 Field를 추가한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">schedule</span><span class="pi">:</span> <span class="s2">"</span><span class="s">*/1</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>
+  <span class="na">concurrencyPolicy</span><span class="pi">:</span> <span class="s">Forbid</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">concurrencyPolicy</code>는 서로 다른 CronJob 사이의 동시 실행을 제어하지 않는다.</p>
+
+<h2 id="12--지연-실행-허용-시간">12 ) 지연 실행 허용 시간</h2>
+
+<hr />
+
+<p>Controller 중단이나 Scheduling 지연으로 Schedule을 놓친 경우 <code class="language-plaintext highlighter-rouge">spec.startingDeadlineSeconds</code> 이내라면 Job 생성을 허용할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">schedule</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>
+  <span class="na">startingDeadlineSeconds</span><span class="pi">:</span> <span class="m">300</span>
+</code></pre></div></div>
+
+<p>매시 정각 실행할 CronJob에서 <code class="language-plaintext highlighter-rouge">300</code>초를 지정하면 정각 Schedule을 놓친 뒤 5분 이내에는 Job을 시작할 수 있다. 허용 시간을 넘긴 실행은 놓친 Schedule로 처리한다.</p>
+
+<h2 id="13--job-history-보관">13 ) Job History 보관</h2>
+
+<hr />
+
+<p>CronJob이 만든 완료·실패 Job을 몇 개까지 남길지 설정한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">successfulJobsHistoryLimit</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">failedJobsHistoryLimit</span><span class="pi">:</span> <span class="m">1</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+      <th>기본값</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">successfulJobsHistoryLimit</code></td>
+      <td>남겨 둘 성공 Job 수</td>
+      <td><code class="language-plaintext highlighter-rouge">3</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">failedJobsHistoryLimit</code></td>
+      <td>남겨 둘 실패 Job 수</td>
+      <td><code class="language-plaintext highlighter-rouge">1</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>보관된 Job과 Pod를 통해 완료 상태와 Log를 확인할 수 있다. 값을 <code class="language-plaintext highlighter-rouge">0</code>으로 설정하면 해당 상태의 완료 Job을 보관하지 않는다.</p>
+
+<h2 id="14--실습-resource-정리">14 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>Master 또는 관리 Client에서 생성한 Resource를 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-cronjob.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-parallel-job.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-error-job.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-ttl-job.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> sample-job.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete job my-job <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>남아 있는 Job과 CronJob을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get <span class="nb">jobs</span>,cronjobs
+</code></pre></div></div>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Job은 계속 실행되는 Pod 수가 아니라 정해진 작업의 성공적인 완료를 관리한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">restartPolicy</code>, <code class="language-plaintext highlighter-rouge">backoffLimit</code>, <code class="language-plaintext highlighter-rouge">completions</code>와 <code class="language-plaintext highlighter-rouge">parallelism</code>으로 실패 재시도와 병렬 실행을 조정한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">ttlSecondsAfterFinished</code>는 완료된 Job과 종속 Resource를 일정 시간 뒤 정리한다.</p>
+    </li>
+    <li>
+      <p>CronJob은 Schedule에 따라 Job을 만들고 실제 Pod 실행과 완료 관리는 Job Controller가 담당한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">suspend</code>, <code class="language-plaintext highlighter-rouge">concurrencyPolicy</code>, <code class="language-plaintext highlighter-rouge">startingDeadlineSeconds</code>와 History Limit으로 예약 작업의 실행과 보관 범위를 조정한다.</p>
+    </li>
+    <li>
+      <p>Control Plane의 Controller가 Job과 Pod의 원하는 상태를 관리하고 Worker의 kubelet과 Container Runtime이 Command를 실행한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-29-daemonset-statefulset/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes DaemonSet과 StatefulSet</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-31-kubernetes-service-network/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Service Discovery와 외부 노출</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1788010223"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788010223"></script>
+  </body>
+</html>

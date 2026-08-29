@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Kubernetes Service Discovery와 외부 노출",
+        "url": "/cloud-native-31-kubernetes-service-network/",
+        "description": "Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 28일",
+        "reading_time_label": "10분 읽기",
+        "search": "kubernetes service discovery와 외부 노출 pod network부터 service·endpointslice·dns 기반 discovery와 clusterip·nodeport·loadbalancer를 이용한 traffic 전달 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Job과 CronJob",
+        "url": "/cloud-native-30-kubernetes-job-cronjob/",
+        "description": "완료형 Workload인 Job의 재시도·병렬 실행·자동 정리와 CronJob의 Schedule·동시 실행·History 관리 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 28일",
+        "reading_time_label": "7분 읽기",
+        "search": "kubernetes job과 cronjob 완료형 workload인 job의 재시도·병렬 실행·자동 정리와 cronjob의 schedule·동시 실행·history 관리 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes DaemonSet과 StatefulSet",
         "url": "/cloud-native-29-daemonset-statefulset/",
         "description": "Node별 DaemonSet 배치와 StatefulSet의 순서·고유 식별자·Persistent Storage 및 Database 운영 관점 정리",
@@ -21,14 +51,14 @@
       {
         "title": "Kubernetes ReplicaSet과 Deployment",
         "url": "/cloud-native-28-replicaset-deployment/",
-        "description": "Label Selector 기반 ReplicaSet의 Pod 수 조정과 Deployment의 Rolling Update, Rollback, Pause 및 Scaling 정리",
+        "description": "Label Selector 기반 ReplicaSet의 Pod 수 조정, Deployment의 배포와 Scaling 및 cordon·drain을 이용한 Node 유지보수 정리",
         "thumbnail": null,
-        "tags": ["CloudNative","AutoEverSW","Kubernetes","ReplicaSet","Deployment"],
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 27일",
-        "reading_time_label": "6분 읽기",
-        "search": "kubernetes replicaset과 deployment label selector 기반 replicaset의 pod 수 조정과 deployment의 rolling update, rollback, pause 및 scaling 정리 cloudnative autoeversw kubernetes replicaset deployment cloudnative"
+        "reading_time_label": "8분 읽기",
+        "search": "kubernetes replicaset과 deployment label selector 기반 replicaset의 pod 수 조정, deployment의 배포와 scaling 및 cordon·drain을 이용한 node 유지보수 정리 cloudnative autoeversw kubernetes cloudnative"
       },
     
       
