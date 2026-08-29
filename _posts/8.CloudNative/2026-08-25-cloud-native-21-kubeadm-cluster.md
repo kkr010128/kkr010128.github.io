@@ -8,7 +8,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - kubeadm
 ---
 
 Kubernetes Cluster는 Local 도구, 직접 구성 도구 또는 Public Cloud의 Managed Service를 이용해 구축할 수 있다. 이 글에서는 Linux Virtual Machine 세 대와 `kubeadm`을 사용하여 Master(Control Plane) 한 대와 Worker 두 대를 구성한다.
@@ -153,9 +152,9 @@ sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 Ubuntu/Debian에서 HTTPS 기반 외부 APT 저장소를 추가할 때 필요한 기본 도구들을 설치하는 명령이다.
 > 우분투 24.04와 같은 최신 APT에서는 HTTPS 지원이 **APT 자체에 포함되어 있어 별도로 설치할 필요 가 없다.**
 >
->  따라서 다음 명령으로도 충분하다.
->  
->  `sudo apt-get install -y ca-certificates curl gpg`
+> 따라서 다음 명령으로도 충분하다.
+>
+> `sudo apt-get install -y ca-certificates curl gpg`
 
 | 패키지                   | 역할                              |
 | --------------------- | ------------------------------- |

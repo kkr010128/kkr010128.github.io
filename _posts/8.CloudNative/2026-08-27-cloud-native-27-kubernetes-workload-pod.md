@@ -7,8 +7,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - Workload
-  - Pod
 ---
 
 Kubernetes는 Container를 직접 하나씩 관리하는 대신 Pod와 여러 Workload Resource에 원하는 상태를 선언한다. Control Plane의 Controller와 Scheduler는 선언된 상태를 실제 상태와 비교하고, Worker의 kubelet과 Container Runtime은 할당된 Pod의 Container를 실행한다.
@@ -88,7 +86,7 @@ Kubernetes는 Pod의 원하는 상태를 관리하고, 각 Worker의 kubelet은 
 
 Stateless Application은 요청을 처리하는 Instance의 Local 상태에 사용자 Session이나 중요한 Data를 계속 보관하지 않는다. Pod가 교체되어도 다른 Replica가 같은 요청을 처리할 수 있도록 필요한 상태를 외부 Database나 Cache 등에 분리한다.
 
-Stateful Application은 Instance별 Data, 순서 또는 고유한 식별자를 유지해야 한다. Database처럼 Data 자체를 관리하는 Application이 대표적이며, Kubernetes에서는 StatefulSet과 Persistent Storage를 조합할 수 있다. 
+Stateful Application은 Instance별 Data, 순서 또는 고유한 식별자를 유지해야 한다. Database처럼 Data 자체를 관리하는 Application이 대표적이며, Kubernetes에서는 StatefulSet과 Persistent Storage를 조합할 수 있다.
 
 [StatefulSet의 구체적인 Storage 동작](/cloud-native-29-daemonset-statefulset/)
 

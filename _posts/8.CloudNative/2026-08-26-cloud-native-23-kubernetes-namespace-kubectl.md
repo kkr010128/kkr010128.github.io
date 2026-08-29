@@ -7,8 +7,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - kubectl
-  - Namespace
 ---
 
 Kubernetes Cluster를 구축한 다음에는 `kubectl`로 API Server에 요청을 보내 Resource를 생성하고 관리한다. 여러 팀이나 Application이 하나의 Cluster를 함께 사용한다면 Namespace로 Resource의 논리적인 범위를 나누고, RBAC와 NetworkPolicy를 결합하여 접근 권한과 Network Traffic을 제어할 수 있다.

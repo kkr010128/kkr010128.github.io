@@ -7,7 +7,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - Network
 ---
 
 Kubernetes에서 사용자가 선언한 Pod가 실행되기까지 Control Plane과 Worker의 여러 Component가 역할을 나누어 동작한다. Pod가 실행된 후에는 Service가 변하는 Pod 집합에 안정적인 Endpoint를 제공하고 CNI 기반 Pod Network가 Node를 넘어 통신할 수 있게 한다.

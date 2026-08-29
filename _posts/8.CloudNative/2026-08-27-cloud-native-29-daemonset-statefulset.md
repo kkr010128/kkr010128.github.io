@@ -7,8 +7,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - DaemonSet
-  - StatefulSet
 ---
 
 DaemonSet과 StatefulSet은 서로 다른 배치 조건을 해결하는 Workload Controller이다. DaemonSet은 조건에 맞는 각 Node에 Pod를 배치하고, StatefulSet은 순서와 고유한 Network·Storage 식별자가 필요한 Pod 집합을 관리한다.
@@ -361,7 +359,7 @@ kubectl exec pod/sample-statefulset-parallel-0 -- \
   df -h /usr/share/nginx/html
 ```
 
-## 질의 ) StatefulSet으로 Database 운영 가능 여부에 대한 강사님 답변
+## 8 ) 질의: StatefulSet으로 Database 운영 가능 여부에 대한 강사님 답변
 
 ---
 

@@ -7,8 +7,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - Manifest
-  - Metadata
 ---
 
 Kubernetes Resource가 많아지면 개별 명령을 반복하는 대신 Manifest를 File과 Directory 단위로 관리해야 한다. 여러 Resource를 하나의 Manifest에 정의하거나 여러 File로 분리할 수 있으며, Label과 Annotation을 이용해 Resource를 분류하고 관리 정보를 기록할 수 있다.

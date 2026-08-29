@@ -8,8 +8,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - kubectl
-  - Debugging
 ---
 
 Kubernetes Resource를 운영하려면 생성 명령뿐 아니라 현재 상태를 정확하게 조회하고 실행 중인 Container를 확인할 수 있어야 한다. `kubectl get`과 `describe`로 Control Plane에 저장된 상태를 확인하고, Metrics Server, `exec`, `debug`, `cp`, `port-forward`와 `logs`로 Worker에서 실행되는 Pod를 점검한다.

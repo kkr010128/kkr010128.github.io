@@ -7,8 +7,6 @@ tags:
   - CloudNative
   - AutoEverSW
   - Kubernetes
-  - Pod
-  - kubectl
 ---
 
 Kubernetes Resource를 연속해서 조작할 때는 앞에서 요청한 Resource가 의도한 상태에 도달했는지 확인해야 한다. Deployment의 Pod를 다시 생성하거나 Pod가 Ready 상태가 될 때까지 기다리려면 Controller의 역할, Pod Lifecycle과 `kubectl wait`의 Condition을 함께 이해해야 한다.
