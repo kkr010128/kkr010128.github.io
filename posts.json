@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Kubernetes Ingress Resource와 HTTP Routing",
+        "url": "/cloud-native-33-kubernetes-ingress-routing/",
+        "description": "Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 31일",
+        "reading_time_label": "7분 읽기",
+        "search": "kubernetes ingress resource와 http routing ingress resource와 controller의 관계, bare-metal cluster의 외부 진입점 및 host·path 기반 http routing 실습 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Service Traffic Policy와 MetalLB",
+        "url": "/cloud-native-32-kubernetes-service-traffic-policy-metallb/",
+        "description": "Session Affinity와 Traffic Policy, Headless·ExternalName·Selector가 없는 Service 및 Bare-metal 환경의 MetalLB 구성 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 8월 31일",
+        "reading_time_label": "12분 읽기",
+        "search": "kubernetes service traffic policy와 metallb session affinity와 traffic policy, headless·externalname·selector가 없는 service 및 bare-metal 환경의 metallb 구성 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Service Discovery와 외부 노출",
         "url": "/cloud-native-31-kubernetes-service-network/",
         "description": "Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리",
@@ -12,7 +42,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 28일",
-        "reading_time_label": "10분 읽기",
+        "reading_time_label": "11분 읽기",
         "search": "kubernetes service discovery와 외부 노출 pod network부터 service·endpointslice·dns 기반 discovery와 clusterip·nodeport·loadbalancer를 이용한 traffic 전달 정리 cloudnative autoeversw kubernetes cloudnative"
       },
     
