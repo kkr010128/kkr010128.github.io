@@ -2,6 +2,7 @@
 title: Kubernetes Service Discovery와 외부 노출
 description: Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리
 date: 2026-08-28
+updated_at: 2026-08-31
 series: CloudNative
 tags:
   - CloudNative
@@ -648,3 +649,5 @@ kubectl get services,deployments,pods
 > - `.spec.externalIPs`는 Kubernetes가 IP나 Route를 제공하지 않으며 현재 Deprecated 상태이다.
 >
 > - Control Plane은 Service와 EndpointSlice 상태를 관리하고 Worker의 kube-proxy 또는 CNI Service 구현이 실제 Traffic 경로를 구성한다.
+
+여기까지 이해하면 Service의 기본 구조, DNS 기반 Discovery와 외부 노출 방식에 대한 학습이 완료된다. 다음 단계에서는 [Kubernetes Service Traffic Policy와 MetalLB](/cloud-native-32-kubernetes-service-traffic-policy-metallb/)에서 Session Affinity, Traffic Policy, 특수 Service와 Bare-metal LoadBalancer 구현을 다룬다.
