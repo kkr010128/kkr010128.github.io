@@ -4,16 +4,16 @@
       
       
       {
-        "title": "Kubernetes 환경 변수와 Secret·ConfigMap",
+        "title": "Kubernetes 환경 변수와 Secret, ConfigMap",
         "url": "/cloud-native-34-kubernetes-env-secret-configmap/",
-        "description": "Pod 환경 변수와 Downward API, Secret 생성·주입·갱신 및 ConfigMap을 이용한 설정 분리 방법 정리",
+        "description": "Pod 환경 변수와 Downward API, Secret 생성과 주입, 갱신 및 ConfigMap을 이용한 설정 분리 방법",
         "thumbnail": null,
         "tags": ["CloudNative","AutoEverSW","Kubernetes"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 1일",
         "reading_time_label": "11분 읽기",
-        "search": "kubernetes 환경 변수와 secret·configmap pod 환경 변수와 downward api, secret 생성·주입·갱신 및 configmap을 이용한 설정 분리 방법 정리 cloudnative autoeversw kubernetes cloudnative"
+        "search": "kubernetes 환경 변수와 secret, configmap pod 환경 변수와 downward api, secret 생성과 주입, 갱신 및 configmap을 이용한 설정 분리 방법 cloudnative autoeversw kubernetes cloudnative"
       },
     
       
