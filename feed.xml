@@ -1,4 +1,972 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-01T12:33:58+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Service Traffic Policy와 MetalLB</title><link href="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/" rel="alternate" type="text/html" title="Kubernetes Service Traffic Policy와 MetalLB" /><published>2026-08-31T00:00:00+09:00</published><updated>2026-08-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/"><![CDATA[<p>Service는 안정적인 IP와 DNS 이름을 제공하는 것뿐 아니라 Client 고정, Local Endpoint 선택과 Topology 선호 같은 Traffic 정책도 제어한다. Cloud Load Balancer가 없는 Bare-metal Cluster에서는 MetalLB 같은 구현을 추가하여 <code class="language-plaintext highlighter-rouge">LoadBalancer</code> Service에 외부 IP를 할당할 수 있다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-01T23:40:44+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes 환경 변수와 Secret·ConfigMap</title><link href="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/" rel="alternate" type="text/html" title="Kubernetes 환경 변수와 Secret·ConfigMap" /><published>2026-09-01T00:00:00+09:00</published><updated>2026-09-01T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/"><![CDATA[<p>Container Image와 Application 설정을 분리하면 같은 Image를 여러 환경에서 재사용할 수 있다. Kubernetes는 정적 환경 변수와 Downward API로 실행 정보를 전달하고, 민감하지 않은 설정은 ConfigMap, Password와 인증서 같은 기밀 정보는 Secret으로 관리한다.</p>
+
+<h2 id="1--config와-storage-resource">1 ) Config와 Storage Resource</h2>
+
+<hr />
+
+<p>Kubernetes의 Config와 Storage API에는 Application 설정, 기밀 정보와 Persistent Storage를 연결하는 Resource가 포함된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Resource</th>
+      <th>목적</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>ConfigMap</td>
+      <td>민감하지 않은 Key-Value 또는 설정 파일 저장</td>
+    </tr>
+    <tr>
+      <td>Secret</td>
+      <td>Password, Token, 인증서와 Registry 인증 정보 저장</td>
+    </tr>
+    <tr>
+      <td>PersistentVolumeClaim</td>
+      <td>영구 Volume 사용 요청</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="2--설정을-container에-전달하는-방법">2 ) 설정을 Container에 전달하는 방법</h2>
+
+<hr />
+
+<p>Pod의 Container에 설정을 전달하는 대표적인 방법은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방법</th>
+      <th>Manifest Field</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>개별 환경 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">env</code></td>
+      <td>이름과 값을 하나씩 지정</td>
+    </tr>
+    <tr>
+      <td>전체 환경 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">envFrom</code></td>
+      <td>ConfigMap이나 Secret의 전체 Key를 주입</td>
+    </tr>
+    <tr>
+      <td>개별 Resource Key</td>
+      <td><code class="language-plaintext highlighter-rouge">configMapKeyRef</code>, <code class="language-plaintext highlighter-rouge">secretKeyRef</code></td>
+      <td>필요한 Key만 환경 변수에 연결</td>
+    </tr>
+    <tr>
+      <td>Volume File</td>
+      <td><code class="language-plaintext highlighter-rouge">volumes</code>, <code class="language-plaintext highlighter-rouge">volumeMounts</code></td>
+      <td>설정 파일이나 Secret을 File로 제공</td>
+    </tr>
+    <tr>
+      <td>Downward API</td>
+      <td><code class="language-plaintext highlighter-rouge">fieldRef</code>, <code class="language-plaintext highlighter-rouge">resourceFieldRef</code></td>
+      <td>Pod와 Container 자신의 실행 정보 제공</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Manifest를 적용하면 설정이 다음 흐름으로 Container에 전달된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client
+  kubectl apply
+       │
+       ▼
+Control Plane
+  API Server가 Pod·ConfigMap·Secret 저장
+       │
+       ▼
+Scheduler가 Worker 선택
+       │
+       ▼
+Worker
+  kubelet이 Pod Spec과 참조 Resource 확인
+       │
+       ├─▶ 환경 변수 구성
+       └─▶ ConfigMap·Secret Volume 구성
+                 │
+                 ▼
+        Container Runtime이 Container 실행
+</code></pre></div></div>
+
+<p>환경 변수는 Process 시작 시점에 정해지는 값에 적합하다. File Mount는 Application이 File 변경을 다시 읽을 수 있을 때 동적 설정 반영에 활용할 수 있다.</p>
+
+<h2 id="3--정적-환경-변수">3 ) 정적 환경 변수</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">env</code>는 Container에 전달할 환경 변수를 하나씩 선언한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-env.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-env</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-env</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MAX_CONNECTION</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">100"</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">TZ</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s">Asia/Seoul</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 Pod를 생성하고 Ready 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-env.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/sample-env <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl get pod sample-env <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>Container Process에 전달된 값을 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-env <span class="nt">--</span> <span class="nb">printenv </span>MAX_CONNECTION
+kubectl <span class="nb">exec </span>sample-env <span class="nt">--</span> <span class="nb">printenv </span>TZ
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">env</code>와 <code class="language-plaintext highlighter-rouge">envFrom</code>으로 설정한 값은 Container Image에 정의된 같은 이름의 환경 변수보다 우선한다. Password를 <code class="language-plaintext highlighter-rouge">env.value</code>에 직접 기록하면 Manifest와 Pod Spec 조회 결과에 노출될 수 있으므로 Secret을 사용한다.</p>
+
+<h2 id="4--downward-api와-fieldref">4 ) Downward API와 fieldRef</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Downward API</strong></p>
+
+  <p>Pod가 Kubernetes API를 직접 호출하지 않고 자신의 Metadata, 배치 정보와 Resource 설정을 환경 변수 또는 File로 확인하도록 제공하는 기능이다.</p>
+</blockquote>
+
+<p><code class="language-plaintext highlighter-rouge">fieldRef</code>는 Pod Field를 환경 변수에 연결한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-env-pod.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-env-pod</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">default</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-env-pod</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">tools</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.37</span>
+      <span class="na">command</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">/bin/sh</span>
+        <span class="pi">-</span> <span class="s">-c</span>
+      <span class="na">args</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">sleep </span><span class="m">3600</span>
+      <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">K8S_NODE</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">spec.nodeName</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">K8S_POD_NAME</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.name</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">K8S_NAMESPACE</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.namespace</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">K8S_POD_IP</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">status.podIP</span>
+</code></pre></div></div>
+
+<p>Pod YAML에서 원본 Field를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-env-pod.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/sample-env-pod <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl get pod sample-env-pod <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<p>Container에 주입된 값과 비교한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-env-pod <span class="nt">--</span> <span class="nb">printenv </span>K8S_NODE
+kubectl <span class="nb">exec </span>sample-env-pod <span class="nt">--</span> <span class="nb">printenv </span>K8S_POD_NAME
+kubectl <span class="nb">exec </span>sample-env-pod <span class="nt">--</span> <span class="nb">printenv </span>K8S_NAMESPACE
+kubectl <span class="nb">exec </span>sample-env-pod <span class="nt">--</span> <span class="nb">printenv </span>K8S_POD_IP
+</code></pre></div></div>
+
+<p>API Server에 저장된 Pod 상태를 Worker의 kubelet이 확인하여 Container 환경 변수를 구성한다. Application은 자신의 Node나 Pod IP를 알아내기 위해 API Server 조회 권한을 별도로 가질 필요가 없다.</p>
+
+<h2 id="5--resourcefieldref">5 ) resourceFieldRef</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">resourceFieldRef</code>는 특정 Container에 선언한 CPU와 Memory Request·Limit을 환경 변수로 전달한다. 실제 값을 확인할 수 있도록 Resource 설정과 참조를 함께 정의한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-env-container.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-env-container</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-env-container</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">tools</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.37</span>
+      <span class="na">command</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">/bin/sh</span>
+        <span class="pi">-</span> <span class="s">-c</span>
+      <span class="na">args</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">sleep </span><span class="m">3600</span>
+      <span class="na">resources</span><span class="pi">:</span>
+        <span class="na">requests</span><span class="pi">:</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">125m</span>
+          <span class="na">memory</span><span class="pi">:</span> <span class="s">32Mi</span>
+        <span class="na">limits</span><span class="pi">:</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">250m</span>
+          <span class="na">memory</span><span class="pi">:</span> <span class="s">64Mi</span>
+      <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">CPU_REQUEST</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">resourceFieldRef</span><span class="pi">:</span>
+              <span class="na">containerName</span><span class="pi">:</span> <span class="s">tools</span>
+              <span class="na">resource</span><span class="pi">:</span> <span class="s">requests.cpu</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">CPU_LIMIT</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">resourceFieldRef</span><span class="pi">:</span>
+              <span class="na">containerName</span><span class="pi">:</span> <span class="s">tools</span>
+              <span class="na">resource</span><span class="pi">:</span> <span class="s">limits.cpu</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MEMORY_REQUEST</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">resourceFieldRef</span><span class="pi">:</span>
+              <span class="na">containerName</span><span class="pi">:</span> <span class="s">tools</span>
+              <span class="na">resource</span><span class="pi">:</span> <span class="s">requests.memory</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MEMORY_LIMIT</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">resourceFieldRef</span><span class="pi">:</span>
+              <span class="na">containerName</span><span class="pi">:</span> <span class="s">tools</span>
+              <span class="na">resource</span><span class="pi">:</span> <span class="s">limits.memory</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-env-container.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/sample-env-container <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl <span class="nb">exec </span>sample-env-container <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">printenv </span>CPU_REQUEST CPU_LIMIT MEMORY_REQUEST MEMORY_LIMIT
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">containerName</code>은 같은 Pod 안의 어떤 Container Resource를 참조하는지 지정한다. Request와 Limit이 변경되면 새 Pod가 생성될 때 해당 값이 환경 변수에 반영된다.</p>
+
+<h2 id="6--command와-args의-환경-변수-확장">6 ) command와 args의 환경 변수 확장</h2>
+
+<hr />
+
+<p>Kubernetes가 <code class="language-plaintext highlighter-rouge">command</code>와 <code class="language-plaintext highlighter-rouge">args</code>에서 환경 변수를 확장할 때는 <code class="language-plaintext highlighter-rouge">$(VAR_NAME)</code> 형식을 사용한다. Shell의 <code class="language-plaintext highlighter-rouge">${VAR_NAME}</code> 문법과 처리 시점이 다르다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>표현</th>
+      <th>처리 주체</th>
+      <th>결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">$(TESTENV)</code></td>
+      <td>kubelet의 Container Command·Args 구성</td>
+      <td>앞에서 정의된 환경 변수 값으로 확장</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">${TESTENV}</code></td>
+      <td>Kubernetes가 직접 확장하지 않음</td>
+      <td>Literal Argument로 전달될 수 있음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">$TESTENV</code></td>
+      <td>실행된 Shell</td>
+      <td><code class="language-plaintext highlighter-rouge">/bin/sh -c</code> 안에서 Shell이 확장</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>잘못된 형식을 확인하는 <code class="language-plaintext highlighter-rouge">sample-env-fail.yaml</code>은 다음과 같다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-env-fail</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Never</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">env-print</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.37</span>
+      <span class="na">command</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">echo</span>
+      <span class="na">args</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s2">"</span><span class="s">${TESTENV}"</span>
+      <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">TESTENV</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">100"</span>
+</code></pre></div></div>
+
+<p>Container가 출력 후 종료되므로 <code class="language-plaintext highlighter-rouge">exec</code>가 아니라 Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-env-fail.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.phase}'</span><span class="o">=</span>Succeeded <span class="se">\</span>
+  pod/sample-env-fail <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl logs sample-env-fail
+</code></pre></div></div>
+
+<p>출력에는 <code class="language-plaintext highlighter-rouge">${TESTENV}</code>가 그대로 남을 수 있다. 올바른 Kubernetes 확장 형식은 다음과 같다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">args</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s2">"</span><span class="s">$(TESTENV)"</span>
+</code></pre></div></div>
+
+<p>여러 Shell 명령, Pipe나 Shell 자체의 환경 변수 확장이 필요하면 Shell을 명시한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">command</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">/bin/sh</span>
+  <span class="pi">-</span> <span class="s">-c</span>
+<span class="na">args</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s1">'</span><span class="s">echo</span><span class="nv"> </span><span class="s">"$TESTENV"'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">env</code> 배열에서 다른 환경 변수를 참조할 때는 참조 대상이 먼저 선언되어야 한다. 정의되지 않은 <code class="language-plaintext highlighter-rouge">$(VAR_NAME)</code>은 Container 시작을 항상 막는 것이 아니라 확장되지 않은 문자열로 남을 수 있다.</p>
+
+<h2 id="7--secret이-필요한-이유">7 ) Secret이 필요한 이유</h2>
+
+<hr />
+
+<p>Secret은 Password, OAuth Token, SSH Key와 인증서처럼 기밀성이 필요한 Data를 Application에 전달한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>전달 방법</th>
+      <th>문제점</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Container Image에 포함</td>
+      <td>Registry와 Image Layer에 기밀 정보가 남고 값 변경 시 다시 Build해야 함</td>
+    </tr>
+    <tr>
+      <td>Pod Manifest의 <code class="language-plaintext highlighter-rouge">env.value</code></td>
+      <td>Git, Review, 배포 Log와 Pod Spec에 평문 노출 가능</td>
+    </tr>
+    <tr>
+      <td>여러 Manifest에 반복</td>
+      <td>값 교체와 접근 범위 관리가 어려움</td>
+    </tr>
+    <tr>
+      <td>Secret Resource 참조</td>
+      <td>설정과 Workload를 분리할 수 있지만 별도 보안 설정 필요</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Secret의 <code class="language-plaintext highlighter-rouge">data</code> 값은 Base64로 Encoding될 뿐 암호화되는 것이 아니다. Base64 Decode 권한과 Secret 조회 권한이 있으면 원래 값을 확인할 수 있다.</p>
+
+<p>Kubernetes의 Secret은 기본 설정에서 etcd에 암호화되지 않은 상태로 저장될 수 있다. 운영 환경에서는 다음 보호를 함께 적용한다.</p>
+
+<ul>
+  <li>
+    <p>etcd Encryption at Rest를 구성한다.</p>
+  </li>
+  <li>
+    <p>RBAC로 Secret의 <code class="language-plaintext highlighter-rouge">get</code>, <code class="language-plaintext highlighter-rouge">list</code>, <code class="language-plaintext highlighter-rouge">watch</code> 권한을 최소화한다.</p>
+  </li>
+  <li>
+    <p>Application이 Secret을 Log에 출력하지 않게 한다.</p>
+  </li>
+  <li>
+    <p>Secret Manifest와 임시 Credential File을 Version Control에 Commit하지 않는다.</p>
+  </li>
+</ul>
+
+<h2 id="8--secret-type">8 ) Secret Type</h2>
+
+<hr />
+
+<p>Secret Type은 Data의 사용 목적과 필요한 Key를 구분한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>용도</th>
+      <th>주요 Key·주의 사항</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Opaque</code></td>
+      <td>일반 Password와 Token</td>
+      <td>임의의 Key 사용 가능</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubernetes.io/tls</code></td>
+      <td>TLS 인증서와 Private Key</td>
+      <td><code class="language-plaintext highlighter-rouge">tls.crt</code>, <code class="language-plaintext highlighter-rouge">tls.key</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubernetes.io/basic-auth</code></td>
+      <td>Username과 Password</td>
+      <td><code class="language-plaintext highlighter-rouge">username</code>, <code class="language-plaintext highlighter-rouge">password</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubernetes.io/dockerconfigjson</code></td>
+      <td>Private Registry 인증</td>
+      <td><code class="language-plaintext highlighter-rouge">.dockerconfigjson</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubernetes.io/ssh-auth</code></td>
+      <td>SSH Private Key</td>
+      <td><code class="language-plaintext highlighter-rouge">ssh-privatekey</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubernetes.io/service-account-token</code></td>
+      <td>장기 ServiceAccount Token</td>
+      <td>신규 일반 사용 비권장</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">bootstrap.kubernetes.io/token</code></td>
+      <td>Node Bootstrap Token</td>
+      <td>kubeadm Bootstrap 등에 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>장기 ServiceAccount Token Secret은 만료와 자동 Rotation 측면에서 비권장이다. 일반적인 Pod 인증에는 TokenRequest API로 발급되는 짧은 수명의 Projected ServiceAccount Token을 사용한다.</p>
+
+<h2 id="9--opaque-secret-생성">9 ) Opaque Secret 생성</h2>
+
+<hr />
+
+<p>일반적인 Key-Value Secret은 <code class="language-plaintext highlighter-rouge">generic</code> Subcommand로 생성한다. 모든 명령은 Master 또는 관리 Client에서 실행한다.</p>
+
+<h3 id="file에서-생성">File에서 생성</h3>
+
+<p>실습용 값을 명시적인 File에 저장한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s1">'root'</span> <span class="o">&gt;</span> username
+<span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s1">'rootpassword'</span> <span class="o">&gt;</span> password
+</code></pre></div></div>
+
+<p>File의 Basename이 기본 Key가 된다. 확장자 사용이 금지되는 것은 아니며 원하는 Key를 직접 지정할 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create secret generic sample-db-auth <span class="se">\</span>
+  <span class="nt">--from-file</span><span class="o">=</span><span class="nv">username</span><span class="o">=</span>./username <span class="se">\</span>
+  <span class="nt">--from-file</span><span class="o">=</span><span class="nv">password</span><span class="o">=</span>./password
+</code></pre></div></div>
+
+<p>이미 같은 이름의 Secret이 있으면 <code class="language-plaintext highlighter-rouge">create</code>가 실패한다. 반복 가능한 Manifest를 먼저 확인하려면 Client-side Dry Run을 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create secret generic sample-db-auth <span class="se">\</span>
+  <span class="nt">--from-file</span><span class="o">=</span><span class="nv">username</span><span class="o">=</span>./username <span class="se">\</span>
+  <span class="nt">--from-file</span><span class="o">=</span><span class="nv">password</span><span class="o">=</span>./password <span class="se">\</span>
+  <span class="nt">--dry-run</span><span class="o">=</span>client <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<p>Dry Run 출력에도 Base64로 표현된 실제 값이 포함되므로 Log나 공유 화면에 노출하지 않는다.</p>
+
+<h3 id="env-file에서-생성">Env File에서 생성</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">env-secret.txt</code>로 저장한다.</p>
+
+<pre><code class="language-dotenv">username=root
+password=rootpassword
+</code></pre>
+
+<p>기존 실습 Secret을 교체해야 한다면 먼저 사용 중인 Pod가 없는지 확인한 뒤 명시적으로 삭제하고 다시 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete secret sample-db-auth <span class="nt">--ignore-not-found</span>
+kubectl create secret generic sample-db-auth <span class="se">\</span>
+  <span class="nt">--from-env-file</span><span class="o">=</span>./env-secret.txt
+</code></pre></div></div>
+
+<h3 id="literal-값으로-생성">Literal 값으로 생성</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create secret generic sample-db-auth-literal <span class="se">\</span>
+  <span class="nt">--from-literal</span><span class="o">=</span><span class="nv">username</span><span class="o">=</span>root <span class="se">\</span>
+  <span class="nt">--from-literal</span><span class="o">=</span><span class="nv">password</span><span class="o">=</span>rootpassword
+</code></pre></div></div>
+
+<p>실제 Password를 Command Line에 직접 입력하면 Shell History나 Process 정보에 노출될 수 있으므로 운영 환경에서는 안전한 입력과 Secret 관리 절차를 사용한다.</p>
+
+<h3 id="manifest의-data와-stringdata">Manifest의 data와 stringData</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-db-auth.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-db-auth-manifest</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">Opaque</span>
+<span class="na">data</span><span class="pi">:</span>
+  <span class="na">username</span><span class="pi">:</span> <span class="s">cm9vdA==</span>
+  <span class="na">password</span><span class="pi">:</span> <span class="s">cm9vdHBhc3N3b3Jk</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">data</code>에는 Base64 Encoding된 값을 작성한다. <code class="language-plaintext highlighter-rouge">stringData</code>를 사용하면 작성 시 Base64 Encoding을 생략할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-db-auth-string</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">Opaque</span>
+<span class="na">stringData</span><span class="pi">:</span>
+  <span class="na">username</span><span class="pi">:</span> <span class="s">root</span>
+  <span class="na">password</span><span class="pi">:</span> <span class="s">rootpassword</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">stringData</code>도 Manifest에 평문이 존재하므로 안전하게 Commit할 수 있다는 뜻이 아니다. API Server는 입력된 문자열을 처리하여 Secret의 <code class="language-plaintext highlighter-rouge">data</code>로 저장한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-db-auth.yaml
+kubectl get secrets
+</code></pre></div></div>
+
+<h2 id="10--secret-조회와-base64-decode">10 ) Secret 조회와 Base64 Decode</h2>
+
+<hr />
+
+<p>Secret Metadata와 Type은 값을 노출하지 않고 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get secret sample-db-auth
+kubectl describe secret sample-db-auth
+</code></pre></div></div>
+
+<p>Data Key와 Base64 값은 JSON으로 조회할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get secret sample-db-auth <span class="nt">-o</span> json
+</code></pre></div></div>
+
+<p>특정 Key를 Decode하면 원래 값이 Terminal에 출력된다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get secret sample-db-auth <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.data.username}'</span> | <span class="nb">base64</span> <span class="nt">--decode</span>
+</code></pre></div></div>
+
+<p>이 작업은 복호화가 아니라 Base64 Decode이다. 화면 공유, Terminal 기록과 CI Log에서 실행하면 Secret이 노출될 수 있으므로 학습 환경 이외에는 값 자체를 출력하지 않는다.</p>
+
+<h2 id="11--tls-secret">11 ) TLS Secret</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">kubernetes.io/tls</code> Secret은 TLS 인증서와 Private Key를 정해진 Key 이름으로 저장한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>Secret Key</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tls.crt</code></td>
+      <td><code class="language-plaintext highlighter-rouge">tls.crt</code></td>
+      <td>Server 인증서와 필요한 인증서 Chain</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tls.key</code></td>
+      <td><code class="language-plaintext highlighter-rouge">tls.key</code></td>
+      <td>인증서와 일치하는 Private Key</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>인증서 File이 준비된 관리 Client에서 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create secret tls example-tls <span class="se">\</span>
+  <span class="nt">--cert</span><span class="o">=</span>./tls.crt <span class="se">\</span>
+  <span class="nt">--key</span><span class="o">=</span>./tls.key
+</code></pre></div></div>
+
+<p>Ingress에서는 같은 Namespace의 TLS Secret을 참조한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">tls</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">hosts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">example.com</span>
+      <span class="na">secretName</span><span class="pi">:</span> <span class="s">example-tls</span>
+</code></pre></div></div>
+
+<p>Ingress Host, 인증서의 DNS Name과 Client가 요청하는 Domain이 일치해야 한다. TLS Secret을 만들었다는 사실만으로 Ingress Controller의 HTTPS Listener와 외부 Firewall이 자동으로 모두 준비되는 것은 아니다.</p>
+
+<h2 id="12--private-registry-secret">12 ) Private Registry Secret</h2>
+
+<hr />
+
+<p>Private Registry에서 Image를 Pull하려면 <code class="language-plaintext highlighter-rouge">kubernetes.io/dockerconfigjson</code> Type의 Secret을 Pod와 같은 Namespace에 준비한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create secret docker-registry regcred <span class="se">\</span>
+  <span class="nt">--docker-server</span><span class="o">=</span>registry.example.com <span class="se">\</span>
+  <span class="nt">--docker-username</span><span class="o">=</span>myuser <span class="se">\</span>
+  <span class="nt">--docker-password</span><span class="o">=</span><span class="s1">'&lt;password&gt;'</span> <span class="se">\</span>
+  <span class="nt">--docker-email</span><span class="o">=</span>user@example.com
+</code></pre></div></div>
+
+<p>실제 Credential을 Command Line에 넣으면 Shell History와 실행 중인 Process 정보에 노출될 수 있다. 가능한 경우 안전하게 관리되는 Docker Config File이나 외부 Credential 관리 방식을 사용한다.</p>
+
+<p>다음 Pod Template은 <code class="language-plaintext highlighter-rouge">imagePullSecrets</code>를 참조한다. 내용을 <code class="language-plaintext highlighter-rouge">sample-private-registry.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-private-registry</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">app</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">registry.example.com/myproject/myapp:1.0</span>
+  <span class="na">imagePullSecrets</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">regcred</span>
+</code></pre></div></div>
+
+<p>예제 Registry와 Image는 Placeholder이므로 실제 접근 가능한 주소로 바꿔야 한다. Image Pull이 실패하면 Pod Event를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-private-registry.yaml
+kubectl describe pod sample-private-registry
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">FailedToRetrieveImagePullSecret</code>은 Secret 이름이나 Namespace 문제를 나타낼 수 있고 <code class="language-plaintext highlighter-rouge">ImagePullBackOff</code>는 인증, Image 경로와 Registry 통신 상태를 함께 확인해야 한다.</p>
+
+<h2 id="13--basic-auth-secret">13 ) Basic Auth Secret</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">kubernetes.io/basic-auth</code> Type은 <code class="language-plaintext highlighter-rouge">username</code>과 <code class="language-plaintext highlighter-rouge">password</code> Key를 사용한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-basic-auth.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-basic-auth</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">kubernetes.io/basic-auth</span>
+<span class="na">stringData</span><span class="pi">:</span>
+  <span class="na">username</span><span class="pi">:</span> <span class="s">sample-user</span>
+  <span class="na">password</span><span class="pi">:</span> <span class="s">sample-password</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-basic-auth.yaml
+kubectl get secret sample-basic-auth
+</code></pre></div></div>
+
+<p>예제 값은 학습용이며 실제 Database나 Web Login Credential로 사용하지 않는다. 실제 값을 넣은 Manifest는 Version Control에 Commit하지 않는다.</p>
+
+<h2 id="14--secret을-환경-변수로-전달">14 ) Secret을 환경 변수로 전달</h2>
+
+<hr />
+
+<h3 id="특정-key만-전달">특정 Key만 전달</h3>
+
+<p><code class="language-plaintext highlighter-rouge">secretKeyRef</code>는 필요한 Key 하나를 지정한 환경 변수에 연결한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-secret-single-env.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-secret-single-env</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">env</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">DB_USERNAME</span>
+          <span class="na">valueFrom</span><span class="pi">:</span>
+            <span class="na">secretKeyRef</span><span class="pi">:</span>
+              <span class="na">name</span><span class="pi">:</span> <span class="s">sample-db-auth</span>
+              <span class="na">key</span><span class="pi">:</span> <span class="s">username</span>
+</code></pre></div></div>
+
+<p>Secret이 먼저 존재해야 Pod를 정상적으로 시작할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-secret-single-env.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-secret-single-env <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl <span class="nb">exec </span>sample-secret-single-env <span class="nt">--</span> <span class="nb">printenv </span>DB_USERNAME
+</code></pre></div></div>
+
+<h3 id="전체-key-전달">전체 Key 전달</h3>
+
+<p><code class="language-plaintext highlighter-rouge">envFrom.secretRef</code>는 Secret의 전체 Key를 같은 이름의 환경 변수로 전달한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-secret-multi-env.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-secret-multi-env</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">envFrom</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">secretRef</span><span class="pi">:</span>
+            <span class="na">name</span><span class="pi">:</span> <span class="s">sample-db-auth</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-secret-multi-env.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-secret-multi-env <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl <span class="nb">exec </span>sample-secret-multi-env <span class="nt">--</span> <span class="nb">printenv </span>username
+</code></pre></div></div>
+
+<p>전체 Key를 주입하면 Application에 불필요한 Secret까지 노출될 수 있다. 필요한 Container에 필요한 Key만 제공하는 구성이 접근 범위를 줄이는 데 유리하다.</p>
+
+<p>환경 변수로 주입된 Secret은 Container 시작 시점에 정해진다. Secret Object가 변경돼도 실행 중인 Container 환경 변수는 자동으로 바뀌지 않으므로 Pod를 다시 생성해야 한다.</p>
+
+<h2 id="15--secret을-volume-file로-전달">15 ) Secret을 Volume File로 전달</h2>
+
+<hr />
+
+<p>Secret Volume은 각 Key를 File로 제공한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-secret-volume.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-secret-volume</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">secret-volume</span>
+          <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/config</span>
+          <span class="na">readOnly</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">volumes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">secret-volume</span>
+      <span class="na">secret</span><span class="pi">:</span>
+        <span class="na">secretName</span><span class="pi">:</span> <span class="s">sample-db-auth</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-secret-volume.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-secret-volume <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl <span class="nb">exec </span>sample-secret-volume <span class="nt">--</span> <span class="nb">ls</span> <span class="nt">-l</span> /config
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">username</code>과 <code class="language-plaintext highlighter-rouge">password</code> Key는 <code class="language-plaintext highlighter-rouge">/config/username</code>, <code class="language-plaintext highlighter-rouge">/config/password</code> File로 Mount된다. 실제 값을 <code class="language-plaintext highlighter-rouge">cat</code>으로 출력하면 Terminal에 노출되므로 File 존재와 Application 동작 중심으로 확인한다.</p>
+
+<h2 id="16--secret의-동적-갱신">16 ) Secret의 동적 갱신</h2>
+
+<hr />
+
+<p>Secret Volume에서 사용하는 Secret Object가 변경되면 kubelet은 Eventually Consistent 방식으로 Projected File을 갱신한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Secret 변경
+  → API Server 저장
+  → Worker kubelet의 Watch·Cache 또는 Polling
+  → Projected Volume File 교체
+  → Application이 File을 다시 읽어야 새 값 사용
+</code></pre></div></div>
+
+<p>기본 변경 감지 전략은 Watch이다. 반영 지연은 고정 60초가 아니라 kubelet Sync 주기와 Cache 전파 지연의 영향을 받는다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Secret 사용 방법</th>
+      <th>Secret 변경 시 동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>환경 변수</td>
+      <td>실행 중인 Container에는 자동 반영되지 않음</td>
+    </tr>
+    <tr>
+      <td>일반 Secret Volume</td>
+      <td>일정 지연 후 File 갱신 가능</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">subPath</code> Secret Mount</td>
+      <td>자동 갱신되지 않음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Volume File이 바뀌어도 Application이 설정 File을 다시 읽지 않으면 실제 동작은 변하지 않는다. Application Reload 또는 Pod Rollout 전략을 함께 설계해야 한다.</p>
+
+<h2 id="17--외부-secret-관리-도구의-역할">17 ) 외부 Secret 관리 도구의 역할</h2>
+
+<hr />
+
+<p>Secret Manifest를 Git에서 안전하게 관리하거나 외부 Secret Store와 연결하기 위한 도구는 역할이 서로 다르다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Sealed Secrets</td>
+      <td>공개키로 암호화한 Custom Resource를 Cluster 안에서 Secret으로 변환</td>
+    </tr>
+    <tr>
+      <td>External Secrets</td>
+      <td>외부 Secret Store의 값을 Kubernetes Secret으로 동기화</td>
+    </tr>
+    <tr>
+      <td>Secret 보안 검사 도구</td>
+      <td>Manifest와 Workload의 보안 위험을 분석하며 암호화 기능과는 구분</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">kubesec</code>이라는 이름은 보안 분석 도구 등 서로 다른 Project 문맥에서 사용될 수 있으므로 Secret 암호화 도구로 단정하지 않는다.</p>
+
+<h2 id="18--configmap">18 ) ConfigMap</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>ConfigMap</strong></p>
+
+  <p>민감하지 않은 Application 설정을 Key-Value 또는 File 형태로 저장하는 Kubernetes Resource이다.</p>
+</blockquote>
+
+<p>ConfigMap은 Secret과 달리 기밀 정보 보호를 목적으로 하지 않는다. Password, API Token과 Private Key는 ConfigMap에 저장하지 않는다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>설명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">data</code></td>
+      <td>UTF-8 문자열 Data</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">binaryData</code></td>
+      <td>Base64로 표현하는 Binary Data</td>
+    </tr>
+    <tr>
+      <td>최대 크기</td>
+      <td>하나의 ConfigMap에서 1MiB 이하</td>
+    </tr>
+    <tr>
+      <td>대표 사용</td>
+      <td>환경별 Parameter, Application 설정 File</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="file에서-configmap-생성">File에서 ConfigMap 생성</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">nginx.conf</code>로 저장한다.</p>
+
+<div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">user</span> <span class="s">nginx</span><span class="p">;</span>
+<span class="k">worker_processes</span> <span class="s">auto</span><span class="p">;</span>
+<span class="k">error_log</span> <span class="n">/var/log/nginx/error.log</span> <span class="s">warn</span><span class="p">;</span>
+<span class="k">pid</span> <span class="n">/var/run/nginx.pid</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>File 이름인 <code class="language-plaintext highlighter-rouge">nginx.conf</code>가 기본 Key가 된다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create configmap sample-configmap <span class="se">\</span>
+  <span class="nt">--from-file</span><span class="o">=</span>./nginx.conf
+</code></pre></div></div>
+
+<p>원하는 Key 이름을 명시할 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create configmap sample-configmap-dry-run <span class="se">\</span>
+  <span class="nt">--from-file</span><span class="o">=</span>nginx-config<span class="o">=</span>./nginx.conf <span class="se">\</span>
+  <span class="nt">--dry-run</span><span class="o">=</span>client <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<h3 id="literal-값으로-configmap-생성">Literal 값으로 ConfigMap 생성</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create configmap sample-config-literal <span class="se">\</span>
+  <span class="nt">--from-literal</span><span class="o">=</span><span class="nv">MAX_CONNECTION</span><span class="o">=</span>100 <span class="se">\</span>
+  <span class="nt">--from-literal</span><span class="o">=</span><span class="nv">TZ</span><span class="o">=</span>Asia/Seoul
+</code></pre></div></div>
+
+<h3 id="configmap-조회">ConfigMap 조회</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get configmap sample-configmap
+kubectl get configmap sample-configmap <span class="nt">-o</span> json
+kubectl describe configmap sample-configmap
+</code></pre></div></div>
+
+<p>ConfigMap은 환경 변수나 Volume File로 Container에 전달할 수 있다.</p>
+
+<h2 id="19--실습-resource-정리">19 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>Master 또는 관리 Client에서 Secret과 ConfigMap을 참조하는 Pod부터 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-secret-volume <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-secret-multi-env <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-secret-single-env <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-private-registry <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-env-fail <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-env-container <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-env-pod <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-env <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>실습용 ConfigMap과 Secret을 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete configmap sample-config-literal <span class="nt">--ignore-not-found</span>
+kubectl delete configmap sample-configmap <span class="nt">--ignore-not-found</span>
+kubectl delete secret sample-basic-auth <span class="nt">--ignore-not-found</span>
+kubectl delete secret regcred <span class="nt">--ignore-not-found</span>
+kubectl delete secret example-tls <span class="nt">--ignore-not-found</span>
+kubectl delete secret sample-db-auth-string <span class="nt">--ignore-not-found</span>
+kubectl delete secret sample-db-auth-manifest <span class="nt">--ignore-not-found</span>
+kubectl delete secret sample-db-auth-literal <span class="nt">--ignore-not-found</span>
+kubectl delete secret sample-db-auth <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>Local에 만든 실습 File은 실제 운영 Credential이 아닌지와 다른 작업에서 사용하지 않는지 확인한 뒤 명시적으로 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">rm</span> <span class="nt">-f</span> ./username ./password ./env-secret.txt ./nginx.conf
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">tls.crt</code>와 <code class="language-plaintext highlighter-rouge">tls.key</code>는 실제 인증서일 수 있으므로 자동 정리 명령에 포함하지 않는다. 보관 정책과 사용 여부를 확인한 뒤 별도로 관리한다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">env</code>와 <code class="language-plaintext highlighter-rouge">envFrom</code>은 정적 설정을 Container 환경 변수로 전달하고 Downward API는 Pod와 Container 자신의 정보를 제공한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">fieldRef</code>는 Pod Field, <code class="language-plaintext highlighter-rouge">resourceFieldRef</code>는 Container의 CPU·Memory Request와 Limit을 참조한다.</p>
+    </li>
+    <li>
+      <p>Kubernetes의 <code class="language-plaintext highlighter-rouge">command</code>와 <code class="language-plaintext highlighter-rouge">args</code>에서는 <code class="language-plaintext highlighter-rouge">$(VAR_NAME)</code>으로 환경 변수를 확장하며 Shell의 <code class="language-plaintext highlighter-rouge">${VAR_NAME}</code> 문법과 구분해야 한다.</p>
+    </li>
+    <li>
+      <p>Secret의 Base64 Encoding은 암호화가 아니므로 etcd Encryption at Rest, RBAC와 Version Control 보호가 필요하다.</p>
+    </li>
+    <li>
+      <p>Secret은 특정 Key 환경 변수, 전체 환경 변수 또는 Volume File로 전달할 수 있으며 환경 변수와 Volume의 갱신 방식이 다르다.</p>
+    </li>
+    <li>
+      <p>장기 ServiceAccount Token Secret은 비권장이고 짧은 수명의 Projected Token을 우선 사용한다.</p>
+    </li>
+    <li>
+      <p>ConfigMap은 민감하지 않은 설정을 저장하며 하나의 Object에 저장하는 Data는 1MiB를 넘을 수 없다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Pod 환경 변수와 Downward API, Secret 생성·주입·갱신 및 ConfigMap을 이용한 설정 분리 방법 정리]]></summary></entry><entry><title type="html">Kubernetes Service Traffic Policy와 MetalLB</title><link href="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/" rel="alternate" type="text/html" title="Kubernetes Service Traffic Policy와 MetalLB" /><published>2026-08-31T00:00:00+09:00</published><updated>2026-08-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/"><![CDATA[<p>Service는 안정적인 IP와 DNS 이름을 제공하는 것뿐 아니라 Client 고정, Local Endpoint 선택과 Topology 선호 같은 Traffic 정책도 제어한다. Cloud Load Balancer가 없는 Bare-metal Cluster에서는 MetalLB 같은 구현을 추가하여 <code class="language-plaintext highlighter-rouge">LoadBalancer</code> Service에 외부 IP를 할당할 수 있다.</p>
 
 <h2 id="1--선행-학습과-실습-환경">1 ) 선행 학습과 실습 환경</h2>
 
@@ -1301,16 +2269,216 @@ curl <span class="nt">--resolve</span> ingress.test.com:80:&lt;ingress-external-
 
 <hr />
 
-<p>Ingress는 하나의 진입점에서 Host와 Path를 조합할 수 있다.</p>
+<p>하나의 Ingress 진입점은 여러 Backend Service를 Host 또는 Path로 구분할 수 있다. 다음 실습에서는 두 Deployment와 두 Service를 먼저 준비한 뒤 같은 Ingress Controller를 통해 Routing한다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>api.example.com/       ─▶ api-service
-web.example.com/       ─▶ web-service
-ingress.test.com/test  ─▶ service-test
+<h3 id="두-backend-deployment와-service-생성">두 Backend Deployment와 Service 생성</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">ingress-multi-backend.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend1</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">backend1</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">backend1</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">backend1</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginxdemos/nginx-hello:plain-text</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">8080</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend1-svc</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">backend1</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">http</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend2</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">backend2</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">backend2</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">backend2</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginxdemos/nginx-hello:plain-text</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">8080</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend2-svc</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">backend2</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">http</span>
 </code></pre></div></div>
 
-<p>Host 기반 Routing은 Client가 보내는 HTTP <code class="language-plaintext highlighter-rouge">Host</code> Header를 사용한다. IP 주소로만 요청하면 Manifest의 Host 규칙과 일치하지 않을 수 있으므로 Domain 등록이나 <code class="language-plaintext highlighter-rouge">curl --resolve</code>가 필요하다.</p>
+<p>Master 또는 관리 Client에서 적용한 뒤 Deployment, Pod, Service와 EndpointSlice를 함께 확인한다.</p>
 
-<p>Path 기반 Routing에서는 <code class="language-plaintext highlighter-rouge">Exact</code>, <code class="language-plaintext highlighter-rouge">Prefix</code>와 <code class="language-plaintext highlighter-rouge">ImplementationSpecific</code>의 의미가 다르다. 이 문서는 하위 Path까지 포함하는 <code class="language-plaintext highlighter-rouge">Prefix</code>를 사용하며 Controller 전용 Annotation의 동작은 해당 구현 문서를 확인한다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ingress-multi-backend.yaml
+kubectl rollout status deployment/backend1
+kubectl rollout status deployment/backend2
+kubectl get deployments,pods,services
+kubectl get endpointslices <span class="se">\</span>
+  <span class="nt">-l</span> <span class="s1">'kubernetes.io/service-name in (backend1-svc,backend2-svc)'</span> <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>Control Plane의 Deployment Controller와 Scheduler가 네 개의 Pod 생성과 Worker 배치를 조정한다. 각 Worker의 kubelet이 Pod를 실행하면 EndpointSlice Controller가 Service Selector와 일치하는 Ready Pod IP를 Backend로 기록한다.</p>
+
+<h3 id="host-기반-routing">Host 기반 Routing</h3>
+
+<p>Host 기반 Routing은 Client가 보내는 HTTP <code class="language-plaintext highlighter-rouge">Host</code> Header로 Backend를 선택한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>example1.com ─▶ backend1-svc ─▶ backend1 Pod
+example2.com ─▶ backend2-svc ─▶ backend2 Pod
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">ingress-host-routing.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-host-ingress</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ingressClassName</span><span class="pi">:</span> <span class="s">nginx</span>
+  <span class="na">rules</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">example1.com</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend1-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">example2.com</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend2-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>Legacy <code class="language-plaintext highlighter-rouge">kubernetes.io/ingress.class: nginx</code> Annotation 대신 <code class="language-plaintext highlighter-rouge">spec.ingressClassName: nginx</code>을 사용한다. Resource 이름도 Controller와 혼동하지 않도록 <code class="language-plaintext highlighter-rouge">sample-host-ingress</code>로 구분한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ingress-host-routing.yaml
+kubectl get ingress sample-host-ingress
+kubectl describe ingress sample-host-ingress
+</code></pre></div></div>
+
+<p>MetalLB를 사용한다면 두 Domain은 서로 다른 Worker IP가 아니라 Ingress Controller Service에 할당된 같은 <code class="language-plaintext highlighter-rouge">EXTERNAL-IP</code>를 가리킨다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get service ingress-nginx-controller <span class="nt">-n</span> ingress-nginx <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.loadBalancer.ingress[0].ip}{"\n"}'</span>
+</code></pre></div></div>
+
+<p>외부 Client의 <code class="language-plaintext highlighter-rouge">/etc/hosts</code>에는 다음 형식으로 등록한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;ingress-external-ip&gt; example1.com
+&lt;ingress-external-ip&gt; example2.com
+</code></pre></div></div>
+
+<p>파일을 수정하지 않고 확인하려면 실제 External IP로 바꿔 <code class="language-plaintext highlighter-rouge">curl --resolve</code>를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 외부 Client에서 실행</span>
+curl <span class="nt">--resolve</span> example1.com:80:&lt;ingress-external-ip&gt; http://example1.com/
+curl <span class="nt">--resolve</span> example2.com:80:&lt;ingress-external-ip&gt; http://example2.com/
+</code></pre></div></div>
+
+<p>IP 주소만 URL에 입력하면 <code class="language-plaintext highlighter-rouge">Host</code> Header가 규칙과 일치하지 않을 수 있다. NodePort 번호도 설치 때마다 달라질 수 있으므로 예제의 특정 Port를 고정하지 않고 실제 Service 상태를 조회한다.</p>
+
+<h3 id="path-기반-routing">Path 기반 Routing</h3>
+
+<p>Path 기반 Routing은 하나의 Host에서 URL Prefix에 따라 Backend를 선택한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>example.com/backend1 ─▶ backend1-svc
+example.com/backend2 ─▶ backend2-svc
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">ingress-path-routing.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-path-ingress</span>
+  <span class="na">annotations</span><span class="pi">:</span>
+    <span class="na">nginx.ingress.kubernetes.io/rewrite-target</span><span class="pi">:</span> <span class="s">/</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ingressClassName</span><span class="pi">:</span> <span class="s">nginx</span>
+  <span class="na">rules</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">example.com</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/backend1</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend1-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/backend2</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend2-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">pathType: Prefix</code>는 지정한 Path와 그 하위 Path를 일치시킨다. <code class="language-plaintext highlighter-rouge">nginx.ingress.kubernetes.io/rewrite-target</code>은 Kubernetes 공통 Field가 아니라 ingress-nginx 전용 Annotation이며, 이 예제에서는 Backend에 전달할 Path를 <code class="language-plaintext highlighter-rouge">/</code>로 바꾼다.</p>
+
+<p>Host 기반 실습과 동시에 실행하면 규칙을 구분하기 어려울 수 있으므로 먼저 Host 기반 Ingress를 제거하고 Path 기반 Ingress를 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> ingress-host-routing.yaml <span class="nt">--ignore-not-found</span>
+kubectl apply <span class="nt">-f</span> ingress-path-routing.yaml
+kubectl describe ingress sample-path-ingress
+</code></pre></div></div>
+
+<p>외부 Client에서 같은 External IP에 <code class="language-plaintext highlighter-rouge">example.com</code> Host를 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">--resolve</span> example.com:80:&lt;ingress-external-ip&gt; <span class="se">\</span>
+  http://example.com/backend1
+curl <span class="nt">--resolve</span> example.com:80:&lt;ingress-external-ip&gt; <span class="se">\</span>
+  http://example.com/backend2
+</code></pre></div></div>
+
+<p>요청은 External IP에서 Ingress Controller Pod로 들어온 뒤 Host와 Path 규칙에 따라 <code class="language-plaintext highlighter-rouge">backend1-svc</code> 또는 <code class="language-plaintext highlighter-rouge">backend2-svc</code>로 전달된다. Worker의 Service Data Plane은 선택된 Service의 EndpointSlice를 기준으로 실제 Backend Pod를 선택한다.</p>
 
 <h2 id="12--실습-resource-정리">12 ) 실습 Resource 정리</h2>
 
@@ -1321,6 +2489,9 @@ ingress.test.com/test  ─▶ service-test
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> ingress-test.yaml <span class="nt">--ignore-not-found</span>
 kubectl delete <span class="nt">-f</span> svc-test.yaml <span class="nt">--ignore-not-found</span>
 kubectl delete <span class="nt">-f</span> deploy-test.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> ingress-host-routing.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> ingress-path-routing.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> ingress-multi-backend.yaml <span class="nt">--ignore-not-found</span>
 </code></pre></div></div>
 
 <p>다른 Ingress가 Controller를 사용 중인지 확인한다.</p>
@@ -1364,7 +2535,9 @@ kubectl get service ingress-nginx-controller <span class="nt">-n</span> ingress-
       <p>문제를 확인할 때는 DNS와 External IP부터 IngressClass, Controller, Service, EndpointSlice와 Backend Pod 순서로 추적한다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리]]></summary></entry><entry><title type="html">Kubernetes Job과 CronJob</title><link href="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/" rel="alternate" type="text/html" title="Kubernetes Job과 CronJob" /><published>2026-08-28T00:00:00+09:00</published><updated>2026-08-28T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/"><![CDATA[<p>Deployment와 ReplicaSet은 Application이 계속 실행되는 상태를 유지하지만 Job은 정해진 작업이 성공적으로 끝나는 상태를 목표로 한다. CronJob은 Schedule에 따라 Job을 반복 생성하므로 완료 조건과 재시도 정책을 먼저 이해해야 한다.</p>
+</blockquote>
+
+<p>다음 단계에서는 <a href="/cloud-native-34-kubernetes-env-secret-configmap/">Kubernetes 환경 변수와 Secret·ConfigMap</a>에서 Application 설정과 기밀 정보를 Container에 전달하는 방법을 다룬다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리]]></summary></entry><entry><title type="html">Kubernetes Job과 CronJob</title><link href="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/" rel="alternate" type="text/html" title="Kubernetes Job과 CronJob" /><published>2026-08-28T00:00:00+09:00</published><updated>2026-08-28T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/"><![CDATA[<p>Deployment와 ReplicaSet은 Application이 계속 실행되는 상태를 유지하지만 Job은 정해진 작업이 성공적으로 끝나는 상태를 목표로 한다. CronJob은 Schedule에 따라 Job을 반복 생성하므로 완료 조건과 재시도 정책을 먼저 이해해야 한다.</p>
 
 <h2 id="1--run-to-completion-workload">1 ) Run-to-Completion Workload</h2>
 
@@ -5213,636 +6386,4 @@ kubectl delete pod &lt;generated-pod-name&gt;
       <p><code class="language-plaintext highlighter-rouge">kubectl wait</code>는 Ready, Scheduling, Phase 또는 삭제 완료를 후속 작업의 조건으로 사용할 수 있다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Deployment 재시작과 generateName 사용법, Pod Phase와 kubectl 상태 표시의 차이, Condition 기반 작업 완료 대기 정리]]></summary></entry><entry><title type="html">Kubernetes Manifest와 Metadata 관리</title><link href="https://kkr010128.github.io/cloud-native-25-manifest-metadata-management/" rel="alternate" type="text/html" title="Kubernetes Manifest와 Metadata 관리" /><published>2026-08-26T00:00:00+09:00</published><updated>2026-08-26T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-25-manifest-metadata-management</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-25-manifest-metadata-management/"><![CDATA[<p>Kubernetes Resource가 많아지면 개별 명령을 반복하는 대신 Manifest를 File과 Directory 단위로 관리해야 한다. 여러 Resource를 하나의 Manifest에 정의하거나 여러 File로 분리할 수 있으며, Label과 Annotation을 이용해 Resource를 분류하고 관리 정보를 기록할 수 있다.</p>
-
-<h2 id="1--manifest-설계">1 ) Manifest 설계</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Manifest</strong></p>
-
-  <p>Kubernetes API에 생성할 Object의 원하는 상태를 YAML 또는 JSON으로 작성한 File이다.</p>
-</blockquote>
-
-<p>Kubernetes Manifest의 주요 Field는 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">apiVersion</code></td>
-      <td>Resource가 사용하는 Kubernetes API Version</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">kind</code></td>
-      <td>Pod, Deployment, Service 등 Resource 종류</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">metadata</code></td>
-      <td>이름, Namespace, Label과 Annotation 등 식별·관리 정보</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec</code></td>
-      <td>사용자가 원하는 Resource 상태</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Control Plane은 Manifest로 전달된 <code class="language-plaintext highlighter-rouge">spec</code>을 Desired State로 저장한다. Controller와 Scheduler가 이 상태를 관찰하고, Worker의 kubelet이 할당된 Pod를 실제로 실행한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Manifest의 spec
-      │
-      ▼
-API Server가 Desired State 저장
-      │
-      ├── Controller가 Resource 상태 조정
-      ├── Scheduler가 Worker 선택
-      └── Worker의 kubelet이 Pod 실행
-</code></pre></div></div>
-
-<h2 id="2--하나의-manifest에-여러-resource-정의">2 ) 하나의 Manifest에 여러 Resource 정의</h2>
-
-<hr />
-
-<p>YAML Document 구분자인 <code class="language-plaintext highlighter-rouge">---</code>를 사용하면 하나의 File에 여러 Resource를 정의할 수 있다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-multi-resource-manifest.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">order1-deployment</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.17</span>
-<span class="nn">---</span>
-<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">order2-service</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Resource</th>
-      <th>Control Plane의 처리</th>
-      <th>Worker에 미치는 결과</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Deployment</td>
-      <td>ReplicaSet과 Pod의 Desired State 관리</td>
-      <td>선택된 Worker에서 Nginx Pod 실행</td>
-    </tr>
-    <tr>
-      <td>Service</td>
-      <td>Label Selector와 Service Port 상태 관리</td>
-      <td>각 Node의 Service Network Rule에 반영</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Manifest를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master에서 실행</span>
-kubectl apply <span class="nt">-f</span> sample-multi-resource-manifest.yaml
-</code></pre></div></div>
-
-<p>생성 결과를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployments
-kubectl get services
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p>하나의 File로 함께 관리하면 관련 Resource를 같은 명령으로 적용하고 삭제하기 쉽다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-multi-resource-manifest.yaml
-</code></pre></div></div>
-
-<h3 id="resource-적용-순서">Resource 적용 순서</h3>
-
-<p>kubectl은 File의 YAML Document를 읽어 API Server에 요청하지만 전체 File을 하나의 Transaction으로 적용하지 않는다. 앞 Resource가 생성되었다고 해서 실제 Pod가 Ready 상태가 된 후 다음 Resource를 처리하는 것도 아니다.</p>
-
-<p>일부 Resource 요청이 실패하더라도 이미 API Server가 승인한 Resource는 남을 수 있다. 따라서 File에 적힌 순서를 Application 기동 의존성을 보장하는 방법으로 사용하지 않는다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Deployment 생성 요청 승인
-Service 생성 요청 실패
-        │
-        └── 이미 생성된 Deployment는 자동 Rollback되지 않음
-</code></pre></div></div>
-
-<p>Resource 사이에 준비 완료 조건이 필요하면 Readiness Probe, Init Container 또는 <code class="language-plaintext highlighter-rouge">kubectl wait</code>처럼 상태를 확인하는 구조를 사용한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">nginx:1.17</code>은 고정 Tag를 보여주기 위한 오래된 Image 예시이다. 운영 환경에서는 보안 Update가 제공되는 검증된 Version Tag 또는 Image Digest를 사용한다.</p>
-
-<h2 id="3--여러-manifest-file-적용">3 ) 여러 Manifest File 적용</h2>
-
-<hr />
-
-<p>Resource 종류나 Application 구성 단위로 File을 분리할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dir/
-├── sample-pod1.yaml
-└── sample-pod2.yaml
-</code></pre></div></div>
-
-<p>Directory를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> <span class="nb">dir</span>
-</code></pre></div></div>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">dir/sample-pod1.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod1</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.17</span>
-</code></pre></div></div>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">dir/sample-pod2.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod2</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.17</span>
-</code></pre></div></div>
-
-<p>Directory 안의 Manifest를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ./dir
-</code></pre></div></div>
-
-<p>Pod를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods sample-pod1 sample-pod2
-</code></pre></div></div>
-
-<h3 id="하위-directory-재귀-적용">하위 Directory 재귀 적용</h3>
-
-<p><code class="language-plaintext highlighter-rouge">-f</code>로 지정한 Directory의 하위 Directory까지 적용하려면 <code class="language-plaintext highlighter-rouge">-R</code> 또는 <code class="language-plaintext highlighter-rouge">--recursive</code>를 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ./dir <span class="nt">-R</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-f</code>, <code class="language-plaintext highlighter-rouge">--filename</code></td>
-      <td>적용할 File 또는 Directory 지정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-R</code>, <code class="language-plaintext highlighter-rouge">--recursive</code></td>
-      <td>지정한 Directory 아래를 재귀적으로 탐색</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>File 이름의 번호를 Resource 준비 순서를 보장하는 장치로 사용하지 않는다. Kubernetes Resource는 API 요청 후 Controller가 비동기로 상태를 조정하므로 File 처리 순서와 Application 준비 완료 순서는 다를 수 있다.</p>
-
-<h3 id="directory-분리-기준">Directory 분리 기준</h3>
-
-<p>규모에 따라 다음 방식으로 구성할 수 있다.</p>
-
-<ul>
-  <li>
-    <p>작은 System은 관련 Manifest를 하나의 Directory에 모은다.</p>
-  </li>
-  <li>
-    <p>규모가 커지면 Subsystem이나 운영 Team 단위로 Directory를 나눈다.</p>
-  </li>
-  <li>
-    <p>Microservice별 Directory를 만들고 Deployment, Service와 설정 Resource를 함께 둔다.</p>
-  </li>
-  <li>
-    <p>여러 Application이 공유하는 ConfigMap이나 공통 정책은 별도 Directory로 분리한다.</p>
-  </li>
-</ul>
-
-<p>Directory가 지나치게 세분화되면 어떤 Resource를 함께 적용해야 하는지 파악하기 어려울 수 있다. 반대로 모든 Resource를 하나의 File에 모으면 변경 충돌과 검토 범위가 커진다. 배포·Rollback·소유권 단위를 기준으로 분리한다.</p>
-
-<h2 id="4--label과-annotation">4 ) Label과 Annotation</h2>
-
-<hr />
-
-<p>Kubernetes Resource에는 Label과 Annotation 형태의 Metadata를 추가할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>Label</th>
-      <th>Annotation</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>목적</td>
-      <td>Resource 분류, 선택과 검색</td>
-      <td>설명, 도구 설정, Build 정보 등 비식별 Metadata 저장</td>
-    </tr>
-    <tr>
-      <td>Selector 지원</td>
-      <td>지원</td>
-      <td>지원하지 않음</td>
-    </tr>
-    <tr>
-      <td>값의 형태</td>
-      <td>길이와 문자 구성이 제한된 String</td>
-      <td>문자열이며 공백·특수 문자와 구조화된 Text 저장 가능</td>
-    </tr>
-    <tr>
-      <td>대표 사용</td>
-      <td>Application, 환경, Tier, 관리 대상 구분</td>
-      <td>담당자, 배포 Revision, 외부 도구 설정</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="label">Label</h3>
-
-<blockquote>
-  <p><strong>Label</strong></p>
-
-  <p>Resource를 분류하고 Selector로 Resource 집합을 선택하기 위한 Key-Value Metadata이다.</p>
-</blockquote>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-label-pod.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-label-pod</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-    <span class="na">environment</span><span class="pi">:</span> <span class="s">development</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<p>적용 후 Label을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-label-pod.yaml
-kubectl get pods <span class="nt">--show-labels</span>
-</code></pre></div></div>
-
-<p>Label Selector로 Pod를 조회한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
-</code></pre></div></div>
-
-<p>여러 조건을 쉼표로 연결하면 모든 조건을 만족하는 Resource를 선택한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app,environment<span class="o">=</span>development
-</code></pre></div></div>
-
-<p>Label Key는 선택적인 DNS Prefix와 <code class="language-plaintext highlighter-rouge">/</code>, 필수 Name Segment로 구성할 수 있다. Name Segment와 Label Value는 각각 63자 이하이며, Prefix를 사용하면 DNS Subdomain 형식으로 최대 253자까지 사용할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>example.com/application
-─────────── ───────────
-   Prefix       Name
-</code></pre></div></div>
-
-<h3 id="annotation">Annotation</h3>
-
-<blockquote>
-  <p><strong>Annotation</strong></p>
-
-  <p>Selector로 분류할 필요는 없지만 Resource와 함께 보존해야 하는 추가 정보를 기록하는 Metadata이다.</p>
-</blockquote>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-annotation-pod</span>
-  <span class="na">annotations</span><span class="pi">:</span>
-    <span class="na">description</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Nginx</span><span class="nv"> </span><span class="s">학습용</span><span class="nv"> </span><span class="s">Pod"</span>
-    <span class="na">build.example.com/revision</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2026-08-26.1"</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<p>Annotation의 Key와 Value는 문자열이어야 한다. 모든 Annotation Key와 Value를 합한 크기는 한 Object에서 256KiB를 넘을 수 없다.</p>
-
-<p>Label에는 Selector에 사용할 간단한 식별값을 넣고, 긴 설명이나 도구가 사용하는 설정은 Annotation에 넣는다.</p>
-
-<h2 id="5--prune을-이용한-resource-정리">5 ) prune을 이용한 Resource 정리</h2>
-
-<hr />
-
-<p>Git에서 Manifest를 삭제한 뒤 <code class="language-plaintext highlighter-rouge">kubectl apply -f</code>만 다시 실행하면 Cluster의 기존 Resource가 자동으로 삭제되지는 않는다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Git Directory                         Kubernetes Cluster
-├── sample-pod1.yaml                  ├── sample-pod1
-└── sample-pod2.yaml                  └── sample-pod2
-
-sample-pod2.yaml 삭제 후 apply
-
-Git Directory                         Kubernetes Cluster
-└── sample-pod1.yaml                  ├── sample-pod1
-                                      └── sample-pod2  ← 그대로 남음
-</code></pre></div></div>
-
-<p>명시적으로 삭제하는 방법이 가장 이해하기 쉽다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> prune/sample-pod2.yaml
-</code></pre></div></div>
-
-<p>삭제된 Manifest가 더 이상 없어서 File 기반 삭제를 사용할 수 없다면 Resource 종류와 이름 또는 Label을 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-pod2
-</code></pre></div></div>
-
-<h3 id="prune-실습-manifest">prune 실습 Manifest</h3>
-
-<p>Directory를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> prune
-</code></pre></div></div>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">prune/sample-pod1.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod1</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">system</span><span class="pi">:</span> <span class="s">a</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.17</span>
-</code></pre></div></div>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">prune/sample-pod2.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod2</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">system</span><span class="pi">:</span> <span class="s">a</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.17</span>
-</code></pre></div></div>
-
-<p>두 Resource를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ./prune
-kubectl get pods <span class="nt">-l</span> <span class="nv">system</span><span class="o">=</span>a
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">sample-pod2.yaml</code>을 Directory에서 제거한 뒤 일반 <code class="language-plaintext highlighter-rouge">apply</code>를 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">rm </span>prune/sample-pod2.yaml
-kubectl apply <span class="nt">-f</span> ./prune
-kubectl get pods <span class="nt">-l</span> <span class="nv">system</span><span class="o">=</span>a
-</code></pre></div></div>
-
-<p>일반 <code class="language-plaintext highlighter-rouge">apply</code>만으로는 <code class="language-plaintext highlighter-rouge">sample-pod2</code>가 삭제되지 않는다.</p>
-
-<h3 id="apply-prune">apply –prune</h3>
-
-<p><code class="language-plaintext highlighter-rouge">--prune</code>은 이전에 <code class="language-plaintext highlighter-rouge">apply</code>로 관리하던 Resource 중 현재 Manifest 집합에 포함되지 않은 대상을 삭제한다.</p>
-
-<p>Kubernetes <code class="language-plaintext highlighter-rouge">v1.36</code> 기준 기존 Allowlist 기반 <code class="language-plaintext highlighter-rouge">--prune</code>과 ApplySet 기반 방식은 모두 Alpha 상태이다. 삭제 범위를 잘못 지정하면 예상하지 않은 Resource가 제거될 수 있으므로 운영 환경에서는 명시적인 <code class="language-plaintext highlighter-rouge">kubectl delete -f</code>를 우선한다.</p>
-
-<p>실습에서 Pod와 <code class="language-plaintext highlighter-rouge">system=a</code> Label로 범위를 제한한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ./prune <span class="se">\</span>
-  <span class="nt">--prune</span> <span class="se">\</span>
-  <span class="nt">-l</span> <span class="nv">system</span><span class="o">=</span>a <span class="se">\</span>
-  <span class="nt">--prune-allowlist</span><span class="o">=</span>core/v1/Pod
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--prune</code></td>
-      <td>현재 Manifest 집합에 없는 기존 관리 Resource 삭제</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">-l system=a</code></td>
-      <td>삭제 검토 대상을 해당 Label Resource로 제한</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--prune-allowlist=core/v1/Pod</code></td>
-      <td>Prune할 Group, Version과 Kind를 Pod로 제한</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">--prune</code>은 관리 대상 전체가 들어 있는 Root Directory에서 실행한다. 일부 Subdirectory만 대상으로 실행하면 다른 Directory에 있는 정상 Resource가 누락된 것으로 판단될 수 있다.</p>
-
-<p>실습 결과를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">system</span><span class="o">=</span>a
-</code></pre></div></div>
-
-<p>실습 Resource를 명시적으로 정리한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pods <span class="nt">-l</span> <span class="nv">system</span><span class="o">=</span>a
-</code></pre></div></div>
-
-<h2 id="6--resource-일부-정보-변경">6 ) Resource 일부 정보 변경</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">kubectl set</code>은 Resource의 특정 Field를 명령형으로 변경한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>하위 명령</th>
-      <th>변경 대상</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">set env</code></td>
-      <td>환경 변수</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">set image</code></td>
-      <td>Container Image</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">set resources</code></td>
-      <td>Resource Request와 Limit</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">set selector</code></td>
-      <td>Resource Selector</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">set serviceaccount</code></td>
-      <td>Pod Template의 ServiceAccount</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">set subject</code></td>
-      <td>RoleBinding과 ClusterRoleBinding의 Subject</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-deployment.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-deployment</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<p>Manifest를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-deployment.yaml
-</code></pre></div></div>
-
-<p>독립 Pod의 Image도 Container 이름을 지정하여 변경할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">set </span>image pod/sample-label-pod <span class="se">\</span>
-  nginx-container<span class="o">=</span>nginx:stable
-</code></pre></div></div>
-
-<p>독립 Pod는 Rollout과 Replica 유지 기능이 없으므로 Application Workload는 일반적으로 Deployment 같은 Controller로 관리한다.</p>
-
-<p>Deployment가 사용하는 Image를 변경한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">set </span>image deployment/sample-deployment <span class="se">\</span>
-  nginx-container<span class="o">=</span>nginx:stable
-</code></pre></div></div>
-
-<p>Image 변경으로 Deployment Rollout이 시작된다. Control Plane의 Deployment Controller가 새 ReplicaSet을 만들고 Worker에서는 새 Image를 사용하는 Pod가 실행된다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout status deployment/sample-deployment
-</code></pre></div></div>
-
-<h3 id="manifest와-실제-상태-차이-확인">Manifest와 실제 상태 차이 확인</h3>
-
-<p>명령형으로 변경한 Cluster 상태와 Local Manifest의 차이를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl diff <span class="nt">-f</span> sample-deployment.yaml
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">kubectl diff</code>는 실제 변경을 적용하지 않고 <code class="language-plaintext highlighter-rouge">apply</code> 시 변경될 내용을 미리 보여준다. 운영 환경에서는 변경 전 Diff를 검토하고 Manifest에 의도한 값을 반영한 뒤 <code class="language-plaintext highlighter-rouge">apply</code>하는 방식이 적합하다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-deployment.yaml
-</code></pre></div></div>
-
-<p>명령형 <code class="language-plaintext highlighter-rouge">set</code>으로 긴급 변경한 뒤 Manifest를 갱신하지 않으면 다음 <code class="language-plaintext highlighter-rouge">apply</code>에서 값이 이전 선언으로 돌아갈 수 있다.</p>
-
-<h2 id="7--사용-가능한-resource-종류-확인">7 ) 사용 가능한 Resource 종류 확인</h2>
-
-<hr />
-
-<p>현재 API Server가 제공하는 Resource 종류를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl api-resources
-</code></pre></div></div>
-
-<p>Namespace에 속하는 Resource만 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">true</span>
-</code></pre></div></div>
-
-<p>Cluster 전체 범위 Resource만 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">false</span>
-</code></pre></div></div>
-
-<p>출력에는 Resource 이름, 축약 이름, API Version, Namespace 적용 여부와 Kind가 포함된다. Manifest의 <code class="language-plaintext highlighter-rouge">apiVersion</code>과 <code class="language-plaintext highlighter-rouge">kind</code>를 확인하거나 <code class="language-plaintext highlighter-rouge">kubectl get</code>에 사용할 Resource 이름을 찾을 때 활용한다.</p>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Manifest는 Kubernetes Object의 Desired State를 기록하며 여러 Resource를 <code class="language-plaintext highlighter-rouge">---</code>로 구분해 한 File에 작성할 수 있다.</p>
-    </li>
-    <li>
-      <p>여러 Resource 적용은 하나의 Transaction이 아니며 File 순서가 Application 준비 완료 순서를 보장하지 않는다.</p>
-    </li>
-    <li>
-      <p>여러 Manifest는 Directory 단위로 적용할 수 있고 <code class="language-plaintext highlighter-rouge">-R</code>을 사용하면 하위 Directory까지 재귀적으로 처리한다.</p>
-    </li>
-    <li>
-      <p>Label은 Resource 선택과 분류에 사용하고 Annotation은 Selector가 필요 없는 추가 Metadata를 저장한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">apply --prune</code>은 삭제 범위에 따라 정상 Resource를 제거할 수 있는 Alpha 기능이므로 Label과 Allowlist로 범위를 제한하고 명시적 삭제를 우선한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">kubectl set</code>으로 변경한 값은 Manifest에도 반영하고 <code class="language-plaintext highlighter-rouge">kubectl diff</code>로 실제 상태와 선언 상태를 비교한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[여러 Resource를 정의하는 Manifest 구성과 Directory 적용, Label·Annotation, prune, kubectl set과 diff를 이용한 변경 관리 정리]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Deployment 재시작과 generateName 사용법, Pod Phase와 kubectl 상태 표시의 차이, Condition 기반 작업 완료 대기 정리]]></summary></entry></feed>

@@ -49,13 +49,15 @@
   <meta property="article:published_time" content="2026-08-31T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1788233638" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788233638" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788233638">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1788233638" color="#495057">
+  <meta property="article:modified_time" content="2026-09-01T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788273644" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788273644" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788273644">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788273644" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1788233638">
+<link rel="stylesheet" href="/assets/css/main.css?v=1788273644">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -99,7 +101,8 @@
     "headline": "Kubernetes Ingress Resource와 HTTP Routing | renamed.log",
     "description": "Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리",
     "url": "https://kkr010128.github.io/cloud-native-33-kubernetes-ingress-routing/",
-    "datePublished": "2026-08-31T00:00:00+09:00"
+    "datePublished": "2026-08-31T00:00:00+09:00",
+    "dateModified": "2026-09-01T00:00:00+09:00"
   }
 </script>
 
@@ -228,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 31일 · 7분 읽기
+          2026년 8월 31일 · 9분 읽기 · 수정 2026년 9월 1일
         </span>
       </div>
     </div>
@@ -699,16 +702,216 @@ curl <span class="nt">--resolve</span> ingress.test.com:80:&lt;ingress-external-
 
 <hr />
 
-<p>Ingress는 하나의 진입점에서 Host와 Path를 조합할 수 있다.</p>
+<p>하나의 Ingress 진입점은 여러 Backend Service를 Host 또는 Path로 구분할 수 있다. 다음 실습에서는 두 Deployment와 두 Service를 먼저 준비한 뒤 같은 Ingress Controller를 통해 Routing한다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>api.example.com/       ─▶ api-service
-web.example.com/       ─▶ web-service
-ingress.test.com/test  ─▶ service-test
+<h3 id="두-backend-deployment와-service-생성">두 Backend Deployment와 Service 생성</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">ingress-multi-backend.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend1</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">backend1</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">backend1</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">backend1</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginxdemos/nginx-hello:plain-text</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">8080</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend1-svc</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">backend1</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">http</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend2</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">backend2</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">backend2</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">backend2</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginxdemos/nginx-hello:plain-text</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">8080</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">backend2-svc</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">backend2</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">http</span>
 </code></pre></div></div>
 
-<p>Host 기반 Routing은 Client가 보내는 HTTP <code class="language-plaintext highlighter-rouge">Host</code> Header를 사용한다. IP 주소로만 요청하면 Manifest의 Host 규칙과 일치하지 않을 수 있으므로 Domain 등록이나 <code class="language-plaintext highlighter-rouge">curl --resolve</code>가 필요하다.</p>
+<p>Master 또는 관리 Client에서 적용한 뒤 Deployment, Pod, Service와 EndpointSlice를 함께 확인한다.</p>
 
-<p>Path 기반 Routing에서는 <code class="language-plaintext highlighter-rouge">Exact</code>, <code class="language-plaintext highlighter-rouge">Prefix</code>와 <code class="language-plaintext highlighter-rouge">ImplementationSpecific</code>의 의미가 다르다. 이 문서는 하위 Path까지 포함하는 <code class="language-plaintext highlighter-rouge">Prefix</code>를 사용하며 Controller 전용 Annotation의 동작은 해당 구현 문서를 확인한다.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ingress-multi-backend.yaml
+kubectl rollout status deployment/backend1
+kubectl rollout status deployment/backend2
+kubectl get deployments,pods,services
+kubectl get endpointslices <span class="se">\</span>
+  <span class="nt">-l</span> <span class="s1">'kubernetes.io/service-name in (backend1-svc,backend2-svc)'</span> <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>Control Plane의 Deployment Controller와 Scheduler가 네 개의 Pod 생성과 Worker 배치를 조정한다. 각 Worker의 kubelet이 Pod를 실행하면 EndpointSlice Controller가 Service Selector와 일치하는 Ready Pod IP를 Backend로 기록한다.</p>
+
+<h3 id="host-기반-routing">Host 기반 Routing</h3>
+
+<p>Host 기반 Routing은 Client가 보내는 HTTP <code class="language-plaintext highlighter-rouge">Host</code> Header로 Backend를 선택한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>example1.com ─▶ backend1-svc ─▶ backend1 Pod
+example2.com ─▶ backend2-svc ─▶ backend2 Pod
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">ingress-host-routing.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-host-ingress</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ingressClassName</span><span class="pi">:</span> <span class="s">nginx</span>
+  <span class="na">rules</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">example1.com</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend1-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">example2.com</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend2-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>Legacy <code class="language-plaintext highlighter-rouge">kubernetes.io/ingress.class: nginx</code> Annotation 대신 <code class="language-plaintext highlighter-rouge">spec.ingressClassName: nginx</code>을 사용한다. Resource 이름도 Controller와 혼동하지 않도록 <code class="language-plaintext highlighter-rouge">sample-host-ingress</code>로 구분한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> ingress-host-routing.yaml
+kubectl get ingress sample-host-ingress
+kubectl describe ingress sample-host-ingress
+</code></pre></div></div>
+
+<p>MetalLB를 사용한다면 두 Domain은 서로 다른 Worker IP가 아니라 Ingress Controller Service에 할당된 같은 <code class="language-plaintext highlighter-rouge">EXTERNAL-IP</code>를 가리킨다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get service ingress-nginx-controller <span class="nt">-n</span> ingress-nginx <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.loadBalancer.ingress[0].ip}{"\n"}'</span>
+</code></pre></div></div>
+
+<p>외부 Client의 <code class="language-plaintext highlighter-rouge">/etc/hosts</code>에는 다음 형식으로 등록한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;ingress-external-ip&gt; example1.com
+&lt;ingress-external-ip&gt; example2.com
+</code></pre></div></div>
+
+<p>파일을 수정하지 않고 확인하려면 실제 External IP로 바꿔 <code class="language-plaintext highlighter-rouge">curl --resolve</code>를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 외부 Client에서 실행</span>
+curl <span class="nt">--resolve</span> example1.com:80:&lt;ingress-external-ip&gt; http://example1.com/
+curl <span class="nt">--resolve</span> example2.com:80:&lt;ingress-external-ip&gt; http://example2.com/
+</code></pre></div></div>
+
+<p>IP 주소만 URL에 입력하면 <code class="language-plaintext highlighter-rouge">Host</code> Header가 규칙과 일치하지 않을 수 있다. NodePort 번호도 설치 때마다 달라질 수 있으므로 예제의 특정 Port를 고정하지 않고 실제 Service 상태를 조회한다.</p>
+
+<h3 id="path-기반-routing">Path 기반 Routing</h3>
+
+<p>Path 기반 Routing은 하나의 Host에서 URL Prefix에 따라 Backend를 선택한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>example.com/backend1 ─▶ backend1-svc
+example.com/backend2 ─▶ backend2-svc
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">ingress-path-routing.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-path-ingress</span>
+  <span class="na">annotations</span><span class="pi">:</span>
+    <span class="na">nginx.ingress.kubernetes.io/rewrite-target</span><span class="pi">:</span> <span class="s">/</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ingressClassName</span><span class="pi">:</span> <span class="s">nginx</span>
+  <span class="na">rules</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">example.com</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/backend1</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend1-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/backend2</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">backend2-svc</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">pathType: Prefix</code>는 지정한 Path와 그 하위 Path를 일치시킨다. <code class="language-plaintext highlighter-rouge">nginx.ingress.kubernetes.io/rewrite-target</code>은 Kubernetes 공통 Field가 아니라 ingress-nginx 전용 Annotation이며, 이 예제에서는 Backend에 전달할 Path를 <code class="language-plaintext highlighter-rouge">/</code>로 바꾼다.</p>
+
+<p>Host 기반 실습과 동시에 실행하면 규칙을 구분하기 어려울 수 있으므로 먼저 Host 기반 Ingress를 제거하고 Path 기반 Ingress를 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> ingress-host-routing.yaml <span class="nt">--ignore-not-found</span>
+kubectl apply <span class="nt">-f</span> ingress-path-routing.yaml
+kubectl describe ingress sample-path-ingress
+</code></pre></div></div>
+
+<p>외부 Client에서 같은 External IP에 <code class="language-plaintext highlighter-rouge">example.com</code> Host를 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">--resolve</span> example.com:80:&lt;ingress-external-ip&gt; <span class="se">\</span>
+  http://example.com/backend1
+curl <span class="nt">--resolve</span> example.com:80:&lt;ingress-external-ip&gt; <span class="se">\</span>
+  http://example.com/backend2
+</code></pre></div></div>
+
+<p>요청은 External IP에서 Ingress Controller Pod로 들어온 뒤 Host와 Path 규칙에 따라 <code class="language-plaintext highlighter-rouge">backend1-svc</code> 또는 <code class="language-plaintext highlighter-rouge">backend2-svc</code>로 전달된다. Worker의 Service Data Plane은 선택된 Service의 EndpointSlice를 기준으로 실제 Backend Pod를 선택한다.</p>
 
 <h2 id="12--실습-resource-정리">12 ) 실습 Resource 정리</h2>
 
@@ -719,6 +922,9 @@ ingress.test.com/test  ─▶ service-test
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> ingress-test.yaml <span class="nt">--ignore-not-found</span>
 kubectl delete <span class="nt">-f</span> svc-test.yaml <span class="nt">--ignore-not-found</span>
 kubectl delete <span class="nt">-f</span> deploy-test.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> ingress-host-routing.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> ingress-path-routing.yaml <span class="nt">--ignore-not-found</span>
+kubectl delete <span class="nt">-f</span> ingress-multi-backend.yaml <span class="nt">--ignore-not-found</span>
 </code></pre></div></div>
 
 <p>다른 Ingress가 Controller를 사용 중인지 확인한다.</p>
@@ -764,6 +970,8 @@ kubectl get service ingress-nginx-controller <span class="nt">-n</span> ingress-
   </ul>
 </blockquote>
 
+<p>다음 단계에서는 <a href="/cloud-native-34-kubernetes-env-secret-configmap/">Kubernetes 환경 변수와 Secret·ConfigMap</a>에서 Application 설정과 기밀 정보를 Container에 전달하는 방법을 다룬다.</p>
+
   </section>
 
   
@@ -781,6 +989,18 @@ kubectl get service ingress-nginx-controller <span class="nt">-n</span> ingress-
           </span>
         </a>
       
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-34-kubernetes-env-secret-configmap/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Kubernetes 환경 변수와 Secret·ConfigMap</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
       
     </nav>
   
@@ -856,7 +1076,7 @@ kubectl get service ingress-nginx-controller <span class="nt">-n</span> ingress-
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1788233638"></script>
-    <script src="/assets/js/code-enhancements.js?v=1788233638"></script>
+    <script src="/assets/js/site.js?v=1788273644"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788273644"></script>
   </body>
 </html>

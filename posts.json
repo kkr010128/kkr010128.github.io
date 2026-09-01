@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Kubernetes 환경 변수와 Secret·ConfigMap",
+        "url": "/cloud-native-34-kubernetes-env-secret-configmap/",
+        "description": "Pod 환경 변수와 Downward API, Secret 생성·주입·갱신 및 ConfigMap을 이용한 설정 분리 방법 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 1일",
+        "reading_time_label": "11분 읽기",
+        "search": "kubernetes 환경 변수와 secret·configmap pod 환경 변수와 downward api, secret 생성·주입·갱신 및 configmap을 이용한 설정 분리 방법 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Ingress Resource와 HTTP Routing",
         "url": "/cloud-native-33-kubernetes-ingress-routing/",
         "description": "Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리",
@@ -12,7 +27,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 31일",
-        "reading_time_label": "7분 읽기",
+        "reading_time_label": "9분 읽기",
         "search": "kubernetes ingress resource와 http routing ingress resource와 controller의 관계, bare-metal cluster의 외부 진입점 및 host·path 기반 http routing 실습 정리 cloudnative autoeversw kubernetes cloudnative"
       },
     
