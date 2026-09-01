@@ -1,6 +1,6 @@
 ---
-title: Kubernetes 환경 변수와 Secret·ConfigMap
-description: Pod 환경 변수와 Downward API, Secret 생성·주입·갱신 및 ConfigMap을 이용한 설정 분리 방법 정리
+title: Kubernetes 환경 변수와 Secret, ConfigMap
+description: Pod 환경 변수와 Downward API, Secret 생성과 주입, 갱신 및 ConfigMap을 이용한 설정 분리 방법
 date: 2026-09-01
 series: CloudNative
 tags:
