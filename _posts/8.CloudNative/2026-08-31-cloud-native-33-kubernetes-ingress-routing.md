@@ -2,6 +2,7 @@
 title: Kubernetes Ingress Resource와 HTTP Routing
 description: Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리
 date: 2026-08-31
+updated_at: 2026-09-01
 series: CloudNative
 tags:
   - CloudNative
@@ -359,17 +360,228 @@ Ingress Address가 없더라도 Controller 진입점이 별도로 준비되어 �
 
 ---
 
-Ingress는 하나의 진입점에서 Host와 Path를 조합할 수 있다.
+하나의 Ingress 진입점은 여러 Backend Service를 Host 또는 Path로 구분할 수 있다. 다음 실습에서는 두 Deployment와 두 Service를 먼저 준비한 뒤 같은 Ingress Controller를 통해 Routing한다.
 
-```text
-api.example.com/       ─▶ api-service
-web.example.com/       ─▶ web-service
-ingress.test.com/test  ─▶ service-test
+### 두 Backend Deployment와 Service 생성
+
+다음 내용을 `ingress-multi-backend.yaml`로 저장한다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend1
+  template:
+    metadata:
+      labels:
+        app: backend1
+    spec:
+      containers:
+        - name: backend1
+          image: nginxdemos/nginx-hello:plain-text
+          ports:
+            - name: http
+              containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend1-svc
+spec:
+  selector:
+    app: backend1
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend2
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend2
+  template:
+    metadata:
+      labels:
+        app: backend2
+    spec:
+      containers:
+        - name: backend2
+          image: nginxdemos/nginx-hello:plain-text
+          ports:
+            - name: http
+              containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend2-svc
+spec:
+  selector:
+    app: backend2
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
 ```
 
-Host 기반 Routing은 Client가 보내는 HTTP `Host` Header를 사용한다. IP 주소로만 요청하면 Manifest의 Host 규칙과 일치하지 않을 수 있으므로 Domain 등록이나 `curl --resolve`가 필요하다.
+Master 또는 관리 Client에서 적용한 뒤 Deployment, Pod, Service와 EndpointSlice를 함께 확인한다.
 
-Path 기반 Routing에서는 `Exact`, `Prefix`와 `ImplementationSpecific`의 의미가 다르다. 이 문서는 하위 Path까지 포함하는 `Prefix`를 사용하며 Controller 전용 Annotation의 동작은 해당 구현 문서를 확인한다.
+```bash
+kubectl apply -f ingress-multi-backend.yaml
+kubectl rollout status deployment/backend1
+kubectl rollout status deployment/backend2
+kubectl get deployments,pods,services
+kubectl get endpointslices \
+  -l 'kubernetes.io/service-name in (backend1-svc,backend2-svc)' -o wide
+```
+
+Control Plane의 Deployment Controller와 Scheduler가 네 개의 Pod 생성과 Worker 배치를 조정한다. 각 Worker의 kubelet이 Pod를 실행하면 EndpointSlice Controller가 Service Selector와 일치하는 Ready Pod IP를 Backend로 기록한다.
+
+### Host 기반 Routing
+
+Host 기반 Routing은 Client가 보내는 HTTP `Host` Header로 Backend를 선택한다.
+
+```text
+example1.com ─▶ backend1-svc ─▶ backend1 Pod
+example2.com ─▶ backend2-svc ─▶ backend2 Pod
+```
+
+다음 내용을 `ingress-host-routing.yaml`로 저장한다.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-host-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: example1.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend1-svc
+                port:
+                  number: 80
+    - host: example2.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend2-svc
+                port:
+                  number: 80
+```
+
+Legacy `kubernetes.io/ingress.class: nginx` Annotation 대신 `spec.ingressClassName: nginx`을 사용한다. Resource 이름도 Controller와 혼동하지 않도록 `sample-host-ingress`로 구분한다.
+
+```bash
+kubectl apply -f ingress-host-routing.yaml
+kubectl get ingress sample-host-ingress
+kubectl describe ingress sample-host-ingress
+```
+
+MetalLB를 사용한다면 두 Domain은 서로 다른 Worker IP가 아니라 Ingress Controller Service에 할당된 같은 `EXTERNAL-IP`를 가리킨다.
+
+```bash
+kubectl get service ingress-nginx-controller -n ingress-nginx \
+  -o jsonpath='{.status.loadBalancer.ingress[0].ip}{"\n"}'
+```
+
+외부 Client의 `/etc/hosts`에는 다음 형식으로 등록한다.
+
+```text
+<ingress-external-ip> example1.com
+<ingress-external-ip> example2.com
+```
+
+파일을 수정하지 않고 확인하려면 실제 External IP로 바꿔 `curl --resolve`를 실행한다.
+
+```bash
+# 외부 Client에서 실행
+curl --resolve example1.com:80:<ingress-external-ip> http://example1.com/
+curl --resolve example2.com:80:<ingress-external-ip> http://example2.com/
+```
+
+IP 주소만 URL에 입력하면 `Host` Header가 규칙과 일치하지 않을 수 있다. NodePort 번호도 설치 때마다 달라질 수 있으므로 예제의 특정 Port를 고정하지 않고 실제 Service 상태를 조회한다.
+
+### Path 기반 Routing
+
+Path 기반 Routing은 하나의 Host에서 URL Prefix에 따라 Backend를 선택한다.
+
+```text
+example.com/backend1 ─▶ backend1-svc
+example.com/backend2 ─▶ backend2-svc
+```
+
+다음 내용을 `ingress-path-routing.yaml`로 저장한다.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sample-path-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: example.com
+      http:
+        paths:
+          - path: /backend1
+            pathType: Prefix
+            backend:
+              service:
+                name: backend1-svc
+                port:
+                  number: 80
+          - path: /backend2
+            pathType: Prefix
+            backend:
+              service:
+                name: backend2-svc
+                port:
+                  number: 80
+```
+
+`pathType: Prefix`는 지정한 Path와 그 하위 Path를 일치시킨다. `nginx.ingress.kubernetes.io/rewrite-target`은 Kubernetes 공통 Field가 아니라 ingress-nginx 전용 Annotation이며, 이 예제에서는 Backend에 전달할 Path를 `/`로 바꾼다.
+
+Host 기반 실습과 동시에 실행하면 규칙을 구분하기 어려울 수 있으므로 먼저 Host 기반 Ingress를 제거하고 Path 기반 Ingress를 적용한다.
+
+```bash
+kubectl delete -f ingress-host-routing.yaml --ignore-not-found
+kubectl apply -f ingress-path-routing.yaml
+kubectl describe ingress sample-path-ingress
+```
+
+외부 Client에서 같은 External IP에 `example.com` Host를 지정한다.
+
+```bash
+curl --resolve example.com:80:<ingress-external-ip> \
+  http://example.com/backend1
+curl --resolve example.com:80:<ingress-external-ip> \
+  http://example.com/backend2
+```
+
+요청은 External IP에서 Ingress Controller Pod로 들어온 뒤 Host와 Path 규칙에 따라 `backend1-svc` 또는 `backend2-svc`로 전달된다. Worker의 Service Data Plane은 선택된 Service의 EndpointSlice를 기준으로 실제 Backend Pod를 선택한다.
 
 ## 12 ) 실습 Resource 정리
 
@@ -381,6 +593,9 @@ Master 또는 관리 Client에서 Ingress부터 Backend 순서로 정리한다.
 kubectl delete -f ingress-test.yaml --ignore-not-found
 kubectl delete -f svc-test.yaml --ignore-not-found
 kubectl delete -f deploy-test.yaml --ignore-not-found
+kubectl delete -f ingress-host-routing.yaml --ignore-not-found
+kubectl delete -f ingress-path-routing.yaml --ignore-not-found
+kubectl delete -f ingress-multi-backend.yaml --ignore-not-found
 ```
 
 다른 Ingress가 Controller를 사용 중인지 확인한다.
@@ -416,3 +631,5 @@ MetalLB는 다른 LoadBalancer Service가 사용할 수 있으므로 Ingress Con
 > - Ingress API는 Stable이지만 기능이 동결됐으며, ingress-nginx Controller는 Retirement 상태이므로 운영 환경의 신규 선택으로 사용하지 않는다.
 >
 > - 문제를 확인할 때는 DNS와 External IP부터 IngressClass, Controller, Service, EndpointSlice와 Backend Pod 순서로 추적한다.
+
+다음 단계에서는 [Kubernetes 환경 변수와 Secret·ConfigMap](/cloud-native-34-kubernetes-env-secret-configmap/)에서 Application 설정과 기밀 정보를 Container에 전달하는 방법을 다룬다.
