@@ -2,6 +2,7 @@
 title: Kubernetes 환경 변수와 Secret, ConfigMap
 description: Pod 환경 변수와 Downward API, Secret 생성과 주입, 갱신 및 ConfigMap을 이용한 설정 분리 방법
 date: 2026-09-01
+updated_at: 2026-09-02
 series: CloudNative
 tags:
   - CloudNative
@@ -807,3 +808,5 @@ rm -f ./username ./password ./env-secret.txt ./nginx.conf
 > - 장기 ServiceAccount Token Secret은 비권장이고 짧은 수명의 Projected Token을 우선 사용한다.
 >
 > - ConfigMap은 민감하지 않은 설정을 저장하며 하나의 Object에 저장하는 Data는 1MiB를 넘을 수 없다.
+
+다음 단계에서는 [Kubernetes Volume과 Persistent Storage](/cloud-native-35-kubernetes-volume-persistent-storage/)에서 Pod Volume과 PV·PVC, NFS Storage 연결을 다룬다.

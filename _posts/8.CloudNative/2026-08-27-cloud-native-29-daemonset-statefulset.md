@@ -2,6 +2,7 @@
 title: Kubernetes DaemonSet과 StatefulSet
 description: Node별 DaemonSet 배치와 StatefulSet의 순서·고유 식별자·Persistent Storage 및 Database 운영 관점 정리
 date: 2026-08-27
+updated_at: 2026-09-02
 series: CloudNative
 tags:
   - CloudNative
@@ -259,6 +260,8 @@ Default StorageClass나 미리 준비된 PV가 없으면 PVC는 `Pending` 상태
 kubectl describe persistentvolumeclaim www-sample-statefulset-0
 kubectl get storageclasses
 ```
+
+PV와 PVC의 Binding, Access Mode와 Storage Backend 연결은 [Kubernetes Volume과 Persistent Storage](/cloud-native-35-kubernetes-volume-persistent-storage/)에서 자세히 설명한다.
 
 Pod별 DNS와 Volume Mount를 확인한다.
 
