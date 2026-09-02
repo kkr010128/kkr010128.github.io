@@ -1,4 +1,910 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-02T12:32:13+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes 환경 변수와 Secret, ConfigMap</title><link href="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/" rel="alternate" type="text/html" title="Kubernetes 환경 변수와 Secret, ConfigMap" /><published>2026-09-01T00:00:00+09:00</published><updated>2026-09-01T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/"><![CDATA[<p>Container Image와 Application 설정을 분리하면 같은 Image를 여러 환경에서 재사용할 수 있다. Kubernetes는 정적 환경 변수와 Downward API로 실행 정보를 전달하고, 민감하지 않은 설정은 ConfigMap, Password와 인증서 같은 기밀 정보는 Secret으로 관리한다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-02T22:35:47+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Volume과 Persistent Storage</title><link href="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/" rel="alternate" type="text/html" title="Kubernetes Volume과 Persistent Storage" /><published>2026-09-02T00:00:00+09:00</published><updated>2026-09-02T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/"><![CDATA[<p>Container의 Writable Layer에 저장한 Data는 Container가 교체될 때 유지되지 않는다. Kubernetes Volume은 Pod의 Container가 사용할 File System 영역을 제공하며, Volume 종류에 따라 Data의 수명과 실제 저장 위치가 달라진다.</p>
+
+<h2 id="1--kubernetes-volume">1 ) Kubernetes Volume</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Volume</strong></p>
+
+  <p>Pod에 정의하고 Container의 특정 경로에 Mount하여 사용하는 File System 영역이다.</p>
+</blockquote>
+
+<p>Pod는 <code class="language-plaintext highlighter-rouge">spec.volumes</code>에서 Volume을 정의하고 각 Container의 <code class="language-plaintext highlighter-rouge">volumeMounts</code>에서 Mount 경로를 지정한다. Volume은 Container와 분리되므로 같은 Pod 안의 여러 Container가 Data를 공유할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>분류</th>
+      <th>대표 종류</th>
+      <th>Data 수명과 위치</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Pod 수명에 연결</td>
+      <td><code class="language-plaintext highlighter-rouge">emptyDir</code></td>
+      <td>Pod가 삭제되면 함께 삭제</td>
+    </tr>
+    <tr>
+      <td>Node에 연결</td>
+      <td><code class="language-plaintext highlighter-rouge">hostPath</code></td>
+      <td>특정 Node의 File System 사용</td>
+    </tr>
+    <tr>
+      <td>Kubernetes Resource를 File로 제공</td>
+      <td><code class="language-plaintext highlighter-rouge">secret</code>, <code class="language-plaintext highlighter-rouge">configMap</code>, <code class="language-plaintext highlighter-rouge">downwardAPI</code>, <code class="language-plaintext highlighter-rouge">projected</code></td>
+      <td>API Resource 내용을 Pod에 투영</td>
+    </tr>
+    <tr>
+      <td>외부 또는 영구 Storage 연결</td>
+      <td><code class="language-plaintext highlighter-rouge">persistentVolumeClaim</code>, <code class="language-plaintext highlighter-rouge">nfs</code>, <code class="language-plaintext highlighter-rouge">iscsi</code>, CSI</td>
+      <td>Storage Backend의 수명 정책에 따름</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>과거에는 Cloud Disk와 Storage 제품별 In-tree Volume Plugin이 다수 포함됐지만 현재 외부 Storage 연동의 중심은 CSI(Container Storage Interface)이다. <code class="language-plaintext highlighter-rouge">cephfs</code> In-tree Driver는 Kubernetes 1.31부터 제공되지 않고 GlusterFS In-tree Driver는 1.26부터 제공되지 않는다. Ceph와 Cloud Disk 같은 Storage는 해당 CSI Driver의 지원 상태를 확인해야 한다.</p>
+
+<h2 id="2--control-plane과-worker의-volume-연결">2 ) Control Plane과 Worker의 Volume 연결</h2>
+
+<hr />
+
+<p>Master 또는 관리 Client에서 Pod Manifest를 적용하면 Control Plane은 Pod와 Volume 설정을 저장하고 실행할 Worker를 선택한다. 선택된 Worker의 kubelet이 Volume을 준비한 뒤 Container Runtime에 Container 실행을 요청한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client
+  kubectl apply
+       │
+       ▼
+Control Plane
+  API Server가 Pod와 Volume 설정 저장
+       │
+       ▼
+Scheduler가 Volume 조건을 고려하여 Worker 선택
+       │
+       ▼
+Worker의 kubelet
+  Volume Plugin 또는 CSI Driver로 Mount 준비
+       │
+       ▼
+Container Runtime
+  volumeMounts 경로를 Container에 연결
+</code></pre></div></div>
+
+<p>Pod에 직접 정의하는 Volume과 PV·PVC를 사용하는 Volume은 Control Plane에서 처리되는 과정이 다르다. <code class="language-plaintext highlighter-rouge">emptyDir</code>과 <code class="language-plaintext highlighter-rouge">hostPath</code>는 Pod Spec을 기준으로 Worker의 kubelet이 준비하고, PVC는 먼저 조건에 맞는 PV와 Binding되어야 Pod에서 사용할 수 있다.</p>
+
+<h2 id="3--emptydir">3 ) emptyDir</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">emptyDir</code>은 Pod가 Worker에 배치될 때 생성되는 임시 Volume이다. Container가 재시작되어도 같은 Pod가 유지되는 동안에는 Data가 남지만 Pod가 삭제되거나 다른 Pod로 교체되면 Data도 삭제된다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">emptyDir</code>은 Node의 임의 경로나 기존 File을 선택하는 Volume이 아니다. Pod 전용 임시 작업 공간이나 같은 Pod 안의 Container 간 File 공유에 사용한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-emptydir.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-emptydir</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">cache-volume</span>
+          <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/cache</span>
+  <span class="na">volumes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">cache-volume</span>
+      <span class="na">emptyDir</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 Pod를 생성하고 <code class="language-plaintext highlighter-rouge">/cache</code> Mount를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-emptydir.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/sample-emptydir <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl <span class="nb">exec </span>sample-emptydir <span class="nt">--</span> <span class="nb">df</span> <span class="nt">-h</span> /cache
+</code></pre></div></div>
+
+<p>Container가 재시작되더라도 Pod가 동일하면 <code class="language-plaintext highlighter-rouge">emptyDir</code>은 유지된다. Pod 자체를 삭제하면 Volume과 Data도 함께 삭제된다.</p>
+
+<h2 id="4--emptydir-용량과-memory-사용">4 ) emptyDir 용량과 Memory 사용</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">emptyDir.sizeLimit</code>은 Pod가 사용할 임시 Volume 크기의 상한을 지정한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-emptydir-limit.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-emptydir-limit</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">cache-volume</span>
+          <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/cache</span>
+  <span class="na">volumes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">cache-volume</span>
+      <span class="na">emptyDir</span><span class="pi">:</span>
+        <span class="na">sizeLimit</span><span class="pi">:</span> <span class="s">128Mi</span>
+</code></pre></div></div>
+
+<p>Pod를 생성하고 별도 Terminal에서 상태를 감시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-emptydir-limit.yaml
+kubectl get pod sample-emptydir-limit <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>다른 Terminal에서 150MiB File 생성을 시도한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-emptydir-limit <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">dd </span><span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/cache/dummy <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span>150
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">sizeLimit</code>을 초과했다고 항상 쓰기 작업이 즉시 실패하거나 Pod가 같은 시점에 종료되는 것은 아니다. kubelet은 Node의 Ephemeral Storage 사용량과 Eviction 조건을 함께 평가하므로 Pod 상태와 Event를 확인해야 한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe pod sample-emptydir-limit
+kubectl get events <span class="nt">--sort-by</span><span class="o">=</span>.lastTimestamp
+</code></pre></div></div>
+
+<p>Disk 대신 Memory 기반 <code class="language-plaintext highlighter-rouge">tmpfs</code>를 사용하려면 <code class="language-plaintext highlighter-rouge">medium: Memory</code>를 지정한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">volumes</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">cache-volume</span>
+    <span class="na">emptyDir</span><span class="pi">:</span>
+      <span class="na">medium</span><span class="pi">:</span> <span class="s">Memory</span>
+      <span class="na">sizeLimit</span><span class="pi">:</span> <span class="s">128Mi</span>
+</code></pre></div></div>
+
+<p>Memory 기반 <code class="language-plaintext highlighter-rouge">emptyDir</code>에 기록한 Data는 해당 Container의 Memory 사용량으로 계산될 수 있으므로 Container의 Memory Limit과 함께 설계해야 한다.</p>
+
+<h2 id="5--hostpath">5 ) hostPath</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">hostPath</code>는 Pod가 실행되는 Worker의 File이나 Directory를 Container에 Mount한다. Node별 Log 수집 Agent나 Metric 수집기처럼 Node File System 접근이 필요한 Workload에 사용할 수 있다.</p>
+
+<p>대표적인 사용 사례는 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>Fluentd, Promtail과 Filebeat가 <code class="language-plaintext highlighter-rouge">/var/log</code> 또는 <code class="language-plaintext highlighter-rouge">/var/log/pods</code>의 Log를 수집하는 경우</p>
+  </li>
+  <li>
+    <p>Container Runtime 상태를 확인하기 위해 Runtime Socket에 접근하는 경우</p>
+  </li>
+  <li>
+    <p>Node Exporter나 cAdvisor가 <code class="language-plaintext highlighter-rouge">/proc</code>, <code class="language-plaintext highlighter-rouge">/sys</code> 등 Node 정보를 읽는 경우</p>
+  </li>
+  <li>
+    <p>단일 Node 개발 환경에서 Local File을 연결하는 경우</p>
+  </li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">hostPath</code> Data는 Node에 종속된다. Pod가 다른 Worker에서 실행되면 같은 경로 이름이더라도 기존 Node의 Data를 읽을 수 없으므로 일반적인 Database 영구 저장 용도로는 적합하지 않다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><code class="language-plaintext highlighter-rouge">hostPath.type</code></th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">DirectoryOrCreate</code></td>
+      <td>Directory가 없으면 생성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Directory</code></td>
+      <td>기존 Directory가 있어야 함</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">FileOrCreate</code></td>
+      <td>File이 없으면 생성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">File</code></td>
+      <td>기존 File이 있어야 함</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Socket</code></td>
+      <td>기존 UNIX Socket이어야 함</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">CharDevice</code></td>
+      <td>기존 Character Device여야 함</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">BlockDevice</code></td>
+      <td>기존 Block Device여야 함</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Host의 <code class="language-plaintext highlighter-rouge">/etc</code>나 <code class="language-plaintext highlighter-rouge">/root</code>를 쓰기 가능한 상태로 Mount하면 Container 침해가 Node 전체의 침해로 이어질 수 있다. 실습에서는 전용 Directory만 사용한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-hostpath.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-hostpath</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">nodeSelector</span><span class="pi">:</span>
+    <span class="na">kubernetes.io/hostname</span><span class="pi">:</span> <span class="s">worker1</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">hostpath-sample</span>
+          <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/srv</span>
+  <span class="na">volumes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">hostpath-sample</span>
+      <span class="na">hostPath</span><span class="pi">:</span>
+        <span class="na">path</span><span class="pi">:</span> <span class="s">/var/local/kubernetes/hostpath-demo</span>
+        <span class="na">type</span><span class="pi">:</span> <span class="s">DirectoryOrCreate</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 적용한 뒤 Pod가 <code class="language-plaintext highlighter-rouge">worker1</code>에 배치됐는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-hostpath.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/sample-hostpath <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl get pod sample-hostpath <span class="nt">-o</span> wide
+kubectl describe pod sample-hostpath
+</code></pre></div></div>
+
+<p>Container에서 File을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-hostpath <span class="nt">--</span> <span class="se">\</span>
+  sh <span class="nt">-c</span> <span class="s2">"echo 'hostPath-test' &gt; /srv/test.txt"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">worker1</code>에서 같은 File을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cat</span> /var/local/kubernetes/hostpath-demo/test.txt
+</code></pre></div></div>
+
+<p>운영 환경에서 Host 정보를 읽기만 한다면 <code class="language-plaintext highlighter-rouge">volumeMounts[].readOnly: true</code>를 우선 검토하고 Mount 경로를 필요한 범위로 제한한다.</p>
+
+<h2 id="6--downward-api-volume">6 ) Downward API Volume</h2>
+
+<hr />
+
+<p>Downward API는 Application이 API Server와 직접 통신하지 않고 자신의 Pod Metadata와 Resource 정보를 확인하게 한다. 환경 변수 방식은 <a href="/cloud-native-34-kubernetes-env-secret-configmap/">Kubernetes 환경 변수와 Secret, ConfigMap</a>에서 다뤘으며, Volume 방식은 정보를 File로 제공한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-downward-api.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-downward-api</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">resources</span><span class="pi">:</span>
+        <span class="na">requests</span><span class="pi">:</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">100m</span>
+      <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">downward-api-volume</span>
+          <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/srv</span>
+          <span class="na">readOnly</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">volumes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">downward-api-volume</span>
+      <span class="na">downwardAPI</span><span class="pi">:</span>
+        <span class="na">items</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">podname</span>
+            <span class="na">fieldRef</span><span class="pi">:</span>
+              <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.name</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">cpu-request</span>
+            <span class="na">resourceFieldRef</span><span class="pi">:</span>
+              <span class="na">containerName</span><span class="pi">:</span> <span class="s">nginx-container</span>
+              <span class="na">resource</span><span class="pi">:</span> <span class="s">requests.cpu</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 적용하고 생성된 File과 값을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-downward-api.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-downward-api <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl <span class="nb">exec </span>sample-downward-api <span class="nt">--</span> <span class="nb">ls</span> <span class="nt">-l</span> /srv
+kubectl <span class="nb">exec </span>sample-downward-api <span class="nt">--</span> <span class="nb">cat</span> /srv/podname
+kubectl <span class="nb">exec </span>sample-downward-api <span class="nt">--</span> <span class="nb">cat</span> /srv/cpu-request
+</code></pre></div></div>
+
+<p>API Server에 저장된 Pod Spec을 Worker의 kubelet이 확인하여 <code class="language-plaintext highlighter-rouge">podname</code>과 <code class="language-plaintext highlighter-rouge">cpu-request</code> File을 구성한다. Container Application에는 Pod 조회를 위한 Kubernetes Client나 별도 RBAC 권한이 필요하지 않다.</p>
+
+<h2 id="7--projected-volume">7 ) projected Volume</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">projected</code> Volume은 여러 Volume Source를 하나의 Directory에 배치한다. Secret 인증 정보, ConfigMap 설정과 Downward API Metadata를 같은 Mount 경로에 제공해야 할 때 사용할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">volumes</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">application-config</span>
+    <span class="na">projected</span><span class="pi">:</span>
+      <span class="na">sources</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">secret</span><span class="pi">:</span>
+            <span class="na">name</span><span class="pi">:</span> <span class="s">sample-db-auth</span>
+        <span class="pi">-</span> <span class="na">configMap</span><span class="pi">:</span>
+            <span class="na">name</span><span class="pi">:</span> <span class="s">sample-configmap</span>
+        <span class="pi">-</span> <span class="na">downwardAPI</span><span class="pi">:</span>
+            <span class="na">items</span><span class="pi">:</span>
+              <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">podname</span>
+                <span class="na">fieldRef</span><span class="pi">:</span>
+                  <span class="na">fieldPath</span><span class="pi">:</span> <span class="s">metadata.name</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">projected</code>에 포함하는 Secret과 ConfigMap은 Pod와 같은 Namespace에 있어야 한다. Volume Source별 Key가 같은 File 경로를 사용하지 않는지도 확인한다.</p>
+
+<h2 id="8--persistentvolume과-persistentvolumeclaim">8 ) PersistentVolume과 PersistentVolumeClaim</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>PersistentVolume(PV)</strong></p>
+
+  <p>Cluster에 제공되는 Storage 용량과 연결 정보를 나타내는 Cluster 범위 Resource이다.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>PersistentVolumeClaim(PVC)</strong></p>
+
+  <p>Namespace 안의 Workload가 필요한 Storage 용량과 Access Mode를 요청하는 Resource이다.</p>
+</blockquote>
+
+<p>Pod에 직접 정의한 Volume은 Pod Spec과 함께 관리하지만 PV와 PVC는 개별 Kubernetes Resource로 생성한다. PV의 수명은 Pod와 분리되며 PVC 삭제 후의 처리 방식은 Reclaim Policy에 따라 달라진다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>담당 관점</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>StorageClass</td>
+      <td>Cluster 관리자</td>
+      <td>Storage 종류, Provisioner와 정책 정의</td>
+    </tr>
+    <tr>
+      <td>PVC</td>
+      <td>Application 개발자</td>
+      <td>필요한 용량, Access Mode와 StorageClass 요청</td>
+    </tr>
+    <tr>
+      <td>CSI Driver 또는 Provisioner</td>
+      <td>Storage 연동 구성 요소</td>
+      <td>실제 Storage 생성·연결 작업 수행</td>
+    </tr>
+    <tr>
+      <td>PV</td>
+      <td>Control Plane에서 관리하는 Resource</td>
+      <td>제공된 Storage를 Kubernetes Resource로 표현</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>영구 Storage에는 Local Disk, Network File System, Cloud Disk와 분산 Storage 등을 연결할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Storage</th>
+      <th>현재 연결 방식 또는 상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AWS Elastic Block Store</td>
+      <td>AWS EBS CSI Driver 사용. In-tree <code class="language-plaintext highlighter-rouge">awsElasticBlockStore</code> Type은 제거됨</td>
+    </tr>
+    <tr>
+      <td>GCE Persistent Disk</td>
+      <td>GCE PD CSI Driver 사용. In-tree Type은 Deprecated 상태이며 CSI Driver로 Redirect됨</td>
+    </tr>
+    <tr>
+      <td>Azure File</td>
+      <td>Azure File CSI Driver 사용. In-tree Type은 Deprecated 상태이며 CSI Driver로 Redirect됨</td>
+    </tr>
+    <tr>
+      <td>NFS</td>
+      <td>기존 NFS Export를 직접 Mount할 수 있음. Dynamic Provisioning에는 외부 Provisioner 필요</td>
+    </tr>
+    <tr>
+      <td>iSCSI</td>
+      <td>미리 준비한 iSCSI Volume 연결 가능</td>
+    </tr>
+    <tr>
+      <td>Ceph RBD·CephFS</td>
+      <td>In-tree Driver는 제거됐으며 Ceph CSI Driver 사용</td>
+    </tr>
+    <tr>
+      <td>OpenStack Cinder</td>
+      <td>In-tree Driver는 제거됐으며 Cinder CSI Driver 사용</td>
+    </tr>
+    <tr>
+      <td>GlusterFS</td>
+      <td>In-tree Driver가 제거됨</td>
+    </tr>
+    <tr>
+      <td>CSI</td>
+      <td>Kubernetes 외부 Storage Driver를 연결하는 표준 Interface</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>In-tree Driver가 제거됐다는 것은 해당 Storage 제품 자체를 사용할 수 없다는 의미가 아니다. 지원되는 CSI Driver를 Cluster에 설치하고 StorageClass와 PV가 그 Driver를 사용하도록 구성해야 한다.</p>
+
+<p>Static Provisioning에서는 관리자가 Storage와 PV를 먼저 만들고 PVC가 조건에 맞는 PV를 선택한다. Dynamic Provisioning에서는 PVC가 요청한 StorageClass의 Provisioner가 PV와 실제 Volume을 생성한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Static Provisioning
+Storage 준비 → PV 생성 → PVC 요청 → PV·PVC Binding → Pod Mount
+
+Dynamic Provisioning
+StorageClass 준비 → PVC 요청 → Provisioner가 Volume·PV 생성
+                  → PV·PVC Binding → Pod Mount
+</code></pre></div></div>
+
+<h2 id="9--access-mode와-reclaim-policy">9 ) Access Mode와 Reclaim Policy</h2>
+
+<hr />
+
+<p>Access Mode는 Node가 Volume을 어떤 방식으로 Mount하도록 요청하는지 나타낸다. Storage가 해당 Mode를 실제로 지원해야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Access Mode</th>
+      <th>약어</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ReadWriteOnce</code></td>
+      <td>RWO</td>
+      <td>하나의 Node에서 Read·Write Mount</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ReadOnlyMany</code></td>
+      <td>ROX</td>
+      <td>여러 Node에서 Read-only Mount</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ReadWriteMany</code></td>
+      <td>RWX</td>
+      <td>여러 Node에서 Read·Write Mount</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">ReadWriteOnce</code>는 Pod 하나만 접근할 수 있다는 의미가 아니다. 같은 Node의 여러 Pod가 접근할 수 있으므로 단일 Pod 접근을 요구하면 Storage Driver의 <code class="language-plaintext highlighter-rouge">ReadWriteOncePod</code> 지원 여부를 확인해야 한다.</p>
+
+<p>Reclaim Policy는 PVC가 삭제되어 PV가 해제됐을 때 Storage를 처리하는 방법이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Reclaim Policy</th>
+      <th>동작</th>
+      <th>현재 상태</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Retain</code></td>
+      <td>PV와 Data를 남기고 관리자가 수동 처리</td>
+      <td>사용 가능</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Delete</code></td>
+      <td>지원하는 Storage에서 PV와 실제 Volume 삭제</td>
+      <td>사용 가능</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Recycle</code></td>
+      <td>기본 정리 후 PV 재사용</td>
+      <td>Deprecated</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">Recycle</code>은 Deprecated 상태이므로 신규 구성에서는 Dynamic Provisioning과 <code class="language-plaintext highlighter-rouge">Retain</code> 또는 <code class="language-plaintext highlighter-rouge">Delete</code> 정책을 사용한다.</p>
+
+<h2 id="10--local-hostpath-pv와-pvc">10 ) Local hostPath PV와 PVC</h2>
+
+<hr />
+
+<p>다음 실습은 <code class="language-plaintext highlighter-rouge">worker1</code>의 Local Directory를 <code class="language-plaintext highlighter-rouge">hostPath</code> PV로 제공한다. <code class="language-plaintext highlighter-rouge">hostPath</code> PV는 단일 Node 테스트 용도이며 Multi-node Cluster의 일반적인 영구 Storage로 사용하지 않는다.</p>
+
+<p>먼저 <code class="language-plaintext highlighter-rouge">worker1</code>에서 Directory를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># worker1에서 실행</span>
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> /var/local/kubernetes/local-pv
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">pv.yaml</code>로 저장한다. <code class="language-plaintext highlighter-rouge">nodeAffinity</code>는 이 PV가 <code class="language-plaintext highlighter-rouge">worker1</code>의 Storage라는 사실을 Scheduler에 전달한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolume</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">local-pv</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">capacity</span><span class="pi">:</span>
+    <span class="na">storage</span><span class="pi">:</span> <span class="s">5Gi</span>
+  <span class="na">volumeMode</span><span class="pi">:</span> <span class="s">Filesystem</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="na">persistentVolumeReclaimPolicy</span><span class="pi">:</span> <span class="s">Retain</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">manual</span>
+  <span class="na">nodeAffinity</span><span class="pi">:</span>
+    <span class="na">required</span><span class="pi">:</span>
+      <span class="na">nodeSelectorTerms</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">matchExpressions</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">kubernetes.io/hostname</span>
+              <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+              <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">worker1</span>
+  <span class="na">hostPath</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">/var/local/kubernetes/local-pv</span>
+    <span class="na">type</span><span class="pi">:</span> <span class="s">Directory</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">capacity.storage: 5Gi</code></td>
+      <td>PV가 제공하는 용량</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ReadWriteOnce</code></td>
+      <td>하나의 Node에서 Read·Write Mount 허용</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Retain</code></td>
+      <td>PVC가 삭제돼도 Data를 자동 삭제하지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">storageClassName: manual</code></td>
+      <td>같은 Class를 요청한 PVC와 Binding</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">nodeAffinity</code></td>
+      <td>Storage가 있는 <code class="language-plaintext highlighter-rouge">worker1</code>로 Scheduling 제한</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">hostPath</code></td>
+      <td><code class="language-plaintext highlighter-rouge">worker1</code>의 실제 Directory 지정</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Master 또는 관리 Client에서 PV를 생성하고 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> pv.yaml
+kubectl get persistentvolumes
+kubectl describe persistentvolume local-pv
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">pvc.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolumeClaim</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">local-pvc</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="na">resources</span><span class="pi">:</span>
+    <span class="na">requests</span><span class="pi">:</span>
+      <span class="na">storage</span><span class="pi">:</span> <span class="s">5Gi</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">manual</span>
+</code></pre></div></div>
+
+<p>PVC를 생성하고 PV와 PVC의 <code class="language-plaintext highlighter-rouge">STATUS</code>가 <code class="language-plaintext highlighter-rouge">Bound</code>인지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> pvc.yaml
+kubectl get persistentvolumes
+kubectl get persistentvolumeclaims
+kubectl describe persistentvolumeclaim local-pvc
+</code></pre></div></div>
+
+<p>PVC는 요청 용량 이상이면서 <code class="language-plaintext highlighter-rouge">storageClassName</code>과 Access Mode가 호환되는 PV와 Binding된다. 요청 용량과 PV 용량이 반드시 정확히 같아야 하는 것은 아니다.</p>
+
+<p>PVC가 <code class="language-plaintext highlighter-rouge">Pending</code>이면 <code class="language-plaintext highlighter-rouge">storageClassName</code>, Access Mode, 요청 용량과 PV 상태를 비교한다.</p>
+
+<h2 id="11--pvc를-pod에-mount">11 ) PVC를 Pod에 Mount</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">pod.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">local-pod</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">local-storage</span>
+          <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/usr/share/nginx/html</span>
+  <span class="na">volumes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">local-storage</span>
+      <span class="na">persistentVolumeClaim</span><span class="pi">:</span>
+        <span class="na">claimName</span><span class="pi">:</span> <span class="s">local-pvc</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 Pod를 생성한다. Scheduler는 PV의 Node Affinity를 확인하여 Pod를 <code class="language-plaintext highlighter-rouge">worker1</code>에 배치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> pod.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/local-pod <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl get pod local-pod <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">worker1</code>에서 File을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># worker1에서 실행</span>
+<span class="nb">echo</span> <span class="s1">'Hello Kubernetes Local PV'</span> | <span class="se">\</span>
+  <span class="nb">sudo tee</span> /var/local/kubernetes/local-pv/test.txt
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 Container의 Mount 경로를 통해 같은 File을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>local-pod <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">cat</span> /usr/share/nginx/html/test.txt
+</code></pre></div></div>
+
+<h2 id="12--nfs-server-준비">12 ) NFS Server 준비</h2>
+
+<hr />
+
+<p>NFS(Network File System)는 여러 Node가 Network를 통해 같은 File System을 Mount할 수 있다. 다음 실습은 NFS Server의 <code class="language-plaintext highlighter-rouge">/nfs/k8s</code>를 Kubernetes의 Static PV로 연결한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>대상</th>
+      <th>예시</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>NFS Server</td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.100</code></td>
+      <td>공유 Directory Export</td>
+    </tr>
+    <tr>
+      <td>Master·관리 Client</td>
+      <td>kubeconfig가 설정된 Host</td>
+      <td>PV·PVC·Pod 생성과 상태 확인</td>
+    </tr>
+    <tr>
+      <td>Kubernetes Node</td>
+      <td>Master, <code class="language-plaintext highlighter-rouge">worker1</code>, <code class="language-plaintext highlighter-rouge">worker2</code></td>
+      <td>NFS Client 설치와 Mount 수행</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>실제 NFS Server IP가 다르면 이후 명령과 <code class="language-plaintext highlighter-rouge">nfs-pv.yaml</code>의 <code class="language-plaintext highlighter-rouge">server</code> 값을 모두 같은 주소로 변경한다.</p>
+
+<p>NFS Server에서 Package와 공유 Directory를 준비한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># NFS Server에서 실행</span>
+<span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> nfs-kernel-server
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> /nfs/k8s
+<span class="nb">sudo chmod </span>777 /nfs/k8s
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">chmod 777</code>은 권한 문제를 줄이기 위한 실습 설정이다. 운영 환경에서는 NFS를 사용하는 UID와 GID에 맞춰 필요한 권한만 부여한다.</p>
+
+<p>NFS Server의 <code class="language-plaintext highlighter-rouge">/etc/exports</code>에 다음 설정을 추가한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/nfs/k8s *(rw,sync,no_subtree_check,no_root_squash)
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">*</code>와 <code class="language-plaintext highlighter-rouge">no_root_squash</code>는 모든 Client와 Remote Root 접근을 허용하므로 운영 설정으로 적합하지 않다. 운영 환경에서는 Kubernetes Node 대역을 명시하고 Root Mapping 정책을 제한한다.</p>
+
+<p>변경한 Export 설정을 적용하고 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># NFS Server에서 실행</span>
+<span class="nb">sudo </span>exportfs <span class="nt">-ra</span>
+<span class="nb">sudo </span>exportfs <span class="nt">-v</span>
+</code></pre></div></div>
+
+<h2 id="13--kubernetes-node의-nfs-연결-확인">13 ) Kubernetes Node의 NFS 연결 확인</h2>
+
+<hr />
+
+<p>NFS Volume을 Mount할 수 있도록 Pod가 배치될 수 있는 모든 Linux Node에 NFS Client Package를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 각 Kubernetes Node에서 실행</span>
+<span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> nfs-common
+</code></pre></div></div>
+
+<p>각 Node에서 NFS Server와의 연결을 직접 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 각 Kubernetes Node에서 실행</span>
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> /mnt/nfs-test
+<span class="nb">sudo </span>mount <span class="nt">-t</span> nfs 192.168.0.100:/nfs/k8s /mnt/nfs-test
+<span class="nb">df</span> <span class="nt">-h</span> /mnt/nfs-test
+<span class="nb">sudo </span>umount /mnt/nfs-test
+</code></pre></div></div>
+
+<p>Mount가 실패하면 Kubernetes Manifest를 적용하기 전에 Server IP, 사용하는 NFS Version에 필요한 Port, Export 설정, Firewall과 <code class="language-plaintext highlighter-rouge">nfs-common</code> 설치 상태를 확인한다.</p>
+
+<h2 id="14--nfs-pv와-pvc">14 ) NFS PV와 PVC</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">nfs-pv.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolume</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nfs-pv</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">capacity</span><span class="pi">:</span>
+    <span class="na">storage</span><span class="pi">:</span> <span class="s">10Gi</span>
+  <span class="na">volumeMode</span><span class="pi">:</span> <span class="s">Filesystem</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteMany</span>
+  <span class="na">persistentVolumeReclaimPolicy</span><span class="pi">:</span> <span class="s">Retain</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">nfs-storage</span>
+  <span class="na">nfs</span><span class="pi">:</span>
+    <span class="na">server</span><span class="pi">:</span> <span class="s">192.168.0.100</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">/nfs/k8s</span>
+</code></pre></div></div>
+
+<p>이 예제는 기존 NFS Export를 관리자가 PV로 등록하는 Static Provisioning이다. <code class="language-plaintext highlighter-rouge">storageClassName</code>은 PVC와 PV를 연결하는 Class 이름이며, 이 Manifest만으로 NFS Storage를 동적으로 생성하는 Provisioner가 설치되지는 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> nfs-pv.yaml
+kubectl get persistentvolume nfs-pv
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">nfs-pvc.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolumeClaim</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nfs-pvc</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteMany</span>
+  <span class="na">resources</span><span class="pi">:</span>
+    <span class="na">requests</span><span class="pi">:</span>
+      <span class="na">storage</span><span class="pi">:</span> <span class="s">5Gi</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">nfs-storage</span>
+</code></pre></div></div>
+
+<p>PVC를 생성한 뒤 <code class="language-plaintext highlighter-rouge">nfs-pv</code>와 <code class="language-plaintext highlighter-rouge">nfs-pvc</code>가 Binding됐는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> nfs-pvc.yaml
+kubectl get persistentvolumes
+kubectl get persistentvolumeclaims
+kubectl describe persistentvolumeclaim nfs-pvc
+</code></pre></div></div>
+
+<h2 id="15--nfs-pvc를-pod에-mount">15 ) NFS PVC를 Pod에 Mount</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">nfs-pod.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nfs-test-pod</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">volumeMounts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nfs-volume</span>
+          <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/usr/share/nginx/html</span>
+  <span class="na">volumes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nfs-volume</span>
+      <span class="na">persistentVolumeClaim</span><span class="pi">:</span>
+        <span class="na">claimName</span><span class="pi">:</span> <span class="s">nfs-pvc</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 Pod를 생성하고 Mount 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> nfs-pod.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/nfs-test-pod <span class="nt">--timeout</span><span class="o">=</span>120s
+kubectl get pod nfs-test-pod <span class="nt">-o</span> wide
+kubectl describe pod nfs-test-pod
+</code></pre></div></div>
+
+<p>Pod에서 NFS Volume에 File을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>nfs-test-pod <span class="nt">--</span> <span class="se">\</span>
+  sh <span class="nt">-c</span> <span class="s2">"echo 'Hello Kubernetes NFS' &gt; /usr/share/nginx/html/index.html"</span>
+</code></pre></div></div>
+
+<p>NFS Server에서 같은 File을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># NFS Server에서 실행</span>
+<span class="nb">cat</span> /nfs/k8s/index.html
+</code></pre></div></div>
+
+<p>NFS Mount 문제는 Pod Event와 Worker의 kubelet 상태를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe pod nfs-test-pod
+
+<span class="c"># 해당 Worker에서 실행</span>
+<span class="nb">sudo </span>journalctl <span class="nt">-u</span> kubelet <span class="nt">--since</span> <span class="s2">"10 minutes ago"</span>
+</code></pre></div></div>
+
+<h2 id="16--실습-resource-정리">16 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>Master 또는 관리 Client에서 Pod를 먼저 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod nfs-test-pod <span class="nt">--ignore-not-found</span>
+kubectl delete pod local-pod <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-downward-api <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-hostpath <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-emptydir-limit <span class="nt">--ignore-not-found</span>
+kubectl delete pod sample-emptydir <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>PVC가 더 이상 사용되지 않는지 확인한 뒤 PVC와 PV를 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete persistentvolumeclaim nfs-pvc <span class="nt">--ignore-not-found</span>
+kubectl delete persistentvolume nfs-pv <span class="nt">--ignore-not-found</span>
+kubectl delete persistentvolumeclaim local-pvc <span class="nt">--ignore-not-found</span>
+kubectl delete persistentvolume local-pv <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>두 PV의 Reclaim Policy가 <code class="language-plaintext highlighter-rouge">Retain</code>이므로 Kubernetes Resource를 삭제해도 <code class="language-plaintext highlighter-rouge">worker1</code>과 NFS Server의 실제 File은 자동 삭제되지 않는다. Data가 필요하지 않은지 확인한 뒤 각 Machine에서 별도로 관리한다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">emptyDir</code>은 Pod 수명에 연결된 임시 Volume이며 Disk 또는 Memory를 사용할 수 있다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">hostPath</code>는 특정 Worker의 File System에 직접 연결되므로 Node 종속성과 Host 침해 위험을 함께 고려해야 한다.</p>
+    </li>
+    <li>
+      <p>Downward API Volume은 Pod와 Container 정보를 File로 제공하고 <code class="language-plaintext highlighter-rouge">projected</code> Volume은 Secret, ConfigMap과 Downward API 등을 하나의 Directory에 배치한다.</p>
+    </li>
+    <li>
+      <p>PV는 Cluster가 제공하는 Storage이고 PVC는 Namespace의 Workload가 필요한 Storage를 요청하는 Resource이다.</p>
+    </li>
+    <li>
+      <p>Static Provisioning은 관리자가 PV를 미리 만들고 Dynamic Provisioning은 StorageClass와 Provisioner가 PVC 요청에 따라 Volume을 생성한다.</p>
+    </li>
+    <li>
+      <p>Local <code class="language-plaintext highlighter-rouge">hostPath</code> PV는 단일 Node 테스트에 적합하고 NFS PV는 여러 Node에서 같은 Network File System을 사용할 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[emptyDir, hostPath, Downward API와 projected Volume부터 PV·PVC 및 NFS Storage 연결까지 정리]]></summary></entry><entry><title type="html">Kubernetes 환경 변수와 Secret, ConfigMap</title><link href="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/" rel="alternate" type="text/html" title="Kubernetes 환경 변수와 Secret, ConfigMap" /><published>2026-09-01T00:00:00+09:00</published><updated>2026-09-01T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/"><![CDATA[<p>Container Image와 Application 설정을 분리하면 같은 Image를 여러 환경에서 재사용할 수 있다. Kubernetes는 정적 환경 변수와 Downward API로 실행 정보를 전달하고, 민감하지 않은 설정은 ConfigMap, Password와 인증서 같은 기밀 정보는 Secret으로 관리한다.</p>
 
 <h2 id="1--config와-storage-resource">1 ) Config와 Storage Resource</h2>
 
@@ -966,7 +1872,9 @@ kubectl delete secret sample-db-auth <span class="nt">--ignore-not-found</span>
       <p>ConfigMap은 민감하지 않은 설정을 저장하며 하나의 Object에 저장하는 Data는 1MiB를 넘을 수 없다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Pod 환경 변수와 Downward API, Secret 생성과 주입, 갱신 및 ConfigMap을 이용한 설정 분리 방법]]></summary></entry><entry><title type="html">Kubernetes Service Traffic Policy와 MetalLB</title><link href="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/" rel="alternate" type="text/html" title="Kubernetes Service Traffic Policy와 MetalLB" /><published>2026-08-31T00:00:00+09:00</published><updated>2026-08-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/"><![CDATA[<p>Service는 안정적인 IP와 DNS 이름을 제공하는 것뿐 아니라 Client 고정, Local Endpoint 선택과 Topology 선호 같은 Traffic 정책도 제어한다. Cloud Load Balancer가 없는 Bare-metal Cluster에서는 MetalLB 같은 구현을 추가하여 <code class="language-plaintext highlighter-rouge">LoadBalancer</code> Service에 외부 IP를 할당할 수 있다.</p>
+</blockquote>
+
+<p>다음 단계에서는 <a href="/cloud-native-35-kubernetes-volume-persistent-storage/">Kubernetes Volume과 Persistent Storage</a>에서 Pod Volume과 PV·PVC, NFS Storage 연결을 다룬다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Pod 환경 변수와 Downward API, Secret 생성과 주입, 갱신 및 ConfigMap을 이용한 설정 분리 방법]]></summary></entry><entry><title type="html">Kubernetes Service Traffic Policy와 MetalLB</title><link href="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/" rel="alternate" type="text/html" title="Kubernetes Service Traffic Policy와 MetalLB" /><published>2026-08-31T00:00:00+09:00</published><updated>2026-08-31T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-32-kubernetes-service-traffic-policy-metallb/"><![CDATA[<p>Service는 안정적인 IP와 DNS 이름을 제공하는 것뿐 아니라 Client 고정, Local Endpoint 선택과 Topology 선호 같은 Traffic 정책도 제어한다. Cloud Load Balancer가 없는 Bare-metal Cluster에서는 MetalLB 같은 구현을 추가하여 <code class="language-plaintext highlighter-rouge">LoadBalancer</code> Service에 외부 IP를 할당할 수 있다.</p>
 
 <h2 id="1--선행-학습과-실습-환경">1 ) 선행 학습과 실습 환경</h2>
 
@@ -5240,6 +6148,8 @@ kubectl get persistentvolumeclaims
 kubectl get storageclasses
 </code></pre></div></div>
 
+<p>PV와 PVC의 Binding, Access Mode와 Storage Backend 연결은 <a href="/cloud-native-35-kubernetes-volume-persistent-storage/">Kubernetes Volume과 Persistent Storage</a>에서 자세히 설명한다.</p>
+
 <p>Pod별 DNS와 Volume Mount를 확인한다.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/sample-statefulset-0 <span class="nt">--</span> <span class="nb">hostname
@@ -5940,450 +6850,4 @@ kubectl get pods
       <p>강제 삭제는 정상 종료 확인을 생략할 수 있으므로 Data 불일치 위험을 이해한 뒤 제한적으로 사용한다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리]]></summary></entry><entry><title type="html">Kubernetes Pod Lifecycle과 kubectl wait</title><link href="https://kkr010128.github.io/cloud-native-24-pod-lifecycle-kubectl-wait/" rel="alternate" type="text/html" title="Kubernetes Pod Lifecycle과 kubectl wait" /><published>2026-08-26T00:00:00+09:00</published><updated>2026-08-26T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-24-pod-lifecycle-kubectl-wait</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-24-pod-lifecycle-kubectl-wait/"><![CDATA[<p>Kubernetes Resource를 연속해서 조작할 때는 앞에서 요청한 Resource가 의도한 상태에 도달했는지 확인해야 한다. Deployment의 Pod를 다시 생성하거나 Pod가 Ready 상태가 될 때까지 기다리려면 Controller의 역할, Pod Lifecycle과 <code class="language-plaintext highlighter-rouge">kubectl wait</code>의 Condition을 함께 이해해야 한다.</p>
-
-<h2 id="1--deployment의-pod-재시작">1 ) Deployment의 Pod 재시작</h2>
-
-<hr />
-
-<p>Pod는 직접 재부팅하는 Virtual Machine과 다르다. Deployment가 관리하는 Pod를 다시 시작하려면 Deployment의 Pod Template을 갱신하여 Controller가 기존 Pod를 교체하도록 요청한다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-deployment.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-deployment</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<p>Master에서 Deployment를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-deployment.yaml
-</code></pre></div></div>
-
-<p>Deployment와 Pod를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment sample-deployment
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
-</code></pre></div></div>
-
-<h3 id="rollout-restart">rollout restart</h3>
-
-<p>Deployment가 관리하는 Pod를 순차적으로 교체한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout restart deployment/sample-deployment
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성</th>
-      <th>동작</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">rollout restart</code></td>
-      <td>Workload의 Pod Template을 갱신하여 새 Rollout 시작</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">deployment/sample-deployment</code></td>
-      <td>재시작할 Resource 종류와 이름</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Rollout 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout status deployment/sample-deployment
-</code></pre></div></div>
-
-<p>Pod 이름과 생성 시간이 바뀌는지 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">rollout restart</code>는 다음과 같은 상황에서 활용할 수 있다.</p>
-
-<ul>
-  <li>
-    <p>Application 시작 시 수행되는 초기화 처리를 다시 실행한다.</p>
-  </li>
-  <li>
-    <p>Secret이나 ConfigMap에서 주입된 환경 변수를 새 Pod에 다시 반영한다.</p>
-  </li>
-  <li>
-    <p>새로운 Pod 생성 과정을 통해 일시적인 상태를 초기화한다.</p>
-  </li>
-</ul>
-
-<p>Deployment Controller는 Control Plane에서 새 ReplicaSet과 Pod 상태를 조정한다. Scheduler가 새 Pod의 Worker를 선택하면 해당 Worker의 kubelet이 Container를 실행한다.</p>
-
-<h3 id="독립-pod와-controller-관리-pod">독립 Pod와 Controller 관리 Pod</h3>
-
-<p><code class="language-plaintext highlighter-rouge">rollout restart</code>는 Deployment, StatefulSet과 DaemonSet처럼 Rollout을 지원하는 Workload에 사용한다. Controller에 연결되지 않은 독립 Pod에는 사용할 수 없다.</p>
-
-<p>독립 Pod를 삭제하면 자동으로 대체 Pod를 생성할 상위 Controller가 없다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Deployment가 관리하는 Pod 삭제
-    → Deployment Controller가 부족한 Replica 감지
-    → 대체 Pod 생성
-
-독립 Pod 삭제
-    → 대체 Pod를 생성할 Controller 없음
-</code></pre></div></div>
-
-<p>Pod를 안정적으로 운영하려면 Pod를 직접 생성하기보다 목적에 맞는 Controller를 통해 관리한다.</p>
-
-<h2 id="2--metadataname과-generatename">2 ) metadata.name과 generateName</h2>
-
-<hr />
-
-<p>Kubernetes Resource는 일반적으로 <code class="language-plaintext highlighter-rouge">metadata.name</code>으로 고정된 이름을 지정한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod</span>
-</code></pre></div></div>
-
-<p>같은 종류와 Namespace에 동일한 이름의 Resource가 있으면 다시 생성할 수 없다.</p>
-
-<h3 id="generatename">generateName</h3>
-
-<blockquote>
-  <p><strong>generateName</strong></p>
-
-  <p>Resource 생성 요청마다 API Server가 고유한 접미사를 추가할 수 있도록 이름의 접두사를 지정하는 Field이다.</p>
-</blockquote>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-generatename.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">generateName</span><span class="pi">:</span> <span class="s">sample-generatename-</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">create</code>로 Resource를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create <span class="nt">-f</span> sample-generatename.yaml
-</code></pre></div></div>
-
-<p>생성된 이름을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
-</code></pre></div></div>
-
-<p>출력 예시는 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NAME                          READY   STATUS    RESTARTS   AGE
-sample-generatename-k7m2p     1/1     Running   0          10s
-</code></pre></div></div>
-
-<p>같은 File로 다시 <code class="language-plaintext highlighter-rouge">create</code>하면 다른 접미사를 가진 새 Pod가 생성된다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create <span class="nt">-f</span> sample-generatename.yaml
-kubectl get pods
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">generateName</code>은 매 요청마다 새 Resource를 만들 때 사용한다. 동일한 Resource를 반복 갱신하는 선언형 <code class="language-plaintext highlighter-rouge">apply</code>에는 안정적인 <code class="language-plaintext highlighter-rouge">metadata.name</code>이 필요하므로 <code class="language-plaintext highlighter-rouge">generateName</code> 예제는 <code class="language-plaintext highlighter-rouge">create</code>로 실행한다.</p>
-
-<h2 id="3--pod-lifecycle">3 ) Pod Lifecycle</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Pod Phase</strong></p>
-
-  <p>Pod Lifecycle의 상위 상태를 나타내는 값이다. <code class="language-plaintext highlighter-rouge">Pending</code>, <code class="language-plaintext highlighter-rouge">Running</code>, <code class="language-plaintext highlighter-rouge">Succeeded</code>, <code class="language-plaintext highlighter-rouge">Failed</code>, <code class="language-plaintext highlighter-rouge">Unknown</code> 중 하나로 기록된다.</p>
-</blockquote>
-
-<p>Pod Phase는 Pod 전체의 큰 상태를 표현한다. <code class="language-plaintext highlighter-rouge">kubectl get pods</code>의 <code class="language-plaintext highlighter-rouge">STATUS</code> 열에는 Phase뿐 아니라 Container 생성과 재시작 과정에서 발생한 Reason도 표시될 수 있다.</p>
-
-<h3 id="pod-phase">Pod Phase</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>Phase</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Pending</code></td>
-      <td>Pod가 승인되었지만 Container가 아직 준비되지 않았으며 Scheduling이나 Image Download를 기다릴 수 있는 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Running</code></td>
-      <td>Pod가 Node에 Binding되었고 모든 Container가 생성되었으며 하나 이상이 실행 또는 시작·재시작 중인 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Succeeded</code></td>
-      <td>Pod의 모든 Container가 성공적으로 종료되었고 다시 시작되지 않는 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Failed</code></td>
-      <td>모든 Container가 종료되었고 하나 이상이 실패로 종료되었으며 다시 시작되지 않는 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Unknown</code></td>
-      <td>일반적으로 Node 통신 문제로 Pod 상태를 확인할 수 없는 상태</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">Completed</code>는 <code class="language-plaintext highlighter-rouge">kubectl get pods</code>의 <code class="language-plaintext highlighter-rouge">STATUS</code>에서 성공적으로 끝난 Pod를 표현할 때 보이는 값이며 Pod Phase의 실제 값은 <code class="language-plaintext highlighter-rouge">Succeeded</code>이다. Job이나 CronJob이 만든 완료형 Pod에서 주로 확인할 수 있다.</p>
-
-<h3 id="kubectl에-표시되는-상태와-reason">kubectl에 표시되는 상태와 Reason</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>표시</th>
-      <th>의미</th>
-      <th>확인할 내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ContainerCreating</code></td>
-      <td>Volume Mount와 Network 설정 등 Container 생성 진행</td>
-      <td><code class="language-plaintext highlighter-rouge">kubectl describe pod</code>의 Event</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">CrashLoopBackOff</code></td>
-      <td>Container가 반복 실패하여 재시작 대기 시간이 증가</td>
-      <td>Application Log, Command, 환경 변수, Probe</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ErrImagePull</code></td>
-      <td>Image를 가져오는 첫 시도가 실패</td>
-      <td>Image 이름, Tag, Registry 인증</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ImagePullBackOff</code></td>
-      <td>Image Pull 실패가 반복되어 재시도 대기</td>
-      <td>Registry 접근, ImagePullSecret</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">OOMKilled</code></td>
-      <td>Memory 제한 또는 Node Memory 상황으로 Process 종료</td>
-      <td>Resource Limit과 사용량</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Terminating</code></td>
-      <td>Graceful Termination과 Resource 정리 진행</td>
-      <td>Finalizer, Volume, Node 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Init:0/N</code></td>
-      <td>N개 Init Container 중 완료된 수가 0개</td>
-      <td>Init Container Log와 상태</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>이 값들을 모두 Pod Phase로 분류해서는 안 된다. 예를 들어 Pod Phase가 <code class="language-plaintext highlighter-rouge">Running</code>이어도 Container 하나가 <code class="language-plaintext highlighter-rouge">CrashLoopBackOff</code> 상태일 수 있다.</p>
-
-<h3 id="상태-확인">상태 확인</h3>
-
-<p>Pod 목록을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
-</code></pre></div></div>
-
-<p>Pod의 Phase만 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-pod <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.phase}'</span>
-</code></pre></div></div>
-
-<p>Container별 상태와 Event를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe pod sample-pod
-</code></pre></div></div>
-
-<p>Control Plane의 API Server에는 Pod Status와 Condition이 저장된다. Worker의 kubelet은 실제 Container 상태를 관찰하여 API Server에 보고하고, kubectl은 저장된 상태를 조회한다.</p>
-
-<h2 id="4--pod-condition">4 ) Pod Condition</h2>
-
-<hr />
-
-<p>Condition은 Pod가 특정 조건을 만족하는지를 나타낸다. <code class="language-plaintext highlighter-rouge">kubectl wait</code>는 이 값을 기준으로 다음 작업을 시작할 시점을 결정할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Condition</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">PodScheduled</code></td>
-      <td>Scheduler가 Pod를 실행할 Node에 Binding함</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Initialized</code></td>
-      <td>모든 Init Container가 성공적으로 완료됨</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ContainersReady</code></td>
-      <td>Pod의 모든 Container가 Ready 상태임</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Ready</code></td>
-      <td>Pod가 Service 요청을 받을 준비가 됨</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Pod의 Condition을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-pod <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.conditions}'</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">Running</code>은 Container가 실행 중임을 나타내지만 Application이 Traffic을 받을 준비가 끝났다는 의미와 항상 같지는 않다. 후속 작업에서 Service 제공 가능 상태가 필요하면 <code class="language-plaintext highlighter-rouge">Ready</code> Condition을 기준으로 기다린다.</p>
-
-<h2 id="5--kubectl-wait">5 ) kubectl wait</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>kubectl wait</strong></p>
-
-  <p>하나 이상의 Resource가 지정한 Condition, 생성 또는 삭제 상태에 도달할 때까지 기다리는 명령이다.</p>
-</blockquote>
-
-<p>기본 Timeout은 30초이다. Image Download나 Application 초기화 시간이 더 필요한 실습에서는 <code class="language-plaintext highlighter-rouge">--timeout</code>을 명시한다.</p>
-
-<h3 id="ready-상태-대기">Ready 상태 대기</h3>
-
-<p><code class="language-plaintext highlighter-rouge">sample-pod</code>가 Ready 상태가 될 때까지 최대 60초 동안 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-pod.yaml
-kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready pod/sample-pod <span class="nt">--timeout</span><span class="o">=</span>60s
-</code></pre></div></div>
-
-<p>성공하면 다음과 같은 결과가 출력된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pod/sample-pod condition met
-</code></pre></div></div>
-
-<h3 id="scheduling-완료-대기">Scheduling 완료 대기</h3>
-
-<p>현재 Namespace의 모든 Pod가 Node에 Scheduling될 때까지 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>PodScheduled pods <span class="nt">--all</span> <span class="nt">--timeout</span><span class="o">=</span>60s
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">--all</code>은 지정한 Resource 종류의 모든 대상을 선택한다. 다른 Namespace의 Pod까지 포함하려면 <code class="language-plaintext highlighter-rouge">--all-namespaces</code>를 추가해야 한다.</p>
-
-<h3 id="phase-값-대기">Phase 값 대기</h3>
-
-<p>Pod Phase가 <code class="language-plaintext highlighter-rouge">Running</code>이 될 때까지 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">wait </span>pod/sample-pod <span class="se">\</span>
-  <span class="nt">--for</span><span class="o">=</span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.phase}'</span><span class="o">=</span>Running <span class="se">\</span>
-  <span class="nt">--timeout</span><span class="o">=</span>60s
-</code></pre></div></div>
-
-<p>Application 사용 가능 여부가 목적이라면 Phase보다 <code class="language-plaintext highlighter-rouge">Ready</code> Condition이 더 적절할 수 있다.</p>
-
-<h3 id="삭제-완료-대기">삭제 완료 대기</h3>
-
-<p>일반적인 <code class="language-plaintext highlighter-rouge">kubectl delete</code>는 기본적으로 삭제 완료를 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-pod
-</code></pre></div></div>
-
-<p>삭제 요청과 대기를 분리해야 한다면 먼저 기다리지 않고 삭제를 요청한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-pod <span class="nt">--wait</span><span class="o">=</span><span class="nb">false</span>
-</code></pre></div></div>
-
-<p>이후 Resource가 사라질 때까지 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span>delete pod/sample-pod <span class="nt">--timeout</span><span class="o">=</span>60s
-</code></pre></div></div>
-
-<p>현재 Namespace의 모든 Pod에 삭제를 요청하고 완료 대기를 분리할 수도 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pods <span class="nt">--all</span> <span class="nt">--wait</span><span class="o">=</span><span class="nb">false
-</span>kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span>delete pods <span class="nt">--all</span> <span class="nt">--timeout</span><span class="o">=</span>60s
-</code></pre></div></div>
-
-<p>두 번째 명령은 실행 시점에 남아 있는 Pod를 대상으로 기다린다. 이미 모든 Pod가 삭제되어 일치하는 Resource가 없다면 별도의 대기가 필요하지 않다.</p>
-
-<p>여러 Pod를 대상으로 할 때도 Timeout은 명령 전체의 대기 한도를 나타낸다. Pod마다 정해진 시간을 순서대로 더해 기다린다는 의미가 아니다.</p>
-
-<h3 id="timeout-처리">Timeout 처리</h3>
-
-<p>지정한 시간 안에 상태가 충족되지 않으면 명령은 실패 상태로 종료된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>error: timed out waiting for the condition on pods/sample-pod
-</code></pre></div></div>
-
-<p>Timeout을 무조건 늘리기 전에 <code class="language-plaintext highlighter-rouge">kubectl get pods</code>와 <code class="language-plaintext highlighter-rouge">kubectl describe pod</code>로 Scheduling, Image Pull, Container 실행과 Probe 상태를 확인한다.</p>
-
-<h2 id="6--실습-resource-정리">6 ) 실습 Resource 정리</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">generateName</code>으로 만든 Pod를 이름 Prefix와 Label 없이 한꺼번에 선택하기는 어렵다. 목록을 확인한 뒤 생성된 이름을 지정하여 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
-kubectl delete pod &lt;generated-pod-name&gt;
-</code></pre></div></div>
-
-<p>Deployment를 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-deployment.yaml
-</code></pre></div></div>
-
-<p>Deployment를 삭제하면 Deployment가 관리하던 ReplicaSet과 Pod도 함께 정리된다.</p>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">rollout restart</code>는 Deployment 같은 Workload의 Pod Template을 갱신하여 Controller가 Pod를 교체하도록 한다.</p>
-    </li>
-    <li>
-      <p>독립 Pod는 상위 Controller가 없으므로 삭제 후 자동으로 대체되지 않는다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">generateName</code>은 생성 요청마다 고유한 이름이 필요한 Resource에 사용하며 <code class="language-plaintext highlighter-rouge">create</code>와 결합한다.</p>
-    </li>
-    <li>
-      <p>Pod Phase와 <code class="language-plaintext highlighter-rouge">CrashLoopBackOff</code>, <code class="language-plaintext highlighter-rouge">ContainerCreating</code> 같은 kubectl 상태 표시는 구분해서 해석한다.</p>
-    </li>
-    <li>
-      <p>Worker의 kubelet이 Container 상태를 API Server에 보고하면 kubectl이 Control Plane에 저장된 Status와 Condition을 조회한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">kubectl wait</code>는 Ready, Scheduling, Phase 또는 삭제 완료를 후속 작업의 조건으로 사용할 수 있다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Deployment 재시작과 generateName 사용법, Pod Phase와 kubectl 상태 표시의 차이, Condition 기반 작업 완료 대기 정리]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리]]></summary></entry></feed>

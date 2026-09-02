@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Kubernetes Volume과 Persistent Storage",
+        "url": "/cloud-native-35-kubernetes-volume-persistent-storage/",
+        "description": "emptyDir, hostPath, Downward API와 projected Volume부터 PV·PVC 및 NFS Storage 연결까지 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 2일",
+        "reading_time_label": "11분 읽기",
+        "search": "kubernetes volume과 persistent storage emptydir, hostpath, downward api와 projected volume부터 pv·pvc 및 nfs storage 연결까지 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes 환경 변수와 Secret, ConfigMap",
         "url": "/cloud-native-34-kubernetes-env-secret-configmap/",
         "description": "Pod 환경 변수와 Downward API, Secret 생성과 주입, 갱신 및 ConfigMap을 이용한 설정 분리 방법",
@@ -12,7 +27,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 1일",
-        "reading_time_label": "11분 읽기",
+        "reading_time_label": "12분 읽기",
         "search": "kubernetes 환경 변수와 secret, configmap pod 환경 변수와 downward api, secret 생성과 주입, 갱신 및 configmap을 이용한 설정 분리 방법 cloudnative autoeversw kubernetes cloudnative"
       },
     
