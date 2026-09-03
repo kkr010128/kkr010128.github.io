@@ -2,6 +2,7 @@
 title: Kubernetes Namespace와 kubectl 기본 사용
 description: Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리
 date: 2026-08-26
+updated_at: 2026-09-03
 series: CloudNative
 tags:
   - CloudNative
@@ -57,6 +58,32 @@ kubectl get namespaces
 kubectl get ns
 ```
 
+### Namespace 생성
+
+다음 내용을 `resource-lab-namespace.yaml`로 저장한다.
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: resource-lab
+```
+
+Master 또는 관리 Client에서 Manifest를 적용한다.
+
+```bash
+kubectl apply -f resource-lab-namespace.yaml
+kubectl get namespace resource-lab
+```
+
+명령형 방식으로도 Namespace를 생성할 수 있다.
+
+```bash
+kubectl create namespace resource-lab
+```
+
+두 생성 명령은 같은 이름의 Namespace를 대상으로 하므로 둘 중 하나만 실행한다.
+
 ### Namespace 범위 Resource
 
 Namespace에 속하는 Resource와 Cluster 전체 범위 Resource를 확인한다.
@@ -100,6 +127,8 @@ Namespace의 Pod
 ```
 
 Namespace는 분리의 기준을 제공하고 RBAC와 NetworkPolicy는 그 범위에 맞는 권한과 통신 정책을 적용한다.
+
+Namespace별 CPU·Memory와 Resource 개수 제한은 [Kubernetes Resource 관리와 Autoscaling](/cloud-native-36-kubernetes-resource-management-autoscaling/)에서 설명한다.
 
 ## 3 ) kubectl과 Cluster 조작 흐름
 

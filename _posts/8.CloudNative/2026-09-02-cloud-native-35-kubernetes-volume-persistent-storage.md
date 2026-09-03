@@ -2,6 +2,7 @@
 title: Kubernetes Volume과 Persistent Storage
 description: emptyDir, hostPath, Downward API와 projected Volume부터 PV·PVC 및 NFS Storage 연결까지 정리
 date: 2026-09-02
+updated_at: 2026-09-03
 series: CloudNative
 tags:
   - CloudNative
@@ -730,3 +731,5 @@ kubectl delete persistentvolume local-pv --ignore-not-found
 > - Static Provisioning은 관리자가 PV를 미리 만들고 Dynamic Provisioning은 StorageClass와 Provisioner가 PVC 요청에 따라 Volume을 생성한다.
 >
 > - Local `hostPath` PV는 단일 Node 테스트에 적합하고 NFS PV는 여러 Node에서 같은 Network File System을 사용할 수 있다.
+
+다음 단계에서는 [Kubernetes Resource 관리와 Autoscaling](/cloud-native-36-kubernetes-resource-management-autoscaling/)에서 Container와 Namespace의 Resource 제한, Eviction과 Autoscaling을 다룬다.

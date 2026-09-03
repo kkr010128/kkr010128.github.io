@@ -2,7 +2,7 @@
 title: Kubernetes Resource 조회와 Pod Debugging
 description: kubectl get 출력 형식과 describe, Metrics Server 기반 Resource 사용량, exec·debug·cp·port-forward·logs를 이용한 Pod 확인 방법 정리
 date: 2026-08-26
-updated_at: 2026-08-27
+updated_at: 2026-09-03
 series: CloudNative
 tags:
   - CloudNative
@@ -71,7 +71,11 @@ Node 목록은 Cluster 범위에서 조회한다.
 
 ```bash
 kubectl get nodes
+kubectl get nodes -o wide
+kubectl get node worker1 -o yaml
 ```
+
+`-o wide`는 Node의 Internal IP, OS Image, Kernel과 Container Runtime 등의 Column을 추가한다. YAML 출력에서는 `spec`, `status.capacity`, `status.allocatable`과 Node Condition을 상세히 확인할 수 있다.
 
 ### get all의 범위
 
