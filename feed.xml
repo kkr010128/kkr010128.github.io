@@ -1,4 +1,905 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-03T13:44:42+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Volume과 Persistent Storage</title><link href="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/" rel="alternate" type="text/html" title="Kubernetes Volume과 Persistent Storage" /><published>2026-09-02T00:00:00+09:00</published><updated>2026-09-02T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/"><![CDATA[<p>Container의 Writable Layer에 저장한 Data는 Container가 교체될 때 유지되지 않는다. Kubernetes Volume은 Pod의 Container가 사용할 File System 영역을 제공하며, Volume 종류에 따라 Data의 수명과 실제 저장 위치가 달라진다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-03T23:16:53+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Resource 관리와 Autoscaling</title><link href="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/" rel="alternate" type="text/html" title="Kubernetes Resource 관리와 Autoscaling" /><published>2026-09-03T00:00:00+09:00</published><updated>2026-09-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/"><![CDATA[<p>Kubernetes는 Container가 요청하는 Resource를 기준으로 Pod를 Worker에 배치하고, kubelet과 Container Runtime을 통해 실행 중인 Resource 사용을 제한한다. Namespace에는 LimitRange와 ResourceQuota를 적용할 수 있으며, Resource Request는 Cluster와 Pod Autoscaling 판단에도 사용된다.</p>
+
+<h2 id="1--cluster-api-resource와-관리-범위">1 ) Cluster API Resource와 관리 범위</h2>
+
+<hr />
+
+<p>Cluster를 운영할 때 자주 확인하는 Resource는 Cluster 범위와 Namespace 범위로 나뉜다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Resource</th>
+      <th>범위</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Node</td>
+      <td>Cluster</td>
+      <td>Worker의 상태와 Capacity·Allocatable 표시</td>
+    </tr>
+    <tr>
+      <td>Namespace</td>
+      <td>Cluster</td>
+      <td>Namespace 범위 Resource의 논리적 구분</td>
+    </tr>
+    <tr>
+      <td>PersistentVolume</td>
+      <td>Cluster</td>
+      <td>Cluster에 제공되는 Storage 표현</td>
+    </tr>
+    <tr>
+      <td>ResourceQuota</td>
+      <td>Namespace</td>
+      <td>Resource 사용량과 Object 개수 제한</td>
+    </tr>
+    <tr>
+      <td>ServiceAccount</td>
+      <td>Namespace</td>
+      <td>Pod와 Process의 API Identity 제공</td>
+    </tr>
+    <tr>
+      <td>Role</td>
+      <td>Namespace</td>
+      <td>Namespace 안의 API 권한 정의</td>
+    </tr>
+    <tr>
+      <td>ClusterRole</td>
+      <td>Cluster</td>
+      <td>Cluster 범위 또는 재사용 가능한 API 권한 정의</td>
+    </tr>
+    <tr>
+      <td>RoleBinding</td>
+      <td>Namespace</td>
+      <td>Namespace 안의 주체에 Role·ClusterRole 연결</td>
+    </tr>
+    <tr>
+      <td>ClusterRoleBinding</td>
+      <td>Cluster</td>
+      <td>Cluster 범위에서 주체에 ClusterRole 연결</td>
+    </tr>
+    <tr>
+      <td>NetworkPolicy</td>
+      <td>Namespace</td>
+      <td>선택한 Pod의 Ingress·Egress Traffic 제어</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Node와 Namespace의 기본 조회는 다음 명령으로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master 또는 관리 Client에서 실행</span>
+kubectl get nodes <span class="nt">-o</span> wide
+kubectl get node worker1 <span class="nt">-o</span> yaml
+kubectl get namespaces
+kubectl get pods <span class="nt">-n</span> kube-system
+kubectl get pods <span class="nt">--all-namespaces</span>
+</code></pre></div></div>
+
+<p>Node Object는 일반 Workload처럼 사용자가 반복해서 생성·삭제하는 Resource가 아니다. kubelet 등록과 Node Bootstrap 과정에서 Cluster에 추가되며 운영 중에는 상태, Capacity, Condition과 배치된 Pod를 자주 확인한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">-A</code>는 <code class="language-plaintext highlighter-rouge">--all-namespaces</code>의 축약 Option이다. <code class="language-plaintext highlighter-rouge">-a</code>는 모든 Namespace를 조회하는 Option이 아니다.</p>
+
+<p>Namespace의 구조와 생성 방법은 <a href="/cloud-native-23-kubernetes-namespace-kubectl/">Kubernetes Namespace와 kubectl 기본 사용</a>에서, PV는 <a href="/cloud-native-35-kubernetes-volume-persistent-storage/">Kubernetes Volume과 Persistent Storage</a>에서 설명한다.</p>
+
+<h2 id="2--resource-request와-limit">2 ) Resource Request와 Limit</h2>
+
+<hr />
+
+<p>Container의 <code class="language-plaintext highlighter-rouge">resources.requests</code>와 <code class="language-plaintext highlighter-rouge">resources.limits</code>에는 CPU, Memory와 Ephemeral Storage 등을 지정할 수 있다. Device Plugin을 사용하면 GPU 같은 Extended Resource도 요청할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>Control Plane과 Worker에서의 역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">requests</code></td>
+      <td>Scheduler가 Pod를 배치할 수 있는 Node를 판단할 때 사용</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">limits</code></td>
+      <td>kubelet과 Container Runtime이 실행 중인 Container의 사용 상한을 적용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>CPU는 Clock Frequency가 아니라 CPU Unit으로 지정한다. <code class="language-plaintext highlighter-rouge">1</code> CPU는 물리 Core 또는 Virtual Core 하나에 해당하며 <code class="language-plaintext highlighter-rouge">1000m</code>과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>값</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">1000m</code></td>
+      <td>1 CPU</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">500m</code></td>
+      <td>0.5 CPU</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">100m</code></td>
+      <td>0.1 CPU</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">512Mi</code></td>
+      <td>512 Mebibyte</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">1Gi</code></td>
+      <td>1 Gibibyte</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Request는 Container가 항상 실제로 소비하는 최솟값이 아니다. Scheduler의 배치 판단 기준이며, CPU 경합 시에는 CPU Share의 가중치에도 사용된다. Node에 여유가 있으면 Container는 Request보다 많은 CPU와 Memory를 사용할 수 있다.</p>
+
+<p>Limit 적용 방식은 Resource마다 다르다.</p>
+
+<ul>
+  <li>
+    <p>CPU Limit을 초과하려 하면 Linux Kernel이 CPU 시간을 Throttling한다.</p>
+  </li>
+  <li>
+    <p>Memory Limit은 반응적으로 적용되며, Memory 부족이 감지되면 OOM Killer가 Container Process를 종료할 수 있다.</p>
+  </li>
+</ul>
+
+<h2 id="3--cpu와-memory-requestlimit-실습">3 ) CPU와 Memory Request·Limit 실습</h2>
+
+<hr />
+
+<p>실습 Resource가 기존 Workload에 미치는 영향을 줄이기 위해 <code class="language-plaintext highlighter-rouge">resource-lab</code> Namespace를 사용한다. Namespace가 없다면 Master 또는 관리 Client에서 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create namespace resource-lab
+kubectl get namespace resource-lab
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-resource.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-resource</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-resource</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-resource</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+          <span class="na">resources</span><span class="pi">:</span>
+            <span class="na">requests</span><span class="pi">:</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">512Mi</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+            <span class="na">limits</span><span class="pi">:</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">1Gi</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">1"</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 Deployment를 생성하고 Rollout 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-resource.yaml
+kubectl rollout status deployment/sample-resource <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+kubectl get pods <span class="nt">-n</span> resource-lab <span class="se">\</span>
+  <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-resource <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>Control Plane의 Scheduler는 Container별 Request를 합산하여 배치 가능한 Worker를 선택한다. Worker의 kubelet은 Pod Spec의 Limit을 Container Runtime에 전달하고 Runtime은 Linux cgroup을 통해 CPU와 Memory 제한을 적용한다.</p>
+
+<p>Pod에 저장된 Resource 설정을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> resource-lab <span class="se">\</span>
+  <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-resource <span class="nt">-o</span> json <span class="se">\</span>
+  | jq <span class="s1">'.items[].spec.containers[].resources'</span>
+</code></pre></div></div>
+
+<h2 id="4--request만-지정한-경우">4 ) Request만 지정한 경우</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-resource-only-requests.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-resource-only-requests</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-resource-only-requests</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-resource-only-requests</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+          <span class="na">resources</span><span class="pi">:</span>
+            <span class="na">requests</span><span class="pi">:</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">256Mi</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">200m</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-resource-only-requests.yaml
+kubectl get pods <span class="nt">-n</span> resource-lab <span class="se">\</span>
+  <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-resource-only-requests
+kubectl get pods <span class="nt">-n</span> resource-lab <span class="se">\</span>
+  <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-resource-only-requests <span class="nt">-o</span> json <span class="se">\</span>
+  | jq <span class="s1">'.items[].spec.containers[].resources'</span>
+</code></pre></div></div>
+
+<p>Request만 있고 Limit이 없으면 해당 Resource에 Container별 상한이 설정되지 않는다. CPU는 Node의 여유 Resource를 더 사용할 수 있고, Memory 사용이 증가하여 Node 전체에 Memory Pressure가 발생하면 OOM이나 Pod Eviction으로 이어질 수 있다.</p>
+
+<h2 id="5--limit만-지정한-경우">5 ) Limit만 지정한 경우</h2>
+
+<hr />
+
+<p>Admission 단계에서 다른 기본값이 적용되지 않았다면 특정 Resource의 Limit만 지정했을 때 Kubernetes는 같은 값을 Request로 복사한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-resource-only-limits.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-resource-only-limits</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">resources</span><span class="pi">:</span>
+        <span class="na">limits</span><span class="pi">:</span>
+          <span class="na">memory</span><span class="pi">:</span> <span class="s">256Mi</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">200m</span>
+</code></pre></div></div>
+
+<p>Pod를 생성한 뒤 API Server에 저장된 Request와 Limit을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-resource-only-limits.yaml
+kubectl get pod sample-resource-only-limits <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab <span class="nt">-o</span> json <span class="se">\</span>
+  | jq <span class="s1">'.spec.containers[].resources'</span>
+</code></pre></div></div>
+
+<p>Namespace에 LimitRange 등 Admission 단계의 기본값이 있으면 결과가 달라질 수 있다. Scheduling Resource를 명확히 관리하려면 Request와 Limit을 모두 명시한다.</p>
+
+<h2 id="6--ephemeral-storage-제한">6 ) Ephemeral Storage 제한</h2>
+
+<hr />
+
+<p>Local Ephemeral Storage는 Pod가 실행되는 Node의 임시 저장 공간이다. kubelet이 측정하는 주요 대상은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>Container Log</p>
+  </li>
+  <li>
+    <p>Container의 Writable Layer</p>
+  </li>
+  <li>
+    <p>Disk 기반 <code class="language-plaintext highlighter-rouge">emptyDir</code> Data</p>
+  </li>
+</ul>
+
+<p>Memory 기반 <code class="language-plaintext highlighter-rouge">emptyDir</code>은 Ephemeral Storage가 아니라 Container Memory 사용량으로 계산된다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-ephemeral-storage.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-ephemeral-storage</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">resources</span><span class="pi">:</span>
+        <span class="na">requests</span><span class="pi">:</span>
+          <span class="na">ephemeral-storage</span><span class="pi">:</span> <span class="s">1Gi</span>
+        <span class="na">limits</span><span class="pi">:</span>
+          <span class="na">ephemeral-storage</span><span class="pi">:</span> <span class="s">2Gi</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-ephemeral-storage.yaml
+kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-ephemeral-storage <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab <span class="nt">--timeout</span><span class="o">=</span>120s
+</code></pre></div></div>
+
+<p>Container의 Writable Layer에 2GiB File 생성을 시도한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec</span> <span class="nt">-n</span> resource-lab sample-ephemeral-storage <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">dd </span><span class="k">if</span><span class="o">=</span>/dev/zero <span class="nv">of</span><span class="o">=</span>/dummy <span class="nv">bs</span><span class="o">=</span>1M <span class="nv">count</span><span class="o">=</span>2049
+</code></pre></div></div>
+
+<p>사용량이 Limit을 초과하면 kubelet이 Pod를 Eviction 대상으로 표시할 수 있다. File System 구성과 kubelet의 Local Storage 측정 조건에 따라 결과 시점이 달라질 수 있으므로 Pod 상태와 Event를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-ephemeral-storage <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab <span class="nt">--watch</span>
+kubectl describe pod sample-ephemeral-storage <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+kubectl get events <span class="nt">-n</span> resource-lab <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.lastTimestamp
+</code></pre></div></div>
+
+<p>여러 Container가 있는 Pod의 Ephemeral Storage Limit은 Container별 Limit의 합으로 계산한다. Pod 사용량에는 Container의 Writable Layer와 Log 및 Disk 기반 <code class="language-plaintext highlighter-rouge">emptyDir</code> 사용량이 포함된다.</p>
+
+<h2 id="7--node-capacity와-allocatable">7 ) Node Capacity와 Allocatable</h2>
+
+<hr />
+
+<p>Node의 전체 Capacity가 모두 Pod에 할당되는 것은 아니다. kubelet은 OS와 Kubernetes Component가 사용할 Resource를 고려하여 <code class="language-plaintext highlighter-rouge">status.allocatable</code>에 Pod가 사용할 수 있는 양을 표시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get node worker1 <span class="se">\</span>
+  <span class="nt">-o</span> custom-columns<span class="o">=</span><span class="s1">'NAME:.metadata.name,CPU:.status.capacity.cpu,ALLOCATABLE_CPU:.status.allocatable.cpu,MEMORY:.status.capacity.memory,ALLOCATABLE_MEMORY:.status.allocatable.memory'</span>
+kubectl describe node worker1
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">kubeReserved</code></td>
+      <td>kubelet과 Container Runtime 등 Kubernetes 관련 Daemon Resource 예약</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">systemReserved</code></td>
+      <td>OS와 System Daemon Resource 예약</td>
+    </tr>
+    <tr>
+      <td>Eviction Threshold</td>
+      <td>Node Resource 고갈 전에 kubelet이 Pod를 Eviction할 기준</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">kubeReserved</code>와 <code class="language-plaintext highlighter-rouge">systemReserved</code>는 kubelet에서 구성하는 값이며 모든 Cluster에 같은 값이 자동으로 적용되는 것은 아니다. 실제 Pod 배치 가능량은 Node의 <code class="language-plaintext highlighter-rouge">status.allocatable</code>에서 확인한다.</p>
+
+<h2 id="8--node-pressure-eviction">8 ) Node-pressure Eviction</h2>
+
+<hr />
+
+<p>Worker의 kubelet에 있는 Eviction Manager는 Memory, Disk 공간과 File System Inode 등의 상태를 주기적으로 확인한다. Threshold가 충족되면 Node 전체의 Resource 고갈을 막기 위해 Pod를 종료하고 Resource를 회수한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Soft Threshold</td>
+      <td>조건이 <code class="language-plaintext highlighter-rouge">evictionSoftGracePeriod</code> 동안 지속된 뒤 Eviction 시작</td>
+    </tr>
+    <tr>
+      <td>Hard Threshold</td>
+      <td>Grace Period <code class="language-plaintext highlighter-rouge">0s</code>로 즉시 Eviction 시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">evictionMaxPodGracePeriod</code></td>
+      <td>Soft Eviction에서 허용할 Pod 종료 Grace Period 상한</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">evictionSoftGracePeriod</code>는 Threshold가 얼마나 지속돼야 하는지를 나타낸다. Pod 종료에 허용할 시간과 같은 설정이 아니다. Node-pressure Eviction은 Pod의 <code class="language-plaintext highlighter-rouge">terminationGracePeriodSeconds</code>나 PodDisruptionBudget을 그대로 따르지 않는다.</p>
+
+<p>kubelet은 다음 순서로 Eviction 대상을 평가한다.</p>
+
+<ol>
+  <li>
+    <p>고갈된 Resource의 실제 사용량이 Request를 초과했는지 확인한다.</p>
+  </li>
+  <li>
+    <p>Pod Priority가 낮은 Pod를 우선한다.</p>
+  </li>
+  <li>
+    <p>실제 사용량이 Request를 얼마나 초과했는지 비교한다.</p>
+  </li>
+</ol>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl describe node</code>에서 <code class="language-plaintext highlighter-rouge">MemoryPressure</code>, <code class="language-plaintext highlighter-rouge">DiskPressure</code>, <code class="language-plaintext highlighter-rouge">PIDPressure</code> Condition과 Event를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe node worker1
+
+<span class="c"># worker1에서 실행</span>
+<span class="nb">sudo </span>journalctl <span class="nt">-u</span> kubelet <span class="nt">--since</span> <span class="s2">"10 minutes ago"</span>
+</code></pre></div></div>
+
+<h2 id="9--scheduling-불가와-overcommit">9 ) Scheduling 불가와 Overcommit</h2>
+
+<hr />
+
+<p>Resource Request를 수용할 Worker가 없으면 Pod는 <code class="language-plaintext highlighter-rouge">Pending</code> 상태에 머문다. 이는 실제 CPU·Memory 사용률이 100%라는 의미가 아니라 Scheduler가 계산한 Allocatable 대비 Request가 부족하다는 의미이다.</p>
+
+<p>Resource Overcommit은 일반적으로 Node Capacity보다 큰 Limit 총량을 허용하여 Workload가 동시에 최대치를 사용하지 않는다는 전제로 Resource를 배치하는 방식이다. Request 부족으로 Pod를 배치하지 못하는 상태와 구분해야 한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-resource-scale.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-resource-scale</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-resource-scale</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-resource-scale</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+          <span class="na">resources</span><span class="pi">:</span>
+            <span class="na">requests</span><span class="pi">:</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">512Mi</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+            <span class="na">limits</span><span class="pi">:</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">1Gi</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">1"</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-resource-scale.yaml
+kubectl scale deployment/sample-resource-scale <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab <span class="nt">--replicas</span><span class="o">=</span>6
+kubectl get pods <span class="nt">-n</span> resource-lab <span class="se">\</span>
+  <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-resource-scale <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>실제 Cluster에 충분한 Resource가 있으면 여섯 Pod가 모두 실행될 수 있다. <code class="language-plaintext highlighter-rouge">Pending</code> Pod가 발생한 경우 Pod Event와 Node의 할당 현황을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe pod &lt;pending-pod-name&gt; <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+kubectl describe node worker1
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl describe node</code>의 <code class="language-plaintext highlighter-rouge">Allocated resources</code>는 실제 사용량이 아니라 Pod Spec에 선언된 Request와 Limit의 합계이다. 실제 사용량은 Metrics Server가 제공하는 <code class="language-plaintext highlighter-rouge">kubectl top</code>으로 구분해 확인한다.</p>
+
+<h2 id="10--여러-container의-resource-계산">10 ) 여러 Container의 Resource 계산</h2>
+
+<hr />
+
+<p>Scheduler는 Pod 단위로 Worker를 선택하므로 Pod에 포함된 Container의 Resource를 합산한다.</p>
+
+<ul>
+  <li>
+    <p>일반 Application Container의 같은 Resource Request와 Limit은 모두 합산한다.</p>
+  </li>
+  <li>
+    <p>일반 Init Container는 순차 실행되므로 같은 Resource에서 가장 큰 Init Container 값을 사용한다.</p>
+  </li>
+  <li>
+    <p>Application Container 합계와 Init Container의 최댓값 중 큰 값을 Pod의 Scheduling 기준으로 사용한다.</p>
+  </li>
+</ul>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Pod의 유효 Request
+  = max(
+      모든 Application Container Request의 합,
+      Init Container Request 중 최댓값
+    )
+</code></pre></div></div>
+
+<p>이 계산은 Init Container가 Application Container보다 큰 초기화 Resource를 요구할 때 해당 Pod가 실행 가능한 Worker를 확보하는 데 사용된다.</p>
+
+<h2 id="11--cluster-autoscaler">11 ) Cluster Autoscaler</h2>
+
+<hr />
+
+<p>Cluster Autoscaler는 실행할 Node가 부족한 Pod를 감지하고 연동된 Infrastructure의 Node Group 크기를 조정한다. 단순한 Node CPU·Memory 평균 사용률이 아니라 Scheduler가 배치하지 못한 Pod와 해당 Pod의 Request를 주요 판단 기준으로 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Pod 생성
+  → Scheduler가 모든 Node의 Allocatable과 Request 비교
+  → 적합한 Node가 없어 Pod가 Pending
+  → Cluster Autoscaler가 확장 가능 여부 확인
+  → Infrastructure Node Group 확장
+  → 새 Worker 준비와 Cluster 등록
+  → Scheduler가 Pending Pod 배치
+</code></pre></div></div>
+
+<p>Request를 지나치게 크게 설정하면 실제 사용량이 낮아도 Pod가 배치되지 않아 Scale-out이 발생할 수 있다. 반대로 Request를 지나치게 낮게 설정하면 실제 부하가 높아도 Scheduler는 여유가 있다고 판단할 수 있다.</p>
+
+<p>Cluster Autoscaler는 실제 Node를 생성할 수 있는 Infrastructure와 연결되어야 한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>환경</th>
+      <th>연동 구조 예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>AWS</td>
+      <td>Auto Scaling Group의 Desired Capacity 조정 및 Tag 기반 Node Group 탐색</td>
+    </tr>
+    <tr>
+      <td>직접 구축한 VM 환경</td>
+      <td>VM 생성, OS 준비와 <code class="language-plaintext highlighter-rouge">kubeadm join</code>까지 자동화 필요</td>
+    </tr>
+    <tr>
+      <td>Cluster API 사용 환경</td>
+      <td>Machine Resource와 Infrastructure Provider로 Node Lifecycle 관리</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Cluster API는 On-premise 환경에서 사용할 수 있는 선택지 중 하나이며, kubeadm Cluster에 Cluster Autoscaling을 자동으로 제공하는 기능은 아니다.</p>
+
+<p>Request와 Limit은 임의의 고정 비율로 결정하지 않고 Application의 부하 Test와 관측 결과를 기준으로 조정한다. Memory Limit이 지나치게 낮으면 부하 Test 중 OOM Kill이 발생할 수 있고 Request가 실제 요구량보다 크면 Scheduling과 Node 확장 효율이 낮아질 수 있다.</p>
+
+<h2 id="12--limitrange">12 ) LimitRange</h2>
+
+<hr />
+
+<p>LimitRange는 Namespace 안에서 Container, Pod 또는 PVC에 허용할 Resource 범위를 정의한다. 새 Object가 API Server의 Admission 단계를 통과할 때 적용되며 이미 실행 중인 Pod의 Resource 설정은 변경하지 않는다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">default</code></td>
+      <td>Container에 Limit이 없을 때 적용할 기본 Limit</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">defaultRequest</code></td>
+      <td>Container에 Request가 없을 때 적용할 기본 Request</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">max</code></td>
+      <td>허용할 최대 Resource</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">min</code></td>
+      <td>허용할 최소 Resource</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">maxLimitRequestRatio</code></td>
+      <td>Limit과 Request 사이의 최대 비율</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">type: Container</code>에서는 위 항목을 모두 사용할 수 있다. Pod 범위에서는 기본값을 주입하는 <code class="language-plaintext highlighter-rouge">default</code>, <code class="language-plaintext highlighter-rouge">defaultRequest</code>를 사용하지 않으며, PVC에는 Storage Request의 <code class="language-plaintext highlighter-rouge">min</code>과 <code class="language-plaintext highlighter-rouge">max</code>를 적용한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-limitrange-container.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">LimitRange</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-limitrange-container</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">limits</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Container</span>
+      <span class="na">default</span><span class="pi">:</span>
+        <span class="na">memory</span><span class="pi">:</span> <span class="s">512Mi</span>
+        <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+      <span class="na">defaultRequest</span><span class="pi">:</span>
+        <span class="na">memory</span><span class="pi">:</span> <span class="s">256Mi</span>
+        <span class="na">cpu</span><span class="pi">:</span> <span class="s">250m</span>
+      <span class="na">max</span><span class="pi">:</span>
+        <span class="na">memory</span><span class="pi">:</span> <span class="s">1025Mi</span>
+        <span class="na">cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">1"</span>
+      <span class="na">min</span><span class="pi">:</span>
+        <span class="na">memory</span><span class="pi">:</span> <span class="s">128Mi</span>
+        <span class="na">cpu</span><span class="pi">:</span> <span class="s">125m</span>
+      <span class="na">maxLimitRequestRatio</span><span class="pi">:</span>
+        <span class="na">memory</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2"</span>
+        <span class="na">cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2"</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-limitrange-container.yaml
+kubectl describe limitrange sample-limitrange-container <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+</code></pre></div></div>
+
+<h2 id="13--limitrange-위반-확인">13 ) LimitRange 위반 확인</h2>
+
+<hr />
+
+<p>CPU Request와 Limit이 최소값 <code class="language-plaintext highlighter-rouge">125m</code>보다 작은 Pod를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-pod-below-min.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod-below-min</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">resources</span><span class="pi">:</span>
+        <span class="na">requests</span><span class="pi">:</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">100m</span>
+        <span class="na">limits</span><span class="pi">:</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">100m</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-pod-below-min.yaml
+</code></pre></div></div>
+
+<p>API Server는 LimitRange의 최소 CPU보다 작다는 <code class="language-plaintext highlighter-rouge">Forbidden</code> 응답으로 생성을 거부한다.</p>
+
+<p>다음에는 Limit과 Request 비율이 4인 Pod를 확인한다. 내용을 <code class="language-plaintext highlighter-rouge">sample-pod-over-ratio.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod-over-ratio</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">resources</span><span class="pi">:</span>
+        <span class="na">requests</span><span class="pi">:</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">125m</span>
+        <span class="na">limits</span><span class="pi">:</span>
+          <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-pod-over-ratio.yaml
+</code></pre></div></div>
+
+<p>설정된 <code class="language-plaintext highlighter-rouge">maxLimitRequestRatio.cpu</code>가 <code class="language-plaintext highlighter-rouge">2</code>이므로 비율 <code class="language-plaintext highlighter-rouge">4</code>인 요청은 <code class="language-plaintext highlighter-rouge">Forbidden</code> 응답으로 거부된다. 실패한 요청은 Pod Resource를 생성하지 않는다.</p>
+
+<h2 id="14--resourcequota-object-개수-제한">14 ) ResourceQuota Object 개수 제한</h2>
+
+<hr />
+
+<p>ResourceQuota는 Namespace 전체에서 사용할 수 있는 Resource 양과 생성 가능한 Object 수를 제한한다. 기존 Object를 삭제하거나 설정을 변경하지는 않지만, Quota가 생성되면 Namespace의 기존 Object도 현재 사용량에 포함된다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-resourcequota-count.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ResourceQuota</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-resourcequota-count</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">hard</span><span class="pi">:</span>
+    <span class="na">count/persistentvolumeclaims</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/services</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/secrets</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/configmaps</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/replicationcontrollers</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/deployments.apps</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/replicasets.apps</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/statefulsets.apps</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/jobs.batch</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">count/cronjobs.batch</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">count/deployments.extensions</code>는 제거된 <code class="language-plaintext highlighter-rouge">extensions</code> API Group을 대상으로 하므로 현재 Manifest에 사용하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-resourcequota-count.yaml
+kubectl describe resourcequota sample-resourcequota-count <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+</code></pre></div></div>
+
+<p>ConfigMap 열한 개 생성을 시도한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">for </span>i <span class="k">in</span> <span class="si">$(</span><span class="nb">seq </span>1 11<span class="si">)</span><span class="p">;</span> <span class="k">do
+  </span>kubectl create configmap <span class="s2">"conf-</span><span class="k">${</span><span class="nv">i</span><span class="k">}</span><span class="s2">"</span> <span class="se">\</span>
+    <span class="nt">--from-literal</span><span class="o">=</span><span class="nv">key1</span><span class="o">=</span>val1 <span class="se">\</span>
+    <span class="nt">-n</span> resource-lab
+<span class="k">done</span>
+</code></pre></div></div>
+
+<p>Namespace에 이미 존재하는 ConfigMap을 포함하여 총수가 <code class="language-plaintext highlighter-rouge">10</code>에 도달하면 다음 생성 요청이 거부된다. Kubernetes가 자동으로 만든 <code class="language-plaintext highlighter-rouge">kube-root-ca.crt</code> ConfigMap 등이 있을 수 있으므로 실패 순서를 고정하지 않고 ResourceQuota의 현재 사용량을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe resourcequota sample-resourcequota-count <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+kubectl get configmaps <span class="nt">-n</span> resource-lab
+</code></pre></div></div>
+
+<h2 id="15--resourcequota-key-종류">15 ) ResourceQuota Key 종류</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">count/&lt;resource&gt;[.&lt;group&gt;]</code> 형식 외에도 Kubernetes가 정의한 Object별 Quota Key와 StorageClass별 Key를 사용할 수 있다. 두 형식은 단순히 옛날 방식과 최근 방식으로 나뉘지 않는다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-resourcequota-special.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ResourceQuota</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-resourcequota-special</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">hard</span><span class="pi">:</span>
+    <span class="na">sample-storageclass.storageclass.storage.k8s.io/persistentvolumeclaims</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">services.loadbalancers</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">services.nodeports</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">pods</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">persistentvolumeclaims</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">replicationcontrollers</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">secrets</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">configmaps</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">services</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+    <span class="na">resourcequotas</span><span class="pi">:</span> <span class="s2">"</span><span class="s">10"</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>제한 대상</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">services.loadbalancers</code></td>
+      <td><code class="language-plaintext highlighter-rouge">type: LoadBalancer</code> Service 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">services.nodeports</code></td>
+      <td>Service가 사용하는 NodePort 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">pods</code></td>
+      <td>Terminal 상태가 아닌 Pod 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">&lt;storage-class&gt;.storageclass.storage.k8s.io/persistentvolumeclaims</code></td>
+      <td>해당 StorageClass를 요청하는 PVC 수</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-resourcequota-special.yaml
+kubectl describe resourcequota sample-resourcequota-special <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+</code></pre></div></div>
+
+<h2 id="16--resourcequota-사용량-제한">16 ) ResourceQuota 사용량 제한</h2>
+
+<hr />
+
+<p>ResourceQuota는 CPU, Memory, Storage와 Extended Resource의 Namespace 전체 합계도 제한할 수 있다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-resourcequota-usable.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">ResourceQuota</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-resourcequota-usable</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">resource-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">hard</span><span class="pi">:</span>
+    <span class="na">requests.memory</span><span class="pi">:</span> <span class="s">2Gi</span>
+    <span class="na">requests.storage</span><span class="pi">:</span> <span class="s">5Gi</span>
+    <span class="na">sample-storageclass.storageclass.storage.k8s.io/requests.storage</span><span class="pi">:</span> <span class="s">5Gi</span>
+    <span class="na">requests.ephemeral-storage</span><span class="pi">:</span> <span class="s">5Gi</span>
+    <span class="na">requests.nvidia.com/gpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2"</span>
+    <span class="na">limits.cpu</span><span class="pi">:</span> <span class="s2">"</span><span class="s">4"</span>
+    <span class="na">limits.ephemeral-storage</span><span class="pi">:</span> <span class="s">10Gi</span>
+</code></pre></div></div>
+
+<p>GPU 같은 Extended Resource는 Overcommit을 지원하지 않으므로 Quota에는 <code class="language-plaintext highlighter-rouge">requests.&lt;extended-resource&gt;</code> 형식만 사용한다. <code class="language-plaintext highlighter-rouge">limits.nvidia.com/gpu</code>는 유효한 Extended Resource Quota Key가 아니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-resourcequota-usable.yaml
+kubectl describe resourcequota sample-resourcequota-usable <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+</code></pre></div></div>
+
+<p>같은 Namespace에 ResourceQuota가 여러 개 있으면 새 Object는 모든 Quota 조건을 만족해야 한다.</p>
+
+<h2 id="17--horizontal-pod-autoscaler">17 ) Horizontal Pod Autoscaler</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Horizontal Pod Autoscaler(HPA)</strong></p>
+
+  <p>Metric 값을 기준으로 Deployment나 StatefulSet 같은 확장 가능한 Workload의 Replica 수를 자동 조정하는 API Resource와 Controller이다.</p>
+</blockquote>
+
+<p>HPA는 Deployment, StatefulSet, ReplicaSet과 ReplicationController처럼 Scale Subresource를 제공하는 대상의 Replica를 조정할 수 있다. 부하가 높으면 Replica를 늘리고 낮으면 줄인다. CPU 사용률처럼 Request 대비 비율을 사용하는 Resource Metric은 대상 Pod의 Container에 해당 Resource Request가 정의돼 있어야 계산할 수 있다.</p>
+
+<p>HPA Controller의 기본 동기화 주기는 <code class="language-plaintext highlighter-rouge">30초</code>가 아니라 <code class="language-plaintext highlighter-rouge">15초</code>이다. 실제 값은 kube-controller-manager의 <code class="language-plaintext highlighter-rouge">horizontalPodAutoscalerSyncPeriod</code> 설정에 따라 달라질 수 있다.</p>
+
+<p>기본 Replica 계산식은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>desiredReplicas
+  = ceil(
+      currentReplicas
+      × currentMetricValue
+      ÷ desiredMetricValue
+    )
+</code></pre></div></div>
+
+<p>두 Pod의 CPU 사용률이 각각 <code class="language-plaintext highlighter-rouge">100%</code>, <code class="language-plaintext highlighter-rouge">90%</code>라면 평균은 <code class="language-plaintext highlighter-rouge">95%</code>이다. 목표 평균 사용률이 <code class="language-plaintext highlighter-rouge">50%</code>일 때 계산 결과는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ceil(2 × 95 ÷ 50)
+= ceil(3.8)
+= 4
+</code></pre></div></div>
+
+<p>따라서 허용 범위와 Stabilization 동작 등 다른 조건을 제외한 기본 계산 결과는 Replica 네 개이다. Metric 수집 상태는 <a href="/cloud-native-26-resource-inspection-debugging/">Kubernetes Resource 조회와 Pod Debugging</a>의 Metrics Server와 <code class="language-plaintext highlighter-rouge">kubectl top</code> 절에서 확인할 수 있다.</p>
+
+<h2 id="18--실습-resource-정리">18 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>실습용 Namespace 안의 Resource를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all <span class="nt">-n</span> resource-lab
+kubectl get limitranges,resourcequotas <span class="se">\</span>
+  <span class="nt">-n</span> resource-lab
+kubectl get configmaps <span class="nt">-n</span> resource-lab
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">resource-lab</code>이 이 실습에만 사용됐는지 확인한 뒤 Namespace를 삭제한다. Namespace를 삭제하면 그 안의 Resource도 함께 삭제된다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete namespace resource-lab
+</code></pre></div></div>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Request는 Scheduler의 Pod 배치 기준이고 Limit은 실행 중인 Container에 적용할 Resource 상한이다.</p>
+    </li>
+    <li>
+      <p>CPU Limit은 Throttling으로 적용되고 Memory Limit은 OOM Kill로 이어질 수 있다.</p>
+    </li>
+    <li>
+      <p>kubelet은 Memory와 Disk 등의 Node-pressure를 감지하여 Threshold와 Pod 우선순위에 따라 Eviction한다.</p>
+    </li>
+    <li>
+      <p>LimitRange는 개별 Object의 기본값과 허용 범위를 제어하고 ResourceQuota는 Namespace 전체 사용량과 Object 수를 제한한다.</p>
+    </li>
+    <li>
+      <p>Cluster Autoscaler는 배치되지 못한 Pod의 Request를 기준으로 Node 확장을 판단하고 HPA는 Metric을 기준으로 Workload Replica를 조정한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리]]></summary></entry><entry><title type="html">Kubernetes Volume과 Persistent Storage</title><link href="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/" rel="alternate" type="text/html" title="Kubernetes Volume과 Persistent Storage" /><published>2026-09-02T00:00:00+09:00</published><updated>2026-09-02T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/"><![CDATA[<p>Container의 Writable Layer에 저장한 Data는 Container가 교체될 때 유지되지 않는다. Kubernetes Volume은 Pod의 Container가 사용할 File System 영역을 제공하며, Volume 종류에 따라 Data의 수명과 실제 저장 위치가 달라진다.</p>
 
 <h2 id="1--kubernetes-volume">1 ) Kubernetes Volume</h2>
 
@@ -904,7 +1805,9 @@ kubectl delete persistentvolume local-pv <span class="nt">--ignore-not-found</sp
       <p>Local <code class="language-plaintext highlighter-rouge">hostPath</code> PV는 단일 Node 테스트에 적합하고 NFS PV는 여러 Node에서 같은 Network File System을 사용할 수 있다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[emptyDir, hostPath, Downward API와 projected Volume부터 PV·PVC 및 NFS Storage 연결까지 정리]]></summary></entry><entry><title type="html">Kubernetes 환경 변수와 Secret, ConfigMap</title><link href="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/" rel="alternate" type="text/html" title="Kubernetes 환경 변수와 Secret, ConfigMap" /><published>2026-09-01T00:00:00+09:00</published><updated>2026-09-01T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/"><![CDATA[<p>Container Image와 Application 설정을 분리하면 같은 Image를 여러 환경에서 재사용할 수 있다. Kubernetes는 정적 환경 변수와 Downward API로 실행 정보를 전달하고, 민감하지 않은 설정은 ConfigMap, Password와 인증서 같은 기밀 정보는 Secret으로 관리한다.</p>
+</blockquote>
+
+<p>다음 단계에서는 <a href="/cloud-native-36-kubernetes-resource-management-autoscaling/">Kubernetes Resource 관리와 Autoscaling</a>에서 Container와 Namespace의 Resource 제한, Eviction과 Autoscaling을 다룬다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[emptyDir, hostPath, Downward API와 projected Volume부터 PV·PVC 및 NFS Storage 연결까지 정리]]></summary></entry><entry><title type="html">Kubernetes 환경 변수와 Secret, ConfigMap</title><link href="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/" rel="alternate" type="text/html" title="Kubernetes 환경 변수와 Secret, ConfigMap" /><published>2026-09-01T00:00:00+09:00</published><updated>2026-09-01T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-34-kubernetes-env-secret-configmap/"><![CDATA[<p>Container Image와 Application 설정을 분리하면 같은 Image를 여러 환경에서 재사용할 수 있다. Kubernetes는 정적 환경 변수와 Downward API로 실행 정보를 전달하고, 민감하지 않은 설정은 ConfigMap, Password와 인증서 같은 기밀 정보는 Secret으로 관리한다.</p>
 
 <h2 id="1--config와-storage-resource">1 ) Config와 Storage Resource</h2>
 
@@ -6396,458 +7299,4 @@ kubectl delete <span class="nt">-f</span> sample-stateful-parallel.yaml
       <p>NFS와 RAID는 서로 다른 Storage 계층의 기술이며 Database Backup과 고가용성을 대신하지 않는다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Node별 DaemonSet 배치와 StatefulSet의 순서·고유 식별자·Persistent Storage 및 Database 운영 관점 정리]]></summary></entry><entry><title type="html">Kubernetes Namespace와 kubectl 기본 사용</title><link href="https://kkr010128.github.io/cloud-native-23-kubernetes-namespace-kubectl/" rel="alternate" type="text/html" title="Kubernetes Namespace와 kubectl 기본 사용" /><published>2026-08-26T00:00:00+09:00</published><updated>2026-08-26T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-23-kubernetes-namespace-kubectl</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-23-kubernetes-namespace-kubectl/"><![CDATA[<p>Kubernetes Cluster를 구축한 다음에는 <code class="language-plaintext highlighter-rouge">kubectl</code>로 API Server에 요청을 보내 Resource를 생성하고 관리한다. 여러 팀이나 Application이 하나의 Cluster를 함께 사용한다면 Namespace로 Resource의 논리적인 범위를 나누고, RBAC와 NetworkPolicy를 결합하여 접근 권한과 Network Traffic을 제어할 수 있다.</p>
-
-<h2 id="1--namespace">1 ) Namespace</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Namespace</strong></p>
-
-  <p>하나의 Kubernetes Cluster 안에서 Resource Group을 논리적으로 구분하는 범위이다. 같은 종류의 Resource 이름은 하나의 Namespace 안에서 고유해야 하지만 서로 다른 Namespace에서는 같은 이름을 사용할 수 있다.</p>
-</blockquote>
-
-<p>Namespace는 Cluster 자체를 여러 개로 나누는 기능이 아니다. 하나의 Control Plane과 Worker 집합을 공유하면서 Pod, Deployment, Service처럼 Namespace에 속하는 Resource를 구분한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Kubernetes Cluster
-├── Namespace: development
-│   ├── Deployment: web
-│   └── Service: web
-│
-└── Namespace: production
-    ├── Deployment: web
-    └── Service: web
-</code></pre></div></div>
-
-<p>두 Namespace에 같은 이름의 <code class="language-plaintext highlighter-rouge">web</code> Deployment와 Service가 존재할 수 있다. 그러나 Node, PersistentVolume과 StorageClass처럼 Cluster 전체 범위에서 관리되는 Resource에는 Namespace가 적용되지 않는다.</p>
-
-<h3 id="기본-namespace">기본 Namespace</h3>
-
-<p>Kubernetes Cluster에는 다음 Namespace가 기본으로 존재한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Namespace</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">default</code></td>
-      <td>별도 Namespace를 지정하지 않았을 때 사용하는 기본 범위</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">kube-system</code></td>
-      <td>Control Plane Component와 Cluster Add-on 등 Kubernetes System Resource 배치</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">kube-public</code></td>
-      <td>모든 Client가 읽을 수 있도록 공개할 Resource를 배치하는 범위</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">kube-node-lease</code></td>
-      <td>kubelet의 Node Heartbeat를 위한 Lease Resource 저장</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Master에서 현재 Namespace를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get namespaces
-</code></pre></div></div>
-
-<p>축약 Resource 이름도 사용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get ns
-</code></pre></div></div>
-
-<h3 id="namespace-범위-resource">Namespace 범위 Resource</h3>
-
-<p>Namespace에 속하는 Resource와 Cluster 전체 범위 Resource를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Namespace에 속하는 Resource</span>
-kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">true</span>
-
-<span class="c"># Cluster 전체 범위 Resource</span>
-kubectl api-resources <span class="nt">--namespaced</span><span class="o">=</span><span class="nb">false</span>
-</code></pre></div></div>
-
-<p>Namespace 자체는 특정 Namespace 안에 속하지 않는 Cluster 범위 Resource이다. Namespace를 삭제하면 그 안에 속한 Resource도 함께 삭제되므로 삭제 전에 대상을 확인해야 한다.</p>
-
-<h2 id="2--namespace-rbac와-networkpolicy">2 ) Namespace, RBAC와 NetworkPolicy</h2>
-
-<hr />
-
-<p>Namespace만 생성했다고 해서 사용자 권한과 Pod Traffic이 자동으로 차단되는 것은 아니다. 분리 목적에 따라 RBAC, ResourceQuota와 NetworkPolicy 같은 Resource를 함께 구성해야 한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성</th>
-      <th>제어 대상</th>
-      <th>주요 역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Namespace</td>
-      <td>Kubernetes Resource의 논리적 범위</td>
-      <td>이름 충돌 방지, 팀·환경·Application 단위 구분</td>
-    </tr>
-    <tr>
-      <td>RBAC</td>
-      <td>Kubernetes API 요청 권한</td>
-      <td>사용자와 ServiceAccount가 조회·생성·변경할 수 있는 Resource 제한</td>
-    </tr>
-    <tr>
-      <td>NetworkPolicy</td>
-      <td>Pod의 Network Traffic</td>
-      <td>허용할 Ingress·Egress Traffic 정의</td>
-    </tr>
-    <tr>
-      <td>ResourceQuota</td>
-      <td>Namespace의 Resource 총량</td>
-      <td>CPU, Memory와 Resource 개수 제한</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>RBAC(Role-Based Access Control)는 API Server에 전달된 요청의 권한을 검사한다. Namespace 범위의 <code class="language-plaintext highlighter-rouge">Role</code>과 <code class="language-plaintext highlighter-rouge">RoleBinding</code>을 사용하면 특정 Namespace 안의 Resource만 조작하도록 권한을 제한할 수 있다.</p>
-
-<p>NetworkPolicy는 Pod 사이의 Network Traffic을 제어한다. NetworkPolicy Resource를 생성하더라도 사용하는 CNI가 NetworkPolicy 적용을 지원해야 실제 Traffic이 제어된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자 또는 ServiceAccount
-        │
-        ├── RBAC ────────── API Resource 조작 권한
-        │
-        ▼
-Namespace의 Pod
-        │
-        └── NetworkPolicy ─ Pod Ingress·Egress Traffic
-</code></pre></div></div>
-
-<p>Namespace는 분리의 기준을 제공하고 RBAC와 NetworkPolicy는 그 범위에 맞는 권한과 통신 정책을 적용한다.</p>
-
-<h2 id="3--kubectl과-cluster-조작-흐름">3 ) kubectl과 Cluster 조작 흐름</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>kubectl</strong></p>
-
-  <p>Kubernetes API Server에 Resource 조회·생성·변경·삭제 요청을 보내는 Command Line Client이다.</p>
-</blockquote>
-
-<p><code class="language-plaintext highlighter-rouge">kubectl</code>은 반드시 Master에서만 실행해야 하는 명령이 아니다. API Server 주소와 인증 정보가 담긴 Kubeconfig를 사용할 수 있다면 별도 관리 PC에서도 실행할 수 있다.</p>
-
-<p>이 글의 명령은 앞에서 구축한 학습용 Cluster의 <strong>Master에서 실행</strong>한다. Master에는 <code class="language-plaintext highlighter-rouge">kubeadm init</code> 후 생성한 Kubeconfig가 설정되어 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master의 kubectl
-        │
-        ▼
-Control Plane의 kube-apiserver
-        │
-        ├── 인증·인가·요청 검증
-        ├── Resource 상태 저장
-        └── Controller·Scheduler가 상태 관찰
-                    │
-                    ▼
-             선택된 Worker의 kubelet
-                    │
-                    ▼
-             Container Runtime이 Pod 실행
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">kubectl</code>이 Worker에서 Container를 직접 실행하는 것은 아니다. <code class="language-plaintext highlighter-rouge">kubectl</code>이 API Server에 원하는 상태를 전달하면 Control Plane Component가 상태를 조정하고, Pod가 배치된 Worker의 kubelet과 Container Runtime이 실제 Container를 실행한다.</p>
-
-<h2 id="4--kubeconfig와-context">4 ) Kubeconfig와 Context</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Kubeconfig</strong></p>
-
-  <p>kubectl이 접속할 Cluster, 사용자 인증 정보와 Context를 저장하는 YAML 형식의 설정이다.</p>
-</blockquote>
-
-<p>Linux에서 kubectl은 기본적으로 다음 File을 사용한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>~/.kube/config
-</code></pre></div></div>
-
-<p>Kubeconfig의 주요 구성은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성</th>
-      <th>내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">clusters</code></td>
-      <td>API Server 주소와 Cluster 인증서 정보</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">users</code></td>
-      <td>Client 인증서, Token 등 사용자 인증 정보</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">contexts</code></td>
-      <td>Cluster, User와 기본 Namespace의 조합</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">current-context</code></td>
-      <td>현재 kubectl이 기본으로 사용하는 Context</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>현재 Context를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config current-context
-</code></pre></div></div>
-
-<p>Kubeconfig에서 현재 선택된 정보만 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config view <span class="nt">--minify</span>
-</code></pre></div></div>
-
-<p>특정 Context를 한 명령에만 적용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--context</span> &lt;context-name&gt;
-</code></pre></div></div>
-
-<p>현재 Context를 변경하면 이후 명령에 새 Context가 기본으로 사용된다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config use-context &lt;context-name&gt;
-</code></pre></div></div>
-
-<p>특정 Namespace를 한 요청에 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--namespace</span> kube-system
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">-n</code>은 <code class="language-plaintext highlighter-rouge">--namespace</code>의 축약 Option이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> kube-system
-</code></pre></div></div>
-
-<p>현재 Context의 기본 Namespace를 변경할 수도 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config set-context <span class="nt">--current</span> <span class="nt">--namespace</span><span class="o">=</span>default
-</code></pre></div></div>
-
-<p>Context의 기본 Namespace를 변경하면 Namespace Option을 생략한 후속 명령에 적용된다. 현재 작업 대상이 어느 Cluster와 Namespace인지 먼저 확인하는 습관이 중요하다.</p>
-
-<h2 id="5--명령형-resource-생성">5 ) 명령형 Resource 생성</h2>
-
-<hr />
-
-<p>kubectl은 실행 명령에 필요한 값을 직접 전달하는 명령형 방식과 YAML Manifest에 원하는 상태를 기록하는 선언형 방식을 제공한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>예시</th>
-      <th>적합한 용도</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>명령형 Command</td>
-      <td><code class="language-plaintext highlighter-rouge">kubectl run</code>, <code class="language-plaintext highlighter-rouge">kubectl create deployment</code></td>
-      <td>빠른 Test와 간단한 Resource 생성</td>
-    </tr>
-    <tr>
-      <td>명령형 File 관리</td>
-      <td><code class="language-plaintext highlighter-rouge">kubectl create -f</code></td>
-      <td>Manifest를 이용한 최초 생성</td>
-    </tr>
-    <tr>
-      <td>선언형 File 관리</td>
-      <td><code class="language-plaintext highlighter-rouge">kubectl apply -f</code></td>
-      <td>반복 적용, 변경 관리와 자동화</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="kubectl-run">kubectl run</h3>
-
-<p>가장 간단하게 Pod를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Master에서 실행</span>
-kubectl run nginx <span class="nt">--image</span><span class="o">=</span>nginx
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>인자</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">nginx</code></td>
-      <td>생성할 Pod 이름</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--image=nginx</code></td>
-      <td>Container에 사용할 Image</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>생성 결과를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">kubectl run</code>은 Test Pod를 빠르게 만들 때 유용하다. 실행에 사용한 Option이 별도 Manifest File로 남지 않으므로 설정이 많아지면 재현과 변경 이력 관리가 어렵다.</p>
-
-<h3 id="kubectl-create">kubectl create</h3>
-
-<p>Resource 종류를 지정하여 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create deployment dpy-nginx <span class="nt">--image</span><span class="o">=</span>nginx
-</code></pre></div></div>
-
-<p>Deployment와 Deployment가 관리하는 Pod를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployments
-kubectl get pods
-</code></pre></div></div>
-
-<p>Control Plane에는 Deployment와 Pod의 원하는 상태가 저장되고 Scheduler가 Pod를 실행할 Worker를 선택한다. 선택된 Worker의 kubelet이 Container Runtime을 통해 Nginx Container를 실행한다.</p>
-
-<h2 id="6--manifest를-이용한-생성과-갱신">6 ) Manifest를 이용한 생성과 갱신</h2>
-
-<hr />
-
-<p>실제 설정을 반복해서 적용하려면 Manifest File을 작성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-pod.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-pod</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<h3 id="kubectl-create--f">kubectl create -f</h3>
-
-<p>Manifest에 정의한 Resource를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create <span class="nt">-f</span> sample-pod.yaml
-</code></pre></div></div>
-
-<p>같은 이름의 Resource가 이미 존재하면 <code class="language-plaintext highlighter-rouge">AlreadyExists</code> 오류가 발생한다. <code class="language-plaintext highlighter-rouge">create</code>는 존재하지 않는 Resource의 최초 생성에 사용한다.</p>
-
-<h3 id="kubectl-apply--f">kubectl apply -f</h3>
-
-<p>Manifest의 선언 상태를 Cluster에 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-pod.yaml
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>현재 상태</th>
-      <th>apply 결과</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Resource가 없음</td>
-      <td>새 Resource 생성</td>
-    </tr>
-    <tr>
-      <td>Resource가 있고 Manifest가 변경됨</td>
-      <td>변경 사항 적용</td>
-    </tr>
-    <tr>
-      <td>선언 상태에 차이가 없음</td>
-      <td>변경 없이 현재 상태 유지</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>생성과 갱신을 같은 명령으로 처리할 수 있어 Script와 CI/CD에서 조건 분기를 줄일 수 있다. 하나의 Resource를 계속 선언형으로 관리하려면 처음부터 <code class="language-plaintext highlighter-rouge">apply</code>를 사용하고 Manifest를 Git에서 관리하는 방식이 적합하다.</p>
-
-<p>명령형 Command와 선언형 <code class="language-plaintext highlighter-rouge">apply</code>를 혼합하면 Cluster의 실제 상태와 저장된 Manifest 사이의 변경 주체를 파악하기 어려워질 수 있다. 운영 방식은 Resource별로 일관되게 유지한다.</p>
-
-<h2 id="7--resource-삭제">7 ) Resource 삭제</h2>
-
-<hr />
-
-<p>종류와 이름으로 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-pod
-</code></pre></div></div>
-
-<p>Manifest에 포함된 Resource를 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-pod.yaml
-</code></pre></div></div>
-
-<p>특정 종류의 모든 Resource를 현재 Namespace에서 삭제하려면 Resource 종류와 <code class="language-plaintext highlighter-rouge">--all</code>을 함께 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pods <span class="nt">--all</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">kubectl delete --all</code>처럼 Resource 종류를 생략해서는 삭제 대상을 결정할 수 없다. 또한 <code class="language-plaintext highlighter-rouge">kubectl delete all --all</code>의 <code class="language-plaintext highlighter-rouge">all</code>은 일부 대표 Resource를 묶은 Category이므로 Namespace의 모든 Resource 종류를 뜻하지 않는다.</p>
-
-<h3 id="삭제-대기">삭제 대기</h3>
-
-<p>일반적인 <code class="language-plaintext highlighter-rouge">kubectl delete</code>는 기본적으로 Resource가 삭제될 때까지 기다린다. <code class="language-plaintext highlighter-rouge">--wait</code>를 명시할 수도 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-pod.yaml <span class="nt">--wait</span><span class="o">=</span><span class="nb">true</span>
-</code></pre></div></div>
-
-<p>Kubernetes Resource 삭제는 API에서 삭제 요청을 받은 뒤 Graceful Termination과 Finalizer 처리를 거칠 수 있어 즉시 완료되지 않을 수 있다.</p>
-
-<h3 id="강제-삭제">강제 삭제</h3>
-
-<p>Pod를 정상 종료할 수 없는 특별한 상황에는 Grace Period를 <code class="language-plaintext highlighter-rouge">0</code>으로 설정하고 강제로 삭제할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod sample-pod <span class="nt">--grace-period</span><span class="o">=</span>0 <span class="nt">--force</span>
-</code></pre></div></div>
-
-<p>강제 삭제는 kubelet이 실제 Process 종료를 확인하기 전에 API에서 Pod를 제거할 수 있다. 같은 이름이나 Identity를 사용하는 Process가 동시에 실행되어 Data 불일치가 발생할 수 있으므로 일반적인 삭제 방법으로 사용하지 않는다.</p>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Namespace는 하나의 Cluster 안에서 Namespaced Resource의 논리적인 범위와 이름 공간을 구분한다.</p>
-    </li>
-    <li>
-      <p>Namespace만으로 사용자 권한과 Pod Traffic이 완전히 격리되지는 않으며 RBAC와 NetworkPolicy 같은 정책을 함께 구성한다.</p>
-    </li>
-    <li>
-      <p>kubectl은 Kubeconfig의 Cluster·사용자·Context 정보를 사용하여 API Server에 요청한다.</p>
-    </li>
-    <li>
-      <p>Control Plane이 원하는 상태를 저장하고 조정하면 선택된 Worker의 kubelet과 Container Runtime이 실제 Pod를 실행한다.</p>
-    </li>
-    <li>
-      <p>빠른 Test에는 <code class="language-plaintext highlighter-rouge">run</code>과 <code class="language-plaintext highlighter-rouge">create</code>, 반복 가능한 선언형 관리에는 Manifest와 <code class="language-plaintext highlighter-rouge">apply</code>를 사용할 수 있다.</p>
-    </li>
-    <li>
-      <p>강제 삭제는 정상 종료 확인을 생략할 수 있으므로 Data 불일치 위험을 이해한 뒤 제한적으로 사용한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Node별 DaemonSet 배치와 StatefulSet의 순서·고유 식별자·Persistent Storage 및 Database 운영 관점 정리]]></summary></entry></feed>

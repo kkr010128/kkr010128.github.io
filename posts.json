@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Kubernetes Resource 관리와 Autoscaling",
+        "url": "/cloud-native-36-kubernetes-resource-management-autoscaling/",
+        "description": "Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 3일",
+        "reading_time_label": "11분 읽기",
+        "search": "kubernetes resource 관리와 autoscaling container의 cpu·memory·ephemeral storage 제한부터 node eviction, limitrange, resourcequota와 autoscaling까지 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Volume과 Persistent Storage",
         "url": "/cloud-native-35-kubernetes-volume-persistent-storage/",
         "description": "emptyDir, hostPath, Downward API와 projected Volume부터 PV·PVC 및 NFS Storage 연결까지 정리",
@@ -147,7 +162,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 8월 26일",
-        "reading_time_label": "8분 읽기",
+        "reading_time_label": "9분 읽기",
         "search": "kubernetes resource 조회와 pod debugging kubectl get 출력 형식과 describe, metrics server 기반 resource 사용량, exec·debug·cp·port-forward·logs를 이용한 pod 확인 방법 정리 cloudnative autoeversw kubernetes cloudnative"
       },
     

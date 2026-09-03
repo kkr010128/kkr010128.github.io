@@ -49,13 +49,15 @@
   <meta property="article:published_time" content="2026-08-26T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1788410682" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788410682" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788410682">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1788410682" color="#495057">
+  <meta property="article:modified_time" content="2026-09-03T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788445013" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788445013" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788445013">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788445013" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1788410682">
+<link rel="stylesheet" href="/assets/css/main.css?v=1788445013">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -99,7 +101,8 @@
     "headline": "Kubernetes Namespace와 kubectl 기본 사용 | renamed.log",
     "description": "Namespace의 분리 범위와 RBAC·NetworkPolicy의 역할부터 Kubeconfig, Context, kubectl을 이용한 Resource 생성·갱신·삭제까지 정리",
     "url": "https://kkr010128.github.io/cloud-native-23-kubernetes-namespace-kubectl/",
-    "datePublished": "2026-08-26T00:00:00+09:00"
+    "datePublished": "2026-08-26T00:00:00+09:00",
+    "dateModified": "2026-09-03T00:00:00+09:00"
   }
 </script>
 
@@ -228,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 26일 · 6분 읽기
+          2026년 8월 26일 · 6분 읽기 · 수정 2026년 9월 3일
         </span>
       </div>
     </div>
@@ -316,6 +319,29 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get ns
 </code></pre></div></div>
 
+<h3 id="namespace-생성">Namespace 생성</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">resource-lab-namespace.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Namespace</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">resource-lab</span>
+</code></pre></div></div>
+
+<p>Master 또는 관리 Client에서 Manifest를 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> resource-lab-namespace.yaml
+kubectl get namespace resource-lab
+</code></pre></div></div>
+
+<p>명령형 방식으로도 Namespace를 생성할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create namespace resource-lab
+</code></pre></div></div>
+
+<p>두 생성 명령은 같은 이름의 Namespace를 대상으로 하므로 둘 중 하나만 실행한다.</p>
+
 <h3 id="namespace-범위-resource">Namespace 범위 Resource</h3>
 
 <p>Namespace에 속하는 Resource와 Cluster 전체 범위 Resource를 확인한다.</p>
@@ -382,6 +408,8 @@ Namespace의 Pod
 </code></pre></div></div>
 
 <p>Namespace는 분리의 기준을 제공하고 RBAC와 NetworkPolicy는 그 범위에 맞는 권한과 통신 정책을 적용한다.</p>
+
+<p>Namespace별 CPU·Memory와 Resource 개수 제한은 <a href="/cloud-native-36-kubernetes-resource-management-autoscaling/">Kubernetes Resource 관리와 Autoscaling</a>에서 설명한다.</p>
 
 <h2 id="3--kubectl과-cluster-조작-흐름">3 ) kubectl과 Cluster 조작 흐름</h2>
 
@@ -809,7 +837,7 @@ kubectl get pods
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1788410682"></script>
-    <script src="/assets/js/code-enhancements.js?v=1788410682"></script>
+    <script src="/assets/js/site.js?v=1788445013"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788445013"></script>
   </body>
 </html>
