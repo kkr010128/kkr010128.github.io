@@ -49,13 +49,15 @@
   <meta property="article:published_time" content="2026-08-26T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1788492668" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788492668" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788492668">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1788492668" color="#495057">
+  <meta property="article:modified_time" content="2026-09-04T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788516012" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788516012" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788516012">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788516012" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1788492668">
+<link rel="stylesheet" href="/assets/css/main.css?v=1788516012">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -99,7 +101,8 @@
     "headline": "Kubernetes Pod Lifecycle과 kubectl wait | renamed.log",
     "description": "Deployment 재시작과 generateName 사용법, Pod Phase와 kubectl 상태 표시의 차이, Condition 기반 작업 완료 대기 정리",
     "url": "https://kkr010128.github.io/cloud-native-24-pod-lifecycle-kubectl-wait/",
-    "datePublished": "2026-08-26T00:00:00+09:00"
+    "datePublished": "2026-08-26T00:00:00+09:00",
+    "dateModified": "2026-09-04T00:00:00+09:00"
   }
 </script>
 
@@ -228,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 8월 26일 · 6분 읽기
+          2026년 8월 26일 · 6분 읽기 · 수정 2026년 9월 4일
         </span>
       </div>
     </div>
@@ -570,6 +573,8 @@ kubectl get pods
 
 <p><code class="language-plaintext highlighter-rouge">Running</code>은 Container가 실행 중임을 나타내지만 Application이 Traffic을 받을 준비가 끝났다는 의미와 항상 같지는 않다. 후속 작업에서 Service 제공 가능 상태가 필요하면 <code class="language-plaintext highlighter-rouge">Ready</code> Condition을 기준으로 기다린다.</p>
 
+<p><code class="language-plaintext highlighter-rouge">Ready</code>와 <code class="language-plaintext highlighter-rouge">ContainersReady</code> Condition이 실제 Health Check 결과에 따라 변경되는 과정은 <a href="/cloud-native-37-kubernetes-health-check-restart-policy/">Kubernetes Health Check와 restartPolicy</a>에서 이어서 다룬다.</p>
+
 <h2 id="5--kubectl-wait">5 ) kubectl wait</h2>
 
 <hr />
@@ -694,6 +699,9 @@ kubectl delete pod &lt;generated-pod-name&gt;
     <li>
       <p><code class="language-plaintext highlighter-rouge">kubectl wait</code>는 Ready, Scheduling, Phase 또는 삭제 완료를 후속 작업의 조건으로 사용할 수 있다.</p>
     </li>
+    <li>
+      <p>Liveness·Readiness·Startup Probe와 Container 재시작 정책은 <a href="/cloud-native-37-kubernetes-health-check-restart-policy/">Kubernetes Health Check와 restartPolicy</a>에서 이어서 확인할 수 있다.</p>
+    </li>
   </ul>
 </blockquote>
 
@@ -801,7 +809,7 @@ kubectl delete pod &lt;generated-pod-name&gt;
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1788492668"></script>
-    <script src="/assets/js/code-enhancements.js?v=1788492668"></script>
+    <script src="/assets/js/site.js?v=1788516012"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788516012"></script>
   </body>
 </html>

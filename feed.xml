@@ -1,4 +1,585 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-04T12:31:08+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Resource 관리와 Autoscaling</title><link href="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/" rel="alternate" type="text/html" title="Kubernetes Resource 관리와 Autoscaling" /><published>2026-09-03T00:00:00+09:00</published><updated>2026-09-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/"><![CDATA[<p>Kubernetes는 Container가 요청하는 Resource를 기준으로 Pod를 Worker에 배치하고, kubelet과 Container Runtime을 통해 실행 중인 Resource 사용을 제한한다. Namespace에는 LimitRange와 ResourceQuota를 적용할 수 있으며, Resource Request는 Cluster와 Pod Autoscaling 판단에도 사용된다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-04T19:00:12+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Health Check와 restartPolicy</title><link href="https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy/" rel="alternate" type="text/html" title="Kubernetes Health Check와 restartPolicy" /><published>2026-09-04T00:00:00+09:00</published><updated>2026-09-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy/"><![CDATA[<p>Kubernetes는 Process가 실행 중이라는 사실만으로 Application이 정상이라고 판단하지 않는다. Worker의 kubelet은 Probe를 실행하여 Container의 생존 여부, 요청 처리 가능 여부와 시작 완료 여부를 확인한다. Probe 결과와 <code class="language-plaintext highlighter-rouge">restartPolicy</code>를 함께 이해하면 Container가 재시작되는 경우와 Service Traffic에서만 제외되는 경우를 구분할 수 있다.</p>
+
+<h2 id="1--health-check와-pod-상태">1 ) Health Check와 Pod 상태</h2>
+
+<hr />
+
+<p>Probe는 Pod 전체가 아니라 Pod 안의 각 Container에 설정한다. 같은 Container에도 목적이 다른 Probe를 함께 설정할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Probe</th>
+      <th>확인 대상</th>
+      <th>실패가 계속될 때의 결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Liveness Probe</td>
+      <td>Container가 계속 정상 동작할 수 있는가</td>
+      <td>kubelet이 해당 Container를 재시작함</td>
+    </tr>
+    <tr>
+      <td>Readiness Probe</td>
+      <td>현재 요청을 처리할 준비가 되었는가</td>
+      <td>Container는 유지하고 Pod를 Service Endpoint에서 제외함</td>
+    </tr>
+    <tr>
+      <td>Startup Probe</td>
+      <td>Application의 최초 시작이 끝났는가</td>
+      <td>성공할 때까지 Liveness·Readiness Probe를 보류하고, 계속 실패하면 Container를 재시작함</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Liveness Probe는 Process가 살아 있지만 Deadlock이나 Memory Leak 등의 문제로 정상 응답하지 못하고, 재시작 없이는 회복하기 어려운 상태를 감지할 때 사용한다.</p>
+
+<p>Readiness Probe는 Database 연결, Cache Load, 초기 Data 준비처럼 요청 처리에 필요한 조건을 확인한다. 일시적으로 실패해도 Container를 재시작하지 않으며, 다시 성공하면 Service Endpoint에 포함될 수 있다.</p>
+
+<p>Startup Probe는 시작 시간이 긴 Application을 보호한다. Startup Probe가 성공하기 전에는 Liveness·Readiness Probe가 실행되지 않으므로, 시작 중인 Container가 Liveness Probe 실패로 반복 재시작되는 상황을 방지할 수 있다.</p>
+
+<p>외부 Load Balancer의 Health Check와 kubelet의 Probe는 별개의 검사이다. Load Balancer의 검사 방식과 대상은 Cloud Provider와 구성에 따라 달라지며, 외부 검사만으로 Container 내부의 생존 상태와 준비 상태를 모두 판단할 수는 없다.</p>
+
+<h2 id="2--control-plane과-worker의-상태-처리">2 ) Control Plane과 Worker의 상태 처리</h2>
+
+<hr />
+
+<p>Probe 실행과 상태 반영 과정은 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p>사용자가 Pod Spec에 Container별 Probe를 선언하여 API Server에 저장한다.</p>
+  </li>
+  <li>
+    <p>Scheduler가 Pod를 실행할 Worker를 선택한다.</p>
+  </li>
+  <li>
+    <p>Worker의 kubelet이 Pod Spec에 따라 Probe를 주기적으로 실행한다.</p>
+  </li>
+  <li>
+    <p>Liveness·Startup Probe가 실패 기준에 도달하면 kubelet이 해당 Container를 종료하고 <code class="language-plaintext highlighter-rouge">restartPolicy</code>에 따라 다시 시작한다.</p>
+  </li>
+  <li>
+    <p>Readiness Probe 결과는 Pod의 <code class="language-plaintext highlighter-rouge">Ready</code>와 <code class="language-plaintext highlighter-rouge">ContainersReady</code> Condition에 반영되어 API Server로 보고된다.</p>
+  </li>
+  <li>
+    <p>EndpointSlice Controller는 Ready 상태를 기준으로 Service가 요청을 전달할 Endpoint를 갱신한다.</p>
+  </li>
+</ol>
+
+<p>따라서 Liveness 실패는 주로 Worker 안의 Container Lifecycle 변화로 나타나고, Readiness 실패는 Control Plane에 보고된 Pod Condition과 Service Endpoint 변화로 나타난다.</p>
+
+<p><a href="/cloud-native-24-pod-lifecycle-kubectl-wait/">Kubernetes Pod Lifecycle과 kubectl wait</a>에서 정리한 <code class="language-plaintext highlighter-rouge">Running</code> Phase는 Container가 실행 중임을 나타낸다. Application이 Traffic을 받을 준비가 되었는지는 <code class="language-plaintext highlighter-rouge">Ready</code> Condition과 Readiness Probe를 함께 확인해야 한다.</p>
+
+<h2 id="3--probe-실행-방식">3 ) Probe 실행 방식</h2>
+
+<hr />
+
+<h3 id="exec">exec</h3>
+
+<p>Container 안에서 명령을 실행한다. 종료 코드가 <code class="language-plaintext highlighter-rouge">0</code>이면 성공이고, 그 외의 값이면 실패이다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">livenessProbe</span><span class="pi">:</span>
+  <span class="na">exec</span><span class="pi">:</span>
+    <span class="na">command</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">test</span>
+      <span class="pi">-</span> <span class="s">-e</span>
+      <span class="pi">-</span> <span class="s">/ok.txt</span>
+</code></pre></div></div>
+
+<p>Application 상태를 검증하는 명령이 Container Image 안에 존재해야 한다.</p>
+
+<h3 id="httpget">httpGet</h3>
+
+<p>kubelet이 지정한 Path와 Port로 HTTP GET 요청을 보낸다. 응답 Status Code가 <code class="language-plaintext highlighter-rouge">200</code> 이상 <code class="language-plaintext highlighter-rouge">400</code> 미만이면 성공으로 판단한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">livenessProbe</span><span class="pi">:</span>
+  <span class="na">httpGet</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">/health</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+    <span class="na">scheme</span><span class="pi">:</span> <span class="s">HTTP</span>
+    <span class="na">httpHeaders</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Host</span>
+        <span class="na">value</span><span class="pi">:</span> <span class="s">web.example.com</span>
+      <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Authorization</span>
+        <span class="na">value</span><span class="pi">:</span> <span class="s">Bearer REPLACE_WITH_TOKEN</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">host</code> Field는 접속할 대상 Host를 지정한다. HTTP <code class="language-plaintext highlighter-rouge">Host</code> Header가 필요하면 <code class="language-plaintext highlighter-rouge">httpHeaders</code>에 지정한다. 인증 정보는 Manifest에 직접 저장하지 않고 실제 환경의 Secret 관리 방식을 사용해야 한다.</p>
+
+<h3 id="tcpsocket">tcpSocket</h3>
+
+<p>kubelet이 지정한 Port에 TCP Connection을 열 수 있는지 확인한다. Connection이 성립하면 성공이고 열 수 없으면 실패이다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">livenessProbe</span><span class="pi">:</span>
+  <span class="na">tcpSocket</span><span class="pi">:</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>TCP Probe는 Port가 열려 있는지는 확인할 수 있지만 Application이 요청을 올바르게 처리하는지까지 검증하지는 않는다.</p>
+
+<h2 id="4--probe-주기와-실패-판정">4 ) Probe 주기와 실패 판정</h2>
+
+<hr />
+
+<p>세 Probe는 공통적으로 다음 시간 관련 Field를 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">initialDelaySeconds</code></td>
+      <td>Container 시작 후 첫 Probe까지 기다리는 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">periodSeconds</code></td>
+      <td>Probe를 반복하는 간격</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">timeoutSeconds</code></td>
+      <td>한 번의 Probe 응답을 기다리는 제한 시간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">successThreshold</code></td>
+      <td>실패 상태에서 성공으로 판단하기 위해 필요한 연속 성공 횟수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">failureThreshold</code></td>
+      <td>실패 동작을 수행하기 위해 필요한 연속 실패 횟수</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">successThreshold</code>는 1 이상이어야 한다. Liveness·Startup Probe에서는 반드시 <code class="language-plaintext highlighter-rouge">1</code>이어야 하며 Readiness Probe에는 더 큰 값을 사용할 수 있다.</p>
+
+<p>Liveness Probe의 <code class="language-plaintext highlighter-rouge">failureThreshold</code>가 너무 작으면 일시적인 지연에도 Container가 재시작될 수 있다. 반대로 너무 크면 실제 장애 감지가 늦어진다. 시작 시간 때문에 Liveness Probe의 <code class="language-plaintext highlighter-rouge">initialDelaySeconds</code>를 과도하게 늘리는 대신 Startup Probe로 최초 시작 구간을 분리할 수 있다.</p>
+
+<h2 id="5--liveness와-readiness-probe-적용">5 ) Liveness와 Readiness Probe 적용</h2>
+
+<hr />
+
+<p>다음 예제는 nginx의 <code class="language-plaintext highlighter-rouge">/index.html</code>을 Liveness Probe로 확인하고, <code class="language-plaintext highlighter-rouge">/usr/share/nginx/html/50x.html</code>의 존재 여부를 Readiness Probe로 확인한다. <code class="language-plaintext highlighter-rouge">sample-healthcheck.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-healthcheck</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-healthcheck</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">livenessProbe</span><span class="pi">:</span>
+        <span class="na">httpGet</span><span class="pi">:</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">/index.html</span>
+          <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+          <span class="na">scheme</span><span class="pi">:</span> <span class="s">HTTP</span>
+        <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">5</span>
+        <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">2</span>
+      <span class="na">readinessProbe</span><span class="pi">:</span>
+        <span class="na">exec</span><span class="pi">:</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">test</span>
+            <span class="pi">-</span> <span class="s">-e</span>
+            <span class="pi">-</span> <span class="s">/usr/share/nginx/html/50x.html</span>
+        <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">5</span>
+        <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">2</span>
+        <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">1</span>
+</code></pre></div></div>
+
+<p>Pod를 생성하고 두 Probe의 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-healthcheck.yaml
+kubectl <span class="nb">wait</span> <span class="se">\</span>
+  <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-healthcheck <span class="se">\</span>
+  <span class="nt">--timeout</span><span class="o">=</span>60s
+kubectl describe pod sample-healthcheck
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl describe</code>의 <code class="language-plaintext highlighter-rouge">Containers</code> 영역에서 Liveness·Readiness 설정을 확인하고 <code class="language-plaintext highlighter-rouge">Conditions</code> 영역에서 <code class="language-plaintext highlighter-rouge">Ready</code>와 <code class="language-plaintext highlighter-rouge">ContainersReady</code> 값을 확인한다.</p>
+
+<h2 id="6--liveness-probe-실패">6 ) Liveness Probe 실패</h2>
+
+<hr />
+
+<p>Liveness Probe 실패가 Container 재시작으로 이어지는지 확인한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-liveness.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-liveness</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">livenessProbe</span><span class="pi">:</span>
+        <span class="na">httpGet</span><span class="pi">:</span>
+          <span class="na">path</span><span class="pi">:</span> <span class="s">/index.html</span>
+          <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+          <span class="na">scheme</span><span class="pi">:</span> <span class="s">HTTP</span>
+        <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">5</span>
+        <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">2</span>
+</code></pre></div></div>
+
+<p>Pod를 생성하고 변화 과정을 감시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-liveness.yaml
+kubectl get pod sample-liveness <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>다른 터미널에서 Liveness Probe가 확인하는 File을 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-liveness <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">rm</span> <span class="nt">-f</span> /usr/share/nginx/html/index.html
+</code></pre></div></div>
+
+<p>연속 실패 횟수가 <code class="language-plaintext highlighter-rouge">failureThreshold</code>에 도달하면 kubelet이 nginx Container를 재시작한다. Pod Object가 새로 만들어지는 것은 아니므로 Pod 이름과 UID는 유지되고 <code class="language-plaintext highlighter-rouge">RESTARTS</code>가 증가한다. Container가 재시작되면 Image의 File System으로 다시 시작하므로 삭제했던 기본 <code class="language-plaintext highlighter-rouge">index.html</code>도 복구된다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-liveness <span class="se">\</span>
+  <span class="nt">-o</span> custom-columns<span class="o">=</span>NAME:.metadata.name,UID:.metadata.uid,RESTARTS:.status.containerStatuses[0].restartCount
+kubectl describe pod sample-liveness
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl describe</code>의 Event에서 Liveness Probe 실패와 Container 재시작 기록을 확인한다.</p>
+
+<h2 id="7--readiness-probe-실패">7 ) Readiness Probe 실패</h2>
+
+<hr />
+
+<p>Readiness 실패가 Service Endpoint에 미치는 영향을 확인한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-readiness.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-readiness</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-readiness</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">readinessProbe</span><span class="pi">:</span>
+        <span class="na">exec</span><span class="pi">:</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">test</span>
+            <span class="pi">-</span> <span class="s">-e</span>
+            <span class="pi">-</span> <span class="s">/usr/share/nginx/html/50x.html</span>
+        <span class="na">initialDelaySeconds</span><span class="pi">:</span> <span class="m">5</span>
+        <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">2</span>
+        <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">1</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-readiness-service</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-readiness</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>Pod와 Service를 생성하고 Ready 상태와 EndpointSlice를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-readiness.yaml
+kubectl <span class="nb">wait</span> <span class="se">\</span>
+  <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-readiness <span class="se">\</span>
+  <span class="nt">--timeout</span><span class="o">=</span>60s
+kubectl get pod sample-readiness
+kubectl get endpointslice <span class="se">\</span>
+  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span>sample-readiness-service
+</code></pre></div></div>
+
+<p>Readiness Probe가 확인하는 File을 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-readiness <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">rm</span> <span class="nt">-f</span> /usr/share/nginx/html/50x.html
+</code></pre></div></div>
+
+<p>Probe 실패 후 Pod의 <code class="language-plaintext highlighter-rouge">READY</code> 값과 EndpointSlice 상태를 다시 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod sample-readiness <span class="nt">--watch</span>
+kubectl get endpointslice <span class="se">\</span>
+  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span>sample-readiness-service <span class="se">\</span>
+  <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<p>Container는 재시작되지 않지만 Pod는 Ready 상태에서 벗어나고 Service의 정상 Endpoint에서 제외된다. File을 다시 생성하면 연속 두 번 성공한 뒤 Ready 상태로 돌아간다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-readiness <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">touch</span> /usr/share/nginx/html/50x.html
+kubectl <span class="nb">wait</span> <span class="se">\</span>
+  <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
+  pod/sample-readiness <span class="se">\</span>
+  <span class="nt">--timeout</span><span class="o">=</span>60s
+</code></pre></div></div>
+
+<h2 id="8--startup-probe로-시작-구간-보호">8 ) Startup Probe로 시작 구간 보호</h2>
+
+<hr />
+
+<p>다음 예제는 Container가 시작된 지 20초 후 <code class="language-plaintext highlighter-rouge">/tmp/started</code> File을 생성한다. Startup Probe가 이 File을 발견하기 전에는 Liveness·Readiness Probe가 실행되지 않는다. <code class="language-plaintext highlighter-rouge">sample-startup.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-startup</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+      <span class="na">command</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">/bin/sh</span>
+        <span class="pi">-</span> <span class="s">-c</span>
+        <span class="pi">-</span> <span class="pi">|</span>
+          <span class="s">rm -f /tmp/started /tmp/probe.log</span>
+          <span class="s">(sleep 20; touch /tmp/started) &amp;</span>
+          <span class="s">exec nginx -g 'daemon off;'</span>
+      <span class="na">startupProbe</span><span class="pi">:</span>
+        <span class="na">exec</span><span class="pi">:</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">/bin/sh</span>
+            <span class="pi">-</span> <span class="s">-c</span>
+            <span class="pi">-</span> <span class="pi">|</span>
+              <span class="s">echo "[$(date)] startup" &gt;&gt; /tmp/probe.log</span>
+              <span class="s">test -e /tmp/started</span>
+        <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">10</span>
+      <span class="na">livenessProbe</span><span class="pi">:</span>
+        <span class="na">exec</span><span class="pi">:</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">/bin/sh</span>
+            <span class="pi">-</span> <span class="s">-c</span>
+            <span class="pi">-</span> <span class="pi">|</span>
+              <span class="s">echo "[$(date)] liveness" &gt;&gt; /tmp/probe.log</span>
+              <span class="s">test ! -e /tmp/liveness-fail</span>
+        <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">3</span>
+      <span class="na">readinessProbe</span><span class="pi">:</span>
+        <span class="na">exec</span><span class="pi">:</span>
+          <span class="na">command</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">/bin/sh</span>
+            <span class="pi">-</span> <span class="s">-c</span>
+            <span class="pi">-</span> <span class="pi">|</span>
+              <span class="s">echo "[$(date)] readiness" &gt;&gt; /tmp/probe.log</span>
+              <span class="s">test ! -e /tmp/readiness-fail</span>
+        <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">3</span>
+        <span class="na">timeoutSeconds</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">successThreshold</span><span class="pi">:</span> <span class="m">1</span>
+        <span class="na">failureThreshold</span><span class="pi">:</span> <span class="m">1</span>
+</code></pre></div></div>
+
+<p>Pod를 생성하고 Probe 실행 순서를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-startup.yaml
+kubectl get pod sample-startup <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>다른 터미널에서 Probe 기록을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>sample-startup <span class="nt">--</span> <span class="se">\</span>
+  <span class="nb">cat</span> /tmp/probe.log
+</code></pre></div></div>
+
+<p>처음에는 <code class="language-plaintext highlighter-rouge">startup</code>만 기록된다. <code class="language-plaintext highlighter-rouge">/tmp/started</code>가 생성되어 Startup Probe가 성공하면 <code class="language-plaintext highlighter-rouge">startup</code> 검사는 끝나고 <code class="language-plaintext highlighter-rouge">liveness</code>와 <code class="language-plaintext highlighter-rouge">readiness</code>가 기록되기 시작한다.</p>
+
+<p>이 예제에서 Startup Probe는 최대 약 30초 동안 시작 완료를 기다릴 수 있다. 그 안에 성공하지 못하면 kubelet은 해당 Container를 재시작한다. Pod Object 자체를 다시 생성하는 동작은 아니다.</p>
+
+<h2 id="9--restartpolicy">9 ) restartPolicy</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">spec.restartPolicy</code>는 Pod 안의 Container가 종료되었을 때 kubelet이 다시 시작할지를 결정한다. Pod를 새로 생성하는 정책이 아니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>값</th>
+      <th>종료 코드 <code class="language-plaintext highlighter-rouge">0</code></th>
+      <th>종료 코드 <code class="language-plaintext highlighter-rouge">0</code> 이외</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Always</code></td>
+      <td>재시작</td>
+      <td>재시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">OnFailure</code></td>
+      <td>재시작하지 않음</td>
+      <td>재시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Never</code></td>
+      <td>재시작하지 않음</td>
+      <td>재시작하지 않음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>일반 Pod의 기본값은 <code class="language-plaintext highlighter-rouge">Always</code>이다. Deployment와 StatefulSet 같은 일반적인 장기 실행 Workload의 Pod Template도 <code class="language-plaintext highlighter-rouge">Always</code>를 사용한다. 완료형 Workload인 Job은 성공한 Container가 다시 시작되면 작업을 완료할 수 없으므로 <code class="language-plaintext highlighter-rouge">OnFailure</code> 또는 <code class="language-plaintext highlighter-rouge">Never</code>만 사용할 수 있다. Job의 재시도 방식은 <a href="/cloud-native-30-kubernetes-job-cronjob/">Kubernetes Job과 CronJob</a>에서 다룬다.</p>
+
+<p>정상 종료한 Container도 <code class="language-plaintext highlighter-rouge">Always</code>에서 재시작되는지 확인한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-restart-always.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-restart-always</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Always</span>
+  <span class="na">containers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">tools-container</span>
+      <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
+      <span class="na">command</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">/bin/sh</span>
+        <span class="pi">-</span> <span class="s">-c</span>
+        <span class="pi">-</span> <span class="s">exit </span><span class="m">0</span>
+</code></pre></div></div>
+
+<p>Pod를 생성하면 Process가 종료 코드 <code class="language-plaintext highlighter-rouge">0</code>으로 끝나지만 kubelet이 계속 Container를 재시작한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-restart-always.yaml
+kubectl get pod sample-restart-always <span class="nt">--watch</span>
+kubectl describe pod sample-restart-always
+</code></pre></div></div>
+
+<p>반복 종료가 발생하면 재시작 사이의 지연이 증가하며 kubectl의 <code class="language-plaintext highlighter-rouge">STATUS</code>에 <code class="language-plaintext highlighter-rouge">CrashLoopBackOff</code>가 표시될 수 있다. <code class="language-plaintext highlighter-rouge">CrashLoopBackOff</code>는 Pod Phase가 아니라 반복 실패에 대한 kubectl 상태 표시이다.</p>
+
+<h2 id="10--probe와-restartpolicy의-연결">10 ) Probe와 restartPolicy의 연결</h2>
+
+<hr />
+
+<p>Liveness·Startup Probe 실패가 기준 횟수에 도달하면 kubelet은 실패한 Container를 종료한다. 이후 Container 수준의 <code class="language-plaintext highlighter-rouge">restartPolicy</code> 적용 결과에 따라 재시작 여부가 결정된다. Readiness Probe는 Container를 종료하지 않으므로 <code class="language-plaintext highlighter-rouge">restartPolicy</code>를 작동시키지 않는다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>상황</th>
+      <th>Container 종료</th>
+      <th><code class="language-plaintext highlighter-rouge">restartPolicy</code> 적용</th>
+      <th>Service Traffic</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Liveness 실패 기준 도달</td>
+      <td>종료함</td>
+      <td>적용함</td>
+      <td>재시작과 Ready 상태에 따라 제외될 수 있음</td>
+    </tr>
+    <tr>
+      <td>Readiness 실패</td>
+      <td>종료하지 않음</td>
+      <td>적용하지 않음</td>
+      <td>정상 Endpoint에서 제외됨</td>
+    </tr>
+    <tr>
+      <td>Startup 실패 기준 도달</td>
+      <td>종료함</td>
+      <td>적용함</td>
+      <td>시작 완료 전에는 Ready가 아님</td>
+    </tr>
+    <tr>
+      <td>Container Process 자체 종료</td>
+      <td>이미 종료됨</td>
+      <td>적용함</td>
+      <td>Ready가 아니므로 정상 Endpoint에서 제외됨</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>여러 Container가 있는 Pod에서는 Liveness 실패가 발생한 Container만 재시작한다. 다만 Container 중 하나라도 Ready 상태가 아니면 <code class="language-plaintext highlighter-rouge">ContainersReady</code>와 일반적인 <code class="language-plaintext highlighter-rouge">Ready</code> Condition에 영향을 줄 수 있다.</p>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>kubelet은 Worker에서 Container별 Probe를 실행한다.</p>
+    </li>
+    <li>
+      <p>Liveness와 Startup 실패는 Container 재시작으로 이어질 수 있고 Readiness 실패는 Traffic 전달을 중단한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">restartPolicy</code>는 종료된 Container의 재시작 여부를 결정하며 Pod Object를 다시 생성하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h2 id="11--실습-resource-정리">11 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>실습 중 생성한 Pod와 Service를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
+kubectl get service sample-readiness-service
+kubectl get endpointslice <span class="se">\</span>
+  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span>sample-readiness-service
+</code></pre></div></div>
+
+<p>Manifest로 생성한 Resource를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-healthcheck.yaml
+kubectl delete <span class="nt">-f</span> sample-liveness.yaml
+kubectl delete <span class="nt">-f</span> sample-readiness.yaml
+kubectl delete <span class="nt">-f</span> sample-startup.yaml
+kubectl delete <span class="nt">-f</span> sample-restart-always.yaml
+</code></pre></div></div>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Liveness Probe는 Container가 계속 동작할 수 있는지 확인하고, 실패 기준에 도달하면 kubelet이 해당 Container를 재시작한다.</p>
+    </li>
+    <li>
+      <p>Readiness Probe는 현재 요청을 처리할 수 있는지 확인하며, 실패한 Pod는 재시작하지 않고 Service의 정상 Endpoint에서 제외한다.</p>
+    </li>
+    <li>
+      <p>Startup Probe가 성공하기 전에는 Liveness·Readiness Probe를 실행하지 않아 시작 시간이 긴 Application의 반복 재시작을 방지한다.</p>
+    </li>
+    <li>
+      <p>Probe는 <code class="language-plaintext highlighter-rouge">exec</code>, <code class="language-plaintext highlighter-rouge">httpGet</code>, <code class="language-plaintext highlighter-rouge">tcpSocket</code> 방식으로 실행할 수 있으며 주기, Timeout과 성공·실패 횟수를 Application 특성에 맞게 설정한다.</p>
+    </li>
+    <li>
+      <p>Worker의 kubelet이 Probe를 실행하고 결과를 API Server에 보고하면 Control Plane의 Controller가 Ready 상태를 Service Endpoint에 반영한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">restartPolicy</code>는 Pod가 아니라 종료된 Container의 재시작 여부를 결정한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Liveness·Readiness·Startup Probe의 역할과 kubelet의 상태 점검, Container 재시작 정책을 실습으로 정리]]></summary></entry><entry><title type="html">Kubernetes Resource 관리와 Autoscaling</title><link href="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/" rel="alternate" type="text/html" title="Kubernetes Resource 관리와 Autoscaling" /><published>2026-09-03T00:00:00+09:00</published><updated>2026-09-03T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/"><![CDATA[<p>Kubernetes는 Container가 요청하는 Resource를 기준으로 Pod를 Worker에 배치하고, kubelet과 Container Runtime을 통해 실행 중인 Resource 사용을 제한한다. Namespace에는 LimitRange와 ResourceQuota를 적용할 수 있으며, Resource Request는 Cluster와 Pod Autoscaling 판단에도 사용된다.</p>
 
 <h2 id="1--cluster-api-resource와-관리-범위">1 ) Cluster API Resource와 관리 범위</h2>
 
@@ -858,11 +1439,613 @@ kubectl describe resourcequota sample-resourcequota-usable <span class="se">\</s
 
 <p>따라서 허용 범위와 Stabilization 동작 등 다른 조건을 제외한 기본 계산 결과는 Replica 네 개이다. Metric 수집 상태는 <a href="/cloud-native-26-resource-inspection-debugging/">Kubernetes Resource 조회와 Pod Debugging</a>의 Metrics Server와 <code class="language-plaintext highlighter-rouge">kubectl top</code> 절에서 확인할 수 있다.</p>
 
-<h2 id="18--실습-resource-정리">18 ) 실습 Resource 정리</h2>
+<h2 id="18--hpa-동작-구조와-준비-상태-확인">18 ) HPA 동작 구조와 준비 상태 확인</h2>
 
 <hr />
 
-<p>실습용 Namespace 안의 Resource를 확인한다.</p>
+<p>HPA는 Control Plane에서 실행되는 Controller와 Worker에서 수집되는 Metric을 연결하여 동작한다.</p>
+
+<ol>
+  <li>
+    <p>Worker의 kubelet이 Container의 CPU·Memory 사용량을 수집한다.</p>
+  </li>
+  <li>
+    <p>Metrics Server가 각 Node의 kubelet에서 Metric을 수집하여 Metrics API로 제공한다.</p>
+  </li>
+  <li>
+    <p>Control Plane의 HPA Controller가 Metrics API에서 대상 Pod의 Metric을 조회한다.</p>
+  </li>
+  <li>
+    <p>HPA Controller가 계산한 Replica 수를 Deployment의 Scale Subresource에 반영한다.</p>
+  </li>
+  <li>
+    <p>Deployment Controller가 변경된 Replica 수에 맞춰 Pod를 생성하거나 제거한다.</p>
+  </li>
+  <li>
+    <p>새 Pod가 필요하면 Scheduler가 Worker를 선택하고, 해당 Worker의 kubelet과 Container Runtime이 Container를 실행한다.</p>
+  </li>
+</ol>
+
+<p>HPA를 사용하기 전에 <a href="/cloud-native-26-resource-inspection-debugging/">Kubernetes Resource 조회와 Pod Debugging</a>에서 설치한 Metrics Server와 Metric 수집 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> kube-system <span class="se">\</span>
+  <span class="nt">-l</span> k8s-app<span class="o">=</span>metrics-server
+kubectl get apiservice v1beta1.metrics.k8s.io
+kubectl top nodes
+kubectl top pods <span class="nt">-A</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl top</code> 결과가 나오지 않는 상태에서는 Resource Metric 기반 HPA 실습을 진행할 수 없다. 먼저 Metrics Server Pod, APIService와 kubelet 통신 상태를 확인해야 한다.</p>
+
+<h2 id="19--hpa-실습">19 ) HPA 실습</h2>
+
+<hr />
+
+<p>HPA가 CPU 사용률을 계산할 수 있도록 CPU Request를 지정한 Deployment를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-hpa.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+          <span class="na">resources</span><span class="pi">:</span>
+            <span class="na">requests</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">100m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">128Mi</span>
+            <span class="na">limits</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">256Mi</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>Cluster 안에서 부하 발생 Pod가 nginx에 접근할 수 있도록 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-hpa-service.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa-service</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+</code></pre></div></div>
+
+<p>CPU 평균 사용률이 Request의 <code class="language-plaintext highlighter-rouge">50%</code>를 넘으면 Replica를 늘리도록 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-hpa-autoscaler.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">autoscaling/v2</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">HorizontalPodAutoscaler</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">scaleTargetRef</span><span class="pi">:</span>
+    <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+    <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">minReplicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">maxReplicas</span><span class="pi">:</span> <span class="m">10</span>
+  <span class="na">metrics</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Resource</span>
+      <span class="na">resource</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">cpu</span>
+        <span class="na">target</span><span class="pi">:</span>
+          <span class="na">type</span><span class="pi">:</span> <span class="s">Utilization</span>
+          <span class="na">averageUtilization</span><span class="pi">:</span> <span class="m">50</span>
+</code></pre></div></div>
+
+<p>세 Resource를 생성하고 연결 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> nginx-hpa.yaml
+kubectl apply <span class="nt">-f</span> nginx-hpa-service.yaml
+kubectl apply <span class="nt">-f</span> nginx-hpa-autoscaler.yaml
+
+kubectl get deployment,service,hpa
+kubectl describe hpa nginx-hpa
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">TARGETS</code>가 <code class="language-plaintext highlighter-rouge">&lt;unknown&gt;/50%</code>로 계속 표시되면 CPU Request와 Metrics Server 상태를 함께 확인한다.</p>
+
+<h3 id="부하에-따른-replica-변화-확인">부하에 따른 Replica 변화 확인</h3>
+
+<p>두 터미널에서 HPA와 Pod의 변화를 각각 관찰한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get hpa nginx-hpa <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>nginx-hpa <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>다른 터미널에서 Service로 요청을 반복 전송하는 Pod 세 개를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl run load-generator <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>Never <span class="se">\</span>
+  <span class="nt">--</span> /bin/sh <span class="nt">-c</span> <span class="se">\</span>
+  <span class="s2">"while true; do wget -q -O- http://nginx-hpa-service; done"</span>
+
+kubectl run load-generator1 <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>Never <span class="se">\</span>
+  <span class="nt">--</span> /bin/sh <span class="nt">-c</span> <span class="se">\</span>
+  <span class="s2">"while true; do wget -q -O- http://nginx-hpa-service; done"</span>
+
+kubectl run load-generator2 <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>Never <span class="se">\</span>
+  <span class="nt">--</span> /bin/sh <span class="nt">-c</span> <span class="se">\</span>
+  <span class="s2">"while true; do wget -q -O- http://nginx-hpa-service; done"</span>
+</code></pre></div></div>
+
+<p>HPA가 즉시 반응하지 않을 수 있다. Metric 수집과 HPA 동기화가 진행된 뒤 CPU 사용률, <code class="language-plaintext highlighter-rouge">DESIRED</code> Replica와 Pod 수가 변하는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl top pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>nginx-hpa
+kubectl get hpa nginx-hpa
+kubectl get deployment nginx-hpa
+</code></pre></div></div>
+
+<p>부하 발생 Pod를 삭제하면 CPU 사용률이 낮아지고 Stabilization 조건에 따라 Replica가 다시 줄어든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod <span class="se">\</span>
+  load-generator load-generator1 load-generator2
+kubectl get hpa nginx-hpa <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<h2 id="20--hpa-metric과-target">20 ) HPA Metric과 Target</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">autoscaling/v2</code> HPA는 다음 Metric Source를 사용할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric Type</th>
+      <th>판단 대상</th>
+      <th>예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Resource</code></td>
+      <td>Pod의 CPU·Memory 같은 Resource 사용량</td>
+      <td>CPU Request 대비 평균 사용률</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ContainerResource</code></td>
+      <td>Pod 안의 특정 Container Resource 사용량</td>
+      <td>Application Container의 CPU 사용률</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Pods</code></td>
+      <td>각 Pod에서 수집한 Custom Metric</td>
+      <td>Pod별 Connection 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Object</code></td>
+      <td>하나의 Kubernetes Object와 연결된 Metric</td>
+      <td>Ingress의 초당 요청 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">External</code></td>
+      <td>Kubernetes Object와 직접 연결되지 않은 외부 Metric</td>
+      <td>Load Balancer QPS, Queue 길이</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Resource Metric의 Target은 다음과 같이 구분한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target Type</th>
+      <th>의미</th>
+      <th>예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Utilization</code></td>
+      <td>Resource Request 대비 평균 사용률</td>
+      <td>CPU Request의 <code class="language-plaintext highlighter-rouge">50%</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">AverageValue</code></td>
+      <td>Pod 하나당 Metric의 평균값</td>
+      <td>Pod당 Memory <code class="language-plaintext highlighter-rouge">500Mi</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Value</code></td>
+      <td>Object·External Metric의 전체 목표값</td>
+      <td>Queue 전체 길이</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>여러 Metric을 지정하면 HPA는 각 Metric으로 필요한 Replica 수를 계산한 뒤 가장 큰 값을 사용한다. 따라서 CPU와 Memory 중 하나만 목표치를 초과해도 Scale Out이 발생할 수 있다.</p>
+
+<h2 id="21--다중-metric과-scaling-behavior">21 ) 다중 Metric과 Scaling Behavior</h2>
+
+<hr />
+
+<p>앞서 만든 <code class="language-plaintext highlighter-rouge">nginx-hpa-autoscaler.yaml</code>을 다음 내용으로 변경한다. CPU 사용률과 평균 Memory 사용량을 함께 확인하고, Replica 증감 속도를 제한하는 설정이다. <code class="language-plaintext highlighter-rouge">autoscaling/v2beta2</code>는 Kubernetes 1.26부터 제공되지 않으므로 현재 API인 <code class="language-plaintext highlighter-rouge">autoscaling/v2</code>를 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">autoscaling/v2</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">HorizontalPodAutoscaler</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">scaleTargetRef</span><span class="pi">:</span>
+    <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+    <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">minReplicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">maxReplicas</span><span class="pi">:</span> <span class="m">10</span>
+  <span class="na">metrics</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Resource</span>
+      <span class="na">resource</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">cpu</span>
+        <span class="na">target</span><span class="pi">:</span>
+          <span class="na">type</span><span class="pi">:</span> <span class="s">Utilization</span>
+          <span class="na">averageUtilization</span><span class="pi">:</span> <span class="m">50</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Resource</span>
+      <span class="na">resource</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">memory</span>
+        <span class="na">target</span><span class="pi">:</span>
+          <span class="na">type</span><span class="pi">:</span> <span class="s">AverageValue</span>
+          <span class="na">averageValue</span><span class="pi">:</span> <span class="s">500Mi</span>
+  <span class="na">behavior</span><span class="pi">:</span>
+    <span class="na">scaleDown</span><span class="pi">:</span>
+      <span class="na">stabilizationWindowSeconds</span><span class="pi">:</span> <span class="m">300</span>
+      <span class="na">policies</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Percent</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="m">100</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">15</span>
+    <span class="na">scaleUp</span><span class="pi">:</span>
+      <span class="na">stabilizationWindowSeconds</span><span class="pi">:</span> <span class="m">0</span>
+      <span class="na">policies</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Percent</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="m">100</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">15</span>
+        <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Pods</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="m">4</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">15</span>
+      <span class="na">selectPolicy</span><span class="pi">:</span> <span class="s">Max</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">behavior</code>의 주요 항목은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">scaleUp</code></td>
+      <td>Replica를 늘릴 때 적용할 정책</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">scaleDown</code></td>
+      <td>Replica를 줄일 때 적용할 정책</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">policies.type: Percent</code></td>
+      <td>현재 Replica 수를 기준으로 허용할 변화 비율</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">policies.type: Pods</code></td>
+      <td>일정 시간 동안 변경할 수 있는 Pod 개수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">periodSeconds</code></td>
+      <td>정책이 허용하는 변화량을 계산할 기간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">selectPolicy</code></td>
+      <td>여러 Policy 중 사용할 Policy 선택</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">stabilizationWindowSeconds</code></td>
+      <td>이전 권장값을 고려하여 급격한 변동을 줄이는 시간</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Scale Up의 <code class="language-plaintext highlighter-rouge">selectPolicy: Max</code>는 <code class="language-plaintext highlighter-rouge">100%</code> 증가와 Pod 네 개 증가 중 더 큰 변화량을 허용한다. <code class="language-plaintext highlighter-rouge">selectPolicy: Disabled</code>를 해당 방향에 지정하면 그 방향의 Scaling을 비활성화할 수 있다.</p>
+
+<p>변경된 HPA를 적용하고 실제 설정을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> nginx-hpa-autoscaler.yaml
+kubectl get hpa nginx-hpa <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<h2 id="22--vertical-pod-autoscaler">22 ) Vertical Pod Autoscaler</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Vertical Pod Autoscaler(VPA)</strong></p>
+
+  <p>Container의 실제 Resource 사용량을 분석하여 CPU·Memory Request 권장값을 계산하고, Update Mode에 따라 이를 Pod에 적용하는 Autoscaler이다.</p>
+</blockquote>
+
+<p>HPA는 주로 Replica 수를 늘리거나 줄이는 Horizontal Scaling을 담당한다. VPA는 Container 하나에 필요한 CPU·Memory Request를 조정하는 Vertical Scaling을 담당한다. Request가 실제 사용량보다 지나치게 작으면 성능과 Scheduling이 불안정해질 수 있고, 지나치게 크면 Worker의 Resource가 낭비될 수 있다.</p>
+
+<p>VPA는 Kubernetes 기본 구성 요소가 아니므로 별도로 설치해야 한다. 설치 후에는 다음 구성 요소가 협력한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Recommender</td>
+      <td>Resource 사용 이력을 바탕으로 Request 권장값 계산</td>
+    </tr>
+    <tr>
+      <td>Updater</td>
+      <td>Update Mode에 따라 기존 Pod를 교체할지 판단</td>
+    </tr>
+    <tr>
+      <td>Admission Controller</td>
+      <td>새 Pod 생성 시 VPA 권장값을 Pod Request에 반영</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>VPA 설치가 필요한 환경에서는 공식 Autoscaler 저장소를 내려받아 설치 스크립트를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/kubernetes/autoscaler.git
+<span class="nb">cd </span>autoscaler/vertical-pod-autoscaler
+./hack/vpa-up.sh
+</code></pre></div></div>
+
+<p>TLS 인증서 오류가 발생하면 원인을 해결해야 한다. 전역 Git 설정에서 TLS 검증을 비활성화하면 이후 모든 Repository 연결의 검증이 생략되므로 사용하지 않는다.</p>
+
+<p>CRD와 VPA 구성 요소를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get crd verticalpodautoscalers.autoscaling.k8s.io
+kubectl get pods <span class="nt">-n</span> kube-system | <span class="nb">grep </span>vpa
+kubectl api-resources | <span class="nb">grep</span> <span class="nt">-i</span> verticalpodautoscaler
+</code></pre></div></div>
+
+<p>VPA 설치 방식과 지원하는 Update Mode는 사용하는 VPA Release와 Kubernetes Version에 따라 확인해야 한다.</p>
+
+<h2 id="23--vpa-recommendation-실습">23 ) VPA Recommendation 실습</h2>
+
+<hr />
+
+<p>작은 Request를 지정한 Deployment를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">vpa-deployment.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+          <span class="na">resources</span><span class="pi">:</span>
+            <span class="na">requests</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">50m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">64Mi</span>
+            <span class="na">limits</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">512Mi</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>기존 Pod를 변경하지 않고 Recommendation만 확인하도록 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-vpa-autoscaler.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">autoscaling.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">VerticalPodAutoscaler</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">targetRef</span><span class="pi">:</span>
+    <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+    <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+  <span class="na">updatePolicy</span><span class="pi">:</span>
+    <span class="na">updateMode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Off"</span>
+</code></pre></div></div>
+
+<p>두 파일을 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> vpa-deployment.yaml
+kubectl apply <span class="nt">-f</span> nginx-vpa-autoscaler.yaml
+kubectl get deployment,pods,vpa
+</code></pre></div></div>
+
+<p>VPA가 사용량을 관찰하고 Recommendation을 계산할 시간이 필요하다. 일정 시간 뒤 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe vpa nginx-vpa
+kubectl get vpa nginx-vpa <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.recommendation}'</span>
+</code></pre></div></div>
+
+<p>Recommendation의 주요 값은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Lower Bound</code></td>
+      <td>안정적인 동작을 위해 권장되는 Resource 범위의 하한</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Upper Bound</code></td>
+      <td>권장되는 Resource 범위의 상한</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Target</code></td>
+      <td>VPA의 Container Resource Policy를 반영한 Request 권장값</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Uncapped Target</code></td>
+      <td>Container Resource Policy를 적용하기 전 사용량 기반 권장값</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>실습의 <code class="language-plaintext highlighter-rouge">Off</code> Mode에서는 Recommendation이 표시되더라도 기존 Pod의 Request는 자동으로 바뀌지 않는다.</p>
+
+<h2 id="24--vpa-update-mode와-hpa-조합">24 ) VPA Update Mode와 HPA 조합</h2>
+
+<hr />
+
+<p>VPA의 Update Mode는 Resource 권장값을 언제 적용할지 결정한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Update Mode</th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Off</code></td>
+      <td>권장값만 계산하고 Pod Resource를 변경하지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Initial</code></td>
+      <td>새 Pod가 생성될 때만 권장값 적용</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Recreate</code></td>
+      <td>권장값 적용이 필요하면 기존 Pod를 제거하고 새 Pod에 반영</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">InPlaceOrRecreate</code></td>
+      <td>가능한 경우 실행 중인 Pod를 변경하고, 불가능하면 Pod를 교체</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">InPlace</code></td>
+      <td>지원되는 Resource를 실행 중인 Pod에 직접 변경</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">Auto</code>는 Deprecated 상태이며 현재는 <code class="language-plaintext highlighter-rouge">Recreate</code>와 같은 방식으로 동작한다. 새 설정에는 의도를 명확히 나타내는 Mode를 사용한다. In-place Mode는 Kubernetes와 VPA가 해당 기능을 지원하는지 먼저 확인해야 한다.</p>
+
+<p>VPA와 HPA가 같은 CPU Resource를 동시에 조정하면 서로의 판단에 영향을 줄 수 있다. CPU 사용률 기반 HPA는 현재 사용량을 CPU Request와 비교하는데, VPA가 그 Request를 변경하면 HPA의 계산 기준도 변하기 때문이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>HPA 기준</th>
+      <th>VPA 대상</th>
+      <th>판단</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPU 사용률</td>
+      <td>CPU Request</td>
+      <td>계산 기준이 변하므로 충돌 가능성이 있음</td>
+    </tr>
+    <tr>
+      <td>CPU 사용률</td>
+      <td>Memory Request</td>
+      <td>서로 다른 Resource를 조정하므로 역할 분리가 가능함</td>
+    </tr>
+    <tr>
+      <td>Request 수·Queue 길이 같은 외부 Metric</td>
+      <td>CPU·Memory Request</td>
+      <td>Replica 수와 개별 Pod Resource의 판단 기준을 분리할 수 있음</td>
+    </tr>
+    <tr>
+      <td>CPU 사용률</td>
+      <td><code class="language-plaintext highlighter-rouge">Off</code> Mode의 CPU·Memory Recommendation</td>
+      <td>자동 변경 없이 권장값을 검토할 수 있음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>운영 환경에서는 Application 특성, Pod 교체 영향과 HPA Metric을 확인한 뒤 Mode와 조정 대상을 결정한다.</p>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>HPA Controller는 Metric을 기준으로 Workload Replica 수를 조정한다.</p>
+    </li>
+    <li>
+      <p>VPA는 Container의 Resource 사용량을 분석하여 CPU·Memory Request 권장값을 계산한다.</p>
+    </li>
+    <li>
+      <p>같은 Resource를 기준으로 HPA와 VPA를 함께 사용하면 계산 기준이 서로 영향을 줄 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h2 id="25--실습-resource-정리">25 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>HPA와 VPA 실습 Resource를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment,service,hpa,vpa
+kubectl get pods
+</code></pre></div></div>
+
+<p>HPA 실습 Resource를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> nginx-hpa-autoscaler.yaml
+kubectl delete <span class="nt">-f</span> nginx-hpa-service.yaml
+kubectl delete <span class="nt">-f</span> nginx-hpa.yaml
+kubectl delete pod <span class="se">\</span>
+  load-generator load-generator1 load-generator2 <span class="se">\</span>
+  <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>VPA 실습 Resource를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> nginx-vpa-autoscaler.yaml
+kubectl delete <span class="nt">-f</span> vpa-deployment.yaml
+</code></pre></div></div>
+
+<p>VPA 자체는 다른 Workload에서도 사용할 수 있으므로 이 실습만을 이유로 설치 구성 요소까지 제거하지 않는다.</p>
+
+<p>Resource 관리 실습용 Namespace 안의 Resource도 확인한다.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all <span class="nt">-n</span> resource-lab
 kubectl get limitranges,resourcequotas <span class="se">\</span>
@@ -898,8 +2081,17 @@ kubectl get configmaps <span class="nt">-n</span> resource-lab
     <li>
       <p>Cluster Autoscaler는 배치되지 못한 Pod의 Request를 기준으로 Node 확장을 판단하고 HPA는 Metric을 기준으로 Workload Replica를 조정한다.</p>
     </li>
+    <li>
+      <p>HPA는 Metric을 기준으로 Replica 수를 조정하고 VPA는 CPU·Memory Request 권장값을 계산하거나 적용한다.</p>
+    </li>
+    <li>
+      <p>HPA와 VPA를 함께 사용할 때는 같은 Resource가 양쪽의 판단 기준이 되지 않도록 Metric과 조정 대상을 구분한다.</p>
+    </li>
+    <li>
+      <p>다음 글인 <a href="/cloud-native-37-kubernetes-health-check-restart-policy/">Kubernetes Health Check와 restartPolicy</a>에서는 kubelet이 Container 상태를 점검하고 실패에 대응하는 과정을 다룬다.</p>
+    </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리]]></summary></entry><entry><title type="html">Kubernetes Volume과 Persistent Storage</title><link href="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/" rel="alternate" type="text/html" title="Kubernetes Volume과 Persistent Storage" /><published>2026-09-02T00:00:00+09:00</published><updated>2026-09-02T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/"><![CDATA[<p>Container의 Writable Layer에 저장한 Data는 Container가 교체될 때 유지되지 않는다. Kubernetes Volume은 Pod의 Container가 사용할 File System 영역을 제공하며, Volume 종류에 따라 Data의 수명과 실제 저장 위치가 달라진다.</p>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리]]></summary></entry><entry><title type="html">Kubernetes Volume과 Persistent Storage</title><link href="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/" rel="alternate" type="text/html" title="Kubernetes Volume과 Persistent Storage" /><published>2026-09-02T00:00:00+09:00</published><updated>2026-09-02T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-35-kubernetes-volume-persistent-storage/"><![CDATA[<p>Container의 Writable Layer에 저장한 Data는 Container가 교체될 때 유지되지 않는다. Kubernetes Volume은 Pod의 Container가 사용할 File System 영역을 제공하며, Volume 종류에 따라 Data의 수명과 실제 저장 위치가 달라진다.</p>
 
 <h2 id="1--kubernetes-volume">1 ) Kubernetes Volume</h2>
 
@@ -6728,575 +7920,4 @@ kubectl delete deployment sample-deployment-by-cli <span class="nt">--ignore-not
       <p>Control Plane의 Controller가 원하는 상태를 조정하고 Worker의 kubelet과 Container Runtime이 실제 Pod를 실행한다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Label Selector 기반 ReplicaSet의 Pod 수 조정, Deployment의 배포와 Scaling 및 cordon·drain을 이용한 Node 유지보수 정리]]></summary></entry><entry><title type="html">Kubernetes DaemonSet과 StatefulSet</title><link href="https://kkr010128.github.io/cloud-native-29-daemonset-statefulset/" rel="alternate" type="text/html" title="Kubernetes DaemonSet과 StatefulSet" /><published>2026-08-27T00:00:00+09:00</published><updated>2026-08-27T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-29-daemonset-statefulset</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-29-daemonset-statefulset/"><![CDATA[<p>DaemonSet과 StatefulSet은 서로 다른 배치 조건을 해결하는 Workload Controller이다. DaemonSet은 조건에 맞는 각 Node에 Pod를 배치하고, StatefulSet은 순서와 고유한 Network·Storage 식별자가 필요한 Pod 집합을 관리한다.</p>
-
-<h2 id="1--daemonset">1 ) DaemonSet</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>DaemonSet</strong></p>
-
-  <p>Scheduling 조건을 만족하는 각 Node에 특정 Pod가 하나씩 실행되도록 관리하는 Workload Controller이다.</p>
-</blockquote>
-
-<p>ReplicaSet은 Cluster 전체에서 지정한 Pod 수를 유지하지만 DaemonSet은 대상 Node마다 Pod를 배치한다. Node가 추가되어 Scheduling 조건을 만족하면 DaemonSet Pod도 자동으로 생성되고, Node가 제거되면 해당 Pod도 함께 정리된다.</p>
-
-<p>DaemonSet은 ReplicaSet의 특수한 형태가 아니라 별도의 Controller Resource이다. 하나의 DaemonSet은 대상 Node마다 Pod 하나를 만들며 <code class="language-plaintext highlighter-rouge">spec.replicas</code>를 사용하지 않는다.</p>
-
-<p>주요 사용 사례는 다음과 같다.</p>
-
-<ul>
-  <li>
-    <p>Fluentd와 같은 Node별 Log 수집 Agent</p>
-  </li>
-  <li>
-    <p>Prometheus Node Exporter와 같은 Node Metric 수집 Agent</p>
-  </li>
-  <li>
-    <p>Datadog Agent와 같은 Monitoring Agent</p>
-  </li>
-  <li>
-    <p>Network 또는 Storage의 Node Agent</p>
-  </li>
-</ul>
-
-<h2 id="2--daemonset의-배치-흐름">2 ) DaemonSet의 배치 흐름</h2>
-
-<hr />
-
-<p>DaemonSet Pod가 배치되는 흐름은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Plane
-DaemonSet Controller
-  │ 대상 Node와 기존 Pod 확인
-  │ 부족한 Node의 Pod 생성
-  ▼
-Scheduler
-  │ Pod가 실행될 Worker 결정
-  ▼
-Worker의 kubelet
-  │ Pod Spec 확인
-  ▼
-Container Runtime
-  │
-  ▼
-Node별 Agent Container 실행
-</code></pre></div></div>
-
-<p>모든 Node에 무조건 배치되는 것은 아니다. Node Label과 다음 Scheduling 조건에 따라 대상 Node를 제한할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>설정</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">nodeSelector</code></td>
-      <td>지정한 Label을 가진 Node만 선택</td>
-    </tr>
-    <tr>
-      <td>Node Affinity</td>
-      <td>여러 Label 조건으로 포함·제외 규칙 구성</td>
-    </tr>
-    <tr>
-      <td>Taint와 Toleration</td>
-      <td>Taint가 설정된 Node에 배치할 수 있는지 결정</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Control Plane Node에 일반 Workload를 막는 Taint가 있으면 해당 Taint를 허용하는 Toleration이 없는 DaemonSet Pod는 배치되지 않는다.</p>
-
-<h2 id="3--daemonset-생성">3 ) DaemonSet 생성</h2>
-
-<hr />
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-daemonset.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">DaemonSet</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">prometheus-daemonset</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">tier</span><span class="pi">:</span> <span class="s">monitoring</span>
-      <span class="na">name</span><span class="pi">:</span> <span class="s">prometheus-exporter</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">tier</span><span class="pi">:</span> <span class="s">monitoring</span>
-        <span class="na">name</span><span class="pi">:</span> <span class="s">prometheus-exporter</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">prometheus</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">prom/node-exporter</span>
-          <span class="na">ports</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">9100</span>
-</code></pre></div></div>
-
-<p>Node Exporter의 기본 Metric Port는 <code class="language-plaintext highlighter-rouge">9100</code>이다. 이 예제는 DaemonSet의 Node별 배치 확인을 위한 기본 구성이다. 운영 환경에서는 Host의 Metric을 정확히 수집하기 위한 Mount, Namespace와 보안 설정을 별도로 검토해야 한다.</p>
-
-<p>Master 또는 kubeconfig가 설정된 관리 Client에서 Manifest를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-daemonset.yaml
-</code></pre></div></div>
-
-<p>원하는 Pod 수와 준비된 Pod 수를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get daemonsets
-kubectl get pods <span class="se">\</span>
-  <span class="nt">-l</span> <span class="nv">tier</span><span class="o">=</span>monitoring,name<span class="o">=</span>prometheus-exporter <span class="se">\</span>
-  <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">DESIRED</code>는 현재 Scheduling 조건에 맞는 Node 수이고 <code class="language-plaintext highlighter-rouge">READY</code>는 Ready 상태인 DaemonSet Pod 수이다. <code class="language-plaintext highlighter-rouge">-o wide</code> 출력의 <code class="language-plaintext highlighter-rouge">NODE</code> Column으로 Node별 배치를 확인한다.</p>
-
-<p>상세 설정과 Event를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe daemonset prometheus-daemonset
-</code></pre></div></div>
-
-<p>실습이 끝나면 Manifest를 기준으로 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-daemonset.yaml
-</code></pre></div></div>
-
-<h2 id="4--statefulset">4 ) StatefulSet</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>StatefulSet</strong></p>
-
-  <p>순서가 있는 배포와 Scaling, 안정적인 Pod 식별자 및 Pod별 Storage 연결이 필요한 Stateful Workload를 관리하는 Controller Resource이다.</p>
-</blockquote>
-
-<p>StatefulSet도 ReplicaSet의 특수한 형태가 아니라 별도의 Controller Resource이다. 같은 Pod Template을 사용하더라도 각 Pod를 서로 교환 가능한 Replica로 취급하지 않고 고유한 Ordinal과 식별자를 부여한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>Deployment</th>
-      <th>StatefulSet</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Pod 이름</td>
-      <td>임의 Hash와 문자열 사용</td>
-      <td><code class="language-plaintext highlighter-rouge">&lt;statefulset-name&gt;-0</code>부터 순서대로 부여</td>
-    </tr>
-    <tr>
-      <td>Pod 관계</td>
-      <td>서로 교체 가능한 Replica</td>
-      <td>각 Pod가 고유한 Identity 보유</td>
-    </tr>
-    <tr>
-      <td>Network Identity</td>
-      <td>주로 일반 Service로 Pod 집합에 접근</td>
-      <td>Headless Service로 Pod별 DNS 제공</td>
-    </tr>
-    <tr>
-      <td>Storage</td>
-      <td>Pod Template에 공통 Volume 정의 가능</td>
-      <td><code class="language-plaintext highlighter-rouge">volumeClaimTemplates</code>로 Pod별 PVC 생성 가능</td>
-    </tr>
-    <tr>
-      <td>생성·삭제 순서</td>
-      <td>기본적으로 병렬 처리</td>
-      <td>기본값은 순차 처리</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Pod가 다른 Worker에서 다시 생성되어도 같은 Ordinal 이름과 연결된 PVC를 다시 사용할 수 있다. StatefulSet 자체가 Data를 저장하거나 복제하는 것은 아니며 실제 Data 보존 여부는 PVC가 연결된 PersistentVolume과 Storage System에 달려 있다.</p>
-
-<h2 id="5--statefulset의-control-plane과-worker-흐름">5 ) StatefulSet의 Control Plane과 Worker 흐름</h2>
-
-<hr />
-
-<p>StatefulSet과 Storage가 연결되는 흐름은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Plane
-StatefulSet Controller
-  ├── Headless Service 기반 Network Identity 사용
-  ├── Ordinal Pod 생성
-  └── volumeClaimTemplates로 Pod별 PVC 생성
-                │
-                ▼
-PV Provisioner 또는 관리자가 PV 제공
-                │
-                ▼
-Scheduler가 Storage 조건을 만족하는 Worker 선택
-                │
-                ▼
-Worker의 kubelet
-  ├── Volume Mount 요청
-  └── Container Runtime에 Container 실행 요청
-</code></pre></div></div>
-
-<p>Pod를 다른 Worker로 다시 Scheduling할 수 있는지는 Storage Backend, Access Mode, Zone과 Volume 연결 조건에 따라 달라진다. PVC가 존재한다는 사실만으로 모든 Worker에서 같은 Data에 접근할 수 있는 것은 아니다.</p>
-
-<h2 id="6--statefulset과-persistent-storage-생성">6 ) StatefulSet과 Persistent Storage 생성</h2>
-
-<hr />
-
-<p>StatefulSet의 <code class="language-plaintext highlighter-rouge">serviceName</code>이 가리키는 Headless Service와 StatefulSet을 함께 정의한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-statefulset.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-statefulset</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">clusterIP</span><span class="pi">:</span> <span class="s">None</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-statefulset</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-<span class="nn">---</span>
-<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">StatefulSet</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-statefulset</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">serviceName</span><span class="pi">:</span> <span class="s">sample-statefulset</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-statefulset</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-statefulset</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-          <span class="na">ports</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
-          <span class="na">volumeMounts</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">www</span>
-              <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/usr/share/nginx/html</span>
-  <span class="na">volumeClaimTemplates</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">metadata</span><span class="pi">:</span>
-        <span class="na">name</span><span class="pi">:</span> <span class="s">www</span>
-      <span class="na">spec</span><span class="pi">:</span>
-        <span class="na">accessModes</span><span class="pi">:</span>
-          <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
-        <span class="na">resources</span><span class="pi">:</span>
-          <span class="na">requests</span><span class="pi">:</span>
-            <span class="na">storage</span><span class="pi">:</span> <span class="s">1Gi</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Service의 <code class="language-plaintext highlighter-rouge">clusterIP: None</code></td>
-      <td>ClusterIP 없이 Pod별 DNS Record를 제공하는 Headless Service 구성</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.serviceName</code></td>
-      <td>StatefulSet의 Network Identity를 관리할 Service 이름</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.replicas</code></td>
-      <td>생성할 StatefulSet Pod 수</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">volumeClaimTemplates</code></td>
-      <td>Ordinal Pod마다 별도의 PVC 생성</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">accessModes: ReadWriteOnce</code></td>
-      <td>Volume을 하나의 Node에서 Read·Write로 Mount하도록 요청</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">storage: 1Gi</code></td>
-      <td>Pod별 PVC가 요청할 Storage 용량</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Master 또는 관리 Client에서 Resource를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-statefulset.yaml
-</code></pre></div></div>
-
-<p>StatefulSet, Pod와 PVC를 함께 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get statefulsets
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-statefulset <span class="nt">-o</span> wide
-kubectl get persistentvolumeclaims
-</code></pre></div></div>
-
-<p>Pod는 기본적으로 <code class="language-plaintext highlighter-rouge">sample-statefulset-0</code>, <code class="language-plaintext highlighter-rouge">sample-statefulset-1</code>, <code class="language-plaintext highlighter-rouge">sample-statefulset-2</code> 순서로 생성된다. 각 Pod에는 <code class="language-plaintext highlighter-rouge">www-sample-statefulset-0</code>과 같은 별도 PVC가 연결된다.</p>
-
-<p>Default StorageClass나 미리 준비된 PV가 없으면 PVC는 <code class="language-plaintext highlighter-rouge">Pending</code> 상태에 머물고 Storage를 Mount해야 하는 Pod도 정상 실행되지 않을 수 있다. 이 경우 PVC Event와 StorageClass를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe persistentvolumeclaim www-sample-statefulset-0
-kubectl get storageclasses
-</code></pre></div></div>
-
-<p>PV와 PVC의 Binding, Access Mode와 Storage Backend 연결은 <a href="/cloud-native-35-kubernetes-volume-persistent-storage/">Kubernetes Volume과 Persistent Storage</a>에서 자세히 설명한다.</p>
-
-<p>Pod별 DNS와 Volume Mount를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/sample-statefulset-0 <span class="nt">--</span> <span class="nb">hostname
-</span>kubectl <span class="nb">exec </span>pod/sample-statefulset-0 <span class="nt">--</span> <span class="se">\</span>
-  <span class="nb">df</span> <span class="nt">-h</span> /usr/share/nginx/html
-</code></pre></div></div>
-
-<p>같은 Namespace에서는 첫 번째 Pod를 <code class="language-plaintext highlighter-rouge">sample-statefulset-0.sample-statefulset</code>이라는 이름으로 식별할 수 있다. Pod IP가 바뀌어도 StatefulSet의 Ordinal과 Headless Service를 이용한 DNS Identity는 유지된다.</p>
-
-<h2 id="7--statefulset-lifecycle과-scaling">7 ) StatefulSet Lifecycle과 Scaling</h2>
-
-<hr />
-
-<p>기본 <code class="language-plaintext highlighter-rouge">podManagementPolicy</code>는 <code class="language-plaintext highlighter-rouge">OrderedReady</code>이다. Pod를 생성할 때 낮은 Ordinal부터 앞선 Pod가 Ready가 된 뒤 다음 Pod를 생성하고, Scaling Down에서는 높은 Ordinal부터 제거한다.</p>
-
-<p>Replica 수를 5개로 늘리고 순서를 관찰한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale statefulset sample-statefulset <span class="nt">--replicas</span><span class="o">=</span>5
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-statefulset <span class="nt">--watch</span>
-</code></pre></div></div>
-
-<p>Replica 수를 3개로 줄이면 <code class="language-plaintext highlighter-rouge">sample-statefulset-4</code>, <code class="language-plaintext highlighter-rouge">sample-statefulset-3</code> 순서로 Pod가 제거된다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale statefulset sample-statefulset <span class="nt">--replicas</span><span class="o">=</span>3
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-statefulset
-</code></pre></div></div>
-
-<p>StatefulSet을 줄이거나 삭제해도 연결된 PVC는 Data 보호를 위해 기본적으로 자동 삭제되지 않는다.</p>
-
-<h3 id="parallel-pod-management">Parallel Pod Management</h3>
-
-<p>Pod 간 순서 의존성이 없다면 <code class="language-plaintext highlighter-rouge">spec.podManagementPolicy: Parallel</code>로 생성과 종료를 병렬 처리할 수 있다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-stateful-parallel.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-statefulset-parallel</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">clusterIP</span><span class="pi">:</span> <span class="s">None</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-statefulset-parallel</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-<span class="nn">---</span>
-<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">StatefulSet</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-statefulset-parallel</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">podManagementPolicy</span><span class="pi">:</span> <span class="s">Parallel</span>
-  <span class="na">serviceName</span><span class="pi">:</span> <span class="s">sample-statefulset-parallel</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-statefulset-parallel</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-statefulset-parallel</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-          <span class="na">volumeMounts</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">www</span>
-              <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/usr/share/nginx/html</span>
-  <span class="na">volumeClaimTemplates</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">metadata</span><span class="pi">:</span>
-        <span class="na">name</span><span class="pi">:</span> <span class="s">www</span>
-      <span class="na">spec</span><span class="pi">:</span>
-        <span class="na">accessModes</span><span class="pi">:</span>
-          <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
-        <span class="na">resources</span><span class="pi">:</span>
-          <span class="na">requests</span><span class="pi">:</span>
-            <span class="na">storage</span><span class="pi">:</span> <span class="s">1Gi</span>
-</code></pre></div></div>
-
-<p>Resource를 적용하고 Pod의 <code class="language-plaintext highlighter-rouge">AGE</code>를 비교한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-stateful-parallel.yaml
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-statefulset-parallel
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">Parallel</code>은 각 Pod가 Ready가 될 때까지 순서대로 기다리지 않고 Pod를 함께 생성하므로 <code class="language-plaintext highlighter-rouge">AGE</code>가 비슷하게 나타난다. Pod 이름과 PVC Identity까지 임의로 바뀌는 설정은 아니다.</p>
-
-<p>첫 번째 Pod의 Mount를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/sample-statefulset-parallel-0 <span class="nt">--</span> <span class="se">\</span>
-  <span class="nb">df</span> <span class="nt">-h</span> /usr/share/nginx/html
-</code></pre></div></div>
-
-<h2 id="8--질의-statefulset으로-database-운영-가능-여부에-대한-강사님-답변">8 ) 질의: StatefulSet으로 Database 운영 가능 여부에 대한 강사님 답변</h2>
-
-<hr />
-
-<p>StatefulSet을 이용하여 Database를 Kubernetes Cluster 안에서 실행할 수 있다. 다만 StatefulSet을 사용한다는 사실만으로 Data가 안전하게 보존되거나 Database의 고가용성이 완성되는 것은 아니다.</p>
-
-<h3 id="network-접근">Network 접근</h3>
-
-<p>Pod는 다시 생성될 때 IP Address가 바뀔 수 있으므로 Client가 Pod IP를 직접 저장해서 접근하면 안 된다.</p>
-
-<ul>
-  <li>
-    <p>일반 Client Traffic은 Database Service의 DNS 이름으로 연결한다.</p>
-  </li>
-  <li>
-    <p>Database Cluster의 Member를 개별적으로 식별해야 하면 Headless Service가 제공하는 Pod별 DNS 이름을 사용할 수 있다.</p>
-  </li>
-</ul>
-
-<p>StatefulSet의 <code class="language-plaintext highlighter-rouge">serviceName</code>은 Pod마다 안정적인 Network Identity를 제공하지만 Database의 접속 권한, 암호화나 장애 조치를 대신 구성하지는 않는다.</p>
-
-<h3 id="node-장애와-data-보존">Node 장애와 Data 보존</h3>
-
-<p>Node가 고장났을 때 Data가 보존되는지는 Volume이 실제로 어디에 저장되는지에 따라 달라진다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Storage 구성</th>
-      <th>Node 장애 시 고려 사항</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Container Writable Layer</td>
-      <td>Pod와 함께 Data를 잃을 수 있으므로 Database Data 저장에 부적합</td>
-    </tr>
-    <tr>
-      <td>Node Local Volume</td>
-      <td>Disk가 남아 있어도 다른 Worker에서 바로 Mount하지 못할 수 있음</td>
-    </tr>
-    <tr>
-      <td>NFS·Network Storage</td>
-      <td>다른 Worker가 같은 Storage에 접근할 수 있지만 Storage Server의 가용성과 성능을 별도로 확보해야 함</td>
-    </tr>
-    <tr>
-      <td>분산 Storage·Cloud Volume</td>
-      <td>Backend의 복제, Zone과 Attach 조건에 따라 장애 복구 범위가 달라짐</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>NFS는 Network를 통해 File Storage를 제공하는 방식이고 RAID는 여러 Disk를 결합하여 Disk 장애 내성을 높이는 방식이다. 둘은 서로 같은 계층의 대안이 아니며 Database의 논리적 복제와 Backup을 대신하지 않는다.</p>
-
-<h3 id="운영-방식-선택">운영 방식 선택</h3>
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>장점</th>
-      <th>운영 책임</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Cluster 내부 StatefulSet</td>
-      <td>Application과 같은 배포 체계에서 관리 가능</td>
-      <td>Storage, 복제, Backup, Upgrade, 장애 조치까지 직접 운영</td>
-    </tr>
-    <tr>
-      <td>Cluster 외부 Database</td>
-      <td>Kubernetes Node 장애와 Database를 분리 가능</td>
-      <td>외부 Database의 연결, 보안과 가용성 관리</td>
-    </tr>
-    <tr>
-      <td>Managed Database</td>
-      <td>Backup과 장애 조치 기능을 Service로 제공 가능</td>
-      <td>Provider 기능과 비용, Network 연결 정책 검토</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>StatefulSet으로 Database를 운영하려면 다음 항목을 함께 설계해야 한다.</p>
-
-<ul>
-  <li>
-    <p>Pod별 PVC와 실제 Storage Backend</p>
-  </li>
-  <li>
-    <p>Database 자체 Replication과 Leader Election</p>
-  </li>
-  <li>
-    <p>정기 Backup과 복구 검증</p>
-  </li>
-  <li>
-    <p>Node 및 Availability Zone 장애 시 재배치 조건</p>
-  </li>
-  <li>
-    <p>Upgrade, Scaling과 종료 순서</p>
-  </li>
-</ul>
-
-<p>따라서 StatefulSet은 Stateful Application을 배치하기 위한 기반이며 Data 보호 전략 전체를 대신하는 Resource는 아니다.</p>
-
-<h2 id="9--실습-resource-정리">9 ) 실습 Resource 정리</h2>
-
-<hr />
-
-<p>순서 있는 종료가 필요하면 StatefulSet을 먼저 0개로 줄인다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale statefulset sample-statefulset <span class="nt">--replicas</span><span class="o">=</span>0
-kubectl scale statefulset sample-statefulset-parallel <span class="nt">--replicas</span><span class="o">=</span>0
-</code></pre></div></div>
-
-<p>Pod 종료를 확인한 뒤 StatefulSet과 Headless Service를 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-statefulset.yaml
-kubectl delete <span class="nt">-f</span> sample-stateful-parallel.yaml
-</code></pre></div></div>
-
-<p>StatefulSet을 삭제해도 PVC는 기본적으로 남을 수 있다. Data가 더 이상 필요하지 않은지 확인하기 전에는 PVC를 삭제하지 않는다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get persistentvolumeclaims
-</code></pre></div></div>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>DaemonSet은 Scheduling 조건을 만족하는 각 Node에 Pod를 하나씩 배치하며 Node별 Agent에 적합하다.</p>
-    </li>
-    <li>
-      <p>StatefulSet은 Ordinal Pod 이름, 안정적인 Network Identity, 순서와 Pod별 PVC 연결을 관리한다.</p>
-    </li>
-    <li>
-      <p>Headless Service는 StatefulSet Pod별 DNS Identity를 제공하고 <code class="language-plaintext highlighter-rouge">volumeClaimTemplates</code>는 Pod별 PVC를 생성한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">OrderedReady</code>는 Pod를 순차 처리하고 <code class="language-plaintext highlighter-rouge">Parallel</code>은 Pod 간 순서 의존성이 없을 때 병렬로 처리한다.</p>
-    </li>
-    <li>
-      <p>StatefulSet은 Database 실행에 사용할 수 있지만 Data의 실제 내구성은 Storage Backend, Database 복제와 Backup 설계에 달려 있다.</p>
-    </li>
-    <li>
-      <p>NFS와 RAID는 서로 다른 Storage 계층의 기술이며 Database Backup과 고가용성을 대신하지 않는다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Node별 DaemonSet 배치와 StatefulSet의 순서·고유 식별자·Persistent Storage 및 Database 운영 관점 정리]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Label Selector 기반 ReplicaSet의 Pod 수 조정, Deployment의 배포와 Scaling 및 cordon·drain을 이용한 Node 유지보수 정리]]></summary></entry></feed>

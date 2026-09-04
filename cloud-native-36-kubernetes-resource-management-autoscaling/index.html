@@ -34,28 +34,30 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
 <title>Kubernetes Resource 관리와 Autoscaling | renamed.log</title>
 <meta name="generator" content="Jekyll v4.3.3">
-<meta name="description" content="Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리">
+<meta name="description" content="Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리">
 <link rel="canonical" href="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/">
 <meta property="og:title" content="Kubernetes Resource 관리와 Autoscaling | renamed.log">
 <meta property="og:locale" content="ko_KR">
-<meta property="og:description" content="Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리">
+<meta property="og:description" content="Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리">
 <meta property="og:url" content="https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/">
 <meta property="og:site_name" content="renamed.log">
 <meta property="og:type" content="article">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Kubernetes Resource 관리와 Autoscaling | renamed.log">
-<meta name="twitter:description" content="Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리">
+<meta name="twitter:description" content="Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리">
 
   <meta property="article:published_time" content="2026-09-03T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1788492668" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788492668" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788492668">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1788492668" color="#495057">
+  <meta property="article:modified_time" content="2026-09-04T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788516012" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788516012" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788516012">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788516012" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1788492668">
+<link rel="stylesheet" href="/assets/css/main.css?v=1788516012">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -97,9 +99,10 @@
     "@type": "BlogPosting",
     "name": "renamed.log",
     "headline": "Kubernetes Resource 관리와 Autoscaling | renamed.log",
-    "description": "Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리",
+    "description": "Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리",
     "url": "https://kkr010128.github.io/cloud-native-36-kubernetes-resource-management-autoscaling/",
-    "datePublished": "2026-09-03T00:00:00+09:00"
+    "datePublished": "2026-09-03T00:00:00+09:00",
+    "dateModified": "2026-09-04T00:00:00+09:00"
   }
 </script>
 
@@ -212,7 +215,7 @@
     
     <h1 class="post-head__title">Kubernetes Resource 관리와 Autoscaling</h1>
     
-      <p class="post-head__description">Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리</p>
+      <p class="post-head__description">Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리</p>
     
 
     <div class="post-head__author">
@@ -228,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 9월 3일 · 11분 읽기
+          2026년 9월 3일 · 18분 읽기 · 수정 2026년 9월 4일
         </span>
       </div>
     </div>
@@ -1109,11 +1112,613 @@ kubectl describe resourcequota sample-resourcequota-usable <span class="se">\</s
 
 <p>따라서 허용 범위와 Stabilization 동작 등 다른 조건을 제외한 기본 계산 결과는 Replica 네 개이다. Metric 수집 상태는 <a href="/cloud-native-26-resource-inspection-debugging/">Kubernetes Resource 조회와 Pod Debugging</a>의 Metrics Server와 <code class="language-plaintext highlighter-rouge">kubectl top</code> 절에서 확인할 수 있다.</p>
 
-<h2 id="18--실습-resource-정리">18 ) 실습 Resource 정리</h2>
+<h2 id="18--hpa-동작-구조와-준비-상태-확인">18 ) HPA 동작 구조와 준비 상태 확인</h2>
 
 <hr />
 
-<p>실습용 Namespace 안의 Resource를 확인한다.</p>
+<p>HPA는 Control Plane에서 실행되는 Controller와 Worker에서 수집되는 Metric을 연결하여 동작한다.</p>
+
+<ol>
+  <li>
+    <p>Worker의 kubelet이 Container의 CPU·Memory 사용량을 수집한다.</p>
+  </li>
+  <li>
+    <p>Metrics Server가 각 Node의 kubelet에서 Metric을 수집하여 Metrics API로 제공한다.</p>
+  </li>
+  <li>
+    <p>Control Plane의 HPA Controller가 Metrics API에서 대상 Pod의 Metric을 조회한다.</p>
+  </li>
+  <li>
+    <p>HPA Controller가 계산한 Replica 수를 Deployment의 Scale Subresource에 반영한다.</p>
+  </li>
+  <li>
+    <p>Deployment Controller가 변경된 Replica 수에 맞춰 Pod를 생성하거나 제거한다.</p>
+  </li>
+  <li>
+    <p>새 Pod가 필요하면 Scheduler가 Worker를 선택하고, 해당 Worker의 kubelet과 Container Runtime이 Container를 실행한다.</p>
+  </li>
+</ol>
+
+<p>HPA를 사용하기 전에 <a href="/cloud-native-26-resource-inspection-debugging/">Kubernetes Resource 조회와 Pod Debugging</a>에서 설치한 Metrics Server와 Metric 수집 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> kube-system <span class="se">\</span>
+  <span class="nt">-l</span> k8s-app<span class="o">=</span>metrics-server
+kubectl get apiservice v1beta1.metrics.k8s.io
+kubectl top nodes
+kubectl top pods <span class="nt">-A</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kubectl top</code> 결과가 나오지 않는 상태에서는 Resource Metric 기반 HPA 실습을 진행할 수 없다. 먼저 Metrics Server Pod, APIService와 kubelet 통신 상태를 확인해야 한다.</p>
+
+<h2 id="19--hpa-실습">19 ) HPA 실습</h2>
+
+<hr />
+
+<p>HPA가 CPU 사용률을 계산할 수 있도록 CPU Request를 지정한 Deployment를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-hpa.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+          <span class="na">resources</span><span class="pi">:</span>
+            <span class="na">requests</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">100m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">128Mi</span>
+            <span class="na">limits</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">256Mi</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>Cluster 안에서 부하 발생 Pod가 nginx에 접근할 수 있도록 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-hpa-service.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa-service</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+</code></pre></div></div>
+
+<p>CPU 평균 사용률이 Request의 <code class="language-plaintext highlighter-rouge">50%</code>를 넘으면 Replica를 늘리도록 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-hpa-autoscaler.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">autoscaling/v2</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">HorizontalPodAutoscaler</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">scaleTargetRef</span><span class="pi">:</span>
+    <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+    <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">minReplicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">maxReplicas</span><span class="pi">:</span> <span class="m">10</span>
+  <span class="na">metrics</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Resource</span>
+      <span class="na">resource</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">cpu</span>
+        <span class="na">target</span><span class="pi">:</span>
+          <span class="na">type</span><span class="pi">:</span> <span class="s">Utilization</span>
+          <span class="na">averageUtilization</span><span class="pi">:</span> <span class="m">50</span>
+</code></pre></div></div>
+
+<p>세 Resource를 생성하고 연결 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> nginx-hpa.yaml
+kubectl apply <span class="nt">-f</span> nginx-hpa-service.yaml
+kubectl apply <span class="nt">-f</span> nginx-hpa-autoscaler.yaml
+
+kubectl get deployment,service,hpa
+kubectl describe hpa nginx-hpa
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">TARGETS</code>가 <code class="language-plaintext highlighter-rouge">&lt;unknown&gt;/50%</code>로 계속 표시되면 CPU Request와 Metrics Server 상태를 함께 확인한다.</p>
+
+<h3 id="부하에-따른-replica-변화-확인">부하에 따른 Replica 변화 확인</h3>
+
+<p>두 터미널에서 HPA와 Pod의 변화를 각각 관찰한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get hpa nginx-hpa <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>nginx-hpa <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>다른 터미널에서 Service로 요청을 반복 전송하는 Pod 세 개를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl run load-generator <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>Never <span class="se">\</span>
+  <span class="nt">--</span> /bin/sh <span class="nt">-c</span> <span class="se">\</span>
+  <span class="s2">"while true; do wget -q -O- http://nginx-hpa-service; done"</span>
+
+kubectl run load-generator1 <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>Never <span class="se">\</span>
+  <span class="nt">--</span> /bin/sh <span class="nt">-c</span> <span class="se">\</span>
+  <span class="s2">"while true; do wget -q -O- http://nginx-hpa-service; done"</span>
+
+kubectl run load-generator2 <span class="se">\</span>
+  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>Never <span class="se">\</span>
+  <span class="nt">--</span> /bin/sh <span class="nt">-c</span> <span class="se">\</span>
+  <span class="s2">"while true; do wget -q -O- http://nginx-hpa-service; done"</span>
+</code></pre></div></div>
+
+<p>HPA가 즉시 반응하지 않을 수 있다. Metric 수집과 HPA 동기화가 진행된 뒤 CPU 사용률, <code class="language-plaintext highlighter-rouge">DESIRED</code> Replica와 Pod 수가 변하는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl top pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>nginx-hpa
+kubectl get hpa nginx-hpa
+kubectl get deployment nginx-hpa
+</code></pre></div></div>
+
+<p>부하 발생 Pod를 삭제하면 CPU 사용률이 낮아지고 Stabilization 조건에 따라 Replica가 다시 줄어든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete pod <span class="se">\</span>
+  load-generator load-generator1 load-generator2
+kubectl get hpa nginx-hpa <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<h2 id="20--hpa-metric과-target">20 ) HPA Metric과 Target</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">autoscaling/v2</code> HPA는 다음 Metric Source를 사용할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Metric Type</th>
+      <th>판단 대상</th>
+      <th>예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Resource</code></td>
+      <td>Pod의 CPU·Memory 같은 Resource 사용량</td>
+      <td>CPU Request 대비 평균 사용률</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ContainerResource</code></td>
+      <td>Pod 안의 특정 Container Resource 사용량</td>
+      <td>Application Container의 CPU 사용률</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Pods</code></td>
+      <td>각 Pod에서 수집한 Custom Metric</td>
+      <td>Pod별 Connection 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Object</code></td>
+      <td>하나의 Kubernetes Object와 연결된 Metric</td>
+      <td>Ingress의 초당 요청 수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">External</code></td>
+      <td>Kubernetes Object와 직접 연결되지 않은 외부 Metric</td>
+      <td>Load Balancer QPS, Queue 길이</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Resource Metric의 Target은 다음과 같이 구분한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Target Type</th>
+      <th>의미</th>
+      <th>예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Utilization</code></td>
+      <td>Resource Request 대비 평균 사용률</td>
+      <td>CPU Request의 <code class="language-plaintext highlighter-rouge">50%</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">AverageValue</code></td>
+      <td>Pod 하나당 Metric의 평균값</td>
+      <td>Pod당 Memory <code class="language-plaintext highlighter-rouge">500Mi</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Value</code></td>
+      <td>Object·External Metric의 전체 목표값</td>
+      <td>Queue 전체 길이</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>여러 Metric을 지정하면 HPA는 각 Metric으로 필요한 Replica 수를 계산한 뒤 가장 큰 값을 사용한다. 따라서 CPU와 Memory 중 하나만 목표치를 초과해도 Scale Out이 발생할 수 있다.</p>
+
+<h2 id="21--다중-metric과-scaling-behavior">21 ) 다중 Metric과 Scaling Behavior</h2>
+
+<hr />
+
+<p>앞서 만든 <code class="language-plaintext highlighter-rouge">nginx-hpa-autoscaler.yaml</code>을 다음 내용으로 변경한다. CPU 사용률과 평균 Memory 사용량을 함께 확인하고, Replica 증감 속도를 제한하는 설정이다. <code class="language-plaintext highlighter-rouge">autoscaling/v2beta2</code>는 Kubernetes 1.26부터 제공되지 않으므로 현재 API인 <code class="language-plaintext highlighter-rouge">autoscaling/v2</code>를 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">autoscaling/v2</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">HorizontalPodAutoscaler</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">scaleTargetRef</span><span class="pi">:</span>
+    <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+    <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-hpa</span>
+  <span class="na">minReplicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">maxReplicas</span><span class="pi">:</span> <span class="m">10</span>
+  <span class="na">metrics</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Resource</span>
+      <span class="na">resource</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">cpu</span>
+        <span class="na">target</span><span class="pi">:</span>
+          <span class="na">type</span><span class="pi">:</span> <span class="s">Utilization</span>
+          <span class="na">averageUtilization</span><span class="pi">:</span> <span class="m">50</span>
+    <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Resource</span>
+      <span class="na">resource</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">memory</span>
+        <span class="na">target</span><span class="pi">:</span>
+          <span class="na">type</span><span class="pi">:</span> <span class="s">AverageValue</span>
+          <span class="na">averageValue</span><span class="pi">:</span> <span class="s">500Mi</span>
+  <span class="na">behavior</span><span class="pi">:</span>
+    <span class="na">scaleDown</span><span class="pi">:</span>
+      <span class="na">stabilizationWindowSeconds</span><span class="pi">:</span> <span class="m">300</span>
+      <span class="na">policies</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Percent</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="m">100</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">15</span>
+    <span class="na">scaleUp</span><span class="pi">:</span>
+      <span class="na">stabilizationWindowSeconds</span><span class="pi">:</span> <span class="m">0</span>
+      <span class="na">policies</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Percent</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="m">100</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">15</span>
+        <span class="pi">-</span> <span class="na">type</span><span class="pi">:</span> <span class="s">Pods</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="m">4</span>
+          <span class="na">periodSeconds</span><span class="pi">:</span> <span class="m">15</span>
+      <span class="na">selectPolicy</span><span class="pi">:</span> <span class="s">Max</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">behavior</code>의 주요 항목은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">scaleUp</code></td>
+      <td>Replica를 늘릴 때 적용할 정책</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">scaleDown</code></td>
+      <td>Replica를 줄일 때 적용할 정책</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">policies.type: Percent</code></td>
+      <td>현재 Replica 수를 기준으로 허용할 변화 비율</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">policies.type: Pods</code></td>
+      <td>일정 시간 동안 변경할 수 있는 Pod 개수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">periodSeconds</code></td>
+      <td>정책이 허용하는 변화량을 계산할 기간</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">selectPolicy</code></td>
+      <td>여러 Policy 중 사용할 Policy 선택</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">stabilizationWindowSeconds</code></td>
+      <td>이전 권장값을 고려하여 급격한 변동을 줄이는 시간</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Scale Up의 <code class="language-plaintext highlighter-rouge">selectPolicy: Max</code>는 <code class="language-plaintext highlighter-rouge">100%</code> 증가와 Pod 네 개 증가 중 더 큰 변화량을 허용한다. <code class="language-plaintext highlighter-rouge">selectPolicy: Disabled</code>를 해당 방향에 지정하면 그 방향의 Scaling을 비활성화할 수 있다.</p>
+
+<p>변경된 HPA를 적용하고 실제 설정을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> nginx-hpa-autoscaler.yaml
+kubectl get hpa nginx-hpa <span class="nt">-o</span> yaml
+</code></pre></div></div>
+
+<h2 id="22--vertical-pod-autoscaler">22 ) Vertical Pod Autoscaler</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Vertical Pod Autoscaler(VPA)</strong></p>
+
+  <p>Container의 실제 Resource 사용량을 분석하여 CPU·Memory Request 권장값을 계산하고, Update Mode에 따라 이를 Pod에 적용하는 Autoscaler이다.</p>
+</blockquote>
+
+<p>HPA는 주로 Replica 수를 늘리거나 줄이는 Horizontal Scaling을 담당한다. VPA는 Container 하나에 필요한 CPU·Memory Request를 조정하는 Vertical Scaling을 담당한다. Request가 실제 사용량보다 지나치게 작으면 성능과 Scheduling이 불안정해질 수 있고, 지나치게 크면 Worker의 Resource가 낭비될 수 있다.</p>
+
+<p>VPA는 Kubernetes 기본 구성 요소가 아니므로 별도로 설치해야 한다. 설치 후에는 다음 구성 요소가 협력한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Recommender</td>
+      <td>Resource 사용 이력을 바탕으로 Request 권장값 계산</td>
+    </tr>
+    <tr>
+      <td>Updater</td>
+      <td>Update Mode에 따라 기존 Pod를 교체할지 판단</td>
+    </tr>
+    <tr>
+      <td>Admission Controller</td>
+      <td>새 Pod 생성 시 VPA 권장값을 Pod Request에 반영</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>VPA 설치가 필요한 환경에서는 공식 Autoscaler 저장소를 내려받아 설치 스크립트를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/kubernetes/autoscaler.git
+<span class="nb">cd </span>autoscaler/vertical-pod-autoscaler
+./hack/vpa-up.sh
+</code></pre></div></div>
+
+<p>TLS 인증서 오류가 발생하면 원인을 해결해야 한다. 전역 Git 설정에서 TLS 검증을 비활성화하면 이후 모든 Repository 연결의 검증이 생략되므로 사용하지 않는다.</p>
+
+<p>CRD와 VPA 구성 요소를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get crd verticalpodautoscalers.autoscaling.k8s.io
+kubectl get pods <span class="nt">-n</span> kube-system | <span class="nb">grep </span>vpa
+kubectl api-resources | <span class="nb">grep</span> <span class="nt">-i</span> verticalpodautoscaler
+</code></pre></div></div>
+
+<p>VPA 설치 방식과 지원하는 Update Mode는 사용하는 VPA Release와 Kubernetes Version에 따라 확인해야 한다.</p>
+
+<h2 id="23--vpa-recommendation-실습">23 ) VPA Recommendation 실습</h2>
+
+<hr />
+
+<p>작은 Request를 지정한 Deployment를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">vpa-deployment.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:stable</span>
+          <span class="na">resources</span><span class="pi">:</span>
+            <span class="na">requests</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">50m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">64Mi</span>
+            <span class="na">limits</span><span class="pi">:</span>
+              <span class="na">cpu</span><span class="pi">:</span> <span class="s">500m</span>
+              <span class="na">memory</span><span class="pi">:</span> <span class="s">512Mi</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>기존 Pod를 변경하지 않고 Recommendation만 확인하도록 다음 내용을 <code class="language-plaintext highlighter-rouge">nginx-vpa-autoscaler.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">autoscaling.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">VerticalPodAutoscaler</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">targetRef</span><span class="pi">:</span>
+    <span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+    <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-vpa</span>
+  <span class="na">updatePolicy</span><span class="pi">:</span>
+    <span class="na">updateMode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Off"</span>
+</code></pre></div></div>
+
+<p>두 파일을 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> vpa-deployment.yaml
+kubectl apply <span class="nt">-f</span> nginx-vpa-autoscaler.yaml
+kubectl get deployment,pods,vpa
+</code></pre></div></div>
+
+<p>VPA가 사용량을 관찰하고 Recommendation을 계산할 시간이 필요하다. 일정 시간 뒤 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe vpa nginx-vpa
+kubectl get vpa nginx-vpa <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.status.recommendation}'</span>
+</code></pre></div></div>
+
+<p>Recommendation의 주요 값은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Lower Bound</code></td>
+      <td>안정적인 동작을 위해 권장되는 Resource 범위의 하한</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Upper Bound</code></td>
+      <td>권장되는 Resource 범위의 상한</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Target</code></td>
+      <td>VPA의 Container Resource Policy를 반영한 Request 권장값</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Uncapped Target</code></td>
+      <td>Container Resource Policy를 적용하기 전 사용량 기반 권장값</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>실습의 <code class="language-plaintext highlighter-rouge">Off</code> Mode에서는 Recommendation이 표시되더라도 기존 Pod의 Request는 자동으로 바뀌지 않는다.</p>
+
+<h2 id="24--vpa-update-mode와-hpa-조합">24 ) VPA Update Mode와 HPA 조합</h2>
+
+<hr />
+
+<p>VPA의 Update Mode는 Resource 권장값을 언제 적용할지 결정한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Update Mode</th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Off</code></td>
+      <td>권장값만 계산하고 Pod Resource를 변경하지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Initial</code></td>
+      <td>새 Pod가 생성될 때만 권장값 적용</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Recreate</code></td>
+      <td>권장값 적용이 필요하면 기존 Pod를 제거하고 새 Pod에 반영</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">InPlaceOrRecreate</code></td>
+      <td>가능한 경우 실행 중인 Pod를 변경하고, 불가능하면 Pod를 교체</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">InPlace</code></td>
+      <td>지원되는 Resource를 실행 중인 Pod에 직접 변경</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">Auto</code>는 Deprecated 상태이며 현재는 <code class="language-plaintext highlighter-rouge">Recreate</code>와 같은 방식으로 동작한다. 새 설정에는 의도를 명확히 나타내는 Mode를 사용한다. In-place Mode는 Kubernetes와 VPA가 해당 기능을 지원하는지 먼저 확인해야 한다.</p>
+
+<p>VPA와 HPA가 같은 CPU Resource를 동시에 조정하면 서로의 판단에 영향을 줄 수 있다. CPU 사용률 기반 HPA는 현재 사용량을 CPU Request와 비교하는데, VPA가 그 Request를 변경하면 HPA의 계산 기준도 변하기 때문이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>HPA 기준</th>
+      <th>VPA 대상</th>
+      <th>판단</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>CPU 사용률</td>
+      <td>CPU Request</td>
+      <td>계산 기준이 변하므로 충돌 가능성이 있음</td>
+    </tr>
+    <tr>
+      <td>CPU 사용률</td>
+      <td>Memory Request</td>
+      <td>서로 다른 Resource를 조정하므로 역할 분리가 가능함</td>
+    </tr>
+    <tr>
+      <td>Request 수·Queue 길이 같은 외부 Metric</td>
+      <td>CPU·Memory Request</td>
+      <td>Replica 수와 개별 Pod Resource의 판단 기준을 분리할 수 있음</td>
+    </tr>
+    <tr>
+      <td>CPU 사용률</td>
+      <td><code class="language-plaintext highlighter-rouge">Off</code> Mode의 CPU·Memory Recommendation</td>
+      <td>자동 변경 없이 권장값을 검토할 수 있음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>운영 환경에서는 Application 특성, Pod 교체 영향과 HPA Metric을 확인한 뒤 Mode와 조정 대상을 결정한다.</p>
+
+<blockquote>
+  <p><strong>중간 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>HPA Controller는 Metric을 기준으로 Workload Replica 수를 조정한다.</p>
+    </li>
+    <li>
+      <p>VPA는 Container의 Resource 사용량을 분석하여 CPU·Memory Request 권장값을 계산한다.</p>
+    </li>
+    <li>
+      <p>같은 Resource를 기준으로 HPA와 VPA를 함께 사용하면 계산 기준이 서로 영향을 줄 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<h2 id="25--실습-resource-정리">25 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>HPA와 VPA 실습 Resource를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment,service,hpa,vpa
+kubectl get pods
+</code></pre></div></div>
+
+<p>HPA 실습 Resource를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> nginx-hpa-autoscaler.yaml
+kubectl delete <span class="nt">-f</span> nginx-hpa-service.yaml
+kubectl delete <span class="nt">-f</span> nginx-hpa.yaml
+kubectl delete pod <span class="se">\</span>
+  load-generator load-generator1 load-generator2 <span class="se">\</span>
+  <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p>VPA 실습 Resource를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> nginx-vpa-autoscaler.yaml
+kubectl delete <span class="nt">-f</span> vpa-deployment.yaml
+</code></pre></div></div>
+
+<p>VPA 자체는 다른 Workload에서도 사용할 수 있으므로 이 실습만을 이유로 설치 구성 요소까지 제거하지 않는다.</p>
+
+<p>Resource 관리 실습용 Namespace 안의 Resource도 확인한다.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all <span class="nt">-n</span> resource-lab
 kubectl get limitranges,resourcequotas <span class="se">\</span>
@@ -1149,6 +1754,15 @@ kubectl get configmaps <span class="nt">-n</span> resource-lab
     <li>
       <p>Cluster Autoscaler는 배치되지 못한 Pod의 Request를 기준으로 Node 확장을 판단하고 HPA는 Metric을 기준으로 Workload Replica를 조정한다.</p>
     </li>
+    <li>
+      <p>HPA는 Metric을 기준으로 Replica 수를 조정하고 VPA는 CPU·Memory Request 권장값을 계산하거나 적용한다.</p>
+    </li>
+    <li>
+      <p>HPA와 VPA를 함께 사용할 때는 같은 Resource가 양쪽의 판단 기준이 되지 않도록 Metric과 조정 대상을 구분한다.</p>
+    </li>
+    <li>
+      <p>다음 글인 <a href="/cloud-native-37-kubernetes-health-check-restart-policy/">Kubernetes Health Check와 restartPolicy</a>에서는 kubelet이 Container 상태를 점검하고 실패에 대응하는 과정을 다룬다.</p>
+    </li>
   </ul>
 </blockquote>
 
@@ -1169,6 +1783,18 @@ kubectl get configmaps <span class="nt">-n</span> resource-lab
           </span>
         </a>
       
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-37-kubernetes-health-check-restart-policy/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Health Check와 restartPolicy</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
       
     </nav>
   
@@ -1244,7 +1870,7 @@ kubectl get configmaps <span class="nt">-n</span> resource-lab
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1788492668"></script>
-    <script src="/assets/js/code-enhancements.js?v=1788492668"></script>
+    <script src="/assets/js/site.js?v=1788516012"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788516012"></script>
   </body>
 </html>

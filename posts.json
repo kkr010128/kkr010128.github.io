@@ -4,16 +4,31 @@
       
       
       {
+        "title": "Kubernetes Health Check와 restartPolicy",
+        "url": "/cloud-native-37-kubernetes-health-check-restart-policy/",
+        "description": "Liveness·Readiness·Startup Probe의 역할과 kubelet의 상태 점검, Container 재시작 정책을 실습으로 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 4일",
+        "reading_time_label": "8분 읽기",
+        "search": "kubernetes health check와 restartpolicy liveness·readiness·startup probe의 역할과 kubelet의 상태 점검, container 재시작 정책을 실습으로 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Resource 관리와 Autoscaling",
         "url": "/cloud-native-36-kubernetes-resource-management-autoscaling/",
-        "description": "Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리",
+        "description": "Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리",
         "thumbnail": null,
         "tags": ["CloudNative","AutoEverSW","Kubernetes"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 3일",
-        "reading_time_label": "11분 읽기",
-        "search": "kubernetes resource 관리와 autoscaling container의 cpu·memory·ephemeral storage 제한부터 node eviction, limitrange, resourcequota와 autoscaling까지 정리 cloudnative autoeversw kubernetes cloudnative"
+        "reading_time_label": "18분 읽기",
+        "search": "kubernetes resource 관리와 autoscaling container의 resource 제한과 namespace별 할당량, hpa·vpa의 metric 기반 autoscaling 동작과 실습 정리 cloudnative autoeversw kubernetes cloudnative"
       },
     
       
