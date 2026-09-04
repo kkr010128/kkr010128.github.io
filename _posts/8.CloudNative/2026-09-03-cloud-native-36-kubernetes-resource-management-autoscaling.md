@@ -1,7 +1,8 @@
 ---
 title: Kubernetes Resource 관리와 Autoscaling
-description: Container의 CPU·Memory·Ephemeral Storage 제한부터 Node Eviction, LimitRange, ResourceQuota와 Autoscaling까지 정리
+description: Container의 Resource 제한과 Namespace별 할당량, HPA·VPA의 Metric 기반 Autoscaling 동작과 실습 정리
 date: 2026-09-03
+updated_at: 2026-09-04
 series: CloudNative
 tags:
   - CloudNative
@@ -700,11 +701,451 @@ ceil(2 × 95 ÷ 50)
 
 따라서 허용 범위와 Stabilization 동작 등 다른 조건을 제외한 기본 계산 결과는 Replica 네 개이다. Metric 수집 상태는 [Kubernetes Resource 조회와 Pod Debugging](/cloud-native-26-resource-inspection-debugging/)의 Metrics Server와 `kubectl top` 절에서 확인할 수 있다.
 
-## 18 ) 실습 Resource 정리
+## 18 ) HPA 동작 구조와 준비 상태 확인
 
 ---
 
-실습용 Namespace 안의 Resource를 확인한다.
+HPA는 Control Plane에서 실행되는 Controller와 Worker에서 수집되는 Metric을 연결하여 동작한다.
+
+1. Worker의 kubelet이 Container의 CPU·Memory 사용량을 수집한다.
+
+2. Metrics Server가 각 Node의 kubelet에서 Metric을 수집하여 Metrics API로 제공한다.
+
+3. Control Plane의 HPA Controller가 Metrics API에서 대상 Pod의 Metric을 조회한다.
+
+4. HPA Controller가 계산한 Replica 수를 Deployment의 Scale Subresource에 반영한다.
+
+5. Deployment Controller가 변경된 Replica 수에 맞춰 Pod를 생성하거나 제거한다.
+
+6. 새 Pod가 필요하면 Scheduler가 Worker를 선택하고, 해당 Worker의 kubelet과 Container Runtime이 Container를 실행한다.
+
+HPA를 사용하기 전에 [Kubernetes Resource 조회와 Pod Debugging](/cloud-native-26-resource-inspection-debugging/)에서 설치한 Metrics Server와 Metric 수집 상태를 확인한다.
+
+```bash
+kubectl get pods -n kube-system \
+  -l k8s-app=metrics-server
+kubectl get apiservice v1beta1.metrics.k8s.io
+kubectl top nodes
+kubectl top pods -A
+```
+
+`kubectl top` 결과가 나오지 않는 상태에서는 Resource Metric 기반 HPA 실습을 진행할 수 없다. 먼저 Metrics Server Pod, APIService와 kubelet 통신 상태를 확인해야 한다.
+
+## 19 ) HPA 실습
+
+---
+
+HPA가 CPU 사용률을 계산할 수 있도록 CPU Request를 지정한 Deployment를 생성한다. 다음 내용을 `nginx-hpa.yaml`로 저장한다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-hpa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-hpa
+  template:
+    metadata:
+      labels:
+        app: nginx-hpa
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          ports:
+            - containerPort: 80
+```
+
+Cluster 안에서 부하 발생 Pod가 nginx에 접근할 수 있도록 다음 내용을 `nginx-hpa-service.yaml`로 저장한다.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-hpa-service
+spec:
+  selector:
+    app: nginx-hpa
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+```
+
+CPU 평균 사용률이 Request의 `50%`를 넘으면 Replica를 늘리도록 다음 내용을 `nginx-hpa-autoscaler.yaml`로 저장한다.
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-hpa
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+```
+
+세 Resource를 생성하고 연결 상태를 확인한다.
+
+```bash
+kubectl apply -f nginx-hpa.yaml
+kubectl apply -f nginx-hpa-service.yaml
+kubectl apply -f nginx-hpa-autoscaler.yaml
+
+kubectl get deployment,service,hpa
+kubectl describe hpa nginx-hpa
+```
+
+`TARGETS`가 `<unknown>/50%`로 계속 표시되면 CPU Request와 Metrics Server 상태를 함께 확인한다.
+
+### 부하에 따른 Replica 변화 확인
+
+두 터미널에서 HPA와 Pod의 변화를 각각 관찰한다.
+
+```bash
+kubectl get hpa nginx-hpa --watch
+```
+
+```bash
+kubectl get pods -l app=nginx-hpa --watch
+```
+
+다른 터미널에서 Service로 요청을 반복 전송하는 Pod 세 개를 실행한다.
+
+```bash
+kubectl run load-generator \
+  --image=busybox:1.36 \
+  --restart=Never \
+  -- /bin/sh -c \
+  "while true; do wget -q -O- http://nginx-hpa-service; done"
+
+kubectl run load-generator1 \
+  --image=busybox:1.36 \
+  --restart=Never \
+  -- /bin/sh -c \
+  "while true; do wget -q -O- http://nginx-hpa-service; done"
+
+kubectl run load-generator2 \
+  --image=busybox:1.36 \
+  --restart=Never \
+  -- /bin/sh -c \
+  "while true; do wget -q -O- http://nginx-hpa-service; done"
+```
+
+HPA가 즉시 반응하지 않을 수 있다. Metric 수집과 HPA 동기화가 진행된 뒤 CPU 사용률, `DESIRED` Replica와 Pod 수가 변하는지 확인한다.
+
+```bash
+kubectl top pods -l app=nginx-hpa
+kubectl get hpa nginx-hpa
+kubectl get deployment nginx-hpa
+```
+
+부하 발생 Pod를 삭제하면 CPU 사용률이 낮아지고 Stabilization 조건에 따라 Replica가 다시 줄어든다.
+
+```bash
+kubectl delete pod \
+  load-generator load-generator1 load-generator2
+kubectl get hpa nginx-hpa --watch
+```
+
+## 20 ) HPA Metric과 Target
+
+---
+
+`autoscaling/v2` HPA는 다음 Metric Source를 사용할 수 있다.
+
+| Metric Type | 판단 대상 | 예시 |
+|---|---|---|
+| `Resource` | Pod의 CPU·Memory 같은 Resource 사용량 | CPU Request 대비 평균 사용률 |
+| `ContainerResource` | Pod 안의 특정 Container Resource 사용량 | Application Container의 CPU 사용률 |
+| `Pods` | 각 Pod에서 수집한 Custom Metric | Pod별 Connection 수 |
+| `Object` | 하나의 Kubernetes Object와 연결된 Metric | Ingress의 초당 요청 수 |
+| `External` | Kubernetes Object와 직접 연결되지 않은 외부 Metric | Load Balancer QPS, Queue 길이 |
+
+Resource Metric의 Target은 다음과 같이 구분한다.
+
+| Target Type | 의미 | 예시 |
+|---|---|---|
+| `Utilization` | Resource Request 대비 평균 사용률 | CPU Request의 `50%` |
+| `AverageValue` | Pod 하나당 Metric의 평균값 | Pod당 Memory `500Mi` |
+| `Value` | Object·External Metric의 전체 목표값 | Queue 전체 길이 |
+
+여러 Metric을 지정하면 HPA는 각 Metric으로 필요한 Replica 수를 계산한 뒤 가장 큰 값을 사용한다. 따라서 CPU와 Memory 중 하나만 목표치를 초과해도 Scale Out이 발생할 수 있다.
+
+## 21 ) 다중 Metric과 Scaling Behavior
+
+---
+
+앞서 만든 `nginx-hpa-autoscaler.yaml`을 다음 내용으로 변경한다. CPU 사용률과 평균 Memory 사용량을 함께 확인하고, Replica 증감 속도를 제한하는 설정이다. `autoscaling/v2beta2`는 Kubernetes 1.26부터 제공되지 않으므로 현재 API인 `autoscaling/v2`를 사용한다.
+
+```yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-hpa
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: AverageValue
+          averageValue: 500Mi
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 15
+        - type: Pods
+          value: 4
+          periodSeconds: 15
+      selectPolicy: Max
+```
+
+`behavior`의 주요 항목은 다음과 같다.
+
+| 항목 | 역할 |
+|---|---|
+| `scaleUp` | Replica를 늘릴 때 적용할 정책 |
+| `scaleDown` | Replica를 줄일 때 적용할 정책 |
+| `policies.type: Percent` | 현재 Replica 수를 기준으로 허용할 변화 비율 |
+| `policies.type: Pods` | 일정 시간 동안 변경할 수 있는 Pod 개수 |
+| `periodSeconds` | 정책이 허용하는 변화량을 계산할 기간 |
+| `selectPolicy` | 여러 Policy 중 사용할 Policy 선택 |
+| `stabilizationWindowSeconds` | 이전 권장값을 고려하여 급격한 변동을 줄이는 시간 |
+
+Scale Up의 `selectPolicy: Max`는 `100%` 증가와 Pod 네 개 증가 중 더 큰 변화량을 허용한다. `selectPolicy: Disabled`를 해당 방향에 지정하면 그 방향의 Scaling을 비활성화할 수 있다.
+
+변경된 HPA를 적용하고 실제 설정을 확인한다.
+
+```bash
+kubectl apply -f nginx-hpa-autoscaler.yaml
+kubectl get hpa nginx-hpa -o yaml
+```
+
+## 22 ) Vertical Pod Autoscaler
+
+---
+
+> **Vertical Pod Autoscaler(VPA)**
+>
+> Container의 실제 Resource 사용량을 분석하여 CPU·Memory Request 권장값을 계산하고, Update Mode에 따라 이를 Pod에 적용하는 Autoscaler이다.
+
+HPA는 주로 Replica 수를 늘리거나 줄이는 Horizontal Scaling을 담당한다. VPA는 Container 하나에 필요한 CPU·Memory Request를 조정하는 Vertical Scaling을 담당한다. Request가 실제 사용량보다 지나치게 작으면 성능과 Scheduling이 불안정해질 수 있고, 지나치게 크면 Worker의 Resource가 낭비될 수 있다.
+
+VPA는 Kubernetes 기본 구성 요소가 아니므로 별도로 설치해야 한다. 설치 후에는 다음 구성 요소가 협력한다.
+
+| 구성 요소 | 역할 |
+|---|---|
+| Recommender | Resource 사용 이력을 바탕으로 Request 권장값 계산 |
+| Updater | Update Mode에 따라 기존 Pod를 교체할지 판단 |
+| Admission Controller | 새 Pod 생성 시 VPA 권장값을 Pod Request에 반영 |
+
+VPA 설치가 필요한 환경에서는 공식 Autoscaler 저장소를 내려받아 설치 스크립트를 실행한다.
+
+```bash
+git clone https://github.com/kubernetes/autoscaler.git
+cd autoscaler/vertical-pod-autoscaler
+./hack/vpa-up.sh
+```
+
+TLS 인증서 오류가 발생하면 원인을 해결해야 한다. 전역 Git 설정에서 TLS 검증을 비활성화하면 이후 모든 Repository 연결의 검증이 생략되므로 사용하지 않는다.
+
+CRD와 VPA 구성 요소를 확인한다.
+
+```bash
+kubectl get crd verticalpodautoscalers.autoscaling.k8s.io
+kubectl get pods -n kube-system | grep vpa
+kubectl api-resources | grep -i verticalpodautoscaler
+```
+
+VPA 설치 방식과 지원하는 Update Mode는 사용하는 VPA Release와 Kubernetes Version에 따라 확인해야 한다.
+
+## 23 ) VPA Recommendation 실습
+
+---
+
+작은 Request를 지정한 Deployment를 생성한다. 다음 내용을 `vpa-deployment.yaml`로 저장한다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-vpa
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx-vpa
+  template:
+    metadata:
+      labels:
+        app: nginx-vpa
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          ports:
+            - containerPort: 80
+```
+
+기존 Pod를 변경하지 않고 Recommendation만 확인하도록 다음 내용을 `nginx-vpa-autoscaler.yaml`로 저장한다.
+
+```yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: nginx-vpa
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-vpa
+  updatePolicy:
+    updateMode: "Off"
+```
+
+두 파일을 적용한다.
+
+```bash
+kubectl apply -f vpa-deployment.yaml
+kubectl apply -f nginx-vpa-autoscaler.yaml
+kubectl get deployment,pods,vpa
+```
+
+VPA가 사용량을 관찰하고 Recommendation을 계산할 시간이 필요하다. 일정 시간 뒤 결과를 확인한다.
+
+```bash
+kubectl describe vpa nginx-vpa
+kubectl get vpa nginx-vpa \
+  -o jsonpath='{.status.recommendation}'
+```
+
+Recommendation의 주요 값은 다음과 같다.
+
+| 항목 | 의미 |
+|---|---|
+| `Lower Bound` | 안정적인 동작을 위해 권장되는 Resource 범위의 하한 |
+| `Upper Bound` | 권장되는 Resource 범위의 상한 |
+| `Target` | VPA의 Container Resource Policy를 반영한 Request 권장값 |
+| `Uncapped Target` | Container Resource Policy를 적용하기 전 사용량 기반 권장값 |
+
+실습의 `Off` Mode에서는 Recommendation이 표시되더라도 기존 Pod의 Request는 자동으로 바뀌지 않는다.
+
+## 24 ) VPA Update Mode와 HPA 조합
+
+---
+
+VPA의 Update Mode는 Resource 권장값을 언제 적용할지 결정한다.
+
+| Update Mode | 동작 |
+|---|---|
+| `Off` | 권장값만 계산하고 Pod Resource를 변경하지 않음 |
+| `Initial` | 새 Pod가 생성될 때만 권장값 적용 |
+| `Recreate` | 권장값 적용이 필요하면 기존 Pod를 제거하고 새 Pod에 반영 |
+| `InPlaceOrRecreate` | 가능한 경우 실행 중인 Pod를 변경하고, 불가능하면 Pod를 교체 |
+| `InPlace` | 지원되는 Resource를 실행 중인 Pod에 직접 변경 |
+
+`Auto`는 Deprecated 상태이며 현재는 `Recreate`와 같은 방식으로 동작한다. 새 설정에는 의도를 명확히 나타내는 Mode를 사용한다. In-place Mode는 Kubernetes와 VPA가 해당 기능을 지원하는지 먼저 확인해야 한다.
+
+VPA와 HPA가 같은 CPU Resource를 동시에 조정하면 서로의 판단에 영향을 줄 수 있다. CPU 사용률 기반 HPA는 현재 사용량을 CPU Request와 비교하는데, VPA가 그 Request를 변경하면 HPA의 계산 기준도 변하기 때문이다.
+
+| HPA 기준 | VPA 대상 | 판단 |
+|---|---|---|
+| CPU 사용률 | CPU Request | 계산 기준이 변하므로 충돌 가능성이 있음 |
+| CPU 사용률 | Memory Request | 서로 다른 Resource를 조정하므로 역할 분리가 가능함 |
+| Request 수·Queue 길이 같은 외부 Metric | CPU·Memory Request | Replica 수와 개별 Pod Resource의 판단 기준을 분리할 수 있음 |
+| CPU 사용률 | `Off` Mode의 CPU·Memory Recommendation | 자동 변경 없이 권장값을 검토할 수 있음 |
+
+운영 환경에서는 Application 특성, Pod 교체 영향과 HPA Metric을 확인한 뒤 Mode와 조정 대상을 결정한다.
+
+> **중간 정리**
+>
+> - HPA Controller는 Metric을 기준으로 Workload Replica 수를 조정한다.
+>
+> - VPA는 Container의 Resource 사용량을 분석하여 CPU·Memory Request 권장값을 계산한다.
+>
+> - 같은 Resource를 기준으로 HPA와 VPA를 함께 사용하면 계산 기준이 서로 영향을 줄 수 있다.
+
+## 25 ) 실습 Resource 정리
+
+---
+
+HPA와 VPA 실습 Resource를 확인한다.
+
+```bash
+kubectl get deployment,service,hpa,vpa
+kubectl get pods
+```
+
+HPA 실습 Resource를 삭제한다.
+
+```bash
+kubectl delete -f nginx-hpa-autoscaler.yaml
+kubectl delete -f nginx-hpa-service.yaml
+kubectl delete -f nginx-hpa.yaml
+kubectl delete pod \
+  load-generator load-generator1 load-generator2 \
+  --ignore-not-found
+```
+
+VPA 실습 Resource를 삭제한다.
+
+```bash
+kubectl delete -f nginx-vpa-autoscaler.yaml
+kubectl delete -f vpa-deployment.yaml
+```
+
+VPA 자체는 다른 Workload에서도 사용할 수 있으므로 이 실습만을 이유로 설치 구성 요소까지 제거하지 않는다.
+
+Resource 관리 실습용 Namespace 안의 Resource도 확인한다.
 
 ```bash
 kubectl get all -n resource-lab
@@ -734,3 +1175,9 @@ kubectl delete namespace resource-lab
 > - LimitRange는 개별 Object의 기본값과 허용 범위를 제어하고 ResourceQuota는 Namespace 전체 사용량과 Object 수를 제한한다.
 >
 > - Cluster Autoscaler는 배치되지 못한 Pod의 Request를 기준으로 Node 확장을 판단하고 HPA는 Metric을 기준으로 Workload Replica를 조정한다.
+>
+> - HPA는 Metric을 기준으로 Replica 수를 조정하고 VPA는 CPU·Memory Request 권장값을 계산하거나 적용한다.
+>
+> - HPA와 VPA를 함께 사용할 때는 같은 Resource가 양쪽의 판단 기준이 되지 않도록 Metric과 조정 대상을 구분한다.
+>
+> - 다음 글인 [Kubernetes Health Check와 restartPolicy](/cloud-native-37-kubernetes-health-check-restart-policy/)에서는 kubelet이 Container 상태를 점검하고 실패에 대응하는 과정을 다룬다.

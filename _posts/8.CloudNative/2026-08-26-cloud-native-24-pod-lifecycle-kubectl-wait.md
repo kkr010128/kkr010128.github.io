@@ -2,6 +2,7 @@
 title: Kubernetes Pod Lifecycle과 kubectl wait
 description: Deployment 재시작과 generateName 사용법, Pod Phase와 kubectl 상태 표시의 차이, Condition 기반 작업 완료 대기 정리
 date: 2026-08-26
+updated_at: 2026-09-04
 series: CloudNative
 tags:
   - CloudNative
@@ -243,6 +244,8 @@ kubectl get pod sample-pod -o jsonpath='{.status.conditions}'
 
 `Running`은 Container가 실행 중임을 나타내지만 Application이 Traffic을 받을 준비가 끝났다는 의미와 항상 같지는 않다. 후속 작업에서 Service 제공 가능 상태가 필요하면 `Ready` Condition을 기준으로 기다린다.
 
+`Ready`와 `ContainersReady` Condition이 실제 Health Check 결과에 따라 변경되는 과정은 [Kubernetes Health Check와 restartPolicy](/cloud-native-37-kubernetes-health-check-restart-policy/)에서 이어서 다룬다.
+
 ## 5 ) kubectl wait
 
 ---
@@ -367,3 +370,5 @@ Deployment를 삭제하면 Deployment가 관리하던 ReplicaSet과 Pod도 함�
 > - Worker의 kubelet이 Container 상태를 API Server에 보고하면 kubectl이 Control Plane에 저장된 Status와 Condition을 조회한다.
 >
 > - `kubectl wait`는 Ready, Scheduling, Phase 또는 삭제 완료를 후속 작업의 조건으로 사용할 수 있다.
+>
+> - Liveness·Readiness·Startup Probe와 Container 재시작 정책은 [Kubernetes Health Check와 restartPolicy](/cloud-native-37-kubernetes-health-check-restart-policy/)에서 이어서 확인할 수 있다.
