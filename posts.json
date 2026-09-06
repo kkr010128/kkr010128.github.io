@@ -4,6 +4,21 @@
       
       
       {
+        "title": "VirtualBox Kubernetes Lab에 접속할 수 없었던 이유",
+        "url": "/notes-08-troubleshooting-virtualbox-bridge-network/",
+        "description": "노트북의 연결을 유선에서 Wi-Fi로 전환한 뒤 발생한 Windows DHCP, VirtualBox Bridged Adapter와 Ubuntu Netplan 문제를 계층별로 추적한 기록",
+        "thumbnail": null,
+        "tags": ["TroubleShooting","Network"],
+        "series_key": "technotes",
+        "series_title": "TechNotes",
+        "date_label": "2026년 9월 6일",
+        "reading_time_label": "9분 읽기",
+        "search": "virtualbox kubernetes lab에 접속할 수 없었던 이유 노트북의 연결을 유선에서 wi-fi로 전환한 뒤 발생한 windows dhcp, virtualbox bridged adapter와 ubuntu netplan 문제를 계층별로 추적한 기록 troubleshooting network technotes"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Health Check와 restartPolicy",
         "url": "/cloud-native-37-kubernetes-health-check-restart-policy/",
         "description": "Liveness·Readiness·Startup Probe의 역할과 kubelet의 상태 점검, Container 재시작 정책을 실습으로 정리",

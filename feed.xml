@@ -1,4 +1,682 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-06T12:30:49+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Health Check와 restartPolicy</title><link href="https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy/" rel="alternate" type="text/html" title="Kubernetes Health Check와 restartPolicy" /><published>2026-09-04T00:00:00+09:00</published><updated>2026-09-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy/"><![CDATA[<p>Kubernetes는 Process가 실행 중이라는 사실만으로 Application이 정상이라고 판단하지 않는다. Worker의 kubelet은 Probe를 실행하여 Container의 생존 여부, 요청 처리 가능 여부와 시작 완료 여부를 확인한다. Probe 결과와 <code class="language-plaintext highlighter-rouge">restartPolicy</code>를 함께 이해하면 Container가 재시작되는 경우와 Service Traffic에서만 제외되는 경우를 구분할 수 있다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-07T00:30:11+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">VirtualBox Kubernetes Lab에 접속할 수 없었던 이유</title><link href="https://kkr010128.github.io/notes-08-troubleshooting-virtualbox-bridge-network/" rel="alternate" type="text/html" title="VirtualBox Kubernetes Lab에 접속할 수 없었던 이유" /><published>2026-09-06T00:00:00+09:00</published><updated>2026-09-06T00:00:00+09:00</updated><id>https://kkr010128.github.io/notes-08-troubleshooting-virtualbox-bridge-network</id><content type="html" xml:base="https://kkr010128.github.io/notes-08-troubleshooting-virtualbox-bridge-network/"><![CDATA[<p>노트북에서 실행하던 Kubernetes 실습 VM을 별도의 데스크톱으로 이전하기 위해 노트북의 유선 LAN Cable을 데스크톱으로 옮겼다. 노트북은 Wi-Fi로 전환했지만 인터넷 연결부터 VirtualBox VM의 SSH 접속까지 연속해서 문제가 발생했다.</p>
+
+<p>겉으로는 하나의 장애처럼 보였지만 Windows의 DHCP, VirtualBox의 Bridged Adapter와 Ubuntu VM의 Network 설정에서 서로 다른 문제가 이어진 상황이었다. 이 글에서는 확인된 사실과 당시의 추정을 구분하여 각 Network 계층을 어떤 순서로 확인했는지 정리한다.</p>
+
+<h2 id="1--장애-발생-전-구성">1 ) 장애 발생 전 구성</h2>
+
+<hr />
+
+<p>나는 Windows 랩탑을 홈 네트워크 아래에 두고, VPN을 구성하여 외부에서 접속이 가능하도록 구성해두고 실습 시마다 사용해오고 있었다.
+노트북의 VirtualBox에는 Kubernetes와 NFS 실습용 VM 네 개가 실행되고 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Windows Laptop
+│
+├── lab-control-plane  192.168.0.200
+├── lab-worker1        192.168.0.201
+├── lab-worker2        192.168.0.202
+└── lab-nfs            192.168.0.203
+</code></pre></div></div>
+
+<p>각 VM의 Network Adapter는 Bridged Adapter로 구성되어 노트북의 Realtek 유선 NIC를 통해 <code class="language-plaintext highlighter-rouge">192.168.0.0/24</code> Network에 연결되어 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM
+ │
+VirtualBox Bridged Adapter
+ │
+Realtek Ethernet NIC
+ │
+ipTIME Router
+</code></pre></div></div>
+
+<p>실습 VM을 장기적으로 수용할 별도의 Linux Host를 준비하면서 노트북에 연결되어 있던 LAN Cable을 데스크톱으로 옮겼다. 물리 연결은 다음과 같이 변경되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>변경 전
+
+Windows Laptop
+      │ Ethernet
+      ▼
+ipTIME Router
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>변경 후
+
+Linux Host ── Ethernet ── ipTIME Router
+
+Windows Laptop ── Wi-Fi ── ipTIME Router
+</code></pre></div></div>
+
+<p>이 변경은 Kubernetes 설정 자체를 수정한 작업이 아니다. Host의 물리 Network 경로가 Ethernet에서 Wi-Fi로 바뀐 작업이다.</p>
+
+<h2 id="2--장애를-세-단계로-분리">2 ) 장애를 세 단계로 분리</h2>
+
+<hr />
+
+<p>복구 과정에서 관찰한 증상은 다음 세 단계로 나뉘었다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>단계</th>
+      <th>관찰한 증상</th>
+      <th>확인할 계층</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Wi-Fi AP에는 연결됐지만 인터넷을 사용할 수 없음</td>
+      <td>Windows IP·DHCP</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Windows 인터넷은 복구됐지만 Host에서 VM으로 Ping·SSH 실패</td>
+      <td>Routing·VirtualBox Bridge</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Bridge 설정 변경 후 일부 VM의 NIC는 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code> 상태</td>
+      <td>Guest NIC·Netplan</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>단계별 장애를 구분하지 않으면 Windows DHCP 문제를 해결한 뒤에도 VM 접속 실패를 같은 원인으로 오해하기 쉽다.</p>
+
+<h2 id="3--wi-fi-연결과-ip-할당을-분리해서-확인">3 ) Wi-Fi 연결과 IP 할당을 분리해서 확인</h2>
+
+<hr />
+
+<p>노트북은 Wi-Fi 이름과 신호 세기를 정상적으로 표시했지만 인터넷에 연결되지 않았다. 먼저 Windows에서 사용 중인 Adapter의 IP 설정을 확인했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/all</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Wi-Fi Adapter에는 다음과 같은 값이 표시되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>DHCP 사용           : 예
+자동 구성 IPv4 주소 : 169.254.100.110
+서브넷 마스크       : 255.255.0.0
+기본 게이트웨이     : 없음
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">169.254.0.0/16</code>은 Windows가 DHCP Server에서 IPv4 설정을 받지 못했을 때 사용하는 APIPA(Automatic Private IP Addressing) 범위이다. 이 주소와 Gateway가 없다는 결과로 다음 상태를 확인할 수 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Wi-Fi Association   성공
+        │
+        ▼
+DHCP 주소 할당      실패
+        │
+        ▼
+169.254.x.x 자동 구성
+        │
+        ▼
+기본 Gateway 없음
+</code></pre></div></div>
+
+<p>Wi-Fi의 무선 연결 상태는 별도로 확인했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">netsh</span><span class="w"> </span><span class="nx">wlan</span><span class="w"> </span><span class="nx">show</span><span class="w"> </span><span class="nx">interfaces</span><span class="w">
+</span></code></pre></div></div>
+
+<p>확인 결과 SSID, 신호 세기와 연결 상태는 정상으로 표시되었다. 따라서 이 시점의 문제는 AP와의 Association이 아니라 IPv4 설정을 받지 못한 상태였다.</p>
+
+<h3 id="dhcp-lease-재요청">DHCP Lease 재요청</h3>
+
+<p>처음에는 DHCP 주소를 반납하고 다시 요청했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/release</span><span class="w">
+</span><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/renew</span><span class="w">
+</span></code></pre></div></div>
+
+<p>유선 LAN Cable이 제거된 Ethernet Adapter에서는 다음 메시지가 함께 출력되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>미디어의 연결이 끊긴 상태에서는 이더넷에서 작업을 수행할 수 없습니다.
+</code></pre></div></div>
+
+<p>이 메시지는 Cable이 연결되지 않은 Ethernet Adapter에 대한 결과이다. Wi-Fi의 DHCP 처리 결과와 구분해야 한다. Wi-Fi만 대상으로 실행하려면 Adapter 이름을 지정한다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/release</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/renew</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Wi-Fi 갱신 과정에서는 다음 오류가 발생했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>인터페이스 갱신하는 동안 오류 발생:
+개체가 이미 있음
+</code></pre></div></div>
+
+<p>이 메시지만으로 중복된 IP Address나 Route가 정확한 원인이라고 확정할 수는 없다. 당시에는 Windows TCP/IP 상태 이상을 의심하고 현재 설정을 먼저 확인했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Get-NetIPConfiguration</span><span class="w"> </span><span class="nt">-InterfaceAlias</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span><span class="n">Get-NetIPAddress</span><span class="w"> </span><span class="nt">-InterfaceAlias</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span><span class="n">Get-NetRoute</span><span class="w"> </span><span class="nt">-InterfaceAlias</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="windows-network-설정-초기화">Windows Network 설정 초기화</h3>
+
+<p>일반적인 DHCP 재요청으로 복구되지 않아 관리자 권한 Terminal에서 Winsock Catalog와 TCP/IP 설정을 초기화했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">netsh</span><span class="w"> </span><span class="nx">winsock</span><span class="w"> </span><span class="nx">reset</span><span class="w">
+</span><span class="n">netsh</span><span class="w"> </span><span class="nx">int</span><span class="w"> </span><span class="nx">ip</span><span class="w"> </span><span class="nx">reset</span><span class="w">
+</span></code></pre></div></div>
+
+<p>이 명령은 Network 설정에 영향을 준다. 기존 수동 IP, DNS나 별도 Network 구성이 있다면 먼저 기록하고, 다른 원인 확인 없이 첫 단계에서 실행하지 않는다. 적용을 완료하기 위해 Windows를 재부팅했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">shutdown</span><span class="w"> </span><span class="nx">/r</span><span class="w"> </span><span class="nx">/t</span><span class="w"> </span><span class="nx">0</span><span class="w">
+</span></code></pre></div></div>
+
+<p>재부팅 후 <code class="language-plaintext highlighter-rouge">ipconfig /all</code>에서 다음 상태를 확인했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>IPv4 주소       : 192.168.0.x
+서브넷 마스크   : 255.255.255.0
+기본 게이트웨이 : 192.168.0.1
+DHCP 사용       : 예
+</code></pre></div></div>
+
+<p>Wi-Fi 인터넷은 복구되었다. 다만 DHCP 응답을 받지 못한 최초 원인은 Packet Capture나 Windows Event 등으로 확인하지 못했다. 따라서 “Windows Network 초기화와 재부팅 후 복구됨”은 확인된 사실이지만, 특정 IP Object나 Route가 근본 원인이었다고 단정하지 않는다.</p>
+
+<h2 id="4--인터넷-복구와-vm-접속-복구는-별개였다">4 ) 인터넷 복구와 VM 접속 복구는 별개였다</h2>
+
+<hr />
+
+<p>Windows의 Wi-Fi 인터넷이 복구된 뒤에도 외부 SSH 에서 VirtualBox VM으로 접속할 수 없었다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.200</span><span class="w">
+</span><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.201</span><span class="w">
+</span><span class="n">ssh</span><span class="w"> </span><span class="err">&lt;</span><span class="nx">user</span><span class="err">&gt;@</span><span class="nx">192.168.0.200</span><span class="w">
+</span></code></pre></div></div>
+
+<p>반면 VM 사이의 통신은 유지되고 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lab-control-plane ↔ lab-worker1   정상
+lab-control-plane ↔ lab-worker2   정상
+worker            ↔ lab-nfs       정상
+Windows Host       → VM            실패
+</code></pre></div></div>
+
+<p>이 결과는 Kubernetes Pod Network 전체가 중단됐다는 의미가 아니다. VM 내부 경로는 동작하고 있었고 Windows Host에서 VM으로 가는 경로만 실패했다. 따라서 Kubernetes Resource보다 먼저 Host Routing과 VirtualBox Network 연결을 확인했다.</p>
+
+<p>Windows Routing Table을 조회했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">route</span><span class="w"> </span><span class="nx">print</span><span class="w">
+</span></code></pre></div></div>
+
+<p>주요 결과는 다음과 같았다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0.0.0.0/0       → 192.168.0.1   Interface 192.168.0.99
+192.168.0.0/24  → 연결됨        Interface 192.168.0.99
+
+VirtualBox Host-Only Adapter
+169.254.70.191/16
+</code></pre></div></div>
+
+<p>Windows는 VM의 <code class="language-plaintext highlighter-rouge">192.168.0.20x</code> 주소를 Wi-Fi와 같은 Local Network의 주소로 판단하고 있었다. Host-Only Adapter는 해당 대역을 담당하지 않았다. 이 결과만으로 VirtualBox 설정을 확정할 수는 없지만, VM이 어떤 Host Interface에 Bridge되어 있는지 확인해야 한다는 범위를 정할 수 있었다.</p>
+
+<h2 id="5--확정-원인은-bridged-adapter의-대상-nic였다">5 ) 확정 원인은 Bridged Adapter의 대상 NIC였다</h2>
+
+<hr />
+
+<p>VM을 종료한 뒤 VirtualBox의 다음 설정을 확인했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM 설정
+└── Network
+    └── Adapter 1
+        ├── Attached to : Bridged Adapter
+        └── Name        : Realtek PCIe GbE Family Controller
+</code></pre></div></div>
+
+<p>Bridged Adapter의 대상이 LAN Cable을 제거한 Realtek Ethernet NIC로 남아 있었다. 장애 전에는 이 경로가 유효했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM
+ │
+VirtualBox Bridge
+ │
+Realtek Ethernet
+ │
+LAN Cable
+ │
+Router
+</code></pre></div></div>
+
+<p>Cable을 데스크톱으로 옮긴 뒤에는 같은 설정이 물리적으로 끊긴 Interface를 가리켰다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM
+ │
+VirtualBox Bridge
+ │
+Realtek Ethernet
+ │
+Cable 없음
+ ╳
+</code></pre></div></div>
+
+<p>VirtualBox의 Bridged Adapter는 사용자가 선택한 Host Network Interface를 통해 Guest Traffic을 전달한다. Windows가 Wi-Fi로 인터넷에 연결되었다고 해서 기존 VM의 Bridge 대상도 자동으로 Wi-Fi NIC로 변경되는 것은 아니었다.</p>
+
+<p>각 VM의 Bridge 대상 <code class="language-plaintext highlighter-rouge">Name</code>을 현재 연결된 Wi-Fi Adapter로 변경했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>기존: Realtek PCIe GbE Family Controller
+변경: Intel(R) Wi-Fi 6 AX201 160MHz
+</code></pre></div></div>
+
+<p>이 단계에서는 동시에 여러 설정을 바꾸지 않는 것이 중요하다. 우선 다음 값은 유지하고 Bridge 대상만 변경해야 원인과 결과를 분리할 수 있다.</p>
+
+<ul>
+  <li>
+    <p>Adapter Type</p>
+  </li>
+  <li>
+    <p>MAC Address</p>
+  </li>
+  <li>
+    <p>Promiscuous Mode</p>
+  </li>
+  <li>
+    <p>Cable Connected 상태</p>
+  </li>
+</ul>
+
+<p>Wi-Fi Bridging은 Host OS, Wi-Fi Driver와 Access Point 구성에 따라 Ethernet Bridging과 다르게 동작하거나 제한될 수 있다. 따라서 Bridge 대상을 Wi-Fi NIC로 변경했다는 사실만으로 모든 환경에서 같은 결과가 보장되지는 않는다.</p>
+
+<h2 id="6--가상-nic-변경-후-발생한-두-번째-문제">6 ) 가상 NIC 변경 후 발생한 두 번째 문제</h2>
+
+<hr />
+
+<p>Bridge 대상을 변경하는 과정에서 Guest에 보여줄 Adapter Type도 <code class="language-plaintext highlighter-rouge">virtio-net</code>으로 변경했다. 이후 <code class="language-plaintext highlighter-rouge">lab-nfs</code>를 제외한 일부 Ubuntu VM에서 Network가 올라오지 않았다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr
+</code></pre></div></div>
+
+<p>다음 상태가 확인되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2: enp0s3: &lt;BROADCAST,MULTICAST&gt;
+    state DOWN
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">enp0s3</code> Interface는 존재했다. 처음엔 “NIC가 유실됐네” 라고 생각했는데, 다음 상태로 표현하는 것이 정확하다고 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NIC 존재
+   │
+   ▼
+Link DOWN
+   │
+   ▼
+IPv4 Address 없음
+</code></pre></div></div>
+
+<p>Adapter Type 변경이 직접 원인이었는지, Netplan 설정이 적용되지 않은 이유가 무엇인지는 당시 기록해두었던 자료만으로 확정할 수 없었다. 초반 이슈 이후로는 Interface 이름이 계속 <code class="language-plaintext highlighter-rouge">enp0s3</code>로 확인됐고 변경 전후 Netplan과 System Log를 모두 보존하지 못했기 때문이다.</p>
+
+<h3 id="interface와-netplan-확인">Interface와 Netplan 확인</h3>
+
+<p>먼저 한 VM에서 Interface를 임시로 활성화했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>ip <span class="nb">link set </span>enp0s3 up
+ip <span class="nb">link </span>show enp0s3
+ip addr show enp0s3
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ip link set</code>으로 변경한 상태는 재부팅 후에도 유지되는 영구 Network 설정이 아니다. NIC를 올릴 수 있는지 확인한 뒤 Netplan을 점검했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> <span class="nt">-l</span> /etc/netplan/
+<span class="nb">sudo cat</span> /etc/netplan/<span class="k">*</span>.yaml
+</code></pre></div></div>
+
+<p>Netplan의 Interface 이름과 <code class="language-plaintext highlighter-rouge">ip addr</code>에서 확인한 실제 이름이 같은지 확인했다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">network</span><span class="pi">:</span>
+  <span class="na">version</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">ethernets</span><span class="pi">:</span>
+    <span class="na">enp0s3</span><span class="pi">:</span>
+      <span class="na">dhcp4</span><span class="pi">:</span> <span class="no">false</span>
+      <span class="na">addresses</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">192.168.0.200/24</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">to</span><span class="pi">:</span> <span class="s">default</span>
+          <span class="na">via</span><span class="pi">:</span> <span class="s">192.168.0.1</span>
+      <span class="na">nameservers</span><span class="pi">:</span>
+        <span class="na">addresses</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">8.8.8.8</span>
+          <span class="pi">-</span> <span class="s">1.1.1.1</span>
+</code></pre></div></div>
+
+<p>각 VM에는 해당 Node에 할당한 IP Address를 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>VM</th>
+      <th>Address</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-control-plane</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.200/24</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-worker1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.201/24</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-worker2</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.202/24</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-nfs</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.203/24</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>여러 Netplan YAML File이 존재하면 설정이 함께 처리되므로 같은 Interface를 중복 정의하거나 서로 다른 값을 적용하는 File이 있는지도 확인해야 한다.</p>
+
+<p>설정의 YAML 문법과 생성 결과를 먼저 검사했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan generate
+</code></pre></div></div>
+
+<p>Network를 변경할 때는 가능하면 다음 명령으로 임시 적용하여 <strong>연결이 끊기면 이전 설정으로 돌아갈 수 있게 한다</strong>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan try
+</code></pre></div></div>
+
+<p>확인 후 설정을 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan apply
+</code></pre></div></div>
+
+<p>SSH로 접속한 상태에서 Network를 변경하면 연결을 잃을 수 있다. 이번과 같이 Guest Network 자체가 동작하지 않는 상황에서는 VirtualBox Console에서 작업하는 것이 안전하다.</p>
+
+<p>적용 후 Interface, Route와 통신을 순서대로 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr show enp0s3
+ip route
+ping <span class="nt">-c</span> 3 192.168.0.1
+ping <span class="nt">-c</span> 3 192.168.0.99
+</code></pre></div></div>
+
+<p>Netplan을 다시 적용한 뒤 각 VM의 고정 IP가 복구되었고 외부 네트워크에서 VPN에 접속된 Mac의 SSH와 Windows Host에서이 VM으로 Ping과 SSH가 가능해졌다.</p>
+
+<h2 id="7--확인된-사실과-추정을-구분">7 ) 확인된 사실과 추정을 구분</h2>
+
+<hr />
+
+<p>복구됐다는 사실만으로 사용한 명령이 곧 근본 원인을 입증하는 것은 아니지만, 네트워크 구성이 변경될 때마다 비슷한 장애가 발생해왔었고, 다시 기억할 수 있도록 이번 장애의 판단 수준을 구분하면 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>판단</th>
+      <th>근거</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Windows가 정상 DHCP 주소를 받지 못함</td>
+      <td>확인됨</td>
+      <td><code class="language-plaintext highlighter-rouge">169.254.x.x</code>, Gateway 없음</td>
+    </tr>
+    <tr>
+      <td>Wi-Fi Association 자체는 정상</td>
+      <td>확인됨</td>
+      <td><code class="language-plaintext highlighter-rouge">netsh wlan show interfaces</code>의 연결 상태</td>
+    </tr>
+    <tr>
+      <td>Windows TCP/IP 내부 Object 충돌이 근본 원인</td>
+      <td>미확정</td>
+      <td>초기화 후 복구됐지만 직접 원인을 확인하지 못함</td>
+    </tr>
+    <tr>
+      <td>VM Bridge가 연결이 끊긴 Ethernet NIC를 참조함</td>
+      <td>확인됨</td>
+      <td>VirtualBox VM Network 설정에서 Realtek NIC 확인</td>
+    </tr>
+    <tr>
+      <td>해당 Bridge 설정이 Host에서 VM으로 접근하지 못한 원인</td>
+      <td>확인됨</td>
+      <td>물리 연결 상태와 Bridge 대상이 불일치했고 변경 후 경로 복구</td>
+    </tr>
+    <tr>
+      <td>Ubuntu VM의 <code class="language-plaintext highlighter-rouge">enp0s3</code>가 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code> 상태</td>
+      <td>확인됨</td>
+      <td>VM의 <code class="language-plaintext highlighter-rouge">ip addr</code> 결과</td>
+    </tr>
+    <tr>
+      <td>Adapter Type 변경 후 Netplan 장애 발생</td>
+      <td>확인됨</td>
+      <td>Adapter에 따라 netplan에서 인터페이스를 재할당하여 복구</td>
+    </tr>
+    <tr>
+      <td>Guest Network 설정을 확인하고 다시 적용한 뒤 복구</td>
+      <td>확인됨</td>
+      <td>고정 IP, Ping과 SSH 복구</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>가장 명확했던 원인은 VirtualBox Bridge가 물리적으로 연결되지 않은 Host NIC를 계속 참조했다는 점이다.</p>
+
+<h2 id="8--계층별-진단-순서">8 ) 계층별 진단 순서</h2>
+
+<hr />
+
+<p>“통신이 안 된다”는 증상을 하나의 문제로 다루지 않고 아래에서 위로 확인했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Wi-Fi Association
+        │
+        ▼
+IP Address와 DHCP
+        │
+        ▼
+Default Gateway와 Host Route
+        │
+        ▼
+VirtualBox Attachment Mode
+        │
+        ▼
+Bridge 대상 Host NIC
+        │
+        ▼
+Guest NIC Link 상태
+        │
+        ▼
+Netplan Address와 Route
+        │
+        ▼
+Ping과 SSH
+</code></pre></div></div>
+
+<p>각 단계의 판단 기준은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>확인 결과</th>
+      <th>다음으로 볼 대상</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Wi-Fi가 연결되지 않음</td>
+      <td>Wi-Fi Profile, 인증과 Adapter 상태</td>
+    </tr>
+    <tr>
+      <td>Wi-Fi 연결, <code class="language-plaintext highlighter-rouge">169.254.x.x</code>, Gateway 없음</td>
+      <td>DHCP와 Windows IP 설정</td>
+    </tr>
+    <tr>
+      <td>ipTIME 의 DHCP 충돌은 아니었음</td>
+      <td>ipTIME DHCP 서버 관리 및 내부 네트워크 설정</td>
+    </tr>
+    <tr>
+      <td>Host 인터넷 정상, Host에서 모든 VM 접근 실패</td>
+      <td>VirtualBox Attachment와 Bridge 대상</td>
+    </tr>
+    <tr>
+      <td>VM끼리 통신 가능, Host에서 VM만 실패</td>
+      <td>Host와 VM 사이의 VirtualBox 경로</td>
+    </tr>
+    <tr>
+      <td>Guest NIC가 보이지 않음</td>
+      <td>가상 NIC 연결 여부와 Guest Driver</td>
+    </tr>
+    <tr>
+      <td>Guest NIC가 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code></td>
+      <td>Link 상태와 Guest Network 설정</td>
+    </tr>
+    <tr>
+      <td>IP는 있지만 Gateway Ping 실패</td>
+      <td>Subnet, Route, Bridge와 물리 Network</td>
+    </tr>
+    <tr>
+      <td>Ping 성공, SSH만 실패</td>
+      <td>SSH Service, Port와 Firewall</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>이 순서를 사용하면 DHCP 장애 상태에서 SSH 설정을 바꾸거나, Guest NIC가 <code class="language-plaintext highlighter-rouge">DOWN</code>인 상태에서 Kubernetes 설정을 먼저 수정하는 일을 피할 수 있을 것 같다.</p>
+
+<h2 id="9--재발-방지-기준">9 ) 재발 방지 기준</h2>
+
+<hr />
+
+<h3 id="host의-물리-interface가-바뀌면-bridge-대상을-확인한다">Host의 물리 Interface가 바뀌면 Bridge 대상을 확인한다</h3>
+
+<p>Bridged Adapter는 특정 Host Interface에 연결된다. Ethernet에서 Wi-Fi로 전환하거나 USB Ethernet Adapter를 교체했다면 모든 VM의 Bridge 대상을 확인한다.</p>
+
+<h3 id="한-번에-하나의-설정만-변경한다">한 번에 하나의 설정만 변경한다</h3>
+
+<p>Bridge 대상과 Adapter Type을 동시에 변경하면 어떤 변경이 장애를 만들었는지 분리하기 어렵다. 다음 순서로 하나씩 변경하고 매 단계에서 통신을 확인한다.</p>
+
+<ol>
+  <li>
+    <p>Bridge 대상 Host NIC 변경</p>
+  </li>
+  <li>
+    <p>Guest 부팅 후 NIC와 IP 확인</p>
+  </li>
+  <li>
+    <p>Gateway와 Host 통신 확인</p>
+  </li>
+  <li>
+    <p>필요한 경우에만 Adapter Type 변경</p>
+  </li>
+  <li>
+    <p>다시 Guest NIC와 Netplan 확인</p>
+  </li>
+</ol>
+
+<h3 id="mac-address를-불필요하게-변경하지-않는다">MAC Address를 불필요하게 변경하지 않는다</h3>
+
+<p>DHCP Reservation이나 Network 접근 정책에서 MAC Address를 사용할 수 있다. Bridge 대상만 변경하는 작업에서는 Guest MAC Address를 유지한다.</p>
+
+<h3 id="network-변경-전-현재-상태를-기록한다">Network 변경 전 현재 상태를 기록한다</h3>
+
+<p>Windows에서는 다음 결과를 보존한다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/all</span><span class="w">
+</span><span class="n">route</span><span class="w"> </span><span class="nx">print</span><span class="w">
+</span><span class="n">Get-NetIPConfiguration</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Ubuntu VM에서는 다음 결과를 보존한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr
+ip route
+<span class="nb">sudo cat</span> /etc/netplan/<span class="k">*</span>.yaml
+</code></pre></div></div>
+
+<p>변경 전후 결과가 있으면 복구 여부뿐 아니라 정확한 원인까지 확인할 수 있다.</p>
+
+<h3 id="netplan은-console과-rollback을-준비한다">Netplan은 Console과 Rollback을 준비한다</h3>
+
+<p>Remote 접속 중 Network를 변경해야 한다면 <code class="language-plaintext highlighter-rouge">netplan try</code>를 우선 사용한다. Bridge, IP와 Route를 변경하는 작업은 연결이 끊길 수 있으므로 가능한 경우 Local Console이나 VirtualBox Console을 확보한다.</p>
+
+<h2 id="10--최종-확인">10 ) 최종 확인</h2>
+
+<hr />
+
+<p>각 계층의 복구 여부를 다음 순서로 확인했다.</p>
+
+<h3 id="windows-host">Windows Host</h3>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/all</span><span class="w">
+</span><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.1</span><span class="w">
+</span><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.200</span><span class="w">
+</span><span class="n">ssh</span><span class="w"> </span><span class="err">&lt;</span><span class="nx">user</span><span class="err">&gt;@</span><span class="nx">192.168.0.200</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="ubuntu-vm">Ubuntu VM</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr show enp0s3
+ip route
+ping <span class="nt">-c</span> 3 192.168.0.1
+ping <span class="nt">-c</span> 3 192.168.0.99
+</code></pre></div></div>
+
+<p>확인 결과는 다음과 같았다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>대상</th>
+      <th>결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Windows Wi-Fi의 DHCP Address와 Default Gateway</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>Windows 인터넷 연결</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>Windows Host에서 VM Ping</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>Windows Host에서 VM SSH</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>VM 사이 통신</td>
+      <td>정상</td>
+    </tr>
+    <tr>
+      <td>Ubuntu VM의 고정 IP와 Default Route</td>
+      <td>복구</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">169.254.x.x</code> 주소와 Gateway 부재는 Wi-Fi 연결 여부가 아니라 DHCP 주소 할당부터 확인해야 한다는 단서였다.</p>
+    </li>
+    <li>
+      <p>Windows 인터넷이 복구되어도 VirtualBox VM의 Network 경로가 자동으로 복구되는 것은 아니다.</p>
+    </li>
+    <li>
+      <p>VirtualBox VM은 연결이 끊긴 Realtek Ethernet NIC에 계속 Bridge되어 있었으며, 이것이 Host에서 VM으로 접근할 수 없었던 확정 원인이었다.</p>
+    </li>
+    <li>
+      <p>Guest의 <code class="language-plaintext highlighter-rouge">enp0s3</code>는 유실된 것이 아니라 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code> 상태였고, Interface와 Netplan을 확인하고 다시 적용한 뒤 고정 IP가 복구되었다.</p>
+    </li>
+    <li>
+      <p>Network 장애는 Association, DHCP, Route, VirtualBox Bridge, Guest NIC, Netplan과 Application 순서로 계층을 나누어 확인한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="TroubleShooting" /><category term="Network" /><summary type="html"><![CDATA[노트북의 연결을 유선에서 Wi-Fi로 전환한 뒤 발생한 Windows DHCP, VirtualBox Bridged Adapter와 Ubuntu Netplan 문제를 계층별로 추적한 기록]]></summary></entry><entry><title type="html">Kubernetes Health Check와 restartPolicy</title><link href="https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy/" rel="alternate" type="text/html" title="Kubernetes Health Check와 restartPolicy" /><published>2026-09-04T00:00:00+09:00</published><updated>2026-09-04T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-37-kubernetes-health-check-restart-policy/"><![CDATA[<p>Kubernetes는 Process가 실행 중이라는 사실만으로 Application이 정상이라고 판단하지 않는다. Worker의 kubelet은 Probe를 실행하여 Container의 생존 여부, 요청 처리 가능 여부와 시작 완료 여부를 확인한다. Probe 결과와 <code class="language-plaintext highlighter-rouge">restartPolicy</code>를 함께 이해하면 Container가 재시작되는 경우와 Service Traffic에서만 제외되는 경우를 구분할 수 있다.</p>
 
 <h2 id="1--health-check와-pod-상태">1 ) Health Check와 Pod 상태</h2>
 
@@ -7364,560 +8042,4 @@ kubectl <span class="nb">exec </span>pod/sample-working-dir <span class="nt">--<
       <p><code class="language-plaintext highlighter-rouge">command</code>, <code class="language-plaintext highlighter-rouge">args</code>, <code class="language-plaintext highlighter-rouge">hostNetwork</code>와 <code class="language-plaintext highlighter-rouge">workingDir</code>는 Image의 기본 실행 및 Network 설정을 Pod 수준에서 조정한다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Kubernetes Workload Resource의 제어 관계와 Pod 구조, Multi-container Pattern, command·args 및 Network 설정 정리]]></summary></entry><entry><title type="html">Kubernetes ReplicaSet과 Deployment</title><link href="https://kkr010128.github.io/cloud-native-28-replicaset-deployment/" rel="alternate" type="text/html" title="Kubernetes ReplicaSet과 Deployment" /><published>2026-08-27T00:00:00+09:00</published><updated>2026-08-27T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-28-replicaset-deployment</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-28-replicaset-deployment/"><![CDATA[<p>ReplicaSet은 Label Selector와 일치하는 Pod를 지정한 수만큼 유지한다. Deployment는 ReplicaSet을 한 단계 위에서 관리하여 Pod 수 유지뿐 아니라 Application의 Rolling Update와 Rollback까지 수행한다.</p>
-
-<h2 id="1--replicaset">1 ) ReplicaSet</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>ReplicaSet</strong></p>
-
-  <p>Label Selector와 일치하는 Pod가 <code class="language-plaintext highlighter-rouge">spec.replicas</code>에 지정한 수만큼 실행되도록 지속적으로 조정하는 Controller Resource이다.</p>
-</blockquote>
-
-<p>Pod만 직접 생성하면 Container Process가 실패했을 때 kubelet이 Container를 재시작할 수는 있지만, Pod가 삭제되거나 Node 장애로 사라진 Pod를 대신할 새 Pod를 생성하는 상위 Controller는 없다. ReplicaSet은 현재 Pod 수가 원하는 수보다 적으면 새 Pod를 만들고, 많으면 일치하는 Pod를 줄인다.</p>
-
-<p>ReplicationController도 Pod 복제 수를 관리하지만 Legacy Resource이다. 신규 구성에서는 ReplicaSet을 사용하며, 일반적인 Application은 ReplicaSet을 직접 배포하기보다 Deployment를 통해 관리한다.</p>
-
-<h3 id="control-plane과-worker의-조정-흐름">Control Plane과 Worker의 조정 흐름</h3>
-
-<p>ReplicaSet의 상태 조정은 다음과 같이 이루어진다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Plane
-ReplicaSet Controller
-  │ Label Selector와 일치하는 Pod 수 계산
-  ├── 부족함 ──▶ Pod 생성 요청
-  └── 초과함 ──▶ Pod 삭제 요청
-                    │
-                    ▼
-               Scheduler
-                    │ Worker 선택
-                    ▼
-Worker의 kubelet ──▶ Container Runtime ──▶ Container 실행
-</code></pre></div></div>
-
-<p>Worker나 Pod에 장애가 생기면 Control Plane은 API Server에 기록된 상태를 기준으로 부족한 Replica를 감지한다. Scheduler가 새 Pod를 실행할 Worker를 선택하고 해당 Worker의 kubelet이 Container를 실행한다.</p>
-
-<p>ReplicaSet은 Application 자체의 Data 복제나 Session 복구를 수행하지 않는다. 여러 Pod가 대체 가능하도록 Application을 구성하고 필요한 Data는 외부 저장소에서 관리해야 한다.</p>
-
-<h2 id="2--replicaset-생성">2 ) ReplicaSet 생성</h2>
-
-<hr />
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-rs.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">ReplicaSet</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-rs</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.replicas</code></td>
-      <td>유지할 Pod 수</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.selector.matchLabels</code></td>
-      <td>ReplicaSet이 관리 대상으로 계산할 Pod Label</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.template</code></td>
-      <td>Pod 수가 부족할 때 새로 생성할 Pod Template</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">template.metadata.labels</code></td>
-      <td>생성되는 Pod에 부여할 Label</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Master 또는 kubeconfig가 설정된 관리 Client에서 Manifest를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-rs.yaml
-</code></pre></div></div>
-
-<p>ReplicaSet과 생성된 Pod를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get replicasets
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p>ReplicaSet이 생성한 Pod의 이름은 <code class="language-plaintext highlighter-rouge">sample-rs-&lt;임의 문자열&gt;</code> 형태이다. 각 Pod의 이름은 다르지만 같은 Pod Template과 Label을 사용한다.</p>
-
-<p>상세 상태와 최근 Event를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe replicaset sample-rs
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">describe</code>는 장기간 증감 이력을 제공하는 명령이 아니다. 현재 Replica 수, Selector, Pod Template, Condition과 최근 Event를 확인하는 데 사용한다.</p>
-
-<h2 id="3--label-selector와-pod-수-조정">3 ) Label Selector와 Pod 수 조정</h2>
-
-<hr />
-
-<p>ReplicaSet의 <code class="language-plaintext highlighter-rouge">selector</code>는 <code class="language-plaintext highlighter-rouge">template</code>에 지정한 Label을 포함해야 한다. 두 값이 일치하지 않으면 API Server가 Resource 생성을 거부한다.</p>
-
-<p>다음 잘못된 Manifest를 <code class="language-plaintext highlighter-rouge">sample-rs-fail.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">ReplicaSet</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-rs-fail</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app-fail</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<p>적용하면 Selector가 Pod Template Label과 일치하지 않는다는 오류가 발생한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-rs-fail.yaml
-</code></pre></div></div>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>The ReplicaSet "sample-rs-fail" is invalid:
-spec.template.metadata.labels: Invalid value:
-selector does not match template labels
-</code></pre></div></div>
-
-<p>오류를 해결하려면 <code class="language-plaintext highlighter-rouge">spec.selector.matchLabels</code>와 <code class="language-plaintext highlighter-rouge">spec.template.metadata.labels</code>의 <code class="language-plaintext highlighter-rouge">app</code> 값을 같게 설정한다.</p>
-
-<h3 id="같은-label의-독립-pod-생성">같은 Label의 독립 Pod 생성</h3>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-rs-pod.yaml</code>로 저장한다. 이 Pod는 ReplicaSet과 같은 <code class="language-plaintext highlighter-rouge">app: sample-app</code> Label을 사용하지만 <code class="language-plaintext highlighter-rouge">ownerReferences</code>는 없는 독립 Pod로 요청된다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-rs-pod</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-app</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">nginx</span>
-</code></pre></div></div>
-
-<p>Pod를 생성하고 즉시 상태 변화를 관찰한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-rs-pod.yaml
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app <span class="nt">--watch</span>
-</code></pre></div></div>
-
-<p>API Server는 Pod 생성 요청을 정상적으로 처리한다. 그 결과 일치하는 Pod가 <code class="language-plaintext highlighter-rouge">replicas: 3</code>보다 많아지면 ReplicaSet Controller가 Selector와 일치하는 Pod 중 하나를 삭제하여 총수를 다시 3개로 맞춘다. 반드시 새로 생성한 <code class="language-plaintext highlighter-rouge">sample-rs-pod</code>가 삭제된다고 보장되지는 않는다.</p>
-
-<p>최종 Pod 수를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
-</code></pre></div></div>
-
-<h2 id="4--replicaset-scaling">4 ) ReplicaSet Scaling</h2>
-
-<hr />
-
-<p>Replica 수는 Manifest의 <code class="language-plaintext highlighter-rouge">spec.replicas</code>를 수정한 뒤 다시 적용하거나 <code class="language-plaintext highlighter-rouge">kubectl scale</code>로 변경한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale replicaset sample-rs <span class="nt">--replicas</span><span class="o">=</span>5
-</code></pre></div></div>
-
-<p>변경된 원하는 수와 현재 실행 수를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get replicaset sample-rs
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-app
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">kubectl scale</code>은 Cluster의 Live Object를 직접 변경한다. Manifest를 기준으로 지속적으로 관리한다면 File의 <code class="language-plaintext highlighter-rouge">spec.replicas</code>도 같은 값으로 수정하여 다음 <code class="language-plaintext highlighter-rouge">apply</code>에서 원래 값으로 되돌아가지 않게 한다.</p>
-
-<h2 id="5--deployment">5 ) Deployment</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Deployment</strong></p>
-
-  <p>ReplicaSet을 생성하고 전환하여 Stateless Application의 배포, Scaling, Rolling Update와 Rollback을 관리하는 Controller Resource이다.</p>
-</blockquote>
-
-<p>Deployment의 제어 관계는 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Deployment Controller
-        │ ReplicaSet 생성·전환
-        ▼
-    ReplicaSet
-        │ Pod 수 유지
-        ▼
-       Pods
-</code></pre></div></div>
-
-<p>직접 생성한 단독 Pod는 삭제된 뒤 자동으로 대체되지 않는다. ReplicaSet은 Pod 수를 유지하지만 Pod Template 변경에 대한 Rollout과 Rollback을 관리하지 않는다. 일반적인 Stateless Application은 Deployment로 배포한다.</p>
-
-<h2 id="6--deployment-생성">6 ) Deployment 생성</h2>
-
-<hr />
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-deployment.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-deployment</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-deployment</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-deployment</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">nginx:1.26</span>
-</code></pre></div></div>
-
-<p>Manifest를 적용하고 Deployment가 사용 가능한 상태가 될 때까지 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-deployment.yaml
-kubectl rollout status deployment/sample-deployment
-</code></pre></div></div>
-
-<p>Deployment, ReplicaSet과 Pod의 관계를 Label과 함께 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployments
-kubectl get replicasets
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment <span class="nt">--show-labels</span>
-</code></pre></div></div>
-
-<p>Manifest 없이 간단한 Deployment를 생성할 수도 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create deployment sample-deployment-by-cli <span class="nt">--image</span><span class="o">=</span>nginx
-</code></pre></div></div>
-
-<p>명령형 생성은 빠른 확인에는 편리하지만 설정을 반복하고 변경 이력을 관리하려면 Manifest를 저장하여 <code class="language-plaintext highlighter-rouge">kubectl apply</code>로 관리하는 편이 적합하다.</p>
-
-<h2 id="7--image-update와-replicaset-전환">7 ) Image Update와 ReplicaSet 전환</h2>
-
-<hr />
-
-<p>Deployment의 Pod Template에 있는 Image를 변경한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">set </span>image deployment/sample-deployment <span class="se">\</span>
-  nginx-container<span class="o">=</span>nginx:1.27
-</code></pre></div></div>
-
-<p>Rollout 진행 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout status deployment/sample-deployment
-kubectl get replicasets
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment
-</code></pre></div></div>
-
-<p>Pod Template이 변경되면 Deployment는 새 ReplicaSet을 만들거나 동일한 Template의 기존 ReplicaSet을 재사용하여 전환한다. 기본 Rolling Update에서는 새 Pod를 늘리고 이전 Pod를 줄이며, 준비 상태를 확인하면서 전환한다.</p>
-
-<p>Rolling Update 중 유지할 Pod 수는 다음 Field로 조정할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.strategy.rollingUpdate.maxSurge</code></td>
-      <td>원하는 Replica 수보다 추가로 만들 수 있는 최대 Pod 수</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.strategy.rollingUpdate.maxUnavailable</code></td>
-      <td>Update 중 사용할 수 없어도 되는 최대 Pod 수</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">spec.replicas</code>만 변경하는 Scaling은 Pod Template 변경이 아니므로 새로운 ReplicaSet을 만들지 않는다.</p>
-
-<p>과거 <code class="language-plaintext highlighter-rouge">kubectl set image</code>의 <code class="language-plaintext highlighter-rouge">--record</code> Option은 실행 Command를 변경 원인으로 기록하는 데 사용되었지만 Deprecated되어 현재 명령에서는 사용하지 않는다. 변경 목적은 배포 절차나 Annotation 등 별도의 관리 방식으로 기록한다.</p>
-
-<h2 id="8--rollout-history와-rollback">8 ) Rollout History와 Rollback</h2>
-
-<hr />
-
-<p>Deployment의 Revision 목록을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout <span class="nb">history </span>deployment/sample-deployment
-</code></pre></div></div>
-
-<p>특정 Revision의 Pod Template을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout <span class="nb">history </span>deployment/sample-deployment <span class="nt">--revision</span><span class="o">=</span>2
-</code></pre></div></div>
-
-<p>특정 Revision으로 되돌린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout undo deployment/sample-deployment <span class="nt">--to-revision</span><span class="o">=</span>2
-kubectl rollout status deployment/sample-deployment
-</code></pre></div></div>
-
-<p>바로 이전 Revision으로 되돌릴 때는 Revision 번호를 생략한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout undo deployment/sample-deployment
-kubectl rollout status deployment/sample-deployment
-</code></pre></div></div>
-
-<p>Rollback은 과거 Pod를 그대로 다시 실행하는 방식이 아니다. Deployment가 이전 Pod Template을 원하는 상태로 선택하고 ReplicaSet의 Replica 수를 조정하여 Pod를 다시 전환한다.</p>
-
-<h2 id="9--rollout-pause와-resume">9 ) Rollout Pause와 Resume</h2>
-
-<hr />
-
-<p>여러 Pod Template 변경을 하나의 Rollout으로 묶어 적용하려면 진행을 일시 중지할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout pause deployment/sample-deployment
-</code></pre></div></div>
-
-<p>Image를 변경한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">set </span>image deployment/sample-deployment <span class="se">\</span>
-  nginx-container<span class="o">=</span>nginx:1.28
-</code></pre></div></div>
-
-<p>Pause 상태에서도 Deployment의 Pod Template 변경은 저장되지만 새 ReplicaSet으로 전환하는 Rollout은 진행되지 않는다. <code class="language-plaintext highlighter-rouge">kubectl rollout status</code>는 Rollback 명령이 아니며 배포 완료 여부를 기다리는 명령이므로, Pause 상태에서는 완료를 기다리며 종료되지 않을 수 있다.</p>
-
-<p>현재 Image와 Pause Condition을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment sample-deployment <span class="se">\</span>
-  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.template.spec.containers[0].image}{"\n"}'</span>
-
-kubectl describe deployment sample-deployment
-</code></pre></div></div>
-
-<p>변경을 적용하려면 Rollout을 재개하고 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout resume deployment/sample-deployment
-kubectl rollout status deployment/sample-deployment
-</code></pre></div></div>
-
-<h2 id="10--deployment-scaling">10 ) Deployment Scaling</h2>
-
-<hr />
-
-<p>Manifest의 <code class="language-plaintext highlighter-rouge">spec.replicas</code>를 수정해서 적용하거나 <code class="language-plaintext highlighter-rouge">kubectl scale</code>로 Replica 수를 변경할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale deployment/sample-deployment <span class="nt">--replicas</span><span class="o">=</span>5
-</code></pre></div></div>
-
-<p>Deployment가 원하는 Replica 수와 사용 가능한 Replica 수를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment sample-deployment
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">kubectl scale</code> 역시 Live Object를 변경하므로 Manifest를 지속적인 기준으로 사용한다면 File의 <code class="language-plaintext highlighter-rouge">replicas</code> 값도 함께 맞춘다.</p>
-
-<h2 id="11--cordon으로-신규-pod-배치-차단">11 ) cordon으로 신규 Pod 배치 차단</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>cordon</strong></p>
-
-  <p>Node를 <code class="language-plaintext highlighter-rouge">SchedulingDisabled</code> 상태로 변경하여 Scheduler가 일반적인 신규 Pod를 해당 Node에 배치하지 않도록 설정하는 작업이다.</p>
-</blockquote>
-
-<p>Hardware 이상 징후를 확인했거나 점검을 준비하는 Worker에는 새로운 Pod가 배치되지 않도록 먼저 Cordon을 설정할 수 있다. 모든 명령은 Master 또는 kubeconfig가 설정된 관리 Client에서 실행한다.</p>
-
-<p>실습 전 Worker 이름과 현재 Pod 배치를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes
-kubectl scale deployment/sample-deployment <span class="nt">--replicas</span><span class="o">=</span>2
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p>Scheduler는 Resource 여유, Scheduling 조건과 점수에 따라 Worker를 선택한다. Worker가 두 대라고 해서 Pod가 항상 정확히 절반씩 배치되는 것은 아니다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">worker1</code>에 Cordon을 설정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl cordon worker1
-kubectl get nodes
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">worker1</code>의 상태에 <code class="language-plaintext highlighter-rouge">SchedulingDisabled</code>가 표시되는지 확인한다. Cordon은 이미 실행 중인 Pod를 이동하거나 종료하지 않는다.</p>
-
-<p>Deployment를 4개로 확장하고 새 Pod의 배치 위치를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale deployment/sample-deployment <span class="nt">--replicas</span><span class="o">=</span>4
-kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p>기존 <code class="language-plaintext highlighter-rouge">worker1</code> Pod는 그대로 실행되지만 새 Pod는 Scheduling 가능한 다른 Worker에 배치된다. Cluster에 사용할 수 있는 다른 Worker가 없거나 Resource가 부족하면 신규 Pod는 <code class="language-plaintext highlighter-rouge">Pending</code> 상태에 머물 수 있다.</p>
-
-<p>Control Plane과 Worker 관점의 동작은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client의 kubectl cordon
-                │
-                ▼
-            API Server
-                │ Node를 SchedulingDisabled로 변경
-                ▼
-             Scheduler
-                │ 신규 Pod 배치 대상에서 worker1 제외
-                ▼
-다른 Worker의 kubelet ──▶ Container Runtime ──▶ 신규 Container 실행
-</code></pre></div></div>
-
-<h2 id="12--drain과-uncordon">12 ) drain과 uncordon</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>drain</strong></p>
-
-  <p>Node 유지보수를 위해 Scheduling을 차단하고 Eviction 가능한 일반 Workload Pod를 안전하게 비우는 작업이다.</p>
-</blockquote>
-
-<p><code class="language-plaintext highlighter-rouge">worker1</code>의 일반 Workload Pod를 다른 Worker로 이동할 수 있도록 Drain을 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl drain worker1 <span class="nt">--ignore-daemonsets</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Option</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--ignore-daemonsets</code></td>
-      <td>Drain이 직접 제거하지 않는 DaemonSet 관리 Pod를 무시하고 작업 계속</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--delete-emptydir-data</code></td>
-      <td><code class="language-plaintext highlighter-rouge">emptyDir</code> Data가 삭제됨을 허용하며 명시적으로 사용해야 하는 Option</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">--force</code></td>
-      <td>Controller가 관리하지 않는 Pod가 있을 때 삭제를 허용하는 Option</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">--delete-emptydir-data</code>와 <code class="language-plaintext highlighter-rouge">--force</code>는 Data 손실이나 독립 Pod 삭제 가능성이 있으므로 오류를 확인하지 않고 바로 추가하지 않는다. PodDisruptionBudget이 허용 중단 수를 제한하면 Drain은 Application 가용성을 지키기 위해 대기하거나 실패할 수 있다.</p>
-
-<p>Drain 요청이 처리되는 흐름은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client의 kubectl drain
-                │
-                ▼
-          API Server의 Eviction
-                │
-                ▼
-Deployment·ReplicaSet Controller가 부족한 Pod 감지
-                │
-                ▼
-Scheduler가 다른 Worker 선택
-                │
-                ▼
-다른 Worker의 kubelet이 대체 Pod 실행
-</code></pre></div></div>
-
-<p>DaemonSet Pod는 각 Node에서 수행할 역할이 있으므로 <code class="language-plaintext highlighter-rouge">--ignore-daemonsets</code>를 사용해도 Drain이 직접 삭제하지 않는다. Static Pod와 <code class="language-plaintext highlighter-rouge">nodeName</code>을 직접 지정하여 Scheduler를 우회한 Pod도 별도로 확인해야 한다.</p>
-
-<p>Pod가 다른 Worker에서 Ready 상태인지 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-deployment <span class="nt">-o</span> wide
-kubectl get node worker1
-</code></pre></div></div>
-
-<p>Node 점검이 끝나면 Scheduling을 다시 허용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl uncordon worker1
-kubectl get nodes
-</code></pre></div></div>
-
-<p>Uncordon은 이후 생성되는 Pod의 배치 대상으로 Node를 되돌린다. 다른 Worker로 이동한 기존 Pod를 자동으로 <code class="language-plaintext highlighter-rouge">worker1</code>에 재분배하지는 않는다.</p>
-
-<h2 id="13--실습-resource-정리">13 ) 실습 Resource 정리</h2>
-
-<hr />
-
-<p>Master 또는 관리 Client에서 생성한 Resource를 정리한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-rs-pod.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-rs.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-deployment.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete deployment sample-deployment-by-cli <span class="nt">--ignore-not-found</span>
-</code></pre></div></div>
-
-<p>삭제 결과를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get replicasets,deployments,pods
-</code></pre></div></div>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>ReplicaSet은 Label Selector와 일치하는 Pod를 <code class="language-plaintext highlighter-rouge">spec.replicas</code> 수만큼 유지한다.</p>
-    </li>
-    <li>
-      <p>Selector와 Pod Template Label은 일치해야 하며 같은 Label의 독립 Pod도 Replica 수 계산에 포함된다.</p>
-    </li>
-    <li>
-      <p>Deployment는 ReplicaSet을 관리하여 Stateless Application의 Rolling Update와 Rollback을 제공한다.</p>
-    </li>
-    <li>
-      <p>Pod Template 변경은 ReplicaSet 전환을 일으키지만 Replica 수만 변경하는 Scaling은 새 ReplicaSet을 만들지 않는다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">rollout history</code>는 Revision을 확인하고 <code class="language-plaintext highlighter-rouge">rollout undo</code>는 이전 Pod Template으로 전환하며 <code class="language-plaintext highlighter-rouge">rollout status</code>는 진행 상태를 기다린다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">cordon</code>은 신규 Scheduling을 차단하고 <code class="language-plaintext highlighter-rouge">drain</code>은 Eviction 가능한 Workload Pod를 비우며 <code class="language-plaintext highlighter-rouge">uncordon</code>은 Scheduling을 다시 허용한다.</p>
-    </li>
-    <li>
-      <p>Scheduler는 여러 Worker에 Pod를 배치하지만 항상 정확히 같은 수로 균등 분배한다고 보장하지 않는다.</p>
-    </li>
-    <li>
-      <p>Control Plane의 Controller가 원하는 상태를 조정하고 Worker의 kubelet과 Container Runtime이 실제 Pod를 실행한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Label Selector 기반 ReplicaSet의 Pod 수 조정, Deployment의 배포와 Scaling 및 cordon·drain을 이용한 Node 유지보수 정리]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Kubernetes Workload Resource의 제어 관계와 Pod 구조, Multi-container Pattern, command·args 및 Network 설정 정리]]></summary></entry></feed>

@@ -1,0 +1,1025 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>VirtualBox Kubernetes Lab에 접속할 수 없었던 이유 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="노트북의 연결을 유선에서 Wi-Fi로 전환한 뒤 발생한 Windows DHCP, VirtualBox Bridged Adapter와 Ubuntu Netplan 문제를 계층별로 추적한 기록">
+<link rel="canonical" href="https://kkr010128.github.io/notes-08-troubleshooting-virtualbox-bridge-network/">
+<meta property="og:title" content="VirtualBox Kubernetes Lab에 접속할 수 없었던 이유 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="노트북의 연결을 유선에서 Wi-Fi로 전환한 뒤 발생한 Windows DHCP, VirtualBox Bridged Adapter와 Ubuntu Netplan 문제를 계층별로 추적한 기록">
+<meta property="og:url" content="https://kkr010128.github.io/notes-08-troubleshooting-virtualbox-bridge-network/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="VirtualBox Kubernetes Lab에 접속할 수 없었던 이유 | renamed.log">
+<meta name="twitter:description" content="노트북의 연결을 유선에서 Wi-Fi로 전환한 뒤 발생한 Windows DHCP, VirtualBox Bridged Adapter와 Ubuntu Netplan 문제를 계층별로 추적한 기록">
+
+  <meta property="article:published_time" content="2026-09-06T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788708611" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788708611" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788708611">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788708611" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1788708611">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "VirtualBox Kubernetes Lab에 접속할 수 없었던 이유 | renamed.log",
+    "description": "노트북의 연결을 유선에서 Wi-Fi로 전환한 뒤 발생한 Windows DHCP, VirtualBox Bridged Adapter와 Ubuntu Netplan 문제를 계층별로 추적한 기록",
+    "url": "https://kkr010128.github.io/notes-08-troubleshooting-virtualbox-bridge-network/",
+    "datePublished": "2026-09-06T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">TechNotes</p>
+    
+    <h1 class="post-head__title">VirtualBox Kubernetes Lab에 접속할 수 없었던 이유</h1>
+    
+      <p class="post-head__description">노트북의 연결을 유선에서 Wi-Fi로 전환한 뒤 발생한 Windows DHCP, VirtualBox Bridged Adapter와 Ubuntu Netplan 문제를 계층별로 추적한 기록</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 6일 · 9분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=TroubleShooting">TroubleShooting</a>
+        
+          <a class="tag-chip" href="/?tag=Network">Network</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>노트북에서 실행하던 Kubernetes 실습 VM을 별도의 데스크톱으로 이전하기 위해 노트북의 유선 LAN Cable을 데스크톱으로 옮겼다. 노트북은 Wi-Fi로 전환했지만 인터넷 연결부터 VirtualBox VM의 SSH 접속까지 연속해서 문제가 발생했다.</p>
+
+<p>겉으로는 하나의 장애처럼 보였지만 Windows의 DHCP, VirtualBox의 Bridged Adapter와 Ubuntu VM의 Network 설정에서 서로 다른 문제가 이어진 상황이었다. 이 글에서는 확인된 사실과 당시의 추정을 구분하여 각 Network 계층을 어떤 순서로 확인했는지 정리한다.</p>
+
+<h2 id="1--장애-발생-전-구성">1 ) 장애 발생 전 구성</h2>
+
+<hr />
+
+<p>나는 Windows 랩탑을 홈 네트워크 아래에 두고, VPN을 구성하여 외부에서 접속이 가능하도록 구성해두고 실습 시마다 사용해오고 있었다.
+노트북의 VirtualBox에는 Kubernetes와 NFS 실습용 VM 네 개가 실행되고 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Windows Laptop
+│
+├── lab-control-plane  192.168.0.200
+├── lab-worker1        192.168.0.201
+├── lab-worker2        192.168.0.202
+└── lab-nfs            192.168.0.203
+</code></pre></div></div>
+
+<p>각 VM의 Network Adapter는 Bridged Adapter로 구성되어 노트북의 Realtek 유선 NIC를 통해 <code class="language-plaintext highlighter-rouge">192.168.0.0/24</code> Network에 연결되어 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM
+ │
+VirtualBox Bridged Adapter
+ │
+Realtek Ethernet NIC
+ │
+ipTIME Router
+</code></pre></div></div>
+
+<p>실습 VM을 장기적으로 수용할 별도의 Linux Host를 준비하면서 노트북에 연결되어 있던 LAN Cable을 데스크톱으로 옮겼다. 물리 연결은 다음과 같이 변경되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>변경 전
+
+Windows Laptop
+      │ Ethernet
+      ▼
+ipTIME Router
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>변경 후
+
+Linux Host ── Ethernet ── ipTIME Router
+
+Windows Laptop ── Wi-Fi ── ipTIME Router
+</code></pre></div></div>
+
+<p>이 변경은 Kubernetes 설정 자체를 수정한 작업이 아니다. Host의 물리 Network 경로가 Ethernet에서 Wi-Fi로 바뀐 작업이다.</p>
+
+<h2 id="2--장애를-세-단계로-분리">2 ) 장애를 세 단계로 분리</h2>
+
+<hr />
+
+<p>복구 과정에서 관찰한 증상은 다음 세 단계로 나뉘었다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>단계</th>
+      <th>관찰한 증상</th>
+      <th>확인할 계층</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Wi-Fi AP에는 연결됐지만 인터넷을 사용할 수 없음</td>
+      <td>Windows IP·DHCP</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Windows 인터넷은 복구됐지만 Host에서 VM으로 Ping·SSH 실패</td>
+      <td>Routing·VirtualBox Bridge</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>Bridge 설정 변경 후 일부 VM의 NIC는 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code> 상태</td>
+      <td>Guest NIC·Netplan</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>단계별 장애를 구분하지 않으면 Windows DHCP 문제를 해결한 뒤에도 VM 접속 실패를 같은 원인으로 오해하기 쉽다.</p>
+
+<h2 id="3--wi-fi-연결과-ip-할당을-분리해서-확인">3 ) Wi-Fi 연결과 IP 할당을 분리해서 확인</h2>
+
+<hr />
+
+<p>노트북은 Wi-Fi 이름과 신호 세기를 정상적으로 표시했지만 인터넷에 연결되지 않았다. 먼저 Windows에서 사용 중인 Adapter의 IP 설정을 확인했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/all</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Wi-Fi Adapter에는 다음과 같은 값이 표시되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>DHCP 사용           : 예
+자동 구성 IPv4 주소 : 169.254.100.110
+서브넷 마스크       : 255.255.0.0
+기본 게이트웨이     : 없음
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">169.254.0.0/16</code>은 Windows가 DHCP Server에서 IPv4 설정을 받지 못했을 때 사용하는 APIPA(Automatic Private IP Addressing) 범위이다. 이 주소와 Gateway가 없다는 결과로 다음 상태를 확인할 수 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Wi-Fi Association   성공
+        │
+        ▼
+DHCP 주소 할당      실패
+        │
+        ▼
+169.254.x.x 자동 구성
+        │
+        ▼
+기본 Gateway 없음
+</code></pre></div></div>
+
+<p>Wi-Fi의 무선 연결 상태는 별도로 확인했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">netsh</span><span class="w"> </span><span class="nx">wlan</span><span class="w"> </span><span class="nx">show</span><span class="w"> </span><span class="nx">interfaces</span><span class="w">
+</span></code></pre></div></div>
+
+<p>확인 결과 SSID, 신호 세기와 연결 상태는 정상으로 표시되었다. 따라서 이 시점의 문제는 AP와의 Association이 아니라 IPv4 설정을 받지 못한 상태였다.</p>
+
+<h3 id="dhcp-lease-재요청">DHCP Lease 재요청</h3>
+
+<p>처음에는 DHCP 주소를 반납하고 다시 요청했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/release</span><span class="w">
+</span><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/renew</span><span class="w">
+</span></code></pre></div></div>
+
+<p>유선 LAN Cable이 제거된 Ethernet Adapter에서는 다음 메시지가 함께 출력되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>미디어의 연결이 끊긴 상태에서는 이더넷에서 작업을 수행할 수 없습니다.
+</code></pre></div></div>
+
+<p>이 메시지는 Cable이 연결되지 않은 Ethernet Adapter에 대한 결과이다. Wi-Fi의 DHCP 처리 결과와 구분해야 한다. Wi-Fi만 대상으로 실행하려면 Adapter 이름을 지정한다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/release</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/renew</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Wi-Fi 갱신 과정에서는 다음 오류가 발생했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>인터페이스 갱신하는 동안 오류 발생:
+개체가 이미 있음
+</code></pre></div></div>
+
+<p>이 메시지만으로 중복된 IP Address나 Route가 정확한 원인이라고 확정할 수는 없다. 당시에는 Windows TCP/IP 상태 이상을 의심하고 현재 설정을 먼저 확인했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Get-NetIPConfiguration</span><span class="w"> </span><span class="nt">-InterfaceAlias</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span><span class="n">Get-NetIPAddress</span><span class="w"> </span><span class="nt">-InterfaceAlias</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span><span class="n">Get-NetRoute</span><span class="w"> </span><span class="nt">-InterfaceAlias</span><span class="w"> </span><span class="s2">"Wi-Fi"</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="windows-network-설정-초기화">Windows Network 설정 초기화</h3>
+
+<p>일반적인 DHCP 재요청으로 복구되지 않아 관리자 권한 Terminal에서 Winsock Catalog와 TCP/IP 설정을 초기화했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">netsh</span><span class="w"> </span><span class="nx">winsock</span><span class="w"> </span><span class="nx">reset</span><span class="w">
+</span><span class="n">netsh</span><span class="w"> </span><span class="nx">int</span><span class="w"> </span><span class="nx">ip</span><span class="w"> </span><span class="nx">reset</span><span class="w">
+</span></code></pre></div></div>
+
+<p>이 명령은 Network 설정에 영향을 준다. 기존 수동 IP, DNS나 별도 Network 구성이 있다면 먼저 기록하고, 다른 원인 확인 없이 첫 단계에서 실행하지 않는다. 적용을 완료하기 위해 Windows를 재부팅했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">shutdown</span><span class="w"> </span><span class="nx">/r</span><span class="w"> </span><span class="nx">/t</span><span class="w"> </span><span class="nx">0</span><span class="w">
+</span></code></pre></div></div>
+
+<p>재부팅 후 <code class="language-plaintext highlighter-rouge">ipconfig /all</code>에서 다음 상태를 확인했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>IPv4 주소       : 192.168.0.x
+서브넷 마스크   : 255.255.255.0
+기본 게이트웨이 : 192.168.0.1
+DHCP 사용       : 예
+</code></pre></div></div>
+
+<p>Wi-Fi 인터넷은 복구되었다. 다만 DHCP 응답을 받지 못한 최초 원인은 Packet Capture나 Windows Event 등으로 확인하지 못했다. 따라서 “Windows Network 초기화와 재부팅 후 복구됨”은 확인된 사실이지만, 특정 IP Object나 Route가 근본 원인이었다고 단정하지 않는다.</p>
+
+<h2 id="4--인터넷-복구와-vm-접속-복구는-별개였다">4 ) 인터넷 복구와 VM 접속 복구는 별개였다</h2>
+
+<hr />
+
+<p>Windows의 Wi-Fi 인터넷이 복구된 뒤에도 외부 SSH 에서 VirtualBox VM으로 접속할 수 없었다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.200</span><span class="w">
+</span><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.201</span><span class="w">
+</span><span class="n">ssh</span><span class="w"> </span><span class="err">&lt;</span><span class="nx">user</span><span class="err">&gt;@</span><span class="nx">192.168.0.200</span><span class="w">
+</span></code></pre></div></div>
+
+<p>반면 VM 사이의 통신은 유지되고 있었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>lab-control-plane ↔ lab-worker1   정상
+lab-control-plane ↔ lab-worker2   정상
+worker            ↔ lab-nfs       정상
+Windows Host       → VM            실패
+</code></pre></div></div>
+
+<p>이 결과는 Kubernetes Pod Network 전체가 중단됐다는 의미가 아니다. VM 내부 경로는 동작하고 있었고 Windows Host에서 VM으로 가는 경로만 실패했다. 따라서 Kubernetes Resource보다 먼저 Host Routing과 VirtualBox Network 연결을 확인했다.</p>
+
+<p>Windows Routing Table을 조회했다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">route</span><span class="w"> </span><span class="nx">print</span><span class="w">
+</span></code></pre></div></div>
+
+<p>주요 결과는 다음과 같았다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0.0.0.0/0       → 192.168.0.1   Interface 192.168.0.99
+192.168.0.0/24  → 연결됨        Interface 192.168.0.99
+
+VirtualBox Host-Only Adapter
+169.254.70.191/16
+</code></pre></div></div>
+
+<p>Windows는 VM의 <code class="language-plaintext highlighter-rouge">192.168.0.20x</code> 주소를 Wi-Fi와 같은 Local Network의 주소로 판단하고 있었다. Host-Only Adapter는 해당 대역을 담당하지 않았다. 이 결과만으로 VirtualBox 설정을 확정할 수는 없지만, VM이 어떤 Host Interface에 Bridge되어 있는지 확인해야 한다는 범위를 정할 수 있었다.</p>
+
+<h2 id="5--확정-원인은-bridged-adapter의-대상-nic였다">5 ) 확정 원인은 Bridged Adapter의 대상 NIC였다</h2>
+
+<hr />
+
+<p>VM을 종료한 뒤 VirtualBox의 다음 설정을 확인했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM 설정
+└── Network
+    └── Adapter 1
+        ├── Attached to : Bridged Adapter
+        └── Name        : Realtek PCIe GbE Family Controller
+</code></pre></div></div>
+
+<p>Bridged Adapter의 대상이 LAN Cable을 제거한 Realtek Ethernet NIC로 남아 있었다. 장애 전에는 이 경로가 유효했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM
+ │
+VirtualBox Bridge
+ │
+Realtek Ethernet
+ │
+LAN Cable
+ │
+Router
+</code></pre></div></div>
+
+<p>Cable을 데스크톱으로 옮긴 뒤에는 같은 설정이 물리적으로 끊긴 Interface를 가리켰다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VM
+ │
+VirtualBox Bridge
+ │
+Realtek Ethernet
+ │
+Cable 없음
+ ╳
+</code></pre></div></div>
+
+<p>VirtualBox의 Bridged Adapter는 사용자가 선택한 Host Network Interface를 통해 Guest Traffic을 전달한다. Windows가 Wi-Fi로 인터넷에 연결되었다고 해서 기존 VM의 Bridge 대상도 자동으로 Wi-Fi NIC로 변경되는 것은 아니었다.</p>
+
+<p>각 VM의 Bridge 대상 <code class="language-plaintext highlighter-rouge">Name</code>을 현재 연결된 Wi-Fi Adapter로 변경했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>기존: Realtek PCIe GbE Family Controller
+변경: Intel(R) Wi-Fi 6 AX201 160MHz
+</code></pre></div></div>
+
+<p>이 단계에서는 동시에 여러 설정을 바꾸지 않는 것이 중요하다. 우선 다음 값은 유지하고 Bridge 대상만 변경해야 원인과 결과를 분리할 수 있다.</p>
+
+<ul>
+  <li>
+    <p>Adapter Type</p>
+  </li>
+  <li>
+    <p>MAC Address</p>
+  </li>
+  <li>
+    <p>Promiscuous Mode</p>
+  </li>
+  <li>
+    <p>Cable Connected 상태</p>
+  </li>
+</ul>
+
+<p>Wi-Fi Bridging은 Host OS, Wi-Fi Driver와 Access Point 구성에 따라 Ethernet Bridging과 다르게 동작하거나 제한될 수 있다. 따라서 Bridge 대상을 Wi-Fi NIC로 변경했다는 사실만으로 모든 환경에서 같은 결과가 보장되지는 않는다.</p>
+
+<h2 id="6--가상-nic-변경-후-발생한-두-번째-문제">6 ) 가상 NIC 변경 후 발생한 두 번째 문제</h2>
+
+<hr />
+
+<p>Bridge 대상을 변경하는 과정에서 Guest에 보여줄 Adapter Type도 <code class="language-plaintext highlighter-rouge">virtio-net</code>으로 변경했다. 이후 <code class="language-plaintext highlighter-rouge">lab-nfs</code>를 제외한 일부 Ubuntu VM에서 Network가 올라오지 않았다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr
+</code></pre></div></div>
+
+<p>다음 상태가 확인되었다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>2: enp0s3: &lt;BROADCAST,MULTICAST&gt;
+    state DOWN
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">enp0s3</code> Interface는 존재했다. 처음엔 “NIC가 유실됐네” 라고 생각했는데, 다음 상태로 표현하는 것이 정확하다고 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>NIC 존재
+   │
+   ▼
+Link DOWN
+   │
+   ▼
+IPv4 Address 없음
+</code></pre></div></div>
+
+<p>Adapter Type 변경이 직접 원인이었는지, Netplan 설정이 적용되지 않은 이유가 무엇인지는 당시 기록해두었던 자료만으로 확정할 수 없었다. 초반 이슈 이후로는 Interface 이름이 계속 <code class="language-plaintext highlighter-rouge">enp0s3</code>로 확인됐고 변경 전후 Netplan과 System Log를 모두 보존하지 못했기 때문이다.</p>
+
+<h3 id="interface와-netplan-확인">Interface와 Netplan 확인</h3>
+
+<p>먼저 한 VM에서 Interface를 임시로 활성화했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>ip <span class="nb">link set </span>enp0s3 up
+ip <span class="nb">link </span>show enp0s3
+ip addr show enp0s3
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ip link set</code>으로 변경한 상태는 재부팅 후에도 유지되는 영구 Network 설정이 아니다. NIC를 올릴 수 있는지 확인한 뒤 Netplan을 점검했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> <span class="nt">-l</span> /etc/netplan/
+<span class="nb">sudo cat</span> /etc/netplan/<span class="k">*</span>.yaml
+</code></pre></div></div>
+
+<p>Netplan의 Interface 이름과 <code class="language-plaintext highlighter-rouge">ip addr</code>에서 확인한 실제 이름이 같은지 확인했다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">network</span><span class="pi">:</span>
+  <span class="na">version</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">ethernets</span><span class="pi">:</span>
+    <span class="na">enp0s3</span><span class="pi">:</span>
+      <span class="na">dhcp4</span><span class="pi">:</span> <span class="no">false</span>
+      <span class="na">addresses</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">192.168.0.200/24</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">to</span><span class="pi">:</span> <span class="s">default</span>
+          <span class="na">via</span><span class="pi">:</span> <span class="s">192.168.0.1</span>
+      <span class="na">nameservers</span><span class="pi">:</span>
+        <span class="na">addresses</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">8.8.8.8</span>
+          <span class="pi">-</span> <span class="s">1.1.1.1</span>
+</code></pre></div></div>
+
+<p>각 VM에는 해당 Node에 할당한 IP Address를 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>VM</th>
+      <th>Address</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-control-plane</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.200/24</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-worker1</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.201/24</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-worker2</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.202/24</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">lab-nfs</code></td>
+      <td><code class="language-plaintext highlighter-rouge">192.168.0.203/24</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>여러 Netplan YAML File이 존재하면 설정이 함께 처리되므로 같은 Interface를 중복 정의하거나 서로 다른 값을 적용하는 File이 있는지도 확인해야 한다.</p>
+
+<p>설정의 YAML 문법과 생성 결과를 먼저 검사했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan generate
+</code></pre></div></div>
+
+<p>Network를 변경할 때는 가능하면 다음 명령으로 임시 적용하여 <strong>연결이 끊기면 이전 설정으로 돌아갈 수 있게 한다</strong>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan try
+</code></pre></div></div>
+
+<p>확인 후 설정을 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan apply
+</code></pre></div></div>
+
+<p>SSH로 접속한 상태에서 Network를 변경하면 연결을 잃을 수 있다. 이번과 같이 Guest Network 자체가 동작하지 않는 상황에서는 VirtualBox Console에서 작업하는 것이 안전하다.</p>
+
+<p>적용 후 Interface, Route와 통신을 순서대로 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr show enp0s3
+ip route
+ping <span class="nt">-c</span> 3 192.168.0.1
+ping <span class="nt">-c</span> 3 192.168.0.99
+</code></pre></div></div>
+
+<p>Netplan을 다시 적용한 뒤 각 VM의 고정 IP가 복구되었고 외부 네트워크에서 VPN에 접속된 Mac의 SSH와 Windows Host에서이 VM으로 Ping과 SSH가 가능해졌다.</p>
+
+<h2 id="7--확인된-사실과-추정을-구분">7 ) 확인된 사실과 추정을 구분</h2>
+
+<hr />
+
+<p>복구됐다는 사실만으로 사용한 명령이 곧 근본 원인을 입증하는 것은 아니지만, 네트워크 구성이 변경될 때마다 비슷한 장애가 발생해왔었고, 다시 기억할 수 있도록 이번 장애의 판단 수준을 구분하면 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>판단</th>
+      <th>근거</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Windows가 정상 DHCP 주소를 받지 못함</td>
+      <td>확인됨</td>
+      <td><code class="language-plaintext highlighter-rouge">169.254.x.x</code>, Gateway 없음</td>
+    </tr>
+    <tr>
+      <td>Wi-Fi Association 자체는 정상</td>
+      <td>확인됨</td>
+      <td><code class="language-plaintext highlighter-rouge">netsh wlan show interfaces</code>의 연결 상태</td>
+    </tr>
+    <tr>
+      <td>Windows TCP/IP 내부 Object 충돌이 근본 원인</td>
+      <td>미확정</td>
+      <td>초기화 후 복구됐지만 직접 원인을 확인하지 못함</td>
+    </tr>
+    <tr>
+      <td>VM Bridge가 연결이 끊긴 Ethernet NIC를 참조함</td>
+      <td>확인됨</td>
+      <td>VirtualBox VM Network 설정에서 Realtek NIC 확인</td>
+    </tr>
+    <tr>
+      <td>해당 Bridge 설정이 Host에서 VM으로 접근하지 못한 원인</td>
+      <td>확인됨</td>
+      <td>물리 연결 상태와 Bridge 대상이 불일치했고 변경 후 경로 복구</td>
+    </tr>
+    <tr>
+      <td>Ubuntu VM의 <code class="language-plaintext highlighter-rouge">enp0s3</code>가 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code> 상태</td>
+      <td>확인됨</td>
+      <td>VM의 <code class="language-plaintext highlighter-rouge">ip addr</code> 결과</td>
+    </tr>
+    <tr>
+      <td>Adapter Type 변경 후 Netplan 장애 발생</td>
+      <td>확인됨</td>
+      <td>Adapter에 따라 netplan에서 인터페이스를 재할당하여 복구</td>
+    </tr>
+    <tr>
+      <td>Guest Network 설정을 확인하고 다시 적용한 뒤 복구</td>
+      <td>확인됨</td>
+      <td>고정 IP, Ping과 SSH 복구</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>가장 명확했던 원인은 VirtualBox Bridge가 물리적으로 연결되지 않은 Host NIC를 계속 참조했다는 점이다.</p>
+
+<h2 id="8--계층별-진단-순서">8 ) 계층별 진단 순서</h2>
+
+<hr />
+
+<p>“통신이 안 된다”는 증상을 하나의 문제로 다루지 않고 아래에서 위로 확인했다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Wi-Fi Association
+        │
+        ▼
+IP Address와 DHCP
+        │
+        ▼
+Default Gateway와 Host Route
+        │
+        ▼
+VirtualBox Attachment Mode
+        │
+        ▼
+Bridge 대상 Host NIC
+        │
+        ▼
+Guest NIC Link 상태
+        │
+        ▼
+Netplan Address와 Route
+        │
+        ▼
+Ping과 SSH
+</code></pre></div></div>
+
+<p>각 단계의 판단 기준은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>확인 결과</th>
+      <th>다음으로 볼 대상</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Wi-Fi가 연결되지 않음</td>
+      <td>Wi-Fi Profile, 인증과 Adapter 상태</td>
+    </tr>
+    <tr>
+      <td>Wi-Fi 연결, <code class="language-plaintext highlighter-rouge">169.254.x.x</code>, Gateway 없음</td>
+      <td>DHCP와 Windows IP 설정</td>
+    </tr>
+    <tr>
+      <td>ipTIME 의 DHCP 충돌은 아니었음</td>
+      <td>ipTIME DHCP 서버 관리 및 내부 네트워크 설정</td>
+    </tr>
+    <tr>
+      <td>Host 인터넷 정상, Host에서 모든 VM 접근 실패</td>
+      <td>VirtualBox Attachment와 Bridge 대상</td>
+    </tr>
+    <tr>
+      <td>VM끼리 통신 가능, Host에서 VM만 실패</td>
+      <td>Host와 VM 사이의 VirtualBox 경로</td>
+    </tr>
+    <tr>
+      <td>Guest NIC가 보이지 않음</td>
+      <td>가상 NIC 연결 여부와 Guest Driver</td>
+    </tr>
+    <tr>
+      <td>Guest NIC가 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code></td>
+      <td>Link 상태와 Guest Network 설정</td>
+    </tr>
+    <tr>
+      <td>IP는 있지만 Gateway Ping 실패</td>
+      <td>Subnet, Route, Bridge와 물리 Network</td>
+    </tr>
+    <tr>
+      <td>Ping 성공, SSH만 실패</td>
+      <td>SSH Service, Port와 Firewall</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>이 순서를 사용하면 DHCP 장애 상태에서 SSH 설정을 바꾸거나, Guest NIC가 <code class="language-plaintext highlighter-rouge">DOWN</code>인 상태에서 Kubernetes 설정을 먼저 수정하는 일을 피할 수 있을 것 같다.</p>
+
+<h2 id="9--재발-방지-기준">9 ) 재발 방지 기준</h2>
+
+<hr />
+
+<h3 id="host의-물리-interface가-바뀌면-bridge-대상을-확인한다">Host의 물리 Interface가 바뀌면 Bridge 대상을 확인한다</h3>
+
+<p>Bridged Adapter는 특정 Host Interface에 연결된다. Ethernet에서 Wi-Fi로 전환하거나 USB Ethernet Adapter를 교체했다면 모든 VM의 Bridge 대상을 확인한다.</p>
+
+<h3 id="한-번에-하나의-설정만-변경한다">한 번에 하나의 설정만 변경한다</h3>
+
+<p>Bridge 대상과 Adapter Type을 동시에 변경하면 어떤 변경이 장애를 만들었는지 분리하기 어렵다. 다음 순서로 하나씩 변경하고 매 단계에서 통신을 확인한다.</p>
+
+<ol>
+  <li>
+    <p>Bridge 대상 Host NIC 변경</p>
+  </li>
+  <li>
+    <p>Guest 부팅 후 NIC와 IP 확인</p>
+  </li>
+  <li>
+    <p>Gateway와 Host 통신 확인</p>
+  </li>
+  <li>
+    <p>필요한 경우에만 Adapter Type 변경</p>
+  </li>
+  <li>
+    <p>다시 Guest NIC와 Netplan 확인</p>
+  </li>
+</ol>
+
+<h3 id="mac-address를-불필요하게-변경하지-않는다">MAC Address를 불필요하게 변경하지 않는다</h3>
+
+<p>DHCP Reservation이나 Network 접근 정책에서 MAC Address를 사용할 수 있다. Bridge 대상만 변경하는 작업에서는 Guest MAC Address를 유지한다.</p>
+
+<h3 id="network-변경-전-현재-상태를-기록한다">Network 변경 전 현재 상태를 기록한다</h3>
+
+<p>Windows에서는 다음 결과를 보존한다.</p>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/all</span><span class="w">
+</span><span class="n">route</span><span class="w"> </span><span class="nx">print</span><span class="w">
+</span><span class="n">Get-NetIPConfiguration</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Ubuntu VM에서는 다음 결과를 보존한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr
+ip route
+<span class="nb">sudo cat</span> /etc/netplan/<span class="k">*</span>.yaml
+</code></pre></div></div>
+
+<p>변경 전후 결과가 있으면 복구 여부뿐 아니라 정확한 원인까지 확인할 수 있다.</p>
+
+<h3 id="netplan은-console과-rollback을-준비한다">Netplan은 Console과 Rollback을 준비한다</h3>
+
+<p>Remote 접속 중 Network를 변경해야 한다면 <code class="language-plaintext highlighter-rouge">netplan try</code>를 우선 사용한다. Bridge, IP와 Route를 변경하는 작업은 연결이 끊길 수 있으므로 가능한 경우 Local Console이나 VirtualBox Console을 확보한다.</p>
+
+<h2 id="10--최종-확인">10 ) 최종 확인</h2>
+
+<hr />
+
+<p>각 계층의 복구 여부를 다음 순서로 확인했다.</p>
+
+<h3 id="windows-host">Windows Host</h3>
+
+<div class="language-powershell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipconfig</span><span class="w"> </span><span class="nx">/all</span><span class="w">
+</span><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.1</span><span class="w">
+</span><span class="n">ping</span><span class="w"> </span><span class="nx">192.168.0.200</span><span class="w">
+</span><span class="n">ssh</span><span class="w"> </span><span class="err">&lt;</span><span class="nx">user</span><span class="err">&gt;@</span><span class="nx">192.168.0.200</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="ubuntu-vm">Ubuntu VM</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip addr show enp0s3
+ip route
+ping <span class="nt">-c</span> 3 192.168.0.1
+ping <span class="nt">-c</span> 3 192.168.0.99
+</code></pre></div></div>
+
+<p>확인 결과는 다음과 같았다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>대상</th>
+      <th>결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Windows Wi-Fi의 DHCP Address와 Default Gateway</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>Windows 인터넷 연결</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>Windows Host에서 VM Ping</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>Windows Host에서 VM SSH</td>
+      <td>복구</td>
+    </tr>
+    <tr>
+      <td>VM 사이 통신</td>
+      <td>정상</td>
+    </tr>
+    <tr>
+      <td>Ubuntu VM의 고정 IP와 Default Route</td>
+      <td>복구</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">169.254.x.x</code> 주소와 Gateway 부재는 Wi-Fi 연결 여부가 아니라 DHCP 주소 할당부터 확인해야 한다는 단서였다.</p>
+    </li>
+    <li>
+      <p>Windows 인터넷이 복구되어도 VirtualBox VM의 Network 경로가 자동으로 복구되는 것은 아니다.</p>
+    </li>
+    <li>
+      <p>VirtualBox VM은 연결이 끊긴 Realtek Ethernet NIC에 계속 Bridge되어 있었으며, 이것이 Host에서 VM으로 접근할 수 없었던 확정 원인이었다.</p>
+    </li>
+    <li>
+      <p>Guest의 <code class="language-plaintext highlighter-rouge">enp0s3</code>는 유실된 것이 아니라 존재하지만 <code class="language-plaintext highlighter-rouge">DOWN</code> 상태였고, Interface와 Netplan을 확인하고 다시 적용한 뒤 고정 IP가 복구되었다.</p>
+    </li>
+    <li>
+      <p>Network 장애는 Association, DHCP, Route, VirtualBox Bridge, Guest NIC, Netplan과 Application 순서로 계층을 나누어 확인한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-37-kubernetes-health-check-restart-policy/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Health Check와 restartPolicy</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1788708611"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788708611"></script>
+  </body>
+</html>
