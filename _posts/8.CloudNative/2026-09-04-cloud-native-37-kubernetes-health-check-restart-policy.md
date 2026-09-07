@@ -1,7 +1,8 @@
 ---
 title: Kubernetes Health Check와 restartPolicy
-description: Liveness·Readiness·Startup Probe의 역할과 kubelet의 상태 점검, Container 재시작 정책을 실습으로 정리
+description: Probe와 restartPolicy, Init Container, Lifecycle Hook 및 Graceful Shutdown의 동작과 실습 정리
 date: 2026-09-04
+updated_at: 2026-09-07
 series: CloudNative
 tags:
   - CloudNative
@@ -449,7 +450,246 @@ Liveness·Startup Probe 실패가 기준 횟수에 도달하면 kubelet은 실�
 >
 > - `restartPolicy`는 종료된 Container의 재시작 여부를 결정하며 Pod Object를 다시 생성하지 않는다.
 
-## 11 ) 실습 Resource 정리
+## 11 ) Init Container
+
+---
+
+> **Init Container**
+>
+> Main Container가 시작되기 전에 초기 설정이나 준비 작업을 완료하는 Container이다.
+
+Init Container는 `spec.initContainers`에 여러 개를 선언할 수 있다. 목록 위에서부터 하나씩 실행되며 각 Init Container가 성공해야 다음 Init Container가 시작된다. 모든 초기화가 끝나야 `spec.containers`의 Main Container가 시작된다.
+
+| 구분 | Init Container | Main Container |
+|---|---|---|
+| 시작 시점 | Main Container보다 먼저 시작 | 모든 Init Container 성공 후 시작 |
+| 여러 Container의 순서 | 선언 순서대로 하나씩 실행 | 기본적으로 서로 병렬로 시작 |
+| 실행 형태 | 준비 작업을 마치고 정상 종료 | 일반적으로 Application Process를 계속 실행 |
+| 주요 용도 | 설정 생성, 의존 대상 대기, 초기 Data 준비 | 실제 요청 처리와 Background 작업 |
+
+초기화에만 필요한 Script나 Utility를 별도 Image에 둘 수 있으므로 Main Image의 구성과 권한을 줄이는 데 도움이 된다. Init Container와 Main Container가 결과를 공유하려면 공통 Volume을 Mount해야 한다. 서로의 Container File System은 자동으로 공유되지 않는다.
+
+Control Plane과 Worker 관점의 실행 순서는 다음과 같다.
+
+```text
+API Server에 저장된 Pod Spec
+            │
+            ▼
+Scheduler가 Worker 선택
+            │
+            ▼
+Worker의 kubelet
+  ├── 첫 번째 Init Container 실행·성공 확인
+  ├── 두 번째 Init Container 실행·성공 확인
+  └── Main Container 실행
+            │
+            ▼
+       Probe와 Ready 판정
+```
+
+Init Container가 실패하면 kubelet은 Pod의 `restartPolicy`에 따라 다시 시도한다. 초기화가 성공하지 않는 동안 Main Container는 시작되지 않는다.
+
+## 12 ) Init Container 실습
+
+---
+
+다음 내용을 `sample-initcontainer.yaml`로 저장한다. 두 Init Container와 nginx Container는 `emptyDir` Volume을 공유한다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-initcontainer
+spec:
+  initContainers:
+    - name: output-1
+      image: alpine:3.20
+      command:
+        - sh
+        - -c
+        - sleep 20; echo 1st > /usr/share/nginx/html/index.html
+      volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+    - name: output-2
+      image: alpine:3.20
+      command:
+        - sh
+        - -c
+        - sleep 10; echo 2nd > /usr/share/nginx/html/index.html
+      volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+  containers:
+    - name: nginx-container
+      image: nginx:stable
+      volumeMounts:
+        - name: html-volume
+          mountPath: /usr/share/nginx/html
+  volumes:
+    - name: html-volume
+      emptyDir: {}
+```
+
+Pod를 적용하면서 `STATUS`와 Init Container 진행 번호를 관찰한다.
+
+```bash
+kubectl get pods --watch
+```
+
+다른 Terminal에서 다음 명령을 실행한다.
+
+```bash
+kubectl apply -f sample-initcontainer.yaml
+```
+
+초기화가 끝나면 각 Init Container의 Log와 Main Container가 읽는 File을 확인한다.
+
+```bash
+kubectl logs pod/sample-initcontainer -c output-1
+kubectl logs pod/sample-initcontainer -c output-2
+kubectl exec pod/sample-initcontainer -- \
+  cat /usr/share/nginx/html/index.html
+```
+
+두 번째 Init Container가 첫 번째 Container의 File을 덮어쓰므로 최종 출력은 `2nd`이다. 이 결과는 두 작업이 병렬로 경쟁한 것이 아니라 선언 순서대로 완료되었음을 보여준다.
+
+## 13 ) Container Lifecycle Hook
+
+---
+
+Container Lifecycle Hook은 Container 시작 직후나 종료 직전에 한 번 수행할 작업을 정의한다.
+
+| Hook | 실행 시점 | 주요 용도 |
+|---|---|---|
+| `postStart` | Container가 생성된 직후 | 초기화 신호 전달, Cache Warm-up, 내부 API 호출 |
+| `preStop` | Container가 종료되기 전 | 새 작업 수신 중단, Connection 정리, Application의 안전한 종료 요청 |
+
+`postStart`와 Container의 `ENTRYPOINT`는 비동기적으로 시작되므로 어느 쪽이 먼저 실행된다고 보장되지 않는다. 다만 Kubernetes는 `postStart`가 완료될 때까지 Container를 완전히 Running 상태로 관리하지 않는다. 시작 전에 반드시 끝나야 하는 순차 작업은 `postStart`보다 Init Container가 적합하다.
+
+Hook은 한 번의 Lifecycle Event에 대해 실행되며 Probe처럼 주기적으로 상태를 검사하지 않는다. Hook Handler가 실패하면 Kubernetes는 Container를 종료하고 Pod의 `restartPolicy`에 따라 처리한다. Hook 실행에는 별도의 Timeout Field가 없으므로 외부 호출이나 장시간 작업에는 명령 자체의 제한 시간과 실패 처리를 구성해야 한다.
+
+`exec` Handler는 Container 안에서 명령을 실행한다.
+
+```yaml
+postStart:
+  exec:
+    command:
+      - /bin/sh
+      - -c
+      - sleep 10; touch /tmp/poststart
+```
+
+`httpGet` Handler는 지정한 Endpoint에 HTTP 요청을 보낸다.
+
+```yaml
+postStart:
+  httpGet:
+    path: /warmup
+    port: 8080
+    host: application.example.com
+    scheme: HTTP
+```
+
+`postStart`는 Application의 지속적인 정상 여부를 판정하지 않는다. 실행 중 상태 점검에는 Liveness·Readiness·Startup Probe를 사용한다.
+
+## 14 ) Lifecycle Hook 실습
+
+---
+
+다음 내용을 `sample-lifecycle-exec.yaml`로 저장한다. `postStart`는 시작 표시 File을 만들고, `preStop`은 nginx에 안전한 종료를 요청한다.
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sample-lifecycle-exec
+spec:
+  terminationGracePeriodSeconds: 30
+  containers:
+    - name: nginx-container
+      image: nginx:stable
+      lifecycle:
+        postStart:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - sleep 10; touch /tmp/poststart
+        preStop:
+          exec:
+            command:
+              - /bin/sh
+              - -c
+              - |
+                echo "preStop started" > /proc/1/fd/1
+                nginx -s quit
+                sleep 5
+```
+
+Pod를 적용하고 시작 상태를 관찰한다.
+
+```bash
+kubectl apply -f sample-lifecycle-exec.yaml
+kubectl get pod sample-lifecycle-exec --watch
+```
+
+`postStart`가 끝난 뒤 생성된 File을 확인한다.
+
+```bash
+kubectl exec pod/sample-lifecycle-exec -- ls -l /tmp/poststart
+```
+
+한 Terminal에서 Log를 확인한다.
+
+```bash
+kubectl logs -f pod/sample-lifecycle-exec
+```
+
+다른 Terminal에서 Pod를 삭제하면 `preStop started`가 기록되고 Grace Period 안에서 nginx가 종료된다.
+
+```bash
+kubectl delete -f sample-lifecycle-exec.yaml
+```
+
+Pod가 완전히 삭제된 뒤에는 `kubectl exec`로 `/tmp/prestop` 같은 Container 내부 File을 확인할 수 없다. 종료 과정은 Hook Log, Application Log와 Event를 통해 관찰해야 한다.
+
+## 15 ) Graceful Shutdown
+
+---
+
+> **Graceful Shutdown**
+>
+> 처리 중인 요청과 Data를 가능한 한 안전하게 마무리한 뒤 Application Process를 종료하는 절차이다.
+
+Pod 삭제나 Rolling Update로 Container가 종료될 때의 주요 흐름은 다음과 같다.
+
+```text
+Pod 종료 요청
+    │ terminationGracePeriodSeconds Countdown 시작
+    ▼
+preStop Hook 실행
+    ▼
+Container의 주 Process에 SIGTERM 전달
+    ▼
+Application이 신규 요청을 중단하고 기존 작업 정리
+    ├── Grace Period 안에 종료 ──▶ 정상 종료
+    └── 종료하지 못함 ──────────▶ SIGKILL로 강제 종료
+```
+
+`terminationGracePeriodSeconds`의 기본값은 30초이다. `preStop` 실행 시간과 Application이 `SIGTERM`을 처리하는 시간은 같은 Grace Period 안에서 사용된다. 단순히 값을 늘리기 전에 실제 요청 처리 시간, Connection 종료, Data Flush와 종료 Log를 측정해야 한다.
+
+nginx는 `SIGTERM`을 받으면 빠르게 종료할 수 있다. Worker Process가 처리 중인 요청을 마치도록 하려면 `preStop`에서 `nginx -s quit`으로 Graceful Shutdown을 요청할 수 있다. Application마다 종료 Signal 처리 방식이 다르므로 Container의 PID 1 Process가 Signal을 전달받고 올바르게 처리하는지도 확인해야 한다.
+
+Rolling Update에서 Readiness Probe, `preStop`, Grace Period는 서로 다른 역할을 한다.
+
+| 구성 | 역할 |
+|---|---|
+| Readiness Probe | 새 요청을 받을 수 있는 Pod인지 판단 |
+| `preStop` | Container 종료 직전에 Application별 정리 작업 수행 |
+| `terminationGracePeriodSeconds` | 종료 작업을 마칠 수 있는 전체 유예 시간 제공 |
+
+## 16 ) 실습 Resource 정리
 
 ---
 
@@ -470,6 +710,8 @@ kubectl delete -f sample-liveness.yaml
 kubectl delete -f sample-readiness.yaml
 kubectl delete -f sample-startup.yaml
 kubectl delete -f sample-restart-always.yaml
+kubectl delete -f sample-initcontainer.yaml
+kubectl delete -f sample-lifecycle-exec.yaml --ignore-not-found
 ```
 
 ## 전체 정리
@@ -489,3 +731,9 @@ kubectl delete -f sample-restart-always.yaml
 > - Worker의 kubelet이 Probe를 실행하고 결과를 API Server에 보고하면 Control Plane의 Controller가 Ready 상태를 Service Endpoint에 반영한다.
 >
 > - `restartPolicy`는 Pod가 아니라 종료된 Container의 재시작 여부를 결정한다.
+>
+> - Init Container는 Main Container보다 먼저 선언 순서대로 실행되며 공통 Volume으로 초기화 결과를 전달할 수 있다.
+>
+> - `postStart`와 `preStop`은 Lifecycle Event에 한 번 실행되고 Probe는 Container 상태를 주기적으로 검사한다.
+>
+> - Graceful Shutdown에서는 `preStop`과 Application의 종료 처리가 같은 `terminationGracePeriodSeconds` 안에 완료되어야 한다.

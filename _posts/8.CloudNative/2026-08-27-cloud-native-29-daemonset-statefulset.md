@@ -1,8 +1,8 @@
 ---
 title: Kubernetes DaemonSet과 StatefulSet
-description: Node별 DaemonSet 배치와 StatefulSet의 순서·고유 식별자·Persistent Storage 및 Database 운영 관점 정리
+description: DaemonSet의 Node별 배치와 Update, StatefulSet의 순서·고유 식별자·Storage 및 Update Strategy 정리
 date: 2026-08-27
-updated_at: 2026-09-02
+updated_at: 2026-09-07
 series: CloudNative
 tags:
   - CloudNative
@@ -80,6 +80,10 @@ kind: DaemonSet
 metadata:
   name: prometheus-daemonset
 spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
   selector:
     matchLabels:
       tier: monitoring
@@ -120,12 +124,6 @@ kubectl get pods \
 
 ```bash
 kubectl describe daemonset prometheus-daemonset
-```
-
-실습이 끝나면 Manifest를 기준으로 삭제한다.
-
-```bash
-kubectl delete -f sample-daemonset.yaml
 ```
 
 ## 4 ) StatefulSet
@@ -202,6 +200,8 @@ metadata:
 spec:
   serviceName: sample-statefulset
   replicas: 3
+  updateStrategy:
+    type: RollingUpdate
   selector:
     matchLabels:
       app: sample-statefulset
@@ -362,7 +362,86 @@ kubectl exec pod/sample-statefulset-parallel-0 -- \
   df -h /usr/share/nginx/html
 ```
 
-## 8 ) 질의: StatefulSet으로 Database 운영 가능 여부에 대한 강사님 답변
+## 8 ) DaemonSet Update Strategy
+
+---
+
+DaemonSet의 기본 Update Strategy는 `RollingUpdate`이다. Pod Template이 변경되면 DaemonSet Controller가 대상 Node의 기존 Pod를 교체하고, 각 Worker의 kubelet이 새 Pod를 실행한다.
+
+| 설정 | 역할 |
+|---|---|
+| `type: RollingUpdate` | Pod Template 변경 시 기존 Pod를 순차적으로 새 Pod로 교체 |
+| `type: OnDelete` | Pod Template이 변경되어도 기존 Pod를 자동 교체하지 않고, 사용자가 Pod를 삭제할 때 새 Template으로 생성 |
+| `maxUnavailable` | Update 중 동시에 사용할 수 없어도 되는 DaemonSet Pod 수 또는 비율 |
+| `maxSurge` | 대상 Node 수를 초과하여 먼저 생성할 수 있는 DaemonSet Pod 수 또는 비율 |
+
+`maxUnavailable`의 기본값은 `1`이고 `maxSurge`의 기본값은 `0`이다. 두 값을 동시에 `0`으로 설정할 수 없다. `maxSurge`를 사용하면 같은 Node에 교체 대상 Pod와 새 Pod가 잠시 함께 존재할 수 있으므로 Host Port나 Node 단위 Resource 충돌 가능성을 확인해야 한다.
+
+Image를 변경하고 Node별 교체 과정을 관찰한다.
+
+```bash
+kubectl set image daemonset/prometheus-daemonset \
+  prometheus=prom/node-exporter:v1.8.2
+
+kubectl rollout status daemonset/prometheus-daemonset
+kubectl get pods \
+  -l tier=monitoring,name=prometheus-exporter \
+  -o wide --watch
+```
+
+`OnDelete`는 Update 시점을 Node별로 직접 통제해야 할 때 사용할 수 있지만, 기존 Pod를 삭제하지 않으면 이전 Version이 계속 실행된다.
+
+## 9 ) StatefulSet Update Strategy
+
+---
+
+StatefulSet의 일반적인 Update Strategy는 `RollingUpdate`와 `OnDelete`이다.
+
+| 설정 | 역할 |
+|---|---|
+| `type: RollingUpdate` | Pod Template 변경 시 높은 Ordinal의 Pod부터 하나씩 교체 |
+| `type: OnDelete` | 사용자가 기존 Pod를 삭제할 때만 새 Template으로 교체 |
+| `rollingUpdate.partition` | 지정한 Ordinal 이상인 Pod만 새 Template으로 Update |
+
+기본 `RollingUpdate`에서는 가장 높은 Ordinal부터 Pod를 종료하고 같은 Identity와 PVC를 사용하는 새 Pod를 생성한다. 새 Pod가 Running과 Ready 상태가 되어야 다음 Ordinal을 처리한다. 이 순서는 Stateful Application의 단계적 전환을 돕지만 Application Data의 호환성까지 보장하지는 않는다.
+
+다음과 같이 `partition: 2`를 설정하면 Ordinal이 `2` 이상인 Pod만 새 Template으로 교체된다.
+
+```yaml
+spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 2
+```
+
+3개의 Pod가 있는 상태에서 Image를 변경하면 `sample-statefulset-2`만 새 Version을 사용하고 `-0`, `-1`은 이전 Version을 유지한다. 이를 이용해 높은 Ordinal에서 먼저 동작을 확인할 수 있다.
+
+```bash
+kubectl patch statefulset sample-statefulset --type=merge \
+  -p '{"spec":{"updateStrategy":{"type":"RollingUpdate","rollingUpdate":{"partition":2}}}}'
+
+kubectl set image statefulset/sample-statefulset \
+  nginx-container=nginx:1.27
+
+kubectl rollout status statefulset/sample-statefulset
+kubectl get pods -l app=sample-statefulset \
+  -o custom-columns='NAME:.metadata.name,IMAGE:.spec.containers[0].image,READY:.status.containerStatuses[0].ready'
+```
+
+검증이 끝나면 `partition`을 단계적으로 낮춰 나머지 Pod를 Update한다.
+
+```bash
+kubectl patch statefulset sample-statefulset --type=merge \
+  -p '{"spec":{"updateStrategy":{"rollingUpdate":{"partition":1}}}}'
+
+kubectl patch statefulset sample-statefulset --type=merge \
+  -p '{"spec":{"updateStrategy":{"rollingUpdate":{"partition":0}}}}'
+```
+
+`OnDelete`는 Pod 삭제 순서를 직접 통제할 수 있지만 자동 Update가 진행되지 않는다. 어느 Pod가 이전 Version인지 계속 추적하고 Stateful Application의 복제 상태를 확인한 뒤 삭제해야 한다.
+
+## 10 ) StatefulSet으로 Database를 운영할 때의 고려 사항
 
 ---
 
@@ -413,7 +492,7 @@ StatefulSet으로 Database를 운영하려면 다음 항목을 함께 설계해�
 
 따라서 StatefulSet은 Stateful Application을 배치하기 위한 기반이며 Data 보호 전략 전체를 대신하는 Resource는 아니다.
 
-## 9 ) 실습 Resource 정리
+## 11 ) 실습 Resource 정리
 
 ---
 
@@ -427,6 +506,7 @@ kubectl scale statefulset sample-statefulset-parallel --replicas=0
 Pod 종료를 확인한 뒤 StatefulSet과 Headless Service를 삭제한다.
 
 ```bash
+kubectl delete -f sample-daemonset.yaml --ignore-not-found
 kubectl delete -f sample-statefulset.yaml
 kubectl delete -f sample-stateful-parallel.yaml
 ```
@@ -445,11 +525,15 @@ kubectl get persistentvolumeclaims
 >
 > - DaemonSet은 Scheduling 조건을 만족하는 각 Node에 Pod를 하나씩 배치하며 Node별 Agent에 적합하다.
 >
+> - DaemonSet의 `RollingUpdate`는 Node별 Pod를 교체하고 `OnDelete`는 기존 Pod를 직접 삭제할 때 Update한다.
+>
 > - StatefulSet은 Ordinal Pod 이름, 안정적인 Network Identity, 순서와 Pod별 PVC 연결을 관리한다.
 >
 > - Headless Service는 StatefulSet Pod별 DNS Identity를 제공하고 `volumeClaimTemplates`는 Pod별 PVC를 생성한다.
 >
 > - `OrderedReady`는 Pod를 순차 처리하고 `Parallel`은 Pod 간 순서 의존성이 없을 때 병렬로 처리한다.
+>
+> - StatefulSet의 `RollingUpdate`는 높은 Ordinal부터 교체하고 `partition`으로 Update 대상을 단계적으로 제한할 수 있다.
 >
 > - StatefulSet은 Database 실행에 사용할 수 있지만 Data의 실제 내구성은 Storage Backend, Database 복제와 Backup 설계에 달려 있다.
 >

@@ -1,8 +1,8 @@
 ---
 title: Kubernetes ReplicaSet과 Deployment
-description: Label Selector 기반 ReplicaSet의 Pod 수 조정, Deployment의 배포와 Scaling 및 cordon·drain을 이용한 Node 유지보수 정리
+description: ReplicaSet의 Pod 수 조정과 삭제 전파, Deployment의 배포 전략·진행 조건·Rollback 및 Node 유지보수 정리
 date: 2026-08-27
-updated_at: 2026-08-28
+updated_at: 2026-09-07
 series: CloudNative
 tags:
   - CloudNative
@@ -195,6 +195,44 @@ kubectl get pods -l app=sample-app
 
 `kubectl scale`은 Cluster의 Live Object를 직접 변경한다. Manifest를 기준으로 지속적으로 관리한다면 File의 `spec.replicas`도 같은 값으로 수정하여 다음 `apply`에서 원래 값으로 되돌아가지 않게 한다.
 
+### ReplicaSet 삭제와 Garbage Collection
+
+Kubernetes Resource는 `metadata.ownerReferences`로 소유 관계를 기록한다. ReplicaSet이 생성한 Pod에는 ReplicaSet을 가리키는 소유자 정보가 있으며, ReplicaSet 삭제 시 Garbage Collector가 이 관계를 기준으로 종속 Pod를 처리한다.
+
+| 전파 방식 | 동작 |
+|---|---|
+| `background` | 소유자를 먼저 삭제한 뒤 Garbage Collector가 종속 Resource를 비동기로 삭제한다. `kubectl delete`의 기본 방식이다. |
+| `foreground` | 종속 Resource가 삭제될 때까지 소유자를 삭제 중 상태로 유지한다. |
+| `orphan` | 소유자만 삭제하고 종속 Resource는 남긴다. 남은 Pod는 더 이상 해당 ReplicaSet이 관리하지 않는다. |
+
+먼저 ReplicaSet과 Pod의 소유 관계를 확인한다.
+
+```bash
+kubectl get pod -l app=sample-app \
+  -o custom-columns='NAME:.metadata.name,OWNER_KIND:.metadata.ownerReferences[0].kind,OWNER_NAME:.metadata.ownerReferences[0].name'
+```
+
+삭제 전파 방식은 `--cascade` Option으로 선택한다.
+
+```bash
+kubectl delete replicaset sample-rs --cascade=foreground
+```
+
+`orphan`을 확인하려면 ReplicaSet을 다시 생성한 뒤 다음과 같이 삭제한다.
+
+```bash
+kubectl apply -f sample-rs.yaml
+kubectl delete replicaset sample-rs --cascade=orphan
+kubectl get pods -l app=sample-app
+```
+
+남은 Pod에는 ReplicaSet의 자동 복구와 Scaling이 적용되지 않는다. 다음 실습을 위해 Manifest를 다시 적용할 때 같은 Label의 고아 Pod가 Replica 수 계산에 포함될 수 있으므로 먼저 정리한다.
+
+```bash
+kubectl delete pods -l app=sample-app
+kubectl apply -f sample-rs.yaml
+```
+
 ## 5 ) Deployment
 
 ---
@@ -230,6 +268,14 @@ metadata:
   name: sample-deployment
 spec:
   replicas: 3
+  minReadySeconds: 10
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: sample-deployment
@@ -293,6 +339,67 @@ Rolling Update 중 유지할 Pod 수는 다음 Field로 조정할 수 있다.
 |---|---|
 | `spec.strategy.rollingUpdate.maxSurge` | 원하는 Replica 수보다 추가로 만들 수 있는 최대 Pod 수 |
 | `spec.strategy.rollingUpdate.maxUnavailable` | Update 중 사용할 수 없어도 되는 최대 Pod 수 |
+
+`maxSurge`와 `maxUnavailable`은 정수 또는 비율로 지정한다. Replica가 3개이고 두 값을 모두 `1`로 설정하면 Update 중 최대 4개까지 생성할 수 있으며, 사용 가능한 Pod는 최소 2개를 유지한다.
+
+### Recreate 전략
+
+`Recreate`는 Pod Template이 변경되면 이전 ReplicaSet의 Pod를 모두 종료한 뒤 새 ReplicaSet의 Pod를 생성한다. 두 Version이 동시에 실행되면 안 되는 Workload에는 사용할 수 있지만 전환 중 Application이 중단된다.
+
+다음 내용을 `sample-deployment-recreate.yaml`로 저장한다.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment-recreate
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sample-deployment-recreate
+  template:
+    metadata:
+      labels:
+        app: sample-deployment-recreate
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:1.26
+```
+
+적용 후 Image를 변경하면서 Pod 종료와 생성을 관찰한다.
+
+```bash
+kubectl apply -f sample-deployment-recreate.yaml
+kubectl get pods -l app=sample-deployment-recreate --watch
+```
+
+다른 Terminal에서 다음 명령을 실행한다.
+
+```bash
+kubectl set image deployment/sample-deployment-recreate \
+  nginx-container=nginx:1.27
+```
+
+### RollingUpdate 전략과 배포 진행 조건
+
+`RollingUpdate`는 이전 Pod를 줄이는 과정과 새 Pod를 늘리는 과정을 겹쳐 가용성을 유지한다. Control Plane의 Deployment Controller가 두 ReplicaSet의 Replica 수를 조정하고, Scheduler가 새 Pod를 배치하면 선택된 Worker의 kubelet이 Container를 실행하고 Probe 결과를 보고한다.
+
+| Field | 역할 |
+|---|---|
+| `spec.minReadySeconds` | 새 Pod가 Ready가 된 뒤 Available로 인정되기까지 안정적으로 유지해야 하는 최소 시간 |
+| `spec.revisionHistoryLimit` | Rollback에 사용할 이전 ReplicaSet을 보존하는 개수 |
+| `spec.progressDeadlineSeconds` | 배포 진행이 멈췄다고 판단하기까지 기다리는 시간 |
+
+`progressDeadlineSeconds`를 초과하면 Deployment Condition에 `ProgressDeadlineExceeded`가 기록된다. 이 Field 자체가 자동 Rollback을 수행하지는 않으므로 상태를 감시하는 운영 절차나 별도 자동화가 필요하다.
+
+```bash
+kubectl get deployment sample-deployment \
+  -o jsonpath='{range .status.conditions[*]}{.type}{"\t"}{.status}{"\t"}{.reason}{"\n"}{end}'
+```
 
 `spec.replicas`만 변경하는 Scaling은 Pod Template 변경이 아니므로 새로운 ReplicaSet을 만들지 않는다.
 
@@ -505,6 +612,7 @@ Master 또는 관리 Client에서 생성한 Resource를 정리한다.
 kubectl delete -f sample-rs-pod.yaml --ignore-not-found
 kubectl delete -f sample-rs.yaml --ignore-not-found
 kubectl delete -f sample-deployment.yaml --ignore-not-found
+kubectl delete -f sample-deployment-recreate.yaml --ignore-not-found
 kubectl delete deployment sample-deployment-by-cli --ignore-not-found
 ```
 
@@ -524,7 +632,13 @@ kubectl get replicasets,deployments,pods
 >
 > - Selector와 Pod Template Label은 일치해야 하며 같은 Label의 독립 Pod도 Replica 수 계산에 포함된다.
 >
+> - ReplicaSet 삭제 시 Garbage Collector는 소유 관계와 삭제 전파 방식에 따라 종속 Pod를 삭제하거나 남긴다.
+>
 > - Deployment는 ReplicaSet을 관리하여 Stateless Application의 Rolling Update와 Rollback을 제공한다.
+>
+> - `Recreate`는 이전 Pod를 모두 종료한 뒤 새 Pod를 생성하고, `RollingUpdate`는 두 ReplicaSet의 Pod를 점진적으로 전환한다.
+>
+> - `minReadySeconds`, `revisionHistoryLimit`, `progressDeadlineSeconds`로 가용 판정, Revision 보존, 진행 제한 시간을 조정한다.
 >
 > - Pod Template 변경은 ReplicaSet 전환을 일으키지만 Replica 수만 변경하는 Scaling은 새 ReplicaSet을 만들지 않는다.
 >
