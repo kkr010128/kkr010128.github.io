@@ -2,6 +2,7 @@
 title: Kubernetes Blue-Green과 Canary 배포
 description: Service Selector를 이용한 Blue-Green 전환, Replica 비율과 Traffic Router를 이용한 Canary 및 Argo Rollouts 정리
 date: 2026-09-07
+updated_at: 2026-09-08
 series: CloudNative
 tags:
   - CloudNative
@@ -443,3 +444,5 @@ kubectl delete -f print-version-rollout.yaml --ignore-not-found
 > - Argo Rollouts는 별도 CRD와 Controller가 필요한 확장 Resource이며 단계별 Weight와 Pause를 관리한다.
 >
 > - Readiness Probe, Graceful Shutdown, Session, 관찰 지표와 Rollback 조건이 배포 전략의 안전성을 결정한다.
+>
+> - 다음 글인 [Kubernetes Kustomize로 Manifest 구성 관리](/cloud-native-39-kubernetes-kustomize/)에서는 여러 Manifest를 조합하고 환경별 차이를 Overlay로 관리하는 방법을 다룬다.
