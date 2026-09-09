@@ -1,0 +1,993 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Version Control과 Git 기본 작업 흐름 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-42-git-version-control-basics/">
+<meta property="og:title" content="Version Control과 Git 기본 작업 흐름 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-42-git-version-control-basics/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Version Control과 Git 기본 작업 흐름 | renamed.log">
+<meta name="twitter:description" content="Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름">
+
+  <meta property="article:published_time" content="2026-09-09T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788962365" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788962365" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788962365">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788962365" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1788962365">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Version Control과 Git 기본 작업 흐름 | renamed.log",
+    "description": "Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름",
+    "url": "https://kkr010128.github.io/cloud-native-42-git-version-control-basics/",
+    "datePublished": "2026-09-09T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Version Control과 Git 기본 작업 흐름</h1>
+    
+      <p class="post-head__description">Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 9일 · 9분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Git">Git</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p>Container Image, Kubernetes Manifest와 Helm Chart도 Source Code와 함께 계속 변경된다. Git을 사용하면 이러한 File의 변경 이력을 기록하고, 특정 시점의 상태를 다시 확인하며, 여러 사람이 변경 내용을 교환하고 병합할 수 있다.</p>
+
+<h2 id="1--version-control-system">1 ) Version Control System</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Version Control System, VCS</strong></p>
+
+  <p>File의 변경 내용을 시간 순서대로 기록하여 특정 Version을 확인하거나 복원하고 여러 작업자의 변경을 조정하는 System이다.</p>
+</blockquote>
+
+<p>Version 관리 대상은 Source Code로 제한되지 않는다. Text로 표현할 수 있는 설정 File, 문서, Kubernetes Manifest와 Script도 관리할 수 있다. Binary File도 저장할 수 있지만 작은 변경에도 File 전체가 크게 달라질 수 있어 저장 공간과 변경 비교 측면에서 별도 관리 전략이 필요하다.</p>
+
+<p>Version 관리로 해결하려는 주요 문제는 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>누가 언제 어떤 내용을 변경했는지 추적한다.</p>
+  </li>
+  <li>
+    <p>현재 상태와 이전 상태의 차이를 비교한다.</p>
+  </li>
+  <li>
+    <p>문제가 생긴 변경의 범위를 찾고 필요한 Version으로 복원한다.</p>
+  </li>
+  <li>
+    <p>여러 작업자가 만든 변경을 하나의 History로 병합한다.</p>
+  </li>
+  <li>
+    <p>Local 작업과 Server의 공유 상태를 분리한다.</p>
+  </li>
+</ul>
+
+<h2 id="2--version-control-system의-종류">2 ) Version Control System의 종류</h2>
+
+<hr />
+
+<p>Version Control System은 History를 저장하고 공유하는 구조에 따라 Local, Centralized와 Distributed 방식으로 구분할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>History 저장 위치</th>
+      <th>협업 방식</th>
+      <th>특징</th>
+      <th>대표 예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Local VCS</td>
+      <td>한 Computer의 Local Database</td>
+      <td>File을 별도 수단으로 전달</td>
+      <td>개인 변경 추적에는 사용할 수 있지만 중앙 협업 기능이 부족</td>
+      <td>RCS</td>
+    </tr>
+    <tr>
+      <td>Centralized VCS</td>
+      <td>중앙 Server</td>
+      <td>Client가 Server에서 Checkout·Commit</td>
+      <td>권한과 History를 중앙에서 관리하지만 Server 의존도가 큼</td>
+      <td>CVS, Subversion, Perforce</td>
+    </tr>
+    <tr>
+      <td>Distributed VCS</td>
+      <td>각 Clone에 Repository History 저장</td>
+      <td>Remote Repository와 Fetch·Push</td>
+      <td>Network 연결 없이도 Local Commit과 History 조회 가능</td>
+      <td>Git, Mercurial</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="local-version-control">Local Version Control</h3>
+
+<p>Local VCS는 같은 Computer 안의 Database에 Revision이나 Patch를 기록한다. 수동으로 날짜별 Directory를 복사하는 것보다 변경 이력을 체계적으로 관리할 수 있지만 다른 작업자와 History를 공유하고 병합하기에는 적합하지 않다.</p>
+
+<p>RCS는 대표적인 Local Version Control System이다. 특정 운영체제나 개발 도구 설치 여부만으로 항상 제공된다고 가정하지 않고 현재 환경에서 Package 존재 여부를 확인한다.</p>
+
+<h3 id="centralized-version-control">Centralized Version Control</h3>
+
+<p>Centralized VCS는 중앙 Server가 기준 Repository를 관리한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client A ─┐
+          ├── Central VCS Server
+Client B ─┘
+</code></pre></div></div>
+
+<p>모든 사용자가 같은 중앙 History를 기준으로 작업하기 쉬운 반면 Server에 접속할 수 없으면 Update나 Commit 같은 주요 작업이 제한될 수 있다. Server 장애가 곧바로 모든 Local 작업 File의 소실을 의미하지는 않지만 중앙 Repository의 Backup과 가용성이 중요하다.</p>
+
+<h3 id="distributed-version-control">Distributed Version Control</h3>
+
+<p>Distributed VCS의 Clone에는 Working File만 아니라 Repository History와 Metadata가 함께 저장된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Developer A Local Repository
+              │ fetch·push
+              ▼
+        Remote Repository
+              ▲
+              │ fetch·push
+Developer B Local Repository
+</code></pre></div></div>
+
+<p>각 작업자는 Network가 없어도 Local Commit, Branch 생성과 History 조회를 수행할 수 있다. <code class="language-plaintext highlighter-rouge">checkout</code>할 때마다 Repository 전체를 다시 Backup하는 방식은 아니다. 일반적으로 <code class="language-plaintext highlighter-rouge">clone</code>이 Repository를 처음 가져오고, 이후 <code class="language-plaintext highlighter-rouge">fetch</code>가 Remote의 새로운 Object와 Reference를 전달하며, <code class="language-plaintext highlighter-rouge">checkout</code> 또는 <code class="language-plaintext highlighter-rouge">switch</code>는 가지고 있는 Object를 이용해 Working Tree의 상태를 바꾼다.</p>
+
+<h2 id="3--git">3 ) Git</h2>
+
+<hr />
+
+<p>Git은 File 변경을 추적하고 여러 작업자의 변경을 병합할 수 있는 Open Source Distributed Version Control System이다. Linux Kernel 개발을 지원하기 위해 2005년에 Linus Torvalds를 중심으로 처음 개발되었다.</p>
+
+<p>Git의 주요 특징은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>대부분의 작업을 Local Repository에서 수행할 수 있다.</p>
+  </li>
+  <li>
+    <p>Commit 단위로 변경 이력과 작성자 정보를 추적한다.</p>
+  </li>
+  <li>
+    <p>Branch를 이용해 서로 다른 작업 흐름을 분리한다.</p>
+  </li>
+  <li>
+    <p>Remote Repository를 통해 다른 작업자와 History를 교환한다.</p>
+  </li>
+  <li>
+    <p>같은 기반에서 갈라진 변경을 Merge하거나 Rebase할 수 있다.</p>
+  </li>
+</ul>
+
+<p>Git은 GitHub와 같은 Service의 이름이 아니다. Git은 Local에서 실행하는 Version Control 도구이고 GitHub, GitLab과 Bitbucket은 Git Repository Hosting과 협업 기능을 제공하는 Service이다.</p>
+
+<h2 id="4--git-hosting-service">4 ) Git Hosting Service</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>Service</th>
+      <th>Git 이외의 주요 기능</th>
+      <th>자체 설치 선택지</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>GitHub</td>
+      <td>Pull Request, Issues, Actions, Packages, Pages와 Project 기능</td>
+      <td>GitHub Enterprise Server</td>
+    </tr>
+    <tr>
+      <td>GitLab</td>
+      <td>Merge Request, Issues, CI/CD, Package·Container Registry</td>
+      <td>GitLab Self-Managed</td>
+    </tr>
+    <tr>
+      <td>Bitbucket</td>
+      <td>Pull Request, Pipeline과 Jira 등 Atlassian 제품 연동</td>
+      <td>제공 형태와 Plan 확인 필요</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Hosting Service의 무료 사용자 수, Private Repository 범위, CI 실행 시간과 Storage 한도는 변경될 수 있다. 문서에 특정 수치를 고정하지 않고 사용할 시점의 공식 Plan과 조직 정책을 확인한다.</p>
+
+<h3 id="remote-repository와-local-repository">Remote Repository와 Local Repository</h3>
+
+<blockquote>
+  <p><strong>Local Repository</strong></p>
+
+  <p>현재 Computer의 <code class="language-plaintext highlighter-rouge">.git</code> Directory에 저장된 Git Object, Reference와 설정이다.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Remote Repository</strong></p>
+
+  <p>다른 Repository와 History를 교환하기 위해 이름과 URL로 등록한 Repository이다.</p>
+</blockquote>
+
+<p>Remote Repository가 반드시 Cloud Service에 있어야 하는 것은 아니다. 접근 가능한 Server의 Bare Repository도 Remote로 사용할 수 있다. <code class="language-plaintext highlighter-rouge">origin</code>은 특별한 Protocol이 아니라 <code class="language-plaintext highlighter-rouge">git clone</code>이 기본적으로 등록하는 Remote 이름이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote <span class="nt">-v</span>
+</code></pre></div></div>
+
+<h2 id="5--git-설치와-version-확인">5 ) Git 설치와 Version 확인</h2>
+
+<hr />
+
+<p>Git 공식 배포 경로나 운영체제의 Package Manager를 사용하여 설치한다. Linux 배포판에서는 일반적으로 <code class="language-plaintext highlighter-rouge">git</code> Package로 제공된다.</p>
+
+<p>설치된 Git Version을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git <span class="nt">--version</span>
+</code></pre></div></div>
+
+<p>GitHub 기능을 Terminal에서 사용해야 한다면 GitHub CLI인 <code class="language-plaintext highlighter-rouge">gh</code>를 별도로 설치할 수 있다. <code class="language-plaintext highlighter-rouge">gh</code>는 Git 자체를 대체하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gh <span class="nt">--version</span>
+</code></pre></div></div>
+
+<p>GUI Client가 필요하면 SourceTree 같은 도구를 사용할 수 있다. GUI에서 Stage, Commit과 Push를 실행해도 내부적으로 다루는 Git Repository와 기본 개념은 같다.</p>
+
+<h2 id="6--사용자-정보-설정">6 ) 사용자 정보 설정</h2>
+
+<hr />
+
+<p>Git Commit에는 작성자 이름과 Email이 Metadata로 기록된다. 이 값은 Hosting Service Login 정보와 자동으로 같아지는 것이 아니므로 직접 설정을 확인한다.</p>
+
+<p>모든 Local Repository의 기본값으로 사용할 이름과 Email을 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git config <span class="nt">--global</span> user.name <span class="s2">"&lt;name&gt;"</span>
+git config <span class="nt">--global</span> user.email <span class="s2">"&lt;email&gt;"</span>
+</code></pre></div></div>
+
+<p>현재 Repository에서만 다른 값을 사용하려면 <code class="language-plaintext highlighter-rouge">--global</code>을 제외한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git config user.name <span class="s2">"&lt;project-name&gt;"</span>
+git config user.email <span class="s2">"&lt;project-email&gt;"</span>
+</code></pre></div></div>
+
+<p>설정 값을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git config user.name
+git config user.email
+git config <span class="nt">--list</span> <span class="nt">--show-origin</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>범위</th>
+      <th>Option</th>
+      <th>일반적인 저장 위치</th>
+      <th>우선순위</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>System</td>
+      <td><code class="language-plaintext highlighter-rouge">--system</code></td>
+      <td>System Git 설정 File</td>
+      <td>낮음</td>
+    </tr>
+    <tr>
+      <td>사용자</td>
+      <td><code class="language-plaintext highlighter-rouge">--global</code></td>
+      <td>사용자 Git 설정 File</td>
+      <td>중간</td>
+    </tr>
+    <tr>
+      <td>현재 Repository</td>
+      <td><code class="language-plaintext highlighter-rouge">--local</code> 또는 생략</td>
+      <td><code class="language-plaintext highlighter-rouge">.git/config</code></td>
+      <td>높음</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>같은 Key가 여러 범위에 있으면 더 구체적인 Repository 설정이 사용자 기본값보다 우선한다.</p>
+
+<h2 id="7--초기-branch-이름">7 ) 초기 Branch 이름</h2>
+
+<hr />
+
+<p>Git이 새 Repository에 사용할 초기 Branch 이름은 Git Version, 배포판 설정과 사용자 설정에 따라 달라질 수 있다. Hosting Service가 새 Remote Repository에 선택하는 기본 Branch 이름과 Local <code class="language-plaintext highlighter-rouge">git init</code>의 결과도 항상 같다고 가정할 수 없다.</p>
+
+<p>새 Local Repository의 초기 Branch 이름을 <code class="language-plaintext highlighter-rouge">main</code>으로 통일하려면 다음과 같이 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git config <span class="nt">--global</span> init.defaultBranch main
+</code></pre></div></div>
+
+<p>특정 Repository를 만들 때 직접 지정할 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git init <span class="nt">--initial-branch</span><span class="o">=</span>main
+</code></pre></div></div>
+
+<p>이미 Commit이 있는 Repository의 Branch 이름을 바꾸는 작업은 Remote Branch와 협업자에게 영향을 줄 수 있으므로 단순 초기 설정과 구분한다.</p>
+
+<h2 id="8--git의-세-작업-영역">8 ) Git의 세 작업 영역</h2>
+
+<hr />
+
+<p>Git의 기본 흐름을 이해하려면 Working Tree, Staging Area와 Local Repository를 구분해야 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Working Tree
+    │ git add
+    ▼
+Staging Area(Index)
+    │ git commit
+    ▼
+Local Repository(.git)
+    │ git push
+    ▼
+Remote Repository
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>영역</th>
+      <th>저장되는 내용</th>
+      <th>주요 확인 명령</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Working Tree</td>
+      <td>사용자가 현재 편집하는 File</td>
+      <td><code class="language-plaintext highlighter-rouge">git status</code>, <code class="language-plaintext highlighter-rouge">git diff</code></td>
+    </tr>
+    <tr>
+      <td>Staging Area</td>
+      <td>다음 Commit에 넣기로 선택한 내용</td>
+      <td><code class="language-plaintext highlighter-rouge">git diff --staged</code></td>
+    </tr>
+    <tr>
+      <td>Local Repository</td>
+      <td>Commit, Tree, Blob와 Reference 등 Git Object</td>
+      <td><code class="language-plaintext highlighter-rouge">git log</code>, <code class="language-plaintext highlighter-rouge">git show</code></td>
+    </tr>
+    <tr>
+      <td>Remote Repository</td>
+      <td>다른 Repository와 교환한 Commit과 Branch Reference</td>
+      <td><code class="language-plaintext highlighter-rouge">git remote -v</code>, <code class="language-plaintext highlighter-rouge">git branch -r</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="working-tree">Working Tree</h3>
+
+<p>Working Tree는 특정 Commit에서 Checkout한 File을 실제로 편집하는 공간이다. 일반 Repository에서는 <code class="language-plaintext highlighter-rouge">.git</code> Directory를 제외한 Project File 영역으로 볼 수 있다.</p>
+
+<h3 id="staging-area">Staging Area</h3>
+
+<p>Staging Area는 다음 Commit에 포함할 내용을 선택하는 영역이며 Index라고도 한다. File을 단순히 다른 Directory로 이동시키는 것이 아니라 다음 Commit의 Snapshot에 포함할 내용을 Git Index에 기록한다.</p>
+
+<h3 id="local-repository">Local Repository</h3>
+
+<p><code class="language-plaintext highlighter-rouge">.git</code> Directory에는 Git Object Database, Branch와 Tag Reference, Repository 설정 등이 저장된다. <code class="language-plaintext highlighter-rouge">.git</code>을 삭제하면 Working File이 남아 있더라도 해당 Local Repository의 History와 설정을 잃을 수 있다.</p>
+
+<h2 id="9--file-상태">9 ) File 상태</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>상태</th>
+      <th>의미</th>
+      <th>다음에 주로 사용하는 명령</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Untracked</td>
+      <td>Working Tree에는 있지만 현재 Commit이 추적하지 않는 File</td>
+      <td><code class="language-plaintext highlighter-rouge">git add</code> 또는 <code class="language-plaintext highlighter-rouge">.gitignore</code> 등록</td>
+    </tr>
+    <tr>
+      <td>Modified</td>
+      <td>추적 중인 File이 Index 또는 현재 Commit과 달라진 상태</td>
+      <td><code class="language-plaintext highlighter-rouge">git diff</code>, <code class="language-plaintext highlighter-rouge">git add</code></td>
+    </tr>
+    <tr>
+      <td>Staged</td>
+      <td>다음 Commit에 포함할 내용이 Index에 기록된 상태</td>
+      <td><code class="language-plaintext highlighter-rouge">git diff --staged</code>, <code class="language-plaintext highlighter-rouge">git commit</code></td>
+    </tr>
+    <tr>
+      <td>Committed</td>
+      <td>내용이 Local Repository의 Commit에 기록된 상태</td>
+      <td><code class="language-plaintext highlighter-rouge">git log</code>, <code class="language-plaintext highlighter-rouge">git show</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>하나의 File이 항상 한 상태만 가지는 것은 아니다. File을 Stage한 후 다시 수정하면 같은 File에 Staged 변경과 아직 Stage하지 않은 변경이 동시에 존재할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+git diff
+git diff <span class="nt">--staged</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">git status</code>는 상태를 요약하고 <code class="language-plaintext highlighter-rouge">git diff</code>는 Working Tree와 Index의 차이, <code class="language-plaintext highlighter-rouge">git diff --staged</code>는 Index와 현재 Commit의 차이를 보여준다.</p>
+
+<h2 id="10--local-repository-기본-실습">10 ) Local Repository 기본 실습</h2>
+
+<hr />
+
+<h3 id="repository-생성">Repository 생성</h3>
+
+<p>새 실습 Directory를 만들고 이동한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>git-basic-lab
+<span class="nb">cd </span>git-basic-lab
+git init <span class="nt">--initial-branch</span><span class="o">=</span>main
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">.git</code> Directory와 현재 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+<span class="nb">ls</span> <span class="nt">-la</span>
+</code></pre></div></div>
+
+<h3 id="untracked-file-생성">Untracked File 생성</h3>
+
+<p><code class="language-plaintext highlighter-rouge">README.md</code>를 작성한 뒤 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">touch </span>README.md
+git status
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">README.md</code>는 아직 Commit이 추적하지 않는 Untracked 상태이다.</p>
+
+<h3 id="staging-area에-등록">Staging Area에 등록</h3>
+
+<p>다음 Commit에 포함할 File을 선택한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add README.md
+git status
+git diff <span class="nt">--staged</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">git add</code>는 File을 Repository History에 즉시 기록하지 않는다. 현재 내용을 Staging Area에 올려 다음 Commit의 입력으로 만든다.</p>
+
+<h3 id="첫-commit-생성">첫 Commit 생성</h3>
+
+<p>Editor를 열어 Commit Message를 작성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit
+</code></pre></div></div>
+
+<p>짧은 실습에서는 <code class="language-plaintext highlighter-rouge">-m</code>으로 제목을 지정할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit <span class="nt">-m</span> <span class="s2">"docs: add project README"</span>
+</code></pre></div></div>
+
+<p>Commit과 Working Tree 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git log <span class="nt">--oneline</span> <span class="nt">--decorate</span>
+git status
+</code></pre></div></div>
+
+<h3 id="수정-후-두-번째-commit">수정 후 두 번째 Commit</h3>
+
+<p><code class="language-plaintext highlighter-rouge">README.md</code>를 수정한 뒤 Working Tree와 현재 Commit의 차이를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+git diff
+</code></pre></div></div>
+
+<p>변경 내용을 Stage하고 실제로 Commit될 차이를 다시 검토한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add README.md
+git diff <span class="nt">--staged</span>
+git commit <span class="nt">-m</span> <span class="s2">"docs: explain project purpose"</span>
+</code></pre></div></div>
+
+<p>History를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span>
+</code></pre></div></div>
+
+<h2 id="11--commit">11 ) Commit</h2>
+
+<hr />
+
+<p>Commit은 Staging Area에 선택한 Project 상태를 가리키는 Snapshot과 다음 Metadata를 Local Repository에 기록한다.</p>
+
+<ul>
+  <li>
+    <p>작성자와 Committer 정보</p>
+  </li>
+  <li>
+    <p>작성 시각</p>
+  </li>
+  <li>
+    <p>Commit Message</p>
+  </li>
+  <li>
+    <p>Project File과 Directory 구조를 가리키는 Tree</p>
+  </li>
+  <li>
+    <p>이전 History를 연결하는 Parent Commit</p>
+  </li>
+</ul>
+
+<p>Git은 File의 전체 복사본을 날짜별 Directory에 반복 저장하는 방식처럼 보이지 않는다. Content를 Object로 관리하고 같은 Content는 같은 Object를 재사용하며 Commit이 Project Snapshot을 가리키도록 구성한다.</p>
+
+<h3 id="commit-message">Commit Message</h3>
+
+<p>Commit Message는 변경한 결과뿐 아니라 변경 이유를 History에 남기는 정보이다. 여러 줄 Message는 다음 구조로 작성할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>변경 내용을 요약한 제목
+
+변경한 이유, 고려한 제약과 필요한 추가 설명
+</code></pre></div></div>
+
+<p>제목과 본문 사이를 빈 줄로 구분하면 <code class="language-plaintext highlighter-rouge">git log</code>, Hosting Service와 여러 Git 도구가 두 영역을 구분해서 표시할 수 있다.</p>
+
+<h3 id="commit-object-id">Commit Object ID</h3>
+
+<p>Commit은 Git Object ID로 식별된다. 일반적인 SHA-1 Repository에서는 40자리 16진수이고 SHA-256 형식의 Repository에서는 64자리 16진수이다. 화면에서는 식별에 필요한 앞부분만 축약하여 보여주는 경우가 많다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git log <span class="nt">--oneline</span>
+git rev-parse HEAD
+</code></pre></div></div>
+
+<p>짧은 ID는 현재 Repository에서 다른 Object와 구분될 때 편리하게 사용할 수 있지만 고정 길이의 전역 Identifier라고 가정하지 않는다.</p>
+
+<h2 id="12--remote-repository와-push">12 ) Remote Repository와 Push</h2>
+
+<hr />
+
+<p>Local Commit은 <code class="language-plaintext highlighter-rouge">git commit</code>만으로 Remote에 전송되지 않는다. Remote Repository URL을 등록하고 Push해야 한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote add origin &lt;remote-repository-url&gt;
+git remote <span class="nt">-v</span>
+</code></pre></div></div>
+
+<p>현재 <code class="language-plaintext highlighter-rouge">main</code> Branch를 <code class="language-plaintext highlighter-rouge">origin</code>에 Push하고 Upstream 관계를 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git push <span class="nt">-u</span> origin main
+</code></pre></div></div>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Working Tree 변경
+      │ git add
+      ▼
+Staging Area
+      │ git commit
+      ▼
+Local main Branch
+      │ git push
+      ▼
+Remote의 main Branch
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">git push</code>는 Working Tree File을 바로 Server로 복사하는 명령이 아니다. Local Repository의 Commit과 Reference를 Remote와 교환하여 Remote Branch를 갱신한다.</p>
+
+<p>Push가 거절되면 강제 Push부터 실행하지 않는다. Remote에 Local이 가지고 있지 않은 Commit이 있는지 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git fetch origin
+git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
+</code></pre></div></div>
+
+<h2 id="13--containerkubernetes-작업과-git">13 ) Container·Kubernetes 작업과 Git</h2>
+
+<hr />
+
+<p>Git Repository에는 Container Image Binary 자체보다 Image를 재현할 수 있는 입력을 저장한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>저장 대상</th>
+      <th>예시</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Application Source</td>
+      <td>Python, Java, Go와 JavaScript Source File</td>
+    </tr>
+    <tr>
+      <td>Image Build 정의</td>
+      <td><code class="language-plaintext highlighter-rouge">Dockerfile</code>, <code class="language-plaintext highlighter-rouge">.dockerignore</code></td>
+    </tr>
+    <tr>
+      <td>Package 의존성</td>
+      <td><code class="language-plaintext highlighter-rouge">requirements.txt</code>, <code class="language-plaintext highlighter-rouge">package.json</code>, Build 설정</td>
+    </tr>
+    <tr>
+      <td>Kubernetes 설정</td>
+      <td>Deployment, Service, ConfigMap Manifest</td>
+    </tr>
+    <tr>
+      <td>배포 구성</td>
+      <td>Kustomize Base·Overlay, Helm Chart와 Values</td>
+    </tr>
+    <tr>
+      <td>자동화</td>
+      <td>CI/CD Workflow와 Shell Script</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>다음 정보는 Repository에 직접 Commit하지 않는다.</p>
+
+<ul>
+  <li>
+    <p>Docker Hub Personal Access Token</p>
+  </li>
+  <li>
+    <p>Private Key</p>
+  </li>
+  <li>
+    <p>실제 Password가 들어 있는 Secret Manifest</p>
+  </li>
+  <li>
+    <p>Cloud Access Key</p>
+  </li>
+  <li>
+    <p>Local 개발 환경의 Credential File</p>
+  </li>
+</ul>
+
+<p>Secret을 <code class="language-plaintext highlighter-rouge">.gitignore</code>에 넣는 것은 실수 방지 수단일 뿐 이미 Commit된 Secret을 History에서 자동으로 제거하지 않는다. Credential이 Commit되거나 외부에 노출됐다면 값을 삭제하는 것과 별개로 해당 Credential을 폐기하고 새로 발급해야 한다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Version Control System은 File의 변경 이력을 기록하고 특정 Version의 비교, 복원과 협업을 지원한다.</p>
+    </li>
+    <li>
+      <p>Git은 각 Clone이 Local Repository와 History를 가지는 Distributed Version Control System이다.</p>
+    </li>
+    <li>
+      <p>Git과 GitHub·GitLab·Bitbucket 같은 Hosting Service는 서로 다른 대상이다.</p>
+    </li>
+    <li>
+      <p>Git의 기본 작업 영역은 Working Tree, Staging Area와 Local Repository이다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">git add</code>는 다음 Commit에 포함할 내용을 선택하고 <code class="language-plaintext highlighter-rouge">git commit</code>은 이를 Local Repository에 기록한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">git push</code>는 Local Commit과 Branch Reference를 Remote Repository로 전송한다.</p>
+    </li>
+    <li>
+      <p>초기 Branch 이름과 Object ID 길이는 Version과 Repository 형식에 따라 달라질 수 있으므로 고정된 값으로 단정하지 않는다.</p>
+    </li>
+    <li>
+      <p>Container와 Kubernetes 작업에서는 재현 가능한 설정을 Git에 저장하고 Token, Password와 Private Key는 Commit하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-40-kubernetes-helm/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Helm Chart와 Release 관리</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1788962365"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788962365"></script>
+  </body>
+</html>

@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Version Control과 Git 기본 작업 흐름",
+        "url": "/cloud-native-42-git-version-control-basics/",
+        "description": "Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Git"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 9일",
+        "reading_time_label": "9분 읽기",
+        "search": "version control과 git 기본 작업 흐름 version control system의 종류와 git의 working tree·staging area·repository 구조, file 상태 및 기본 commit 흐름 cloudnative autoeversw git cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Helm Chart와 Release 관리",
         "url": "/cloud-native-40-kubernetes-helm/",
         "description": "Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리",
