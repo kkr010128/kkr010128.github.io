@@ -1,0 +1,1406 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Kubernetes Helm Chart와 Release 관리 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-40-kubernetes-helm/">
+<meta property="og:title" content="Kubernetes Helm Chart와 Release 관리 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-40-kubernetes-helm/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kubernetes Helm Chart와 Release 관리 | renamed.log">
+<meta name="twitter:description" content="Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리">
+
+  <meta property="article:published_time" content="2026-09-08T00:00:00+09:00">
+
+
+  <meta property="article:modified_time" content="2026-09-09T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1788962065" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1788962065" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1788962065">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1788962065" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1788962065">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Kubernetes Helm Chart와 Release 관리 | renamed.log",
+    "description": "Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리",
+    "url": "https://kkr010128.github.io/cloud-native-40-kubernetes-helm/",
+    "datePublished": "2026-09-08T00:00:00+09:00",
+    "dateModified": "2026-09-09T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Kubernetes Helm Chart와 Release 관리</h1>
+    
+      <p class="post-head__description">Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 8일 · 14분 읽기 · 수정 2026년 9월 9일
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Kubernetes">Kubernetes</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-39-kubernetes-kustomize/">Kubernetes Kustomize로 Manifest 구성 관리</a>에서 다룬 Kustomize는 원본 Manifest를 조합하고 환경별 차이를 Overlay로 관리한다. Helm은 여러 Kubernetes Resource와 기본 설정을 Version이 있는 Chart로 묶고, Chart를 Cluster에 설치한 결과를 Release 단위로 관리한다.</p>
+
+<h2 id="1--helm">1 ) Helm</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Helm</strong></p>
+
+  <p>Kubernetes Application을 Chart로 Packaging하고 설치, Upgrade, Rollback과 제거를 Release 단위로 관리하는 CNCF Project이다.</p>
+</blockquote>
+
+<p>Helm의 주요 구성 요소는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Helm Client</td>
+      <td>Chart를 읽고 Template을 Rendering하여 Kubernetes API Server에 적용</td>
+    </tr>
+    <tr>
+      <td>Chart</td>
+      <td>Kubernetes Resource Template, 기본값과 Metadata를 묶은 Package</td>
+    </tr>
+    <tr>
+      <td>Values</td>
+      <td>같은 Chart에서 변경할 Image, Replica, Port와 Storage 등의 입력값</td>
+    </tr>
+    <tr>
+      <td>Manifest</td>
+      <td>Chart와 Values를 Rendering한 최종 Kubernetes YAML</td>
+    </tr>
+    <tr>
+      <td>Release</td>
+      <td>특정 Namespace에 설치한 Chart Instance와 Revision History</td>
+    </tr>
+    <tr>
+      <td>Repository·OCI Registry</td>
+      <td>Version별 Chart Package를 배포하는 저장소</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>관계는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Chart Templates + Default values.yaml + 사용자 Values
+                         │
+                         ▼
+                   Helm Rendering
+                         │
+                         ▼
+             Kubernetes Manifest 집합
+                         │ API Server에 적용
+                         ▼
+                    Helm Release
+                         │ Revision 기록
+                         ▼
+Deployment·StatefulSet·Service 등의 Controller
+                         │
+                         ▼
+              Worker의 kubelet과 Pod
+</code></pre></div></div>
+
+<p>Helm은 Application Container를 직접 실행하지 않는다. Helm이 Rendering한 Resource를 API Server에 저장하면 Control Plane의 각 Controller가 원하는 상태를 조정하고 Worker의 kubelet이 실제 Container를 실행한다.</p>
+
+<h2 id="2--helm-version과-kubernetes-호환성">2 ) Helm Version과 Kubernetes 호환성</h2>
+
+<hr />
+
+<p>2026년 9월 기준 Helm의 현재 Stable Major Version은 Helm 4이다. Helm 3은 지원 종료 단계에 있으므로 신규 환경에서는 Helm 4와 Cluster의 호환 범위를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm version
+kubectl version
+</code></pre></div></div>
+
+<p>Helm은 내부에 포함된 Kubernetes Client Library를 통해 API Server와 통신한다. Cluster보다 지나치게 오래된 Helm이나 Helm이 보장하지 않는 더 새로운 Kubernetes Cluster를 조합하면 API 호환 문제가 생길 수 있다.</p>
+
+<p>Helm <code class="language-plaintext highlighter-rouge">3.13.3</code>을 고정하는 다음 명령은 당시 환경을 재현하기 위한 Legacy 예제이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asdf plugin add helm
+asdf <span class="nb">install </span>helm 3.13.3
+asdf global helm 3.13.3
+</code></pre></div></div>
+
+<p>asdf 0.16 이상에서는 <code class="language-plaintext highlighter-rouge">asdf global</code> 대신 <code class="language-plaintext highlighter-rouge">asdf set</code>을 사용한다. 실제 Version은 Cluster와 Helm의 공식 Version Skew를 확인한 뒤 선택한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asdf plugin add helm
+asdf list all helm
+asdf <span class="nb">install </span>helm &lt;compatible-helm-version&gt;
+asdf <span class="nb">set</span> <span class="nt">--home</span> helm &lt;compatible-helm-version&gt;
+helm version
+</code></pre></div></div>
+
+<h2 id="3--debianubuntu에서-helm-설치">3 ) Debian·Ubuntu에서 Helm 설치</h2>
+
+<hr />
+
+<p>Helm의 Debian·Ubuntu Package Repository를 이용하려면 먼저 필요한 Package를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install </span>curl gpg apt-transport-https <span class="nt">--yes</span>
+</code></pre></div></div>
+
+<p>Repository Signing Key를 내려받아 Fingerprint를 확인하고 Keyring으로 변환한다. Fingerprint 값은 실행 전에 Helm 공식 설치 문서의 현재 값과 다시 대조한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">HELM_APT_KEY_ID</span><span class="o">=</span><span class="s1">'DDF78C3E6EBB2D2CC223C95C62BA89D07698DBC6'</span>
+
+curl <span class="nt">-fsSL</span> <span class="se">\</span>
+  https://packages.buildkite.com/helm-linux/helm-debian/gpgkey <span class="se">\</span>
+  <span class="nt">-o</span> /tmp/helm.gpg
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="si">$(</span>gpg <span class="nt">--show-keys</span> <span class="nt">--with-colons</span> /tmp/helm.gpg | <span class="nb">awk</span> <span class="nt">-F</span>: <span class="s1">'$1 == "fpr" {print $10}'</span> | <span class="nb">head</span> <span class="nt">-n</span> 1<span class="si">)</span><span class="s2">"</span> <span class="o">!=</span> <span class="s2">"</span><span class="k">${</span><span class="nv">HELM_APT_KEY_ID</span><span class="k">}</span><span class="s2">"</span> <span class="o">]</span>
+<span class="k">then
+  </span><span class="nb">echo</span> <span class="s1">'ERROR: unexpected Helm APT signing key'</span>
+  <span class="nb">exit </span>1
+<span class="k">fi</span>
+</code></pre></div></div>
+
+<p>확인한 Key를 등록하고 Repository를 추가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gpg <span class="nt">--dearmor</span> &lt; /tmp/helm.gpg | <span class="se">\</span>
+  <span class="nb">sudo tee</span> /usr/share/keyrings/helm.gpg <span class="o">&gt;</span> /dev/null
+
+<span class="nb">echo</span> <span class="s1">'deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main'</span> | <span class="se">\</span>
+  <span class="nb">sudo tee</span> /etc/apt/sources.list.d/helm-stable-debian.list
+
+<span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>helm
+helm version
+</code></pre></div></div>
+
+<p>Package Repository에서 최신 Major Version이 설치될 수 있으므로 운영 Cluster에 적용하기 전에 <code class="language-plaintext highlighter-rouge">helm version</code>과 Kubernetes Version 지원 범위를 확인한다.</p>
+
+<h2 id="4--chart-repository와-oci-registry">4 ) Chart, Repository와 OCI Registry</h2>
+
+<hr />
+
+<p>전통적인 Helm Repository는 <code class="language-plaintext highlighter-rouge">index.yaml</code>과 Chart Package를 HTTP Server에서 제공한다. OCI Registry는 Container Image와 유사한 방식으로 Chart Artifact를 저장한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>배포 위치</th>
+      <th>검색·사용 방식</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Helm Repository</td>
+      <td><code class="language-plaintext highlighter-rouge">helm repo add</code>, <code class="language-plaintext highlighter-rouge">helm repo update</code>, <code class="language-plaintext highlighter-rouge">helm search repo</code></td>
+    </tr>
+    <tr>
+      <td>Artifact Hub</td>
+      <td>Browser 또는 <code class="language-plaintext highlighter-rouge">helm search hub</code>로 여러 공급자의 Chart 검색</td>
+    </tr>
+    <tr>
+      <td>OCI Registry</td>
+      <td><code class="language-plaintext highlighter-rouge">oci://&lt;registry&gt;/&lt;path&gt;/&lt;chart&gt;</code>를 직접 참조</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>등록된 Repository를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo list
+</code></pre></div></div>
+
+<p>Bitnami Repository를 등록하고 Index를 갱신한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm search repo bitnami/nginx
+helm search repo bitnami/mariadb <span class="nt">--versions</span>
+</code></pre></div></div>
+
+<p>Artifact Hub 전체에서 Chart를 찾을 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm search hub nginx
+helm search hub mariadb
+</code></pre></div></div>
+
+<p>과거 Helm의 기본 Chart 모음이었던 <code class="language-plaintext highlighter-rouge">stable</code>과 <code class="language-plaintext highlighter-rouge">incubator</code> Repository는 2020년 11월부터 읽기 전용 Archive이며 신규 Chart 선택지로 사용하지 않는다. 현재 Chart는 Artifact Hub에서 공급자, 최근 Release, Source Repository와 보안 정보를 확인한 뒤 선택한다.</p>
+
+<h3 id="oci-registry에-사용자-chart-배포">OCI Registry에 사용자 Chart 배포</h3>
+
+<p>OCI Registry는 Container Image뿐 아니라 Helm Chart Package도 저장할 수 있다. Chart Directory를 직접 Push하지 않고 <code class="language-plaintext highlighter-rouge">helm package</code>로 만든 <code class="language-plaintext highlighter-rouge">.tgz</code> File을 업로드한다.</p>
+
+<p>Registry의 Image 참조 구조, Public·Private Registry와 인증 방식은 <a href="/cloud-native-41-container-image-registry/">Container Image Registry와 Kubernetes Image Pull</a>에서 다룬다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Chart Directory
+      │ helm lint
+      ▼
+검증된 Chart
+      │ helm package
+      ▼
+Chart Archive(.tgz)
+      │ helm push
+      ▼
+OCI Registry
+      │ helm pull·helm install
+      ▼
+Helm Client
+</code></pre></div></div>
+
+<p>샘플 Chart를 생성한다. 기존 <code class="language-plaintext highlighter-rouge">echo</code> Directory가 있다면 덮어쓰지 말고 내용을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm create <span class="nb">echo
+</span>helm lint ./echo
+helm template echo-preview ./echo
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">Chart.yaml</code>의 <code class="language-plaintext highlighter-rouge">name</code>과 <code class="language-plaintext highlighter-rouge">version</code>을 확인한 뒤 Package를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart ./echo
+helm package ./echo
+</code></pre></div></div>
+
+<p>기본 생성값을 사용했다면 현재 Directory에 <code class="language-plaintext highlighter-rouge">echo-0.1.0.tgz</code>가 만들어진다. 실제 File 이름은 <code class="language-plaintext highlighter-rouge">Chart.yaml</code>의 Version에 따라 달라진다.</p>
+
+<p>Docker Hub 같은 OCI Registry에 로그인한다. Password 또는 Personal Access Token은 명령 인자에 작성하지 않고 Prompt에 입력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm registry login registry-1.docker.io <span class="se">\</span>
+  <span class="nt">-u</span> &lt;registry-username&gt;
+</code></pre></div></div>
+
+<p>Package를 Registry Namespace로 Push한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm push echo-0.1.0.tgz <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">helm push</code>의 대상 경로에는 Chart 이름과 Tag를 붙이지 않는다. Helm이 <code class="language-plaintext highlighter-rouge">Chart.yaml</code>의 <code class="language-plaintext highlighter-rouge">name</code>을 OCI Repository 이름으로, <code class="language-plaintext highlighter-rouge">version</code>을 Tag로 사용하므로 위 명령의 결과 참조는 다음 형태가 된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>registry-1.docker.io/&lt;registry-username&gt;/echo:0.1.0
+</code></pre></div></div>
+
+<p>OCI Chart 참조는 <code class="language-plaintext highlighter-rouge">oci://</code> Prefix를 사용하며 <code class="language-plaintext highlighter-rouge">helm show</code>, <code class="language-plaintext highlighter-rouge">helm pull</code>과 <code class="language-plaintext highlighter-rouge">helm install</code>에서 Chart Version을 명시할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0
+
+helm pull <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0
+</code></pre></div></div>
+
+<p>Cluster에 설치하기 전 Rendering 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template echo-oci-preview <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0
+</code></pre></div></div>
+
+<p>검증이 끝난 Chart를 별도 Namespace에 설치하고 Helm Release와 Kubernetes Resource를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>echo-oci <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0 <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span>
+
+helm status echo-oci <span class="nt">--namespace</span> helm-lab
+kubectl get pods,services <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Chart를 Registry에 Push하는 과정은 Cluster를 변경하지 않는다. <code class="language-plaintext highlighter-rouge">helm install</code>을 실행해야 Helm Client가 Chart를 Pull하고 Manifest를 Rendering하여 API Server에 제출한다. 그 이후에는 Controller와 Worker의 kubelet이 Resource를 조정한다.</p>
+
+<p>설치한 Chart가 Service를 생성했다면 외부 공개 설정을 추가하기 전에 Port Forwarding으로 응답을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl port-forward <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  service/echo-oci 8080:80
+</code></pre></div></div>
+
+<p>Chart의 실제 Service 이름과 Port는 다음 명령으로 확인한 뒤 예제 값을 바꾼다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get service <span class="nt">--namespace</span> helm-lab
+kubectl describe service echo-oci <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Pod가 시작되지 않으면 Release 상태만 보지 않고 Event와 Container Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get events <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+kubectl logs <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  deployment/echo-oci <span class="se">\</span>
+  <span class="nt">--all-pods</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div></div>
+
+<p>Resource 이름과 Workload Kind는 Chart Template에 따라 다를 수 있다. <code class="language-plaintext highlighter-rouge">helm get manifest echo-oci --namespace helm-lab</code>으로 실제 생성된 Resource를 확인하고 Log 명령의 대상을 선택한다.</p>
+
+<p>실습이 끝나면 Release와 Registry Login Session을 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm uninstall echo-oci <span class="nt">--namespace</span> helm-lab
+helm registry <span class="nb">logout </span>registry-1.docker.io
+</code></pre></div></div>
+
+<h2 id="5--chart-설치-전-확인">5 ) Chart 설치 전 확인</h2>
+
+<hr />
+
+<p>외부 Chart를 바로 설치하지 않고 Metadata, 기본 Values와 Rendering 결과를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart bitnami/nginx
+helm show values bitnami/nginx
+helm template my-nginx bitnami/nginx
+helm <span class="nb">install </span>my-nginx bitnami/nginx <span class="nt">--dry-run</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>확인 대상</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm show chart</code></td>
+      <td>Chart 이름, Version, Dependency와 Metadata</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm show values</code></td>
+      <td>변경 가능한 기본 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm template</code></td>
+      <td>Cluster에 연결하지 않고 생성되는 Manifest</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm install --dry-run</code></td>
+      <td>Release 이름과 Values를 적용한 설치 결과</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Rendering 결과에서 다음 항목을 확인한다.</p>
+
+<ul>
+  <li>
+    <p>사용할 Container Image Registry와 Tag</p>
+  </li>
+  <li>
+    <p>생성되는 RBAC Resource와 ServiceAccount 권한</p>
+  </li>
+  <li>
+    <p>Service Type과 외부 공개 여부</p>
+  </li>
+  <li>
+    <p>PVC, StorageClass와 요청 용량</p>
+  </li>
+  <li>
+    <p>Secret에 들어갈 값과 생성 방식</p>
+  </li>
+  <li>
+    <p>Namespace와 Cluster Scope Resource</p>
+  </li>
+</ul>
+
+<p>Chart Version을 생략하면 Repository 갱신 시 다른 Version이 선택될 수 있다. 재현 가능한 설치에는 검증한 Chart Version을 명시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-nginx bitnami/nginx <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt;
+</code></pre></div></div>
+
+<h2 id="6--bitnami-chart의-현재-배포-상태">6 ) Bitnami Chart의 현재 배포 상태</h2>
+
+<hr />
+
+<p>Bitnami는 2025년부터 Public Container와 Chart 배포 정책을 변경했다. Chart Source는 공개되어 있어도 Chart가 참조하는 Versioned Image가 기존 <code class="language-plaintext highlighter-rouge">docker.io/bitnami</code> Registry에 없을 수 있으며, 이 경우 설치된 Pod는 <code class="language-plaintext highlighter-rouge">ImagePullBackOff</code> 상태가 된다.</p>
+
+<p>따라서 다음 명령이 성공적으로 Chart를 Rendering했다는 사실만으로 Container Image도 Pull할 수 있다고 판단하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart bitnami/mariadb
+helm show values bitnami/mariadb
+helm template my-mariadb bitnami/mariadb
+</code></pre></div></div>
+
+<p>Chart가 사용하는 Image를 Rendering 결과에서 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-mariadb bitnami/mariadb | <span class="se">\</span>
+  <span class="nb">grep</span> <span class="nt">-E</span> <span class="s1">'^[[:space:]]*image:'</span>
+</code></pre></div></div>
+
+<p>설치 후 Pod가 시작되지 않으면 Event와 Image를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
+kubectl describe pod &lt;mariadb-pod-name&gt;
+kubectl get pod &lt;mariadb-pod-name&gt; <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.containers[*].image}{"\n"}'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">bitnamilegacy</code> Registry는 이전 Image를 보관하는 Migration 용도이며 신규 수정과 보안 Update가 제공되지 않는다. 단순히 Repository 이름을 Legacy로 바꿔 운영 문제를 해결했다고 판단하지 않는다.</p>
+
+<h2 id="7--nginx-chart-release-관리">7 ) nginx Chart Release 관리</h2>
+
+<hr />
+
+<p>검증한 Chart Version과 Image를 사용할 수 있을 때 nginx Chart를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-nginx bitnami/nginx <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span>
+</code></pre></div></div>
+
+<p>Helm Release와 Kubernetes Resource를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm list <span class="nt">--namespace</span> helm-lab
+helm status my-nginx <span class="nt">--namespace</span> helm-lab
+kubectl get deployments,pods,services <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Helm은 Release 상태를 기록하지만 Pod가 Ready인지 대신 보장하지 않는다. <code class="language-plaintext highlighter-rouge">helm status</code>와 함께 Deployment Rollout, Pod Event와 Container Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout status deployment/my-nginx <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get events <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+</code></pre></div></div>
+
+<p>실습이 끝나면 Release를 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm uninstall my-nginx <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Release를 제거해도 Chart가 생성한 PVC가 보존 정책에 따라 남을 수 있으므로 Namespace의 Resource를 확인한다.</p>
+
+<h2 id="8--mariadb-chart와-pvc-pending-진단">8 ) MariaDB Chart와 PVC Pending 진단</h2>
+
+<hr />
+
+<p>MariaDB 같은 Stateful Application은 기본 Values에서 Persistence가 활성화되어 있을 수 있다. Cluster에 Default StorageClass나 조건에 맞는 PV가 없으면 PVC가 <code class="language-plaintext highlighter-rouge">Pending</code> 상태로 남고 MariaDB Pod도 정상 시작하지 못한다.</p>
+
+<p>설치 전에 Storage 설정을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show values bitnami/mariadb | <span class="se">\</span>
+  <span class="nb">grep</span> <span class="nt">-A</span> 20 <span class="s1">'persistence:'</span>
+kubectl get storageclasses
+kubectl get persistentvolumes
+</code></pre></div></div>
+
+<p>검증한 Chart와 Image를 사용할 수 있는 환경에서 MariaDB를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span>
+</code></pre></div></div>
+
+<p>설치 상태를 Resource 계층별로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm status my-mariadb <span class="nt">--namespace</span> helm-lab
+kubectl get statefulsets,pods <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get persistentvolumeclaims <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get persistentvolumes
+</code></pre></div></div>
+
+<p>PVC가 <code class="language-plaintext highlighter-rouge">Pending</code>이면 Pod Log보다 PVC Event와 StorageClass를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  &lt;mariadb-pvc-name&gt;
+kubectl get storageclasses
+kubectl get events <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+</code></pre></div></div>
+
+<p>PV, PVC와 StorageClass의 연결은 <a href="/cloud-native-35-kubernetes-volume-persistent-storage/">Kubernetes Volume과 Persistent Storage</a>에서 자세히 설명한다.</p>
+
+<h2 id="9--persistence를-사용하지-않는-임시-실습">9 ) Persistence를 사용하지 않는 임시 실습</h2>
+
+<hr />
+
+<p>Storage 구성이 없는 격리 실습에서는 Persistence를 끄고 <code class="language-plaintext highlighter-rouge">emptyDir</code>를 사용하도록 Chart 값을 변경할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--set</span> primary.persistence.enabled<span class="o">=</span><span class="nb">false</span> <span class="se">\</span>
+  <span class="nt">--set-string</span> auth.rootPassword<span class="o">=</span><span class="s1">'&lt;temporary-password&gt;'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--set</code>에 입력한 Password는 Shell History와 Process 정보에 노출될 수 있다. 위 명령은 Option 구조를 설명하기 위한 임시 실습이며 실제 Credential은 별도 Secret이나 보호된 Values 전달 방식을 사용한다.</p>
+
+<p>Persistence를 끄면 Pod가 교체될 때 Database Data를 잃을 수 있으므로 운영 Database 구성으로 사용하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--namespace</span> helm-lab
+kubectl <span class="nb">exec</span> <span class="nt">-it</span> <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  statefulset/my-mariadb <span class="nt">--</span> bash
+</code></pre></div></div>
+
+<p>실습 Release를 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm uninstall my-mariadb <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<h2 id="10--node-local-pv와-pvc-준비">10 ) Node Local PV와 PVC 준비</h2>
+
+<hr />
+
+<p>직접 구축한 Cluster에서 Dynamic Provisioner가 없다면 특정 Worker의 Directory를 사용하는 정적 PV를 만들 수 있다. 이 방식은 Node 장애 시 다른 Worker로 자동 이동하는 공유 Storage가 아니므로 실습 범위로 제한한다.</p>
+
+<p>먼저 MariaDB Pod를 배치할 Worker 이름을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes
+</code></pre></div></div>
+
+<p>다음 명령은 선택한 <code class="language-plaintext highlighter-rouge">worker1</code>에서 실행한다. UID와 GID <code class="language-plaintext highlighter-rouge">1001</code>은 Bitnami MariaDB Image 계열에서 사용하는 값이므로 실제 선택한 Image의 실행 사용자를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /data/mariadb
+<span class="nb">sudo chown </span>1001:1001 /data/mariadb
+<span class="nb">sudo chmod </span>0750 /data/mariadb
+</code></pre></div></div>
+
+<p>모든 사용자에게 쓰기 권한을 주는 <code class="language-plaintext highlighter-rouge">chmod 777</code>은 사용하지 않는다. 다음 내용을 <code class="language-plaintext highlighter-rouge">mariadb-pv.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolume</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb-local-pv</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">manual</span>
+  <span class="na">persistentVolumeReclaimPolicy</span><span class="pi">:</span> <span class="s">Retain</span>
+  <span class="na">capacity</span><span class="pi">:</span>
+    <span class="na">storage</span><span class="pi">:</span> <span class="s">1Gi</span>
+  <span class="na">volumeMode</span><span class="pi">:</span> <span class="s">Filesystem</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="na">local</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">/data/mariadb</span>
+  <span class="na">nodeAffinity</span><span class="pi">:</span>
+    <span class="na">required</span><span class="pi">:</span>
+      <span class="na">nodeSelectorTerms</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">matchExpressions</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">kubernetes.io/hostname</span>
+              <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+              <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">worker1</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolumeClaim</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb-pvc</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">helm-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">manual</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="na">resources</span><span class="pi">:</span>
+    <span class="na">requests</span><span class="pi">:</span>
+      <span class="na">storage</span><span class="pi">:</span> <span class="s">1Gi</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">hostPath</code>도 Node Directory를 직접 사용하지만 PV와 Pod의 Node 관계를 자동으로 표현하지 않는다. 이 예제는 <code class="language-plaintext highlighter-rouge">local</code> Volume과 <code class="language-plaintext highlighter-rouge">nodeAffinity</code>를 사용해 PV가 <code class="language-plaintext highlighter-rouge">worker1</code>에 종속됨을 Scheduler가 알 수 있게 한다.</p>
+
+<p>Master 또는 관리 Client에서 PV와 PVC를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create namespace helm-lab <span class="se">\</span>
+  <span class="nt">--dry-run</span><span class="o">=</span>client <span class="nt">-o</span> yaml | kubectl apply <span class="nt">-f</span> -
+kubectl apply <span class="nt">-f</span> mariadb-pv.yaml
+kubectl get persistentvolume
+kubectl get persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<h2 id="11--기존-pvc와-secret을-mariadb-chart에-연결">11 ) 기존 PVC와 Secret을 MariaDB Chart에 연결</h2>
+
+<hr />
+
+<p>MariaDB Credential을 별도 Secret으로 준비하고 Chart에는 Secret 이름만 전달한다. 현재 Bitnami MariaDB Chart를 기준으로 Secret Key 요구 사항은 선택한 Chart Version의 README와 <code class="language-plaintext highlighter-rouge">values.yaml</code>에서 다시 확인한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">mariadb-auth-secret.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb-auth</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">helm-lab</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">Opaque</span>
+<span class="na">stringData</span><span class="pi">:</span>
+  <span class="na">mariadb-root-password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_ROOT_PASSWORD</span>
+  <span class="na">mariadb-password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_USER_PASSWORD</span>
+  <span class="na">mariadb-replication-password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_REPLICATION_PASSWORD</span>
+</code></pre></div></div>
+
+<p>실제 Password가 채워진 File은 공개 Repository에 Commit하지 않는다. Secret을 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> mariadb-auth-secret.yaml
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">mariadb-values.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">architecture</span><span class="pi">:</span> <span class="s">standalone</span>
+
+<span class="na">auth</span><span class="pi">:</span>
+  <span class="na">existingSecret</span><span class="pi">:</span> <span class="s">mariadb-auth</span>
+  <span class="na">database</span><span class="pi">:</span> <span class="s">testdb</span>
+  <span class="na">username</span><span class="pi">:</span> <span class="s">dbuser</span>
+
+<span class="na">primary</span><span class="pi">:</span>
+  <span class="na">persistence</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">existingClaim</span><span class="pi">:</span> <span class="s">mariadb-pvc</span>
+  <span class="na">nodeSelector</span><span class="pi">:</span>
+    <span class="na">kubernetes.io/hostname</span><span class="pi">:</span> <span class="s">worker1</span>
+</code></pre></div></div>
+
+<p>PVC와 Pod 모두 <code class="language-plaintext highlighter-rouge">worker1</code>에 고정되는지 Rendering 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> mariadb-values.yaml
+</code></pre></div></div>
+
+<p>Chart와 Image를 검증한 환경에서 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> mariadb-values.yaml
+</code></pre></div></div>
+
+<p>Pod가 선택한 Worker에서 실행되고 PVC가 연결됐는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">-o</span> wide
+kubectl get persistentvolume
+kubectl get persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl describe pod <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  &lt;mariadb-pod-name&gt;
+</code></pre></div></div>
+
+<h2 id="12--사용자-helm-chart-구조">12 ) 사용자 Helm Chart 구조</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">helm create</code>는 기본 Chart Directory를 자동으로 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm create custom-mariadb
+</code></pre></div></div>
+
+<p>기본 Sample을 목적에 맞게 정리하면 다음 구조가 된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>custom-mariadb/
+├── Chart.yaml
+├── values.yaml
+├── .helmignore
+└── templates/
+    ├── secret.yaml
+    ├── service.yaml
+    ├── statefulset.yaml
+    └── pvc.yaml
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Chart.yaml</code></td>
+      <td>Chart 이름, Type, Chart Version과 Application Version 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">values.yaml</code></td>
+      <td>Template에서 사용할 기본값 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">templates/</code></td>
+      <td>Rendering할 Kubernetes Resource Template 저장</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">.helmignore</code></td>
+      <td>Chart Package에서 제외할 File Pattern 정의</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Helm은 <code class="language-plaintext highlighter-rouge">templates/</code> 아래의 Template을 Rendering하므로 Directory 이름을 정확하게 사용해야 한다.</p>
+
+<h2 id="13--chart-metadata와-values">13 ) Chart Metadata와 Values</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/Chart.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v2</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+<span class="na">description</span><span class="pi">:</span> <span class="s">A custom MariaDB Helm chart</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">application</span>
+<span class="na">version</span><span class="pi">:</span> <span class="s">0.1.0</span>
+<span class="na">appVersion</span><span class="pi">:</span> <span class="s2">"</span><span class="s">11.4"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">version</code>은 Chart Package Version이고 <code class="language-plaintext highlighter-rouge">appVersion</code>은 Chart가 배포하는 Application Version을 설명하는 값이다. 둘은 같은 의미가 아니다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/values.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">replicaCount</span><span class="pi">:</span> <span class="m">1</span>
+
+<span class="na">image</span><span class="pi">:</span>
+  <span class="na">repository</span><span class="pi">:</span> <span class="s">mariadb</span>
+  <span class="na">tag</span><span class="pi">:</span> <span class="s2">"</span><span class="s">11.4"</span>
+  <span class="na">pullPolicy</span><span class="pi">:</span> <span class="s">IfNotPresent</span>
+
+<span class="na">mariadb</span><span class="pi">:</span>
+  <span class="na">existingSecret</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">rootPassword</span><span class="pi">:</span> <span class="s">REPLACE_WITH_ROOT_PASSWORD</span>
+  <span class="na">database</span><span class="pi">:</span> <span class="s">appdb</span>
+  <span class="na">user</span><span class="pi">:</span> <span class="s">appuser</span>
+  <span class="na">password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_USER_PASSWORD</span>
+
+<span class="na">persistence</span><span class="pi">:</span>
+  <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">existingClaim</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">storageSize</span><span class="pi">:</span> <span class="s">1Gi</span>
+
+<span class="na">service</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">port</span><span class="pi">:</span> <span class="m">3306</span>
+
+<span class="na">nodeSelector</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mariadb.rootPassword</code>는 Secret Template이 참조하는 Field이고 <code class="language-plaintext highlighter-rouge">service.type</code>은 Kubernetes가 인식하는 <code class="language-plaintext highlighter-rouge">ClusterIP</code> 값을 사용한다. 실제 운영용 Values에는 평문 Password를 저장하지 않고 <code class="language-plaintext highlighter-rouge">mariadb.existingSecret</code>으로 이미 생성한 Secret을 참조한다.</p>
+
+<h2 id="14--secret-template">14 ) Secret Template</h2>
+
+<hr />
+
+<p>Helm Template의 <code class="language-plaintext highlighter-rouge">{{ ... }}</code> 표현은 Jekyll Liquid와 충돌하므로 Code Block 전체를 Raw Tag로 감싼다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/secret.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">{{</span><span class="nv">- if not .Values.mariadb.existingSecret</span> <span class="pi">}}</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span><span class="s">-secret</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">Opaque</span>
+<span class="na">stringData</span><span class="pi">:</span>
+  <span class="na">mariadb-root-password</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.rootPassword | quote</span> <span class="pi">}}</span>
+  <span class="na">mariadb-password</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.password | quote</span> <span class="pi">}}</span>
+<span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mariadb.existingSecret</code>이 비어 있을 때만 Chart가 Secret을 생성한다. 외부 Secret 이름을 지정하면 이 Template은 Resource를 만들지 않는다.</p>
+
+<h2 id="15--service와-pvc-template">15 ) Service와 PVC Template</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/service.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.service.type</span> <span class="pi">}}</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.service.port</span> <span class="pi">}}</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">mariadb</span>
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/pvc.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">{{</span><span class="nv">- if and .Values.persistence.enabled (not .Values.persistence.existingClaim)</span> <span class="pi">}}</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolumeClaim</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span><span class="s">-data</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="pi">{{</span><span class="nv">- if .Values.persistence.storageClassName</span> <span class="pi">}}</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.persistence.storageClassName | quote</span> <span class="pi">}}</span>
+  <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+  <span class="na">resources</span><span class="pi">:</span>
+    <span class="na">requests</span><span class="pi">:</span>
+      <span class="na">storage</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.persistence.storageSize</span> <span class="pi">}}</span>
+<span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+</code></pre></div></div>
+
+<p>Persistence가 활성화되고 <code class="language-plaintext highlighter-rouge">existingClaim</code>이 비어 있을 때만 PVC를 생성한다. <code class="language-plaintext highlighter-rouge">storageClassName</code>을 비워 두면 Cluster의 Default StorageClass 선택 규칙이 적용된다.</p>
+
+<h2 id="16--statefulset-template">16 ) StatefulSet Template</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/statefulset.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">StatefulSet</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">serviceName</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.replicaCount</span> <span class="pi">}}</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+      <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+        <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="pi">{{</span><span class="nv">- with .Values.nodeSelector</span> <span class="pi">}}</span>
+      <span class="na">nodeSelector</span><span class="pi">:</span>
+        <span class="pi">{{</span><span class="nv">- toYaml . | nindent 8</span> <span class="pi">}}</span>
+      <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">.Values.image.repository</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">.Values.image.tag</span><span class="nv"> </span><span class="s">}}"</span>
+          <span class="na">imagePullPolicy</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.image.pullPolicy</span> <span class="pi">}}</span>
+          <span class="na">env</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_ROOT_PASSWORD</span>
+              <span class="na">valueFrom</span><span class="pi">:</span>
+                <span class="na">secretKeyRef</span><span class="pi">:</span>
+                  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">default (printf "%s-secret" .Release.Name) .Values.mariadb.existingSecret</span> <span class="pi">}}</span>
+                  <span class="na">key</span><span class="pi">:</span> <span class="s">mariadb-root-password</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_DATABASE</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.database | quote</span> <span class="pi">}}</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_USER</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.user | quote</span> <span class="pi">}}</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_PASSWORD</span>
+              <span class="na">valueFrom</span><span class="pi">:</span>
+                <span class="na">secretKeyRef</span><span class="pi">:</span>
+                  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">default (printf "%s-secret" .Release.Name) .Values.mariadb.existingSecret</span> <span class="pi">}}</span>
+                  <span class="na">key</span><span class="pi">:</span> <span class="s">mariadb-password</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">3306</span>
+          <span class="pi">{{</span><span class="nv">- if .Values.persistence.enabled</span> <span class="pi">}}</span>
+          <span class="na">volumeMounts</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">data</span>
+              <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/var/lib/mysql</span>
+          <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+      <span class="pi">{{</span><span class="nv">- if .Values.persistence.enabled</span> <span class="pi">}}</span>
+      <span class="na">volumes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">data</span>
+          <span class="na">persistentVolumeClaim</span><span class="pi">:</span>
+            <span class="na">claimName</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">default (printf "%s-data" .Release.Name) .Values.persistence.existingClaim</span> <span class="pi">}}</span>
+      <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+</code></pre></div></div>
+
+<p>StatefulSet의 Selector와 Pod Label은 Chart의 Release 이름까지 포함하여 다른 Release의 Pod를 관리하지 않게 한다. <code class="language-plaintext highlighter-rouge">existingSecret</code>과 <code class="language-plaintext highlighter-rouge">existingClaim</code>이 있으면 외부 Resource를 사용하고, 비어 있으면 Chart가 만든 Secret과 PVC 이름을 참조한다.</p>
+
+<p>이 Chart는 하나의 MariaDB Instance를 위한 학습 예제이다. <code class="language-plaintext highlighter-rouge">replicaCount</code>를 1보다 크게 설정하면 여러 MariaDB Process가 같은 PVC를 사용하게 되므로 복제 구성이 되지 않으며 Data가 손상될 수 있다. MariaDB 복제는 Database의 복제 설정과 Pod별 Volume을 함께 제공하는 별도 Chart 구조가 필요하다.</p>
+
+<h2 id="17--chart-검증과-설치">17 ) Chart 검증과 설치</h2>
+
+<hr />
+
+<p>Chart를 Cluster에 적용하기 전에 구조와 Rendering 결과를 검사한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm lint ./custom-mariadb
+helm template my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>앞에서 만든 <code class="language-plaintext highlighter-rouge">mariadb-auth</code> Secret과 <code class="language-plaintext highlighter-rouge">mariadb-pvc</code>를 사용하려면 다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb-lab-values.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">mariadb</span><span class="pi">:</span>
+  <span class="na">existingSecret</span><span class="pi">:</span> <span class="s">mariadb-auth</span>
+
+<span class="na">persistence</span><span class="pi">:</span>
+  <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">existingClaim</span><span class="pi">:</span> <span class="s">mariadb-pvc</span>
+
+<span class="na">nodeSelector</span><span class="pi">:</span>
+  <span class="na">kubernetes.io/hostname</span><span class="pi">:</span> <span class="s">worker1</span>
+</code></pre></div></div>
+
+<p>외부 Secret, PVC와 Worker 배치 조건을 적용한 결과도 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml
+</code></pre></div></div>
+
+<p>Server 측 API 검증까지 수행하려면 Rendering 결과를 <code class="language-plaintext highlighter-rouge">kubectl apply --dry-run=server</code>에 전달한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml | <span class="se">\</span>
+  kubectl apply <span class="se">\</span>
+    <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+    <span class="nt">--dry-run</span><span class="o">=</span>server <span class="se">\</span>
+    <span class="nt">-f</span> -
+</code></pre></div></div>
+
+<p>검증 후 Chart를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span> <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml
+</code></pre></div></div>
+
+<p>Release와 StatefulSet, Pod, Service와 PVC를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm status my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get statefulsets,pods,services,persistentvolumeclaims <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<h2 id="18--upgrade와-rollback">18 ) Upgrade와 Rollback</h2>
+
+<hr />
+
+<p>Values를 변경한 뒤 Upgrade하면 Release Revision이 증가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm upgrade my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml <span class="se">\</span>
+  <span class="nt">--set</span> image.tag<span class="o">=</span><span class="s1">'&lt;verified-mariadb-version&gt;'</span>
+</code></pre></div></div>
+
+<p>History와 적용된 Values를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">history </span>my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm get values my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm get manifest my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>문제가 있으면 이전 Revision으로 Rollback한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm rollback my-custom-mariadb &lt;revision&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Helm Rollback은 Kubernetes Resource Spec을 과거 Release Revision으로 되돌린다. Database File Format이나 이미 변경된 Data를 자동으로 복구하지 않으므로 Stateful Application은 Backup과 Migration 호환성을 별도로 확인해야 한다.</p>
+
+<h2 id="19--실습-resource-정리">19 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>Helm으로 설치한 Release를 확인하고 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm list <span class="nt">--all-namespaces</span>
+helm uninstall my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm uninstall my-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm uninstall my-nginx <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">helm list --namespace helm-lab</code>에서 존재하는 Release만 제거한다. 생성하지 않은 Release를 <code class="language-plaintext highlighter-rouge">helm uninstall</code>하면 찾을 수 없다는 오류가 발생한다.</p>
+
+<p>정적 PV와 PVC는 Data 보존 여부를 확인한 뒤 별도로 처리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get persistentvolume
+kubectl get persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl delete <span class="nt">-f</span> mariadb-pv.yaml
+kubectl delete <span class="nt">-f</span> mariadb-auth-secret.yaml <span class="se">\</span>
+  <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">persistentVolumeReclaimPolicy: Retain</code>인 PV를 삭제해도 Worker의 <code class="language-plaintext highlighter-rouge">/data/mariadb</code> Data는 자동으로 삭제되지 않는다. Data가 더 이상 필요하지 않은지 확인한 뒤 해당 Worker에서 별도로 정리한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">helm-lab</code>이 이 실습에만 사용됐는지 확인한 뒤 Namespace를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all,secret,persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl delete namespace helm-lab
+</code></pre></div></div>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Helm은 여러 Kubernetes Resource를 Chart로 Packaging하고 설치 결과를 Release와 Revision으로 관리한다.</p>
+    </li>
+    <li>
+      <p>Chart와 Values를 Rendering한 결과가 Manifest이며 Control Plane은 이 최종 Resource만 처리한다.</p>
+    </li>
+    <li>
+      <p>외부 Chart는 Version, Image Registry, RBAC, Service와 Storage 설정을 확인한 뒤 설치한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">stable</code>과 <code class="language-plaintext highlighter-rouge">incubator</code> Repository는 Archive이며 현재 Chart는 Artifact Hub와 유지보수되는 Repository·OCI Registry에서 찾는다.</p>
+    </li>
+    <li>
+      <p>사용자 Chart는 <code class="language-plaintext highlighter-rouge">helm package</code>로 <code class="language-plaintext highlighter-rouge">.tgz</code> Archive를 만든 뒤 <code class="language-plaintext highlighter-rouge">helm push</code>로 OCI Registry에 배포하며 Chart 이름과 Version은 <code class="language-plaintext highlighter-rouge">Chart.yaml</code>에서 결정된다.</p>
+    </li>
+    <li>
+      <p>Bitnami Chart Source와 기존 Image의 제공 상태는 같지 않으므로 Rendering된 Image를 실제로 Pull할 수 있는지 확인해야 한다.</p>
+    </li>
+    <li>
+      <p>MariaDB PVC가 Pending이면 Pod Log보다 PVC Event, PV와 StorageClass를 먼저 확인한다.</p>
+    </li>
+    <li>
+      <p>Node Local Storage는 PV Node Affinity와 Pod 배치 조건을 같은 Worker에 맞춰야 한다.</p>
+    </li>
+    <li>
+      <p>Helm Template은 Jekyll Liquid와 충돌하지 않도록 Raw Tag로 감싸고 <code class="language-plaintext highlighter-rouge">helm lint</code>와 <code class="language-plaintext highlighter-rouge">helm template</code>로 검증한다.</p>
+    </li>
+    <li>
+      <p>Helm Rollback은 Resource Spec을 되돌리며 Database Data와 Schema를 자동으로 복원하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-39-kubernetes-kustomize/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Kustomize로 Manifest 구성 관리</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1788962065"></script>
+    <script src="/assets/js/code-enhancements.js?v=1788962065"></script>
+  </body>
+</html>

@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Kubernetes Helm Chart와 Release 관리",
+        "url": "/cloud-native-40-kubernetes-helm/",
+        "description": "Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 8일",
+        "reading_time_label": "14분 읽기",
+        "search": "kubernetes helm chart와 release 관리 helm의 chart·release 구조, repository와 oci chart 사용, mariadb storage 연결 및 사용자 chart 작성 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Kustomize로 Manifest 구성 관리",
+        "url": "/cloud-native-39-kubernetes-kustomize/",
+        "description": "Kustomize의 Resource 조합, 공통 Label, Base·Overlay, Patch와 Secret Generator를 이용한 환경별 Manifest 관리 정리",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Kubernetes"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 8일",
+        "reading_time_label": "8분 읽기",
+        "search": "kubernetes kustomize로 manifest 구성 관리 kustomize의 resource 조합, 공통 label, base·overlay, patch와 secret generator를 이용한 환경별 manifest 관리 정리 cloudnative autoeversw kubernetes cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Kubernetes Blue-Green과 Canary 배포",
         "url": "/cloud-native-38-kubernetes-blue-green-canary/",
         "description": "Service Selector를 이용한 Blue-Green 전환, Replica 비율과 Traffic Router를 이용한 Canary 및 Argo Rollouts 정리",

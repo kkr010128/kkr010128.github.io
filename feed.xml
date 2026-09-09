@@ -1,4 +1,1595 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-09T12:31:38+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Blue-Green과 Canary 배포</title><link href="https://kkr010128.github.io/cloud-native-38-kubernetes-blue-green-canary/" rel="alternate" type="text/html" title="Kubernetes Blue-Green과 Canary 배포" /><published>2026-09-07T00:00:00+09:00</published><updated>2026-09-07T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-38-kubernetes-blue-green-canary</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-38-kubernetes-blue-green-canary/"><![CDATA[<p>Rolling Update는 이전 Version과 새 Version의 Pod를 점진적으로 교체한다. Blue-Green은 두 Version을 별도 환경으로 유지한 뒤 Service의 연결 대상을 한 번에 바꾸고, Canary는 새 Version에 전달되는 Traffic을 제한하여 점진적으로 확대한다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://kkr010128.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://kkr010128.github.io/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-09T22:54:25+09:00</updated><id>https://kkr010128.github.io/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Kubernetes Kustomize로 Manifest 구성 관리</title><link href="https://kkr010128.github.io/cloud-native-39-kubernetes-kustomize/" rel="alternate" type="text/html" title="Kubernetes Kustomize로 Manifest 구성 관리" /><published>2026-09-08T00:00:00+09:00</published><updated>2026-09-08T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-39-kubernetes-kustomize</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-39-kubernetes-kustomize/"><![CDATA[<p>Kubernetes Application은 Deployment 하나만으로 끝나지 않고 Service, Ingress, ConfigMap과 Secret 등 여러 Manifest로 구성된다. Kustomize는 원본 YAML을 Template 문법으로 바꾸지 않고 Resource를 조합하고 공통 설정과 환경별 차이를 적용하여 최종 Manifest를 만든다.</p>
+
+<h2 id="1--kustomize">1 ) Kustomize</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Kustomize</strong></p>
+
+  <p>Kubernetes Resource YAML을 Base로 유지하면서 Label, Image, Namespace와 Patch를 조합하여 환경별 Manifest를 생성하는 구성 관리 도구이다.</p>
+</blockquote>
+
+<p>Kustomize가 제공하는 주요 기능은 다음과 같다.</p>
+
+<ul>
+  <li>
+    <p>여러 Manifest를 하나의 구성 단위로 조합한다.</p>
+  </li>
+  <li>
+    <p>여러 Resource에 공통 Label, Annotation, Namespace와 이름 Prefix를 적용한다.</p>
+  </li>
+  <li>
+    <p>Base를 재사용하고 개발·검증·운영 환경의 차이만 Overlay에 기록한다.</p>
+  </li>
+  <li>
+    <p>Strategic Merge Patch와 JSON Patch로 필요한 Field만 변경한다.</p>
+  </li>
+  <li>
+    <p>File이나 Literal을 이용하여 ConfigMap과 Secret Manifest를 생성한다.</p>
+  </li>
+</ul>
+
+<p>Kustomize는 Cluster 안에서 실행되는 Controller가 아니다. Master 또는 kubeconfig가 설정된 관리 Client에서 Manifest를 Rendering하고, 결과를 API Server에 적용하는 Client 도구이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Base Resources + Overlay + Generator
+                 │
+                 ▼
+        Kustomize Rendering
+                 │ 최종 Kubernetes Manifest
+                 ▼
+             API Server
+                 │
+                 ▼
+Deployment·Service 등 각 Controller
+                 │
+                 ▼
+Scheduler ──▶ Worker의 kubelet ──▶ Container Runtime
+</code></pre></div></div>
+
+<h2 id="2--kubectl-내장-기능과-독립-실행형-kustomize">2 ) kubectl 내장 기능과 독립 실행형 Kustomize</h2>
+
+<hr />
+
+<p>Kustomize는 <code class="language-plaintext highlighter-rouge">kubectl</code>에 내장된 기능과 별도 설치하는 독립 실행형 Binary로 사용할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Rendering</th>
+      <th>적용</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>kubectl 내장</td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl kustomize &lt;directory&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">kubectl apply -k &lt;directory&gt;</code></td>
+      <td>별도 도구 없이 기본 기능 사용</td>
+    </tr>
+    <tr>
+      <td>독립 실행형</td>
+      <td><code class="language-plaintext highlighter-rouge">kustomize build &lt;directory&gt;</code></td>
+      <td>Rendering 결과를 kubectl에 전달</td>
+      <td>최신 Kustomize 기능과 편집 명령을 별도로 선택 가능</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>두 도구에 포함된 Kustomize Version이 다르면 지원 Field나 Rendering 결과가 달라질 수 있다. 팀과 CI에서는 어느 도구와 Version을 기준으로 하는지 고정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl version <span class="nt">--client</span>
+kubectl kustomize <span class="nt">--help</span>
+kustomize version
+</code></pre></div></div>
+
+<p>기본적인 Build와 배포만 필요하다면 kubectl의 <code class="language-plaintext highlighter-rouge">-k</code> 기능으로 시작할 수 있다. 독립 실행형의 특정 기능이나 Version 통일이 필요할 때 별도 Binary를 설치한다.</p>
+
+<h2 id="3--asdf를-이용한-version-관리">3 ) asdf를 이용한 Version 관리</h2>
+
+<hr />
+
+<p>asdf는 여러 언어와 CLI 도구의 Version을 <code class="language-plaintext highlighter-rouge">.tool-versions</code> File로 관리하는 Version Manager이다. 현재 asdf 0.16 이상은 Go로 다시 작성된 Binary이며, 0.15 이하의 Shell Script 방식과 설치 및 명령 체계가 다르다.</p>
+
+<h3 id="asdf-016-이상">asdf 0.16 이상</h3>
+
+<p>asdf Binary를 운영체제와 Architecture에 맞게 설치하고 <code class="language-plaintext highlighter-rouge">$ASDF_DATA_DIR/shims</code>를 <code class="language-plaintext highlighter-rouge">PATH</code> 앞에 추가한다. 설치 방식은 배포판 Package Manager나 공식 Release 절차를 따른다.</p>
+
+<p>Kustomize Plugin과 사용할 Version을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asdf plugin add kustomize
+asdf list all kustomize
+asdf <span class="nb">install </span>kustomize &lt;kustomize-version&gt;
+asdf <span class="nb">set</span> <span class="nt">--home</span> kustomize &lt;kustomize-version&gt;
+kustomize version
+</code></pre></div></div>
+
+<p>Project Directory에만 Version을 고정하려면 해당 Directory에서 <code class="language-plaintext highlighter-rouge">--home</code> 없이 <code class="language-plaintext highlighter-rouge">asdf set kustomize &lt;version&gt;</code>을 실행한다. 생성된 <code class="language-plaintext highlighter-rouge">.tool-versions</code>를 함께 관리하면 작업자와 CI가 같은 Version을 선택할 수 있다.</p>
+
+<h3 id="asdf-015-이하의-legacy-방식">asdf 0.15 이하의 Legacy 방식</h3>
+
+<p>다음 방식은 asdf <code class="language-plaintext highlighter-rouge">v0.14.0</code>처럼 Bash로 구현된 Version에서 사용하던 설치 방식이다. 현재 설치 절차로 사용하지 않으며, 기존 환경을 이해하거나 Migration할 때만 참고한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/asdf-vm/asdf.git ~/.asdf <span class="se">\</span>
+  <span class="nt">--branch</span> v0.14.0
+
+<span class="nb">echo</span> <span class="s1">'. "$HOME/.asdf/asdf.sh"'</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+<span class="nb">source</span> ~/.bashrc
+
+asdf plugin add kustomize
+asdf <span class="nb">install </span>kustomize 5.3.0
+asdf global kustomize 5.3.0
+</code></pre></div></div>
+
+<p>asdf 0.16 이상에서는 <code class="language-plaintext highlighter-rouge">asdf global</code>과 <code class="language-plaintext highlighter-rouge">asdf local</code>이 제거되고 <code class="language-plaintext highlighter-rouge">asdf set</code>으로 대체됐다. 기존 설치를 Migration할 때는 Shell RC File의 <code class="language-plaintext highlighter-rouge">. "$HOME/.asdf/asdf.sh"</code> 설정도 현재 Binary와 Shim 경로 설정으로 변경해야 한다.</p>
+
+<h2 id="4--base-directory와-resource-작성">4 ) Base Directory와 Resource 작성</h2>
+
+<hr />
+
+<p>Echo Application의 공통 Resource를 다음 구조로 작성한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo/
+└── base/
+    ├── deployment.yaml
+    ├── service.yaml
+    ├── ingress.yaml
+    └── kustomization.yaml
+</code></pre></div></div>
+
+<p>Directory를 생성하고 이동한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> <span class="nb">echo</span>/base
+<span class="nb">cd echo</span>/base
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">deployment.yaml</code>로 저장한다. nginx Container가 같은 Pod의 Echo Container에 <code class="language-plaintext highlighter-rouge">localhost:8080</code>으로 요청을 전달한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">1</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">echo</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">echo</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">ghcr.io/jpubdocker/simple-nginx-proxy:v0.1.0</span>
+          <span class="na">env</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">NGINX_PORT</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">80"</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">SERVER_NAME</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s">localhost</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">BACKEND_HOST</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s">localhost:8080</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">BACKEND_MAX_FAILS</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">3"</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">BACKEND_FAIL_TIMEOUT</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s">10s</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">ghcr.io/jpubdocker/echo:v0.1.0</span>
+</code></pre></div></div>
+
+<p>같은 Pod의 Container는 Network Namespace를 공유하므로 nginx는 Echo Container를 <code class="language-plaintext highlighter-rouge">localhost:8080</code>으로 호출할 수 있다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">service.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">echo</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">80</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">http</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">ingress.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">ingressClassName</span><span class="pi">:</span> <span class="s">nginx</span>
+  <span class="na">rules</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">echo.jpub.local</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+</code></pre></div></div>
+
+<p>Ingress Resource가 실제 Traffic을 처리하려면 <code class="language-plaintext highlighter-rouge">nginx</code> IngressClass를 담당하는 Controller가 필요하다. ingress-nginx Controller의 현재 상태와 실습 조건은 <a href="/cloud-native-33-kubernetes-ingress-routing/">Kubernetes Ingress Resource와 HTTP Routing</a>에서 확인할 수 있다.</p>
+
+<h2 id="5--kustomizationyaml로-resource-조합">5 ) kustomization.yaml로 Resource 조합</h2>
+
+<hr />
+
+<p>독립 실행형 Kustomize는 현재 Directory의 Resource를 검색하여 <code class="language-plaintext highlighter-rouge">kustomization.yaml</code>을 만들 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kustomize create <span class="nt">--autodetect</span>
+</code></pre></div></div>
+
+<p>직접 작성한다면 다음과 같다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">kustomize.config.k8s.io/v1beta1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Kustomization</span>
+<span class="na">resources</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">deployment.yaml</span>
+  <span class="pi">-</span> <span class="s">service.yaml</span>
+  <span class="pi">-</span> <span class="s">ingress.yaml</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">resources</code>의 경로는 <code class="language-plaintext highlighter-rouge">kustomization.yaml</code>을 기준으로 해석된다. 조합 결과를 화면에 출력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kustomize build <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>kubectl 내장 기능으로 같은 구성을 Rendering할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl kustomize <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>Rendering 결과를 File로 저장하지 않아도 Directory를 직접 적용하고 삭제할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl diff <span class="nt">-k</span> <span class="nb">.</span>
+kubectl apply <span class="nt">-k</span> <span class="nb">.</span>
+kubectl delete <span class="nt">-k</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>독립 실행형 Kustomize 결과를 Pipe로 전달할 때는 kubectl이 표준 입력의 Manifest를 읽도록 <code class="language-plaintext highlighter-rouge">-f -</code>를 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kustomize build <span class="nb">.</span> | kubectl apply <span class="nt">-f</span> -
+kustomize build <span class="nb">.</span> | kubectl delete <span class="nt">-f</span> -
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">kustomize build . | kubectl apply -k .</code>처럼 사용하면 앞 명령의 표준 출력은 적용 대상이 되지 않는다. <code class="language-plaintext highlighter-rouge">-k</code>는 표준 입력이 아니라 지정한 Kustomization Directory를 읽는 Option이다.</p>
+
+<h2 id="6--공통-label-적용">6 ) 공통 Label 적용</h2>
+
+<hr />
+
+<p>여러 Resource에 같은 Label을 반복하지 않고 <code class="language-plaintext highlighter-rouge">labels</code> Transformer로 추가할 수 있다. <code class="language-plaintext highlighter-rouge">kustomization.yaml</code>에 다음 내용을 추가한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">labels</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">pairs</span><span class="pi">:</span>
+      <span class="na">app.kubernetes.io/part-of</span><span class="pi">:</span> <span class="s">echo-system</span>
+    <span class="na">includeSelectors</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">includeSelectors: false</code>는 Resource의 Metadata와 Pod Template 등에 Label을 추가하되 기존 Selector를 바꾸지 않는다. Application을 식별하는 <code class="language-plaintext highlighter-rouge">app.kubernetes.io/name: echo</code>는 Deployment Selector, Pod Label과 Service Selector의 연결 조건이므로 Base Manifest에 명시적으로 유지한다.</p>
+
+<p>독립 실행형 Kustomize의 편집 명령으로도 Label을 설정할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kustomize edit <span class="nb">set </span>label <span class="se">\</span>
+  <span class="s1">'app.kubernetes.io/part-of:echo-system'</span>
+</code></pre></div></div>
+
+<p>편집 명령이 생성하는 Field 형태는 Kustomize Version에 따라 달라질 수 있으므로 변경된 <code class="language-plaintext highlighter-rouge">kustomization.yaml</code>과 Build 결과를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'1,160p'</span> kustomization.yaml
+kustomize build <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>Deployment의 <code class="language-plaintext highlighter-rouge">spec.selector</code>는 필수이며 <code class="language-plaintext highlighter-rouge">spec.template.metadata.labels</code>와 일치해야 한다. 공통 Label 기능을 사용한다는 이유로 Base Deployment의 필수 Selector를 제거하지 않는다.</p>
+
+<h2 id="7--base와-overlay">7 ) Base와 Overlay</h2>
+
+<hr />
+
+<p>Base에는 환경에 공통인 Resource를 두고 Overlay에는 개발·검증·운영 환경별 차이만 둔다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>echo/
+├── base/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── ingress.yaml
+│   └── kustomization.yaml
+└── overlays/
+    └── dev/
+        ├── kustomization.yaml
+        ├── patch-deployment.yaml
+        └── patch-ingress.yaml
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">echo/base</code>에서 상위 Directory로 이동한 뒤 개발 Overlay를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> ..
+<span class="nb">mkdir</span> <span class="nt">-p</span> overlays/dev
+<span class="nb">cd </span>overlays/dev
+kustomize create <span class="nt">--resources</span> ../../base
+</code></pre></div></div>
+
+<p>생성되는 <code class="language-plaintext highlighter-rouge">overlays/dev/kustomization.yaml</code>의 기본 형태는 다음과 같다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">kustomize.config.k8s.io/v1beta1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Kustomization</span>
+<span class="na">resources</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">../../base</span>
+</code></pre></div></div>
+
+<p>Base Directory 자체도 <code class="language-plaintext highlighter-rouge">kustomization.yaml</code>을 가지므로 Overlay의 <code class="language-plaintext highlighter-rouge">resources</code>에서 하나의 구성 단위로 참조할 수 있다. Version Control에는 <code class="language-plaintext highlighter-rouge">kustomize build</code> 결과보다 Base, Overlay와 Patch 원본을 저장한다.</p>
+
+<h2 id="8--strategic-merge-방식의-patch">8 ) Strategic Merge 방식의 Patch</h2>
+
+<hr />
+
+<p>개발 환경에서 Replica를 2개로 늘리고 nginx의 실패 허용 횟수를 변경한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">patch-deployment.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+          <span class="na">env</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">BACKEND_MAX_FAILS</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">5"</span>
+</code></pre></div></div>
+
+<p>전체 Deployment를 복사하지 않고 변경할 Field와 병합 기준이 되는 Resource·Container 이름만 작성한다. <code class="language-plaintext highlighter-rouge">overlays/dev/kustomization.yaml</code>에 Patch를 추가한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">patches</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">patch-deployment.yaml</span>
+    <span class="na">target</span><span class="pi">:</span>
+      <span class="na">group</span><span class="pi">:</span> <span class="s">apps</span>
+      <span class="na">version</span><span class="pi">:</span> <span class="s">v1</span>
+      <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">patchesStrategicMerge</code>는 기존 구성에서 볼 수 있는 Legacy Field이다. 현재 문서에서는 Strategic Merge Patch와 JSON Patch를 모두 통합해서 표현할 수 있는 <code class="language-plaintext highlighter-rouge">patches</code> Field를 사용한다.</p>
+
+<h2 id="9--json-patch">9 ) JSON Patch</h2>
+
+<hr />
+
+<p>Ingress Host처럼 배열 안의 특정 Field를 경로로 지정할 때 JSON Patch를 사용할 수 있다. 다음 내용을 <code class="language-plaintext highlighter-rouge">patch-ingress.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">op</span><span class="pi">:</span> <span class="s">replace</span>
+  <span class="na">path</span><span class="pi">:</span> <span class="s">/spec/rules/0/host</span>
+  <span class="na">value</span><span class="pi">:</span> <span class="s">dev-echo.jpub.local</span>
+</code></pre></div></div>
+
+<p>JSON Pointer의 <code class="language-plaintext highlighter-rouge">/spec/rules/0/host</code>는 첫 번째 Rule의 <code class="language-plaintext highlighter-rouge">host</code> Field를 의미한다. 마지막에 <code class="language-plaintext highlighter-rouge">/</code>를 추가하면 다른 경로로 해석되므로 붙이지 않는다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">overlays/dev/kustomization.yaml</code>의 <code class="language-plaintext highlighter-rouge">patches</code>에 다음 항목을 추가한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">patches</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">patch-deployment.yaml</span>
+    <span class="na">target</span><span class="pi">:</span>
+      <span class="na">group</span><span class="pi">:</span> <span class="s">apps</span>
+      <span class="na">version</span><span class="pi">:</span> <span class="s">v1</span>
+      <span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+  <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">patch-ingress.yaml</span>
+    <span class="na">target</span><span class="pi">:</span>
+      <span class="na">group</span><span class="pi">:</span> <span class="s">networking.k8s.io</span>
+      <span class="na">version</span><span class="pi">:</span> <span class="s">v1</span>
+      <span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">echo</span>
+</code></pre></div></div>
+
+<p>개발 Overlay의 최종 결과와 변경 사항을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kustomize build <span class="nb">.</span>
+kubectl diff <span class="nt">-k</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>Build 결과에서 Deployment의 Replica가 <code class="language-plaintext highlighter-rouge">2</code>, <code class="language-plaintext highlighter-rouge">BACKEND_MAX_FAILS</code>가 <code class="language-plaintext highlighter-rouge">5</code>, Ingress Host가 <code class="language-plaintext highlighter-rouge">dev-echo.jpub.local</code>인지 확인한다.</p>
+
+<h2 id="10--secret-generator">10 ) Secret Generator</h2>
+
+<hr />
+
+<p>Kustomize의 <code class="language-plaintext highlighter-rouge">secretGenerator</code>는 File, Env File 또는 Literal을 읽어 Secret Manifest를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">secret.env</code>로 저장한다.</p>
+
+<pre><code class="language-dotenv">API_USERNAME=echo-user
+API_PASSWORD=REPLACE_WITH_SECRET
+</code></pre>
+
+<p>실제 Secret 값이 있는 File은 Version Control 대상에서 제외한다.</p>
+
+<pre><code class="language-gitignore">secret.env
+</code></pre>
+
+<p><code class="language-plaintext highlighter-rouge">overlays/dev/kustomization.yaml</code>에 Generator를 추가한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">secretGenerator</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">echo-secret</span>
+    <span class="na">envs</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">secret.env</span>
+</code></pre></div></div>
+
+<p>생성 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kustomize build <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>생성된 이름에는 <code class="language-plaintext highlighter-rouge">echo-secret-&lt;content-hash&gt;</code> 형태의 Suffix가 붙는다. Secret을 참조하는 Workload가 같은 Kustomization 안에 있으면 Kustomize가 알려진 참조 Field의 이름도 함께 변환한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">envFrom</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">secretRef</span><span class="pi">:</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">echo-secret</span>
+</code></pre></div></div>
+
+<p>Hash Suffix는 Secret 내용이 바뀌었을 때 Pod Template의 참조 이름도 바뀌게 하여 새 Rollout을 유도한다. <code class="language-plaintext highlighter-rouge">generatorOptions.disableNameSuffixHash: true</code>로 끌 수 있지만 자동 갱신 동작도 사라지므로 이유 없이 비활성화하지 않는다.</p>
+
+<p>Secret을 Git에서 제외해도 보안이 완성되는 것은 아니다. <code class="language-plaintext highlighter-rouge">kustomize build</code> 결과에는 Base64로 표현된 값이 포함되며 Base64는 암호화가 아니다. Terminal 출력, CI Log, 임시 File과 Cluster 접근 권한을 함께 관리해야 한다.</p>
+
+<h2 id="11--remote-resource">11 ) Remote Resource</h2>
+
+<hr />
+
+<p>공개된 Git Repository나 URL의 Kustomization을 <code class="language-plaintext highlighter-rouge">resources</code>에서 참조할 수 있다. Remote Resource는 재사용에 편리하지만 외부 Network와 공급자의 변경에 의존한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">resources</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">https://example.com/application/kustomization.yaml</span>
+</code></pre></div></div>
+
+<p>운영 구성에서는 움직이는 Branch나 변경 가능한 URL보다 검증한 Commit이나 Release Tag를 고정하고, 적용 전 Build 결과와 Resource 권한을 검토한다.</p>
+
+<p>ingress-nginx <code class="language-plaintext highlighter-rouge">controller-v1.8.1</code>의 Remote Kustomization은 Kustomize의 Network Resource 예제로 사용된 적이 있지만 현재 설치 대상으로 사용하지 않는다. ingress-nginx는 2026년 3월 24일 이후 신규 Release와 보안 수정이 없는 Retirement 상태이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/kustomization.yaml
+</code></pre></div></div>
+
+<p>위 명령은 과거 Kustomization File의 내용을 확인할 뿐 Cluster에 배포하지 않는다. 신규 환경에서는 유지보수 중인 Controller나 Gateway API 구현을 선택한다.</p>
+
+<h2 id="12--개발-overlay-적용과-확인">12 ) 개발 Overlay 적용과 확인</h2>
+
+<hr />
+
+<p>Master 또는 관리 Client의 <code class="language-plaintext highlighter-rouge">echo/overlays/dev</code>에서 최종 Manifest를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl kustomize <span class="nb">.</span>
+kubectl diff <span class="nt">-k</span> <span class="nb">.</span>
+kubectl apply <span class="nt">-k</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>Control Plane은 Rendering된 결과만 받으며 Base와 Overlay Directory 구조를 알지 못한다. API Server에 저장된 Deployment와 Service를 각 Controller가 조정하고, Scheduler가 선택한 Worker에서 kubelet이 Pod를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout status deployment/echo
+kubectl get deployment,service,ingress
+kubectl get pods <span class="se">\</span>
+  <span class="nt">-l</span> app.kubernetes.io/name<span class="o">=</span><span class="nb">echo</span> <span class="se">\</span>
+  <span class="nt">-o</span> wide
+kubectl get endpointslice <span class="se">\</span>
+  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span><span class="nb">echo</span>
+</code></pre></div></div>
+
+<p>문제가 있으면 적용된 Resource만 보지 말고 Rendering 결과가 예상한 Selector, Image, Host와 Secret 이름을 포함하는지 먼저 확인한다.</p>
+
+<h2 id="13--실습-resource-정리">13 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>적용에 사용한 같은 Overlay Directory에서 Resource를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-k</span> <span class="nb">echo</span>/overlays/dev
+</code></pre></div></div>
+
+<p>현재 Directory가 <code class="language-plaintext highlighter-rouge">echo/overlays/dev</code>라면 다음과 같이 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-k</span> <span class="nb">.</span>
+</code></pre></div></div>
+
+<p>Secret Generator가 만든 Secret도 같은 Kustomization의 Resource이므로 함께 삭제된다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Kustomize는 Base Resource에 공통 설정과 환경별 Patch를 적용하여 최종 Kubernetes Manifest를 만든다.</p>
+    </li>
+    <li>
+      <p>kubectl 내장 기능은 <code class="language-plaintext highlighter-rouge">kubectl kustomize</code>와 <code class="language-plaintext highlighter-rouge">kubectl apply -k</code>로 사용하고 독립 실행형은 <code class="language-plaintext highlighter-rouge">kustomize build</code>로 Rendering한다.</p>
+    </li>
+    <li>
+      <p>Base에는 공통 구성을, Overlay에는 환경별 차이를 두며 Build 결과보다 Base와 Patch 원본을 Version Control에서 관리한다.</p>
+    </li>
+    <li>
+      <p>Deployment Selector와 Pod Label, Service Selector의 연결은 Kustomize를 사용해도 유지해야 한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">patches</code>에서 Strategic Merge Patch와 JSON Patch를 사용하여 필요한 Field만 변경할 수 있다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">secretGenerator</code>는 Secret 이름에 Content Hash를 추가하지만 Secret 값을 암호화하지는 않는다.</p>
+    </li>
+    <li>
+      <p>Control Plane은 Rendering된 Kubernetes Resource만 처리하고 Worker의 kubelet이 최종 Pod Spec을 실행한다.</p>
+    </li>
+    <li>
+      <p>다음 글인 <a href="/cloud-native-40-kubernetes-helm/">Kubernetes Helm Chart와 Release 관리</a>에서는 여러 Resource를 Version이 있는 Package로 묶고 설치·Upgrade·Rollback하는 방법을 다룬다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Kustomize의 Resource 조합, 공통 Label, Base·Overlay, Patch와 Secret Generator를 이용한 환경별 Manifest 관리 정리]]></summary></entry><entry><title type="html">Kubernetes Helm Chart와 Release 관리</title><link href="https://kkr010128.github.io/cloud-native-40-kubernetes-helm/" rel="alternate" type="text/html" title="Kubernetes Helm Chart와 Release 관리" /><published>2026-09-08T00:00:00+09:00</published><updated>2026-09-08T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-40-kubernetes-helm</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-40-kubernetes-helm/"><![CDATA[<p><a href="/cloud-native-39-kubernetes-kustomize/">Kubernetes Kustomize로 Manifest 구성 관리</a>에서 다룬 Kustomize는 원본 Manifest를 조합하고 환경별 차이를 Overlay로 관리한다. Helm은 여러 Kubernetes Resource와 기본 설정을 Version이 있는 Chart로 묶고, Chart를 Cluster에 설치한 결과를 Release 단위로 관리한다.</p>
+
+<h2 id="1--helm">1 ) Helm</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Helm</strong></p>
+
+  <p>Kubernetes Application을 Chart로 Packaging하고 설치, Upgrade, Rollback과 제거를 Release 단위로 관리하는 CNCF Project이다.</p>
+</blockquote>
+
+<p>Helm의 주요 구성 요소는 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Helm Client</td>
+      <td>Chart를 읽고 Template을 Rendering하여 Kubernetes API Server에 적용</td>
+    </tr>
+    <tr>
+      <td>Chart</td>
+      <td>Kubernetes Resource Template, 기본값과 Metadata를 묶은 Package</td>
+    </tr>
+    <tr>
+      <td>Values</td>
+      <td>같은 Chart에서 변경할 Image, Replica, Port와 Storage 등의 입력값</td>
+    </tr>
+    <tr>
+      <td>Manifest</td>
+      <td>Chart와 Values를 Rendering한 최종 Kubernetes YAML</td>
+    </tr>
+    <tr>
+      <td>Release</td>
+      <td>특정 Namespace에 설치한 Chart Instance와 Revision History</td>
+    </tr>
+    <tr>
+      <td>Repository·OCI Registry</td>
+      <td>Version별 Chart Package를 배포하는 저장소</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>관계는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Chart Templates + Default values.yaml + 사용자 Values
+                         │
+                         ▼
+                   Helm Rendering
+                         │
+                         ▼
+             Kubernetes Manifest 집합
+                         │ API Server에 적용
+                         ▼
+                    Helm Release
+                         │ Revision 기록
+                         ▼
+Deployment·StatefulSet·Service 등의 Controller
+                         │
+                         ▼
+              Worker의 kubelet과 Pod
+</code></pre></div></div>
+
+<p>Helm은 Application Container를 직접 실행하지 않는다. Helm이 Rendering한 Resource를 API Server에 저장하면 Control Plane의 각 Controller가 원하는 상태를 조정하고 Worker의 kubelet이 실제 Container를 실행한다.</p>
+
+<h2 id="2--helm-version과-kubernetes-호환성">2 ) Helm Version과 Kubernetes 호환성</h2>
+
+<hr />
+
+<p>2026년 9월 기준 Helm의 현재 Stable Major Version은 Helm 4이다. Helm 3은 지원 종료 단계에 있으므로 신규 환경에서는 Helm 4와 Cluster의 호환 범위를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm version
+kubectl version
+</code></pre></div></div>
+
+<p>Helm은 내부에 포함된 Kubernetes Client Library를 통해 API Server와 통신한다. Cluster보다 지나치게 오래된 Helm이나 Helm이 보장하지 않는 더 새로운 Kubernetes Cluster를 조합하면 API 호환 문제가 생길 수 있다.</p>
+
+<p>Helm <code class="language-plaintext highlighter-rouge">3.13.3</code>을 고정하는 다음 명령은 당시 환경을 재현하기 위한 Legacy 예제이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asdf plugin add helm
+asdf <span class="nb">install </span>helm 3.13.3
+asdf global helm 3.13.3
+</code></pre></div></div>
+
+<p>asdf 0.16 이상에서는 <code class="language-plaintext highlighter-rouge">asdf global</code> 대신 <code class="language-plaintext highlighter-rouge">asdf set</code>을 사용한다. 실제 Version은 Cluster와 Helm의 공식 Version Skew를 확인한 뒤 선택한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>asdf plugin add helm
+asdf list all helm
+asdf <span class="nb">install </span>helm &lt;compatible-helm-version&gt;
+asdf <span class="nb">set</span> <span class="nt">--home</span> helm &lt;compatible-helm-version&gt;
+helm version
+</code></pre></div></div>
+
+<h2 id="3--debianubuntu에서-helm-설치">3 ) Debian·Ubuntu에서 Helm 설치</h2>
+
+<hr />
+
+<p>Helm의 Debian·Ubuntu Package Repository를 이용하려면 먼저 필요한 Package를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt-get <span class="nb">install </span>curl gpg apt-transport-https <span class="nt">--yes</span>
+</code></pre></div></div>
+
+<p>Repository Signing Key를 내려받아 Fingerprint를 확인하고 Keyring으로 변환한다. Fingerprint 값은 실행 전에 Helm 공식 설치 문서의 현재 값과 다시 대조한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">HELM_APT_KEY_ID</span><span class="o">=</span><span class="s1">'DDF78C3E6EBB2D2CC223C95C62BA89D07698DBC6'</span>
+
+curl <span class="nt">-fsSL</span> <span class="se">\</span>
+  https://packages.buildkite.com/helm-linux/helm-debian/gpgkey <span class="se">\</span>
+  <span class="nt">-o</span> /tmp/helm.gpg
+
+<span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="si">$(</span>gpg <span class="nt">--show-keys</span> <span class="nt">--with-colons</span> /tmp/helm.gpg | <span class="nb">awk</span> <span class="nt">-F</span>: <span class="s1">'$1 == "fpr" {print $10}'</span> | <span class="nb">head</span> <span class="nt">-n</span> 1<span class="si">)</span><span class="s2">"</span> <span class="o">!=</span> <span class="s2">"</span><span class="k">${</span><span class="nv">HELM_APT_KEY_ID</span><span class="k">}</span><span class="s2">"</span> <span class="o">]</span>
+<span class="k">then
+  </span><span class="nb">echo</span> <span class="s1">'ERROR: unexpected Helm APT signing key'</span>
+  <span class="nb">exit </span>1
+<span class="k">fi</span>
+</code></pre></div></div>
+
+<p>확인한 Key를 등록하고 Repository를 추가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gpg <span class="nt">--dearmor</span> &lt; /tmp/helm.gpg | <span class="se">\</span>
+  <span class="nb">sudo tee</span> /usr/share/keyrings/helm.gpg <span class="o">&gt;</span> /dev/null
+
+<span class="nb">echo</span> <span class="s1">'deb [signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main'</span> | <span class="se">\</span>
+  <span class="nb">sudo tee</span> /etc/apt/sources.list.d/helm-stable-debian.list
+
+<span class="nb">sudo </span>apt-get update
+<span class="nb">sudo </span>apt-get <span class="nb">install </span>helm
+helm version
+</code></pre></div></div>
+
+<p>Package Repository에서 최신 Major Version이 설치될 수 있으므로 운영 Cluster에 적용하기 전에 <code class="language-plaintext highlighter-rouge">helm version</code>과 Kubernetes Version 지원 범위를 확인한다.</p>
+
+<h2 id="4--chart-repository와-oci-registry">4 ) Chart, Repository와 OCI Registry</h2>
+
+<hr />
+
+<p>전통적인 Helm Repository는 <code class="language-plaintext highlighter-rouge">index.yaml</code>과 Chart Package를 HTTP Server에서 제공한다. OCI Registry는 Container Image와 유사한 방식으로 Chart Artifact를 저장한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>배포 위치</th>
+      <th>검색·사용 방식</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Helm Repository</td>
+      <td><code class="language-plaintext highlighter-rouge">helm repo add</code>, <code class="language-plaintext highlighter-rouge">helm repo update</code>, <code class="language-plaintext highlighter-rouge">helm search repo</code></td>
+    </tr>
+    <tr>
+      <td>Artifact Hub</td>
+      <td>Browser 또는 <code class="language-plaintext highlighter-rouge">helm search hub</code>로 여러 공급자의 Chart 검색</td>
+    </tr>
+    <tr>
+      <td>OCI Registry</td>
+      <td><code class="language-plaintext highlighter-rouge">oci://&lt;registry&gt;/&lt;path&gt;/&lt;chart&gt;</code>를 직접 참조</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>등록된 Repository를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo list
+</code></pre></div></div>
+
+<p>Bitnami Repository를 등록하고 Index를 갱신한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm search repo bitnami/nginx
+helm search repo bitnami/mariadb <span class="nt">--versions</span>
+</code></pre></div></div>
+
+<p>Artifact Hub 전체에서 Chart를 찾을 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm search hub nginx
+helm search hub mariadb
+</code></pre></div></div>
+
+<p>과거 Helm의 기본 Chart 모음이었던 <code class="language-plaintext highlighter-rouge">stable</code>과 <code class="language-plaintext highlighter-rouge">incubator</code> Repository는 2020년 11월부터 읽기 전용 Archive이며 신규 Chart 선택지로 사용하지 않는다. 현재 Chart는 Artifact Hub에서 공급자, 최근 Release, Source Repository와 보안 정보를 확인한 뒤 선택한다.</p>
+
+<h3 id="oci-registry에-사용자-chart-배포">OCI Registry에 사용자 Chart 배포</h3>
+
+<p>OCI Registry는 Container Image뿐 아니라 Helm Chart Package도 저장할 수 있다. Chart Directory를 직접 Push하지 않고 <code class="language-plaintext highlighter-rouge">helm package</code>로 만든 <code class="language-plaintext highlighter-rouge">.tgz</code> File을 업로드한다.</p>
+
+<p>Registry의 Image 참조 구조, Public·Private Registry와 인증 방식은 <a href="/cloud-native-41-container-image-registry/">Container Image Registry와 Kubernetes Image Pull</a>에서 다룬다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Chart Directory
+      │ helm lint
+      ▼
+검증된 Chart
+      │ helm package
+      ▼
+Chart Archive(.tgz)
+      │ helm push
+      ▼
+OCI Registry
+      │ helm pull·helm install
+      ▼
+Helm Client
+</code></pre></div></div>
+
+<p>샘플 Chart를 생성한다. 기존 <code class="language-plaintext highlighter-rouge">echo</code> Directory가 있다면 덮어쓰지 말고 내용을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm create <span class="nb">echo
+</span>helm lint ./echo
+helm template echo-preview ./echo
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">Chart.yaml</code>의 <code class="language-plaintext highlighter-rouge">name</code>과 <code class="language-plaintext highlighter-rouge">version</code>을 확인한 뒤 Package를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart ./echo
+helm package ./echo
+</code></pre></div></div>
+
+<p>기본 생성값을 사용했다면 현재 Directory에 <code class="language-plaintext highlighter-rouge">echo-0.1.0.tgz</code>가 만들어진다. 실제 File 이름은 <code class="language-plaintext highlighter-rouge">Chart.yaml</code>의 Version에 따라 달라진다.</p>
+
+<p>Docker Hub 같은 OCI Registry에 로그인한다. Password 또는 Personal Access Token은 명령 인자에 작성하지 않고 Prompt에 입력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm registry login registry-1.docker.io <span class="se">\</span>
+  <span class="nt">-u</span> &lt;registry-username&gt;
+</code></pre></div></div>
+
+<p>Package를 Registry Namespace로 Push한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm push echo-0.1.0.tgz <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">helm push</code>의 대상 경로에는 Chart 이름과 Tag를 붙이지 않는다. Helm이 <code class="language-plaintext highlighter-rouge">Chart.yaml</code>의 <code class="language-plaintext highlighter-rouge">name</code>을 OCI Repository 이름으로, <code class="language-plaintext highlighter-rouge">version</code>을 Tag로 사용하므로 위 명령의 결과 참조는 다음 형태가 된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>registry-1.docker.io/&lt;registry-username&gt;/echo:0.1.0
+</code></pre></div></div>
+
+<p>OCI Chart 참조는 <code class="language-plaintext highlighter-rouge">oci://</code> Prefix를 사용하며 <code class="language-plaintext highlighter-rouge">helm show</code>, <code class="language-plaintext highlighter-rouge">helm pull</code>과 <code class="language-plaintext highlighter-rouge">helm install</code>에서 Chart Version을 명시할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0
+
+helm pull <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0
+</code></pre></div></div>
+
+<p>Cluster에 설치하기 전 Rendering 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template echo-oci-preview <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0
+</code></pre></div></div>
+
+<p>검증이 끝난 Chart를 별도 Namespace에 설치하고 Helm Release와 Kubernetes Resource를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>echo-oci <span class="se">\</span>
+  oci://registry-1.docker.io/&lt;registry-username&gt;/echo <span class="se">\</span>
+  <span class="nt">--version</span> 0.1.0 <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span>
+
+helm status echo-oci <span class="nt">--namespace</span> helm-lab
+kubectl get pods,services <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Chart를 Registry에 Push하는 과정은 Cluster를 변경하지 않는다. <code class="language-plaintext highlighter-rouge">helm install</code>을 실행해야 Helm Client가 Chart를 Pull하고 Manifest를 Rendering하여 API Server에 제출한다. 그 이후에는 Controller와 Worker의 kubelet이 Resource를 조정한다.</p>
+
+<p>설치한 Chart가 Service를 생성했다면 외부 공개 설정을 추가하기 전에 Port Forwarding으로 응답을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl port-forward <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  service/echo-oci 8080:80
+</code></pre></div></div>
+
+<p>Chart의 실제 Service 이름과 Port는 다음 명령으로 확인한 뒤 예제 값을 바꾼다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get service <span class="nt">--namespace</span> helm-lab
+kubectl describe service echo-oci <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Pod가 시작되지 않으면 Release 상태만 보지 않고 Event와 Container Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get events <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+kubectl logs <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  deployment/echo-oci <span class="se">\</span>
+  <span class="nt">--all-pods</span><span class="o">=</span><span class="nb">true</span>
+</code></pre></div></div>
+
+<p>Resource 이름과 Workload Kind는 Chart Template에 따라 다를 수 있다. <code class="language-plaintext highlighter-rouge">helm get manifest echo-oci --namespace helm-lab</code>으로 실제 생성된 Resource를 확인하고 Log 명령의 대상을 선택한다.</p>
+
+<p>실습이 끝나면 Release와 Registry Login Session을 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm uninstall echo-oci <span class="nt">--namespace</span> helm-lab
+helm registry <span class="nb">logout </span>registry-1.docker.io
+</code></pre></div></div>
+
+<h2 id="5--chart-설치-전-확인">5 ) Chart 설치 전 확인</h2>
+
+<hr />
+
+<p>외부 Chart를 바로 설치하지 않고 Metadata, 기본 Values와 Rendering 결과를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart bitnami/nginx
+helm show values bitnami/nginx
+helm template my-nginx bitnami/nginx
+helm <span class="nb">install </span>my-nginx bitnami/nginx <span class="nt">--dry-run</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>확인 대상</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm show chart</code></td>
+      <td>Chart 이름, Version, Dependency와 Metadata</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm show values</code></td>
+      <td>변경 가능한 기본 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm template</code></td>
+      <td>Cluster에 연결하지 않고 생성되는 Manifest</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">helm install --dry-run</code></td>
+      <td>Release 이름과 Values를 적용한 설치 결과</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Rendering 결과에서 다음 항목을 확인한다.</p>
+
+<ul>
+  <li>
+    <p>사용할 Container Image Registry와 Tag</p>
+  </li>
+  <li>
+    <p>생성되는 RBAC Resource와 ServiceAccount 권한</p>
+  </li>
+  <li>
+    <p>Service Type과 외부 공개 여부</p>
+  </li>
+  <li>
+    <p>PVC, StorageClass와 요청 용량</p>
+  </li>
+  <li>
+    <p>Secret에 들어갈 값과 생성 방식</p>
+  </li>
+  <li>
+    <p>Namespace와 Cluster Scope Resource</p>
+  </li>
+</ul>
+
+<p>Chart Version을 생략하면 Repository 갱신 시 다른 Version이 선택될 수 있다. 재현 가능한 설치에는 검증한 Chart Version을 명시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-nginx bitnami/nginx <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt;
+</code></pre></div></div>
+
+<h2 id="6--bitnami-chart의-현재-배포-상태">6 ) Bitnami Chart의 현재 배포 상태</h2>
+
+<hr />
+
+<p>Bitnami는 2025년부터 Public Container와 Chart 배포 정책을 변경했다. Chart Source는 공개되어 있어도 Chart가 참조하는 Versioned Image가 기존 <code class="language-plaintext highlighter-rouge">docker.io/bitnami</code> Registry에 없을 수 있으며, 이 경우 설치된 Pod는 <code class="language-plaintext highlighter-rouge">ImagePullBackOff</code> 상태가 된다.</p>
+
+<p>따라서 다음 명령이 성공적으로 Chart를 Rendering했다는 사실만으로 Container Image도 Pull할 수 있다고 판단하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show chart bitnami/mariadb
+helm show values bitnami/mariadb
+helm template my-mariadb bitnami/mariadb
+</code></pre></div></div>
+
+<p>Chart가 사용하는 Image를 Rendering 결과에서 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-mariadb bitnami/mariadb | <span class="se">\</span>
+  <span class="nb">grep</span> <span class="nt">-E</span> <span class="s1">'^[[:space:]]*image:'</span>
+</code></pre></div></div>
+
+<p>설치 후 Pod가 시작되지 않으면 Event와 Image를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods
+kubectl describe pod &lt;mariadb-pod-name&gt;
+kubectl get pod &lt;mariadb-pod-name&gt; <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.containers[*].image}{"\n"}'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">bitnamilegacy</code> Registry는 이전 Image를 보관하는 Migration 용도이며 신규 수정과 보안 Update가 제공되지 않는다. 단순히 Repository 이름을 Legacy로 바꿔 운영 문제를 해결했다고 판단하지 않는다.</p>
+
+<h2 id="7--nginx-chart-release-관리">7 ) nginx Chart Release 관리</h2>
+
+<hr />
+
+<p>검증한 Chart Version과 Image를 사용할 수 있을 때 nginx Chart를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-nginx bitnami/nginx <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span>
+</code></pre></div></div>
+
+<p>Helm Release와 Kubernetes Resource를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm list <span class="nt">--namespace</span> helm-lab
+helm status my-nginx <span class="nt">--namespace</span> helm-lab
+kubectl get deployments,pods,services <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Helm은 Release 상태를 기록하지만 Pod가 Ready인지 대신 보장하지 않는다. <code class="language-plaintext highlighter-rouge">helm status</code>와 함께 Deployment Rollout, Pod Event와 Container Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout status deployment/my-nginx <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get events <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+</code></pre></div></div>
+
+<p>실습이 끝나면 Release를 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm uninstall my-nginx <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Release를 제거해도 Chart가 생성한 PVC가 보존 정책에 따라 남을 수 있으므로 Namespace의 Resource를 확인한다.</p>
+
+<h2 id="8--mariadb-chart와-pvc-pending-진단">8 ) MariaDB Chart와 PVC Pending 진단</h2>
+
+<hr />
+
+<p>MariaDB 같은 Stateful Application은 기본 Values에서 Persistence가 활성화되어 있을 수 있다. Cluster에 Default StorageClass나 조건에 맞는 PV가 없으면 PVC가 <code class="language-plaintext highlighter-rouge">Pending</code> 상태로 남고 MariaDB Pod도 정상 시작하지 못한다.</p>
+
+<p>설치 전에 Storage 설정을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm show values bitnami/mariadb | <span class="se">\</span>
+  <span class="nb">grep</span> <span class="nt">-A</span> 20 <span class="s1">'persistence:'</span>
+kubectl get storageclasses
+kubectl get persistentvolumes
+</code></pre></div></div>
+
+<p>검증한 Chart와 Image를 사용할 수 있는 환경에서 MariaDB를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span>
+</code></pre></div></div>
+
+<p>설치 상태를 Resource 계층별로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm status my-mariadb <span class="nt">--namespace</span> helm-lab
+kubectl get statefulsets,pods <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get persistentvolumeclaims <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get persistentvolumes
+</code></pre></div></div>
+
+<p>PVC가 <code class="language-plaintext highlighter-rouge">Pending</code>이면 Pod Log보다 PVC Event와 StorageClass를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  &lt;mariadb-pvc-name&gt;
+kubectl get storageclasses
+kubectl get events <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+</code></pre></div></div>
+
+<p>PV, PVC와 StorageClass의 연결은 <a href="/cloud-native-35-kubernetes-volume-persistent-storage/">Kubernetes Volume과 Persistent Storage</a>에서 자세히 설명한다.</p>
+
+<h2 id="9--persistence를-사용하지-않는-임시-실습">9 ) Persistence를 사용하지 않는 임시 실습</h2>
+
+<hr />
+
+<p>Storage 구성이 없는 격리 실습에서는 Persistence를 끄고 <code class="language-plaintext highlighter-rouge">emptyDir</code>를 사용하도록 Chart 값을 변경할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--set</span> primary.persistence.enabled<span class="o">=</span><span class="nb">false</span> <span class="se">\</span>
+  <span class="nt">--set-string</span> auth.rootPassword<span class="o">=</span><span class="s1">'&lt;temporary-password&gt;'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--set</code>에 입력한 Password는 Shell History와 Process 정보에 노출될 수 있다. 위 명령은 Option 구조를 설명하기 위한 임시 실습이며 실제 Credential은 별도 Secret이나 보호된 Values 전달 방식을 사용한다.</p>
+
+<p>Persistence를 끄면 Pod가 교체될 때 Database Data를 잃을 수 있으므로 운영 Database 구성으로 사용하지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">--namespace</span> helm-lab
+kubectl <span class="nb">exec</span> <span class="nt">-it</span> <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  statefulset/my-mariadb <span class="nt">--</span> bash
+</code></pre></div></div>
+
+<p>실습 Release를 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm uninstall my-mariadb <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<h2 id="10--node-local-pv와-pvc-준비">10 ) Node Local PV와 PVC 준비</h2>
+
+<hr />
+
+<p>직접 구축한 Cluster에서 Dynamic Provisioner가 없다면 특정 Worker의 Directory를 사용하는 정적 PV를 만들 수 있다. 이 방식은 Node 장애 시 다른 Worker로 자동 이동하는 공유 Storage가 아니므로 실습 범위로 제한한다.</p>
+
+<p>먼저 MariaDB Pod를 배치할 Worker 이름을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes
+</code></pre></div></div>
+
+<p>다음 명령은 선택한 <code class="language-plaintext highlighter-rouge">worker1</code>에서 실행한다. UID와 GID <code class="language-plaintext highlighter-rouge">1001</code>은 Bitnami MariaDB Image 계열에서 사용하는 값이므로 실제 선택한 Image의 실행 사용자를 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /data/mariadb
+<span class="nb">sudo chown </span>1001:1001 /data/mariadb
+<span class="nb">sudo chmod </span>0750 /data/mariadb
+</code></pre></div></div>
+
+<p>모든 사용자에게 쓰기 권한을 주는 <code class="language-plaintext highlighter-rouge">chmod 777</code>은 사용하지 않는다. 다음 내용을 <code class="language-plaintext highlighter-rouge">mariadb-pv.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolume</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb-local-pv</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">manual</span>
+  <span class="na">persistentVolumeReclaimPolicy</span><span class="pi">:</span> <span class="s">Retain</span>
+  <span class="na">capacity</span><span class="pi">:</span>
+    <span class="na">storage</span><span class="pi">:</span> <span class="s">1Gi</span>
+  <span class="na">volumeMode</span><span class="pi">:</span> <span class="s">Filesystem</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="na">local</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s">/data/mariadb</span>
+  <span class="na">nodeAffinity</span><span class="pi">:</span>
+    <span class="na">required</span><span class="pi">:</span>
+      <span class="na">nodeSelectorTerms</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">matchExpressions</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">key</span><span class="pi">:</span> <span class="s">kubernetes.io/hostname</span>
+              <span class="na">operator</span><span class="pi">:</span> <span class="s">In</span>
+              <span class="na">values</span><span class="pi">:</span>
+                <span class="pi">-</span> <span class="s">worker1</span>
+<span class="nn">---</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolumeClaim</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb-pvc</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">helm-lab</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s">manual</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="na">resources</span><span class="pi">:</span>
+    <span class="na">requests</span><span class="pi">:</span>
+      <span class="na">storage</span><span class="pi">:</span> <span class="s">1Gi</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">hostPath</code>도 Node Directory를 직접 사용하지만 PV와 Pod의 Node 관계를 자동으로 표현하지 않는다. 이 예제는 <code class="language-plaintext highlighter-rouge">local</code> Volume과 <code class="language-plaintext highlighter-rouge">nodeAffinity</code>를 사용해 PV가 <code class="language-plaintext highlighter-rouge">worker1</code>에 종속됨을 Scheduler가 알 수 있게 한다.</p>
+
+<p>Master 또는 관리 Client에서 PV와 PVC를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create namespace helm-lab <span class="se">\</span>
+  <span class="nt">--dry-run</span><span class="o">=</span>client <span class="nt">-o</span> yaml | kubectl apply <span class="nt">-f</span> -
+kubectl apply <span class="nt">-f</span> mariadb-pv.yaml
+kubectl get persistentvolume
+kubectl get persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<h2 id="11--기존-pvc와-secret을-mariadb-chart에-연결">11 ) 기존 PVC와 Secret을 MariaDB Chart에 연결</h2>
+
+<hr />
+
+<p>MariaDB Credential을 별도 Secret으로 준비하고 Chart에는 Secret 이름만 전달한다. 현재 Bitnami MariaDB Chart를 기준으로 Secret Key 요구 사항은 선택한 Chart Version의 README와 <code class="language-plaintext highlighter-rouge">values.yaml</code>에서 다시 확인한다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">mariadb-auth-secret.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb-auth</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">helm-lab</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">Opaque</span>
+<span class="na">stringData</span><span class="pi">:</span>
+  <span class="na">mariadb-root-password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_ROOT_PASSWORD</span>
+  <span class="na">mariadb-password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_USER_PASSWORD</span>
+  <span class="na">mariadb-replication-password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_REPLICATION_PASSWORD</span>
+</code></pre></div></div>
+
+<p>실제 Password가 채워진 File은 공개 Repository에 Commit하지 않는다. Secret을 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> mariadb-auth-secret.yaml
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">mariadb-values.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">architecture</span><span class="pi">:</span> <span class="s">standalone</span>
+
+<span class="na">auth</span><span class="pi">:</span>
+  <span class="na">existingSecret</span><span class="pi">:</span> <span class="s">mariadb-auth</span>
+  <span class="na">database</span><span class="pi">:</span> <span class="s">testdb</span>
+  <span class="na">username</span><span class="pi">:</span> <span class="s">dbuser</span>
+
+<span class="na">primary</span><span class="pi">:</span>
+  <span class="na">persistence</span><span class="pi">:</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">existingClaim</span><span class="pi">:</span> <span class="s">mariadb-pvc</span>
+  <span class="na">nodeSelector</span><span class="pi">:</span>
+    <span class="na">kubernetes.io/hostname</span><span class="pi">:</span> <span class="s">worker1</span>
+</code></pre></div></div>
+
+<p>PVC와 Pod 모두 <code class="language-plaintext highlighter-rouge">worker1</code>에 고정되는지 Rendering 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> mariadb-values.yaml
+</code></pre></div></div>
+
+<p>Chart와 Image를 검증한 환경에서 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-mariadb bitnami/mariadb <span class="se">\</span>
+  <span class="nt">--version</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> mariadb-values.yaml
+</code></pre></div></div>
+
+<p>Pod가 선택한 Worker에서 실행되고 PVC가 연결됐는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pod <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">-o</span> wide
+kubectl get persistentvolume
+kubectl get persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl describe pod <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  &lt;mariadb-pod-name&gt;
+</code></pre></div></div>
+
+<h2 id="12--사용자-helm-chart-구조">12 ) 사용자 Helm Chart 구조</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">helm create</code>는 기본 Chart Directory를 자동으로 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm create custom-mariadb
+</code></pre></div></div>
+
+<p>기본 Sample을 목적에 맞게 정리하면 다음 구조가 된다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>custom-mariadb/
+├── Chart.yaml
+├── values.yaml
+├── .helmignore
+└── templates/
+    ├── secret.yaml
+    ├── service.yaml
+    ├── statefulset.yaml
+    └── pvc.yaml
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Chart.yaml</code></td>
+      <td>Chart 이름, Type, Chart Version과 Application Version 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">values.yaml</code></td>
+      <td>Template에서 사용할 기본값 정의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">templates/</code></td>
+      <td>Rendering할 Kubernetes Resource Template 저장</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">.helmignore</code></td>
+      <td>Chart Package에서 제외할 File Pattern 정의</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Helm은 <code class="language-plaintext highlighter-rouge">templates/</code> 아래의 Template을 Rendering하므로 Directory 이름을 정확하게 사용해야 한다.</p>
+
+<h2 id="13--chart-metadata와-values">13 ) Chart Metadata와 Values</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/Chart.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v2</span>
+<span class="na">name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+<span class="na">description</span><span class="pi">:</span> <span class="s">A custom MariaDB Helm chart</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">application</span>
+<span class="na">version</span><span class="pi">:</span> <span class="s">0.1.0</span>
+<span class="na">appVersion</span><span class="pi">:</span> <span class="s2">"</span><span class="s">11.4"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">version</code>은 Chart Package Version이고 <code class="language-plaintext highlighter-rouge">appVersion</code>은 Chart가 배포하는 Application Version을 설명하는 값이다. 둘은 같은 의미가 아니다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/values.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">replicaCount</span><span class="pi">:</span> <span class="m">1</span>
+
+<span class="na">image</span><span class="pi">:</span>
+  <span class="na">repository</span><span class="pi">:</span> <span class="s">mariadb</span>
+  <span class="na">tag</span><span class="pi">:</span> <span class="s2">"</span><span class="s">11.4"</span>
+  <span class="na">pullPolicy</span><span class="pi">:</span> <span class="s">IfNotPresent</span>
+
+<span class="na">mariadb</span><span class="pi">:</span>
+  <span class="na">existingSecret</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">rootPassword</span><span class="pi">:</span> <span class="s">REPLACE_WITH_ROOT_PASSWORD</span>
+  <span class="na">database</span><span class="pi">:</span> <span class="s">appdb</span>
+  <span class="na">user</span><span class="pi">:</span> <span class="s">appuser</span>
+  <span class="na">password</span><span class="pi">:</span> <span class="s">REPLACE_WITH_USER_PASSWORD</span>
+
+<span class="na">persistence</span><span class="pi">:</span>
+  <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">existingClaim</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="s2">"</span><span class="s">"</span>
+  <span class="na">storageSize</span><span class="pi">:</span> <span class="s">1Gi</span>
+
+<span class="na">service</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">port</span><span class="pi">:</span> <span class="m">3306</span>
+
+<span class="na">nodeSelector</span><span class="pi">:</span> <span class="pi">{}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mariadb.rootPassword</code>는 Secret Template이 참조하는 Field이고 <code class="language-plaintext highlighter-rouge">service.type</code>은 Kubernetes가 인식하는 <code class="language-plaintext highlighter-rouge">ClusterIP</code> 값을 사용한다. 실제 운영용 Values에는 평문 Password를 저장하지 않고 <code class="language-plaintext highlighter-rouge">mariadb.existingSecret</code>으로 이미 생성한 Secret을 참조한다.</p>
+
+<h2 id="14--secret-template">14 ) Secret Template</h2>
+
+<hr />
+
+<p>Helm Template의 <code class="language-plaintext highlighter-rouge">{{ ... }}</code> 표현은 Jekyll Liquid와 충돌하므로 Code Block 전체를 Raw Tag로 감싼다.</p>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/secret.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">{{</span><span class="nv">- if not .Values.mariadb.existingSecret</span> <span class="pi">}}</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Secret</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span><span class="s">-secret</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">type</span><span class="pi">:</span> <span class="s">Opaque</span>
+<span class="na">stringData</span><span class="pi">:</span>
+  <span class="na">mariadb-root-password</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.rootPassword | quote</span> <span class="pi">}}</span>
+  <span class="na">mariadb-password</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.password | quote</span> <span class="pi">}}</span>
+<span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mariadb.existingSecret</code>이 비어 있을 때만 Chart가 Secret을 생성한다. 외부 Secret 이름을 지정하면 이 Template은 Resource를 만들지 않는다.</p>
+
+<h2 id="15--service와-pvc-template">15 ) Service와 PVC Template</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/service.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.service.type</span> <span class="pi">}}</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.service.port</span> <span class="pi">}}</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">mariadb</span>
+</code></pre></div></div>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/pvc.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">{{</span><span class="nv">- if and .Values.persistence.enabled (not .Values.persistence.existingClaim)</span> <span class="pi">}}</span>
+<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">PersistentVolumeClaim</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span><span class="s">-data</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">accessModes</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ReadWriteOnce</span>
+  <span class="pi">{{</span><span class="nv">- if .Values.persistence.storageClassName</span> <span class="pi">}}</span>
+  <span class="na">storageClassName</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.persistence.storageClassName | quote</span> <span class="pi">}}</span>
+  <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+  <span class="na">resources</span><span class="pi">:</span>
+    <span class="na">requests</span><span class="pi">:</span>
+      <span class="na">storage</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.persistence.storageSize</span> <span class="pi">}}</span>
+<span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+</code></pre></div></div>
+
+<p>Persistence가 활성화되고 <code class="language-plaintext highlighter-rouge">existingClaim</code>이 비어 있을 때만 PVC를 생성한다. <code class="language-plaintext highlighter-rouge">storageClassName</code>을 비워 두면 Cluster의 Default StorageClass 선택 규칙이 적용된다.</p>
+
+<h2 id="16--statefulset-template">16 ) StatefulSet Template</h2>
+
+<hr />
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb/templates/statefulset.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">StatefulSet</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">labels</span><span class="pi">:</span>
+    <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+    <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">serviceName</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.replicaCount</span> <span class="pi">}}</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+      <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app.kubernetes.io/name</span><span class="pi">:</span> <span class="s">custom-mariadb</span>
+        <span class="na">app.kubernetes.io/instance</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Release.Name</span> <span class="pi">}}</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="pi">{{</span><span class="nv">- with .Values.nodeSelector</span> <span class="pi">}}</span>
+      <span class="na">nodeSelector</span><span class="pi">:</span>
+        <span class="pi">{{</span><span class="nv">- toYaml . | nindent 8</span> <span class="pi">}}</span>
+      <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">.Values.image.repository</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">.Values.image.tag</span><span class="nv"> </span><span class="s">}}"</span>
+          <span class="na">imagePullPolicy</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.image.pullPolicy</span> <span class="pi">}}</span>
+          <span class="na">env</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_ROOT_PASSWORD</span>
+              <span class="na">valueFrom</span><span class="pi">:</span>
+                <span class="na">secretKeyRef</span><span class="pi">:</span>
+                  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">default (printf "%s-secret" .Release.Name) .Values.mariadb.existingSecret</span> <span class="pi">}}</span>
+                  <span class="na">key</span><span class="pi">:</span> <span class="s">mariadb-root-password</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_DATABASE</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.database | quote</span> <span class="pi">}}</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_USER</span>
+              <span class="na">value</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">.Values.mariadb.user | quote</span> <span class="pi">}}</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MARIADB_PASSWORD</span>
+              <span class="na">valueFrom</span><span class="pi">:</span>
+                <span class="na">secretKeyRef</span><span class="pi">:</span>
+                  <span class="na">name</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">default (printf "%s-secret" .Release.Name) .Values.mariadb.existingSecret</span> <span class="pi">}}</span>
+                  <span class="na">key</span><span class="pi">:</span> <span class="s">mariadb-password</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">mariadb</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">3306</span>
+          <span class="pi">{{</span><span class="nv">- if .Values.persistence.enabled</span> <span class="pi">}}</span>
+          <span class="na">volumeMounts</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">data</span>
+              <span class="na">mountPath</span><span class="pi">:</span> <span class="s">/var/lib/mysql</span>
+          <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+      <span class="pi">{{</span><span class="nv">- if .Values.persistence.enabled</span> <span class="pi">}}</span>
+      <span class="na">volumes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">data</span>
+          <span class="na">persistentVolumeClaim</span><span class="pi">:</span>
+            <span class="na">claimName</span><span class="pi">:</span> <span class="pi">{{</span> <span class="nv">default (printf "%s-data" .Release.Name) .Values.persistence.existingClaim</span> <span class="pi">}}</span>
+      <span class="pi">{{</span><span class="nv">- end</span> <span class="pi">}}</span>
+</code></pre></div></div>
+
+<p>StatefulSet의 Selector와 Pod Label은 Chart의 Release 이름까지 포함하여 다른 Release의 Pod를 관리하지 않게 한다. <code class="language-plaintext highlighter-rouge">existingSecret</code>과 <code class="language-plaintext highlighter-rouge">existingClaim</code>이 있으면 외부 Resource를 사용하고, 비어 있으면 Chart가 만든 Secret과 PVC 이름을 참조한다.</p>
+
+<p>이 Chart는 하나의 MariaDB Instance를 위한 학습 예제이다. <code class="language-plaintext highlighter-rouge">replicaCount</code>를 1보다 크게 설정하면 여러 MariaDB Process가 같은 PVC를 사용하게 되므로 복제 구성이 되지 않으며 Data가 손상될 수 있다. MariaDB 복제는 Database의 복제 설정과 Pod별 Volume을 함께 제공하는 별도 Chart 구조가 필요하다.</p>
+
+<h2 id="17--chart-검증과-설치">17 ) Chart 검증과 설치</h2>
+
+<hr />
+
+<p>Chart를 Cluster에 적용하기 전에 구조와 Rendering 결과를 검사한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm lint ./custom-mariadb
+helm template my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>앞에서 만든 <code class="language-plaintext highlighter-rouge">mariadb-auth</code> Secret과 <code class="language-plaintext highlighter-rouge">mariadb-pvc</code>를 사용하려면 다음 내용을 <code class="language-plaintext highlighter-rouge">custom-mariadb-lab-values.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">mariadb</span><span class="pi">:</span>
+  <span class="na">existingSecret</span><span class="pi">:</span> <span class="s">mariadb-auth</span>
+
+<span class="na">persistence</span><span class="pi">:</span>
+  <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">existingClaim</span><span class="pi">:</span> <span class="s">mariadb-pvc</span>
+
+<span class="na">nodeSelector</span><span class="pi">:</span>
+  <span class="na">kubernetes.io/hostname</span><span class="pi">:</span> <span class="s">worker1</span>
+</code></pre></div></div>
+
+<p>외부 Secret, PVC와 Worker 배치 조건을 적용한 결과도 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml
+</code></pre></div></div>
+
+<p>Server 측 API 검증까지 수행하려면 Rendering 결과를 <code class="language-plaintext highlighter-rouge">kubectl apply --dry-run=server</code>에 전달한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm template my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml | <span class="se">\</span>
+  kubectl apply <span class="se">\</span>
+    <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+    <span class="nt">--dry-run</span><span class="o">=</span>server <span class="se">\</span>
+    <span class="nt">-f</span> -
+</code></pre></div></div>
+
+<p>검증 후 Chart를 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">install </span>my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--create-namespace</span> <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml
+</code></pre></div></div>
+
+<p>Release와 StatefulSet, Pod, Service와 PVC를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm status my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl get statefulsets,pods,services,persistentvolumeclaims <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<h2 id="18--upgrade와-rollback">18 ) Upgrade와 Rollback</h2>
+
+<hr />
+
+<p>Values를 변경한 뒤 Upgrade하면 Release Revision이 증가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm upgrade my-custom-mariadb ./custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab <span class="se">\</span>
+  <span class="nt">--values</span> custom-mariadb-lab-values.yaml <span class="se">\</span>
+  <span class="nt">--set</span> image.tag<span class="o">=</span><span class="s1">'&lt;verified-mariadb-version&gt;'</span>
+</code></pre></div></div>
+
+<p>History와 적용된 Values를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm <span class="nb">history </span>my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm get values my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm get manifest my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>문제가 있으면 이전 Revision으로 Rollback한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm rollback my-custom-mariadb &lt;revision&gt; <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p>Helm Rollback은 Kubernetes Resource Spec을 과거 Release Revision으로 되돌린다. Database File Format이나 이미 변경된 Data를 자동으로 복구하지 않으므로 Stateful Application은 Backup과 Migration 호환성을 별도로 확인해야 한다.</p>
+
+<h2 id="19--실습-resource-정리">19 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>Helm으로 설치한 Release를 확인하고 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm list <span class="nt">--all-namespaces</span>
+helm uninstall my-custom-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm uninstall my-mariadb <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+helm uninstall my-nginx <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">helm list --namespace helm-lab</code>에서 존재하는 Release만 제거한다. 생성하지 않은 Release를 <code class="language-plaintext highlighter-rouge">helm uninstall</code>하면 찾을 수 없다는 오류가 발생한다.</p>
+
+<p>정적 PV와 PVC는 Data 보존 여부를 확인한 뒤 별도로 처리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get persistentvolume
+kubectl get persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl delete <span class="nt">-f</span> mariadb-pv.yaml
+kubectl delete <span class="nt">-f</span> mariadb-auth-secret.yaml <span class="se">\</span>
+  <span class="nt">--ignore-not-found</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">persistentVolumeReclaimPolicy: Retain</code>인 PV를 삭제해도 Worker의 <code class="language-plaintext highlighter-rouge">/data/mariadb</code> Data는 자동으로 삭제되지 않는다. Data가 더 이상 필요하지 않은지 확인한 뒤 해당 Worker에서 별도로 정리한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">helm-lab</code>이 이 실습에만 사용됐는지 확인한 뒤 Namespace를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all,secret,persistentvolumeclaim <span class="se">\</span>
+  <span class="nt">--namespace</span> helm-lab
+kubectl delete namespace helm-lab
+</code></pre></div></div>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Helm은 여러 Kubernetes Resource를 Chart로 Packaging하고 설치 결과를 Release와 Revision으로 관리한다.</p>
+    </li>
+    <li>
+      <p>Chart와 Values를 Rendering한 결과가 Manifest이며 Control Plane은 이 최종 Resource만 처리한다.</p>
+    </li>
+    <li>
+      <p>외부 Chart는 Version, Image Registry, RBAC, Service와 Storage 설정을 확인한 뒤 설치한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">stable</code>과 <code class="language-plaintext highlighter-rouge">incubator</code> Repository는 Archive이며 현재 Chart는 Artifact Hub와 유지보수되는 Repository·OCI Registry에서 찾는다.</p>
+    </li>
+    <li>
+      <p>사용자 Chart는 <code class="language-plaintext highlighter-rouge">helm package</code>로 <code class="language-plaintext highlighter-rouge">.tgz</code> Archive를 만든 뒤 <code class="language-plaintext highlighter-rouge">helm push</code>로 OCI Registry에 배포하며 Chart 이름과 Version은 <code class="language-plaintext highlighter-rouge">Chart.yaml</code>에서 결정된다.</p>
+    </li>
+    <li>
+      <p>Bitnami Chart Source와 기존 Image의 제공 상태는 같지 않으므로 Rendering된 Image를 실제로 Pull할 수 있는지 확인해야 한다.</p>
+    </li>
+    <li>
+      <p>MariaDB PVC가 Pending이면 Pod Log보다 PVC Event, PV와 StorageClass를 먼저 확인한다.</p>
+    </li>
+    <li>
+      <p>Node Local Storage는 PV Node Affinity와 Pod 배치 조건을 같은 Worker에 맞춰야 한다.</p>
+    </li>
+    <li>
+      <p>Helm Template은 Jekyll Liquid와 충돌하지 않도록 Raw Tag로 감싸고 <code class="language-plaintext highlighter-rouge">helm lint</code>와 <code class="language-plaintext highlighter-rouge">helm template</code>로 검증한다.</p>
+    </li>
+    <li>
+      <p>Helm Rollback은 Resource Spec을 되돌리며 Database Data와 Schema를 자동으로 복원하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Helm의 Chart·Release 구조, Repository와 OCI Chart 사용, MariaDB Storage 연결 및 사용자 Chart 작성 정리]]></summary></entry><entry><title type="html">Kubernetes Blue-Green과 Canary 배포</title><link href="https://kkr010128.github.io/cloud-native-38-kubernetes-blue-green-canary/" rel="alternate" type="text/html" title="Kubernetes Blue-Green과 Canary 배포" /><published>2026-09-07T00:00:00+09:00</published><updated>2026-09-07T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-38-kubernetes-blue-green-canary</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-38-kubernetes-blue-green-canary/"><![CDATA[<p>Rolling Update는 이전 Version과 새 Version의 Pod를 점진적으로 교체한다. Blue-Green은 두 Version을 별도 환경으로 유지한 뒤 Service의 연결 대상을 한 번에 바꾸고, Canary는 새 Version에 전달되는 Traffic을 제한하여 점진적으로 확대한다.</p>
 
 <p>이 문서는 <a href="/cloud-native-28-replicaset-deployment/">Kubernetes ReplicaSet과 Deployment</a>의 Rollout과 <a href="/cloud-native-31-kubernetes-service-network/">Kubernetes Service Discovery와 외부 노출</a>의 Service Selector를 알고 있다고 가정한다.</p>
 
@@ -7036,1364 +8627,4 @@ kubectl get service ingress-nginx-controller <span class="nt">-n</span> ingress-
   </ul>
 </blockquote>
 
-<p>다음 단계에서는 <a href="/cloud-native-34-kubernetes-env-secret-configmap/">Kubernetes 환경 변수와 Secret·ConfigMap</a>에서 Application 설정과 기밀 정보를 Container에 전달하는 방법을 다룬다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리]]></summary></entry><entry><title type="html">Kubernetes Job과 CronJob</title><link href="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/" rel="alternate" type="text/html" title="Kubernetes Job과 CronJob" /><published>2026-08-28T00:00:00+09:00</published><updated>2026-08-28T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-30-kubernetes-job-cronjob/"><![CDATA[<p>Deployment와 ReplicaSet은 Application이 계속 실행되는 상태를 유지하지만 Job은 정해진 작업이 성공적으로 끝나는 상태를 목표로 한다. CronJob은 Schedule에 따라 Job을 반복 생성하므로 완료 조건과 재시도 정책을 먼저 이해해야 한다.</p>
-
-<h2 id="1--run-to-completion-workload">1 ) Run-to-Completion Workload</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Run-to-Completion</strong></p>
-
-  <p>계속 실행되는 Service가 아니라 정해진 처리를 수행하고 정상 종료하는 것을 목표로 하는 Workload이다.</p>
-</blockquote>
-
-<p>Job은 Container를 이용하여 한 번 또는 지정한 횟수만큼 작업을 완료한다. 여러 Pod를 병렬로 실행할 수도 있으며 성공한 Pod 수가 원하는 완료 횟수에 도달하도록 관리한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>ReplicaSet·Deployment</th>
-      <th>Job</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>목표</td>
-      <td>지정한 수의 Pod가 계속 실행</td>
-      <td>지정한 작업이 성공적으로 완료</td>
-    </tr>
-    <tr>
-      <td>정상 종료된 Pod</td>
-      <td>부족한 Replica로 보고 다시 생성</td>
-      <td>성공 횟수로 계산</td>
-    </tr>
-    <tr>
-      <td>대표 사례</td>
-      <td>Web Server, API Server</td>
-      <td>Batch, Migration, Report 생성</td>
-    </tr>
-    <tr>
-      <td>재시도 기준</td>
-      <td>실행 중인 Pod 수</td>
-      <td>작업 성공·실패 상태와 <code class="language-plaintext highlighter-rouge">backoffLimit</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>ReplicaSet은 정상 종료 횟수를 작업 완료로 계산하지 않으므로 Batch 처리에는 Job을 사용한다.</p>
-
-<h2 id="2--job의-control-plane과-worker-동작">2 ) Job의 Control Plane과 Worker 동작</h2>
-
-<hr />
-
-<p>Job Manifest를 적용하면 다음 순서로 처리된다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client의 kubectl apply
-                │
-                ▼
-            API Server
-                │ Job의 원하는 상태 저장
-                ▼
-          Job Controller
-                │ 필요한 Pod 생성
-                ▼
-             Scheduler
-                │ Worker 선택
-                ▼
-Worker의 kubelet ──▶ Container Runtime ──▶ Command 실행
-                │
-                └── 성공·실패 상태를 API Server에 보고
-</code></pre></div></div>
-
-<p>Job Controller는 성공한 Pod 수와 실패 상태를 확인한다. 작업이 실패하면 <code class="language-plaintext highlighter-rouge">restartPolicy</code>와 <code class="language-plaintext highlighter-rouge">backoffLimit</code>에 따라 같은 Pod의 Container를 재시작하거나 새로운 Pod를 생성한다.</p>
-
-<h2 id="3--job-생성과-완료-확인">3 ) Job 생성과 완료 확인</h2>
-
-<hr />
-
-<p>다음 예제는 시작 메시지를 출력하고 10초 동안 대기한 뒤 완료 메시지를 출력한다. 내용을 <code class="language-plaintext highlighter-rouge">sample-job.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">hello-job</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">hello</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
-          <span class="na">command</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">sh</span>
-            <span class="pi">-</span> <span class="s">-c</span>
-            <span class="pi">-</span> <span class="pi">|</span>
-              <span class="s">echo "Job 시작"</span>
-              <span class="s">sleep 10</span>
-              <span class="s">echo "Job 완료"</span>
-      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Never</span>
-  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">apiVersion: batch/v1</code></td>
-      <td>Job이 속한 Batch API Version</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.template</code></td>
-      <td>작업을 실행할 Pod Template</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">restartPolicy</code></td>
-      <td>실패한 Container 또는 Pod를 다시 실행하는 방식</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">backoffLimit</code></td>
-      <td>Job 실패를 판단하기 전 허용할 재시도 한도</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Master 또는 kubeconfig가 설정된 관리 Client에서 Job을 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-job.yaml
-</code></pre></div></div>
-
-<p>Job과 Job이 만든 Pod를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get <span class="nb">jobs
-</span>kubectl get pods <span class="nt">-l</span> job-name<span class="o">=</span>hello-job
-</code></pre></div></div>
-
-<p>작업이 완료될 때까지 기다린 뒤 Log를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span><span class="nb">complete</span> <span class="se">\</span>
-  job/hello-job <span class="se">\</span>
-  <span class="nt">--timeout</span><span class="o">=</span>120s
-
-kubectl logs job/hello-job
-</code></pre></div></div>
-
-<p>정상적으로 완료되면 Job의 <code class="language-plaintext highlighter-rouge">COMPLETIONS</code>가 <code class="language-plaintext highlighter-rouge">1/1</code>이 되고 Pod의 <code class="language-plaintext highlighter-rouge">STATUS</code>는 <code class="language-plaintext highlighter-rouge">Completed</code>로 표시된다. 완료된 Pod는 실행 중이지 않지만 Log와 종료 상태 확인을 위해 남아 있을 수 있다.</p>
-
-<h2 id="4--restartpolicy와-실패-재시도">4 ) restartPolicy와 실패 재시도</h2>
-
-<hr />
-
-<p>Job의 <code class="language-plaintext highlighter-rouge">spec.template.spec.restartPolicy</code>에는 <code class="language-plaintext highlighter-rouge">Never</code> 또는 <code class="language-plaintext highlighter-rouge">OnFailure</code>만 지정할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>값</th>
-      <th>실패 시 동작</th>
-      <th>확인 특징</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Never</code></td>
-      <td>실패한 Pod를 다시 사용하지 않고 Job Controller가 새 Pod를 생성할 수 있음</td>
-      <td>실패한 Pod가 여러 개 남을 수 있음</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">OnFailure</code></td>
-      <td>같은 Pod 안에서 실패한 Container를 다시 시작</td>
-      <td>Pod의 <code class="language-plaintext highlighter-rouge">RESTARTS</code> 증가</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-error-job.yaml</code>로 저장한다. 존재하지 않는 경로를 <code class="language-plaintext highlighter-rouge">ls</code>로 조회하므로 Container가 실패한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">error-job</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">error-job</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
-          <span class="na">command</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">ls</span>
-            <span class="pi">-</span> <span class="s">unvalid path</span>
-      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Never</span>
-  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
-</code></pre></div></div>
-
-<p>Job을 적용하고 실패 상태와 재시도 Pod를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-error-job.yaml
-kubectl get job error-job
-kubectl get pods <span class="nt">-l</span> job-name<span class="o">=</span>error-job
-kubectl describe job error-job
-</code></pre></div></div>
-
-<p>실패한 Pod의 이름을 확인하여 Log를 조회한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl logs &lt;ERROR_JOB_POD_NAME&gt;
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">backoffLimit</code>는 단순히 Container를 정확히 해당 횟수만큼 실행한다는 뜻이 아니라 Job Controller가 실패를 허용하고 재시도할 한도를 설정한다. 재시도 사이에는 점차 증가하는 대기 시간이 적용될 수 있다.</p>
-
-<h2 id="5--completions와-parallelism">5 ) completions와 parallelism</h2>
-
-<hr />
-
-<p>Job의 완료 횟수와 동시에 실행할 수 있는 Pod 수를 조정한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-      <th>기본 동작</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">completions</code></td>
-      <td>Job이 완료되기 위해 필요한 성공 횟수</td>
-      <td>일반적인 비병렬 Job에서는 1회 완료</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">parallelism</code></td>
-      <td>동시에 실행할 수 있는 최대 Pod 수</td>
-      <td>기본값 1</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">backoffLimit</code></td>
-      <td>실패 재시도 한도</td>
-      <td>명시하지 않으면 기본값 사용</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>4번 성공해야 하며 동시에 최대 2개 Pod를 실행하는 예시는 다음과 같다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">parallel-job</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">completions</span><span class="pi">:</span> <span class="m">4</span>
-  <span class="na">parallelism</span><span class="pi">:</span> <span class="m">2</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">worker</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
-          <span class="na">command</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">sh</span>
-            <span class="pi">-</span> <span class="s">-c</span>
-            <span class="pi">-</span> <span class="pi">|</span>
-              <span class="s">echo "$(hostname) 작업 시작"</span>
-              <span class="s">sleep 10</span>
-              <span class="s">echo "$(hostname) 작업 완료"</span>
-      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">Never</span>
-  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
-</code></pre></div></div>
-
-<p>내용을 <code class="language-plaintext highlighter-rouge">sample-parallel-job.yaml</code>로 저장한 뒤 적용하고 Pod 수를 관찰한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-parallel-job.yaml
-kubectl get pods <span class="nt">-l</span> job-name<span class="o">=</span>parallel-job <span class="nt">--watch</span>
-</code></pre></div></div>
-
-<p>한 번만 수행할 작업에서는 <code class="language-plaintext highlighter-rouge">completions: 1</code>, <code class="language-plaintext highlighter-rouge">parallelism: 1</code>과 낮은 <code class="language-plaintext highlighter-rouge">backoffLimit</code>를 명시할 수 있다. 여러 작업을 병렬 처리할 때는 Worker Resource와 외부 System의 처리 용량을 고려하여 <code class="language-plaintext highlighter-rouge">parallelism</code>을 조정한다.</p>
-
-<p>한 번 실패하면 재시도하지 않아야 하는 Task는 <code class="language-plaintext highlighter-rouge">backoffLimit: 0</code>으로 설정할 수 있다. 반대로 일시적인 실패가 발생할 수 있는 병렬 작업은 허용할 재시도 횟수를 정해 두어야 한다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">parallelism: 1</code>은 하나의 Job 안에서 동시에 실행되는 Pod 수를 제한한다. 서로 다른 여러 Job의 실행 순서를 보장하지는 않는다. Job이 동일 작업을 다시 시도할 수 있으므로 외부 Data를 변경하는 작업은 중복 실행되어도 안전하도록 설계한다.</p>
-
-<h2 id="6--완료된-job-자동-정리">6 ) 완료된 Job 자동 정리</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">spec.ttlSecondsAfterFinished</code>를 설정하면 Job이 <code class="language-plaintext highlighter-rouge">Complete</code> 또는 <code class="language-plaintext highlighter-rouge">Failed</code> 상태가 된 뒤 지정한 시간이 지나면 TTL Controller가 Job과 종속 Resource를 정리할 수 있다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-ttl-job.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Job</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-ttl-job</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">ttlSecondsAfterFinished</span><span class="pi">:</span> <span class="m">30</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">sample-job</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
-          <span class="na">command</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">sh</span>
-            <span class="pi">-</span> <span class="s">-c</span>
-            <span class="pi">-</span> <span class="pi">|</span>
-              <span class="s">echo "Job 시작"</span>
-              <span class="s">sleep 10</span>
-              <span class="s">echo "Job 완료"</span>
-      <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">OnFailure</span>
-  <span class="na">backoffLimit</span><span class="pi">:</span> <span class="m">4</span>
-</code></pre></div></div>
-
-<p>Job을 적용하고 완료 후 삭제되는 과정을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-ttl-job.yaml
-kubectl get job sample-ttl-job <span class="nt">--watch</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ttlSecondsAfterFinished: 30</code>은 Job 실행 시작 후 30초가 아니라 Job이 완료된 시점부터 30초를 계산한다.</p>
-
-<h2 id="7--명령형-job-생성">7 ) 명령형 Job 생성</h2>
-
-<hr />
-
-<p>간단한 일회성 작업은 Manifest 없이 생성할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create job my-job <span class="se">\</span>
-  <span class="nt">--image</span><span class="o">=</span>busybox:1.36 <span class="se">\</span>
-  <span class="nt">--</span> <span class="nb">date</span>
-</code></pre></div></div>
-
-<p>Job 상태와 출력 결과를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get job my-job
-kubectl logs job/my-job
-</code></pre></div></div>
-
-<p>명령형 생성은 짧은 확인에는 편리하지만 재시도, 병렬성, TTL과 같은 설정을 반복 관리하려면 Manifest를 사용하는 편이 적합하다.</p>
-
-<h2 id="8--cronjob">8 ) CronJob</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>CronJob</strong></p>
-
-  <p>Cron 형식의 Schedule에 따라 Job Object를 반복 생성하는 Workload Controller이다.</p>
-</blockquote>
-
-<p>CronJob이 Container를 직접 실행하는 것은 아니다. CronJob Controller가 Schedule에 맞춰 Job을 생성하고, Job Controller가 Pod를 만들며 Worker의 kubelet과 Container Runtime이 실제 Command를 실행한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>CronJob Controller
-      │ Schedule에 따라 Job 생성
-      ▼
-  Job Controller
-      │ Pod 생성과 완료 횟수 관리
-      ▼
-   Scheduler
-      │ Worker 선택
-      ▼
-Worker의 kubelet ──▶ Container Runtime ──▶ Command 실행
-</code></pre></div></div>
-
-<h2 id="9--cronjob-생성과-schedule">9 ) CronJob 생성과 Schedule</h2>
-
-<hr />
-
-<p>다음 CronJob은 1분마다 현재 시간과 메시지를 출력한다. 내용을 <code class="language-plaintext highlighter-rouge">sample-cronjob.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">batch/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">CronJob</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">hello</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">schedule</span><span class="pi">:</span> <span class="s2">"</span><span class="s">*/1</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>
-  <span class="na">jobTemplate</span><span class="pi">:</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">template</span><span class="pi">:</span>
-        <span class="na">spec</span><span class="pi">:</span>
-          <span class="na">containers</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">hello</span>
-              <span class="na">image</span><span class="pi">:</span> <span class="s">busybox:1.36</span>
-              <span class="na">imagePullPolicy</span><span class="pi">:</span> <span class="s">IfNotPresent</span>
-              <span class="na">command</span><span class="pi">:</span>
-                <span class="pi">-</span> <span class="s">/bin/sh</span>
-                <span class="pi">-</span> <span class="s">-c</span>
-                <span class="pi">-</span> <span class="s">date; echo Hello from the Kubernetes cluster</span>
-          <span class="na">restartPolicy</span><span class="pi">:</span> <span class="s">OnFailure</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>위치</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.schedule</code></td>
-      <td>Job을 생성할 Cron Schedule</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.jobTemplate</code></td>
-      <td>Schedule마다 생성할 Job Template</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">jobTemplate.spec.template</code></td>
-      <td>Job이 생성할 Pod Template</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>CronJob을 생성하고 Schedule과 최근 실행 시간을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-cronjob.yaml
-kubectl get cronjobs
-kubectl get <span class="nb">jobs</span> <span class="nt">--watch</span>
-</code></pre></div></div>
-
-<p>CronJob이 만든 Job과 Pod의 Log를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get <span class="nb">jobs</span> <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
-kubectl logs job/&lt;JOB_NAME&gt;
-</code></pre></div></div>
-
-<p>CronJob이 생성한 Job 이름은 일반적으로 <code class="language-plaintext highlighter-rouge">hello-&lt;schedule 식별값&gt;</code> 형태이므로 목록에서 최근 Job 이름을 확인한다.</p>
-
-<h2 id="10--cronjob-일시-정지">10 ) CronJob 일시 정지</h2>
-
-<hr />
-
-<p>신규 Job 생성을 일시 정지한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl patch cronjob hello <span class="se">\</span>
-  <span class="nt">-p</span> <span class="s1">'{"spec":{"suspend":true}}'</span>
-</code></pre></div></div>
-
-<p>Suspend 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get cronjob hello
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">suspend: true</code>는 이후 Schedule에 대한 Job 생성을 멈추지만 이미 시작된 Job을 중단하지 않는다.</p>
-
-<p>다시 Schedule 실행을 허용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl patch cronjob hello <span class="se">\</span>
-  <span class="nt">-p</span> <span class="s1">'{"spec":{"suspend":false}}'</span>
-</code></pre></div></div>
-
-<h2 id="11--동시-실행-제어">11 ) 동시 실행 제어</h2>
-
-<hr />
-
-<p>이전 Schedule의 Job이 끝나기 전에 다음 실행 시간이 도착했을 때 <code class="language-plaintext highlighter-rouge">spec.concurrencyPolicy</code>로 동작을 결정한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>값</th>
-      <th>동작</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Allow</code></td>
-      <td>동시 실행을 허용하는 기본값</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Forbid</code></td>
-      <td>이전 Job이 실행 중이면 새 실행을 건너뜀</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Replace</code></td>
-      <td>이전 Job을 중단하고 새 Job으로 교체</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>하나의 CronJob 안에서 실행이 겹치지 않게 하려면 다음 Field를 추가한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
-  <span class="na">schedule</span><span class="pi">:</span> <span class="s2">"</span><span class="s">*/1</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>
-  <span class="na">concurrencyPolicy</span><span class="pi">:</span> <span class="s">Forbid</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">concurrencyPolicy</code>는 서로 다른 CronJob 사이의 동시 실행을 제어하지 않는다.</p>
-
-<h2 id="12--지연-실행-허용-시간">12 ) 지연 실행 허용 시간</h2>
-
-<hr />
-
-<p>Controller 중단이나 Scheduling 지연으로 Schedule을 놓친 경우 <code class="language-plaintext highlighter-rouge">spec.startingDeadlineSeconds</code> 이내라면 Job 생성을 허용할 수 있다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
-  <span class="na">schedule</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">*"</span>
-  <span class="na">startingDeadlineSeconds</span><span class="pi">:</span> <span class="m">300</span>
-</code></pre></div></div>
-
-<p>매시 정각 실행할 CronJob에서 <code class="language-plaintext highlighter-rouge">300</code>초를 지정하면 정각 Schedule을 놓친 뒤 5분 이내에는 Job을 시작할 수 있다. 허용 시간을 넘긴 실행은 놓친 Schedule로 처리한다.</p>
-
-<h2 id="13--job-history-보관">13 ) Job History 보관</h2>
-
-<hr />
-
-<p>CronJob이 만든 완료·실패 Job을 몇 개까지 남길지 설정한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
-  <span class="na">successfulJobsHistoryLimit</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">failedJobsHistoryLimit</span><span class="pi">:</span> <span class="m">1</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-      <th>기본값</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">successfulJobsHistoryLimit</code></td>
-      <td>남겨 둘 성공 Job 수</td>
-      <td><code class="language-plaintext highlighter-rouge">3</code></td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">failedJobsHistoryLimit</code></td>
-      <td>남겨 둘 실패 Job 수</td>
-      <td><code class="language-plaintext highlighter-rouge">1</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>보관된 Job과 Pod를 통해 완료 상태와 Log를 확인할 수 있다. 값을 <code class="language-plaintext highlighter-rouge">0</code>으로 설정하면 해당 상태의 완료 Job을 보관하지 않는다.</p>
-
-<h2 id="14--실습-resource-정리">14 ) 실습 Resource 정리</h2>
-
-<hr />
-
-<p>Master 또는 관리 Client에서 생성한 Resource를 정리한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-cronjob.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-parallel-job.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-error-job.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-ttl-job.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-job.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete job my-job <span class="nt">--ignore-not-found</span>
-</code></pre></div></div>
-
-<p>남아 있는 Job과 CronJob을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get <span class="nb">jobs</span>,cronjobs
-</code></pre></div></div>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>Job은 계속 실행되는 Pod 수가 아니라 정해진 작업의 성공적인 완료를 관리한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">restartPolicy</code>, <code class="language-plaintext highlighter-rouge">backoffLimit</code>, <code class="language-plaintext highlighter-rouge">completions</code>와 <code class="language-plaintext highlighter-rouge">parallelism</code>으로 실패 재시도와 병렬 실행을 조정한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">ttlSecondsAfterFinished</code>는 완료된 Job과 종속 Resource를 일정 시간 뒤 정리한다.</p>
-    </li>
-    <li>
-      <p>CronJob은 Schedule에 따라 Job을 만들고 실제 Pod 실행과 완료 관리는 Job Controller가 담당한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">suspend</code>, <code class="language-plaintext highlighter-rouge">concurrencyPolicy</code>, <code class="language-plaintext highlighter-rouge">startingDeadlineSeconds</code>와 History Limit으로 예약 작업의 실행과 보관 범위를 조정한다.</p>
-    </li>
-    <li>
-      <p>Control Plane의 Controller가 Job과 Pod의 원하는 상태를 관리하고 Worker의 kubelet과 Container Runtime이 Command를 실행한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[완료형 Workload인 Job의 재시도·병렬 실행·자동 정리와 CronJob의 Schedule·동시 실행·History 관리 정리]]></summary></entry><entry><title type="html">Kubernetes Service Discovery와 외부 노출</title><link href="https://kkr010128.github.io/cloud-native-31-kubernetes-service-network/" rel="alternate" type="text/html" title="Kubernetes Service Discovery와 외부 노출" /><published>2026-08-28T00:00:00+09:00</published><updated>2026-08-28T00:00:00+09:00</updated><id>https://kkr010128.github.io/cloud-native-31-kubernetes-service-network</id><content type="html" xml:base="https://kkr010128.github.io/cloud-native-31-kubernetes-service-network/"><![CDATA[<p>Pod는 생성과 교체 과정에서 IP Address가 달라질 수 있으므로 Client가 개별 Pod IP를 직접 관리하면 Backend 변화에 대응하기 어렵다. Service는 Label Selector로 Pod 집합을 찾고 안정적인 IP Address와 DNS 이름을 제공하며, Service Type에 따라 Cluster 내부 또는 외부에서 접근할 수 있게 한다.</p>
-
-<h2 id="1--kubernetes의-통신-범위">1 ) Kubernetes의 통신 범위</h2>
-
-<hr />
-
-<p>Kubernetes에서 Container와 Pod가 통신하는 범위는 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>통신 대상</th>
-      <th>주소</th>
-      <th>특징</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>같은 Pod의 Container</td>
-      <td><code class="language-plaintext highlighter-rouge">localhost:&lt;port&gt;</code></td>
-      <td>Pod Network Namespace와 IP Address 공유</td>
-    </tr>
-    <tr>
-      <td>다른 Pod</td>
-      <td><code class="language-plaintext highlighter-rouge">&lt;pod-ip&gt;:&lt;port&gt;</code></td>
-      <td>같은 Node와 다른 Node 모두 Pod Network를 통해 통신</td>
-    </tr>
-    <tr>
-      <td>Service Backend</td>
-      <td><code class="language-plaintext highlighter-rouge">&lt;service-name&gt;:&lt;port&gt;</code></td>
-      <td>변하는 Pod 집합을 Service가 안정적인 이름으로 연결</td>
-    </tr>
-    <tr>
-      <td>Cluster 외부 Client</td>
-      <td>NodePort, LoadBalancer, Ingress·Gateway 등</td>
-      <td>외부 노출 방식과 Infrastructure 필요</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>같은 Pod의 Container는 같은 IP Address를 사용하므로 서로 다른 Port에서 Listen해야 한다. 다른 Pod와는 Cluster 전체에서 고유한 Pod IP로 통신할 수 있지만 Pod 교체 시 IP가 바뀔 수 있다.</p>
-
-<p>Pod Network는 CNI(Container Network Interface) 구현이 구성한다. <code class="language-plaintext highlighter-rouge">kubeadm</code>으로 Cluster를 초기화한 것만으로 Pod 간 Network가 완성되는 것은 아니며 Calico, Flannel 등 Cluster에 맞는 CNI Plugin을 설치해야 한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Worker 1                          Worker 2
-Pod A: 10.244.1.10                Pod B: 10.244.2.20
-        │                                 │
-        └────── CNI가 구성한 Pod Network ─┘
-</code></pre></div></div>
-
-<p>CNI 구현에 따라 VXLAN 같은 Overlay, Native Routing 또는 다른 Data Plane 방식을 사용할 수 있다. 구현 방식은 달라도 NetworkPolicy 등 의도적인 제한이 없다면 Pod가 Node 경계를 넘어 통신할 수 있는 Kubernetes Network Model을 제공해야 한다.</p>
-
-<h2 id="2--service와-외부-노출-resource">2 ) Service와 외부 노출 Resource</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Service</strong></p>
-
-  <p>하나 이상의 Backend Pod에 안정적인 Network Endpoint와 Service Discovery 기능을 제공하는 Kubernetes Resource이다.</p>
-</blockquote>
-
-<p>Service와 관련 구성은 다음과 같이 구분한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>종류</th>
-      <th>설정</th>
-      <th>용도</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>ClusterIP</td>
-      <td><code class="language-plaintext highlighter-rouge">type: ClusterIP</code></td>
-      <td>Cluster 내부 Virtual IP와 Load Balancing</td>
-    </tr>
-    <tr>
-      <td>NodePort</td>
-      <td><code class="language-plaintext highlighter-rouge">type: NodePort</code></td>
-      <td>각 Node의 IP와 지정 Port로 외부 노출</td>
-    </tr>
-    <tr>
-      <td>LoadBalancer</td>
-      <td><code class="language-plaintext highlighter-rouge">type: LoadBalancer</code></td>
-      <td>외부 Load Balancer 구현과 연동</td>
-    </tr>
-    <tr>
-      <td>ExternalName</td>
-      <td><code class="language-plaintext highlighter-rouge">type: ExternalName</code></td>
-      <td>Service DNS를 외부 DNS 이름의 CNAME으로 연결</td>
-    </tr>
-    <tr>
-      <td>Headless</td>
-      <td><code class="language-plaintext highlighter-rouge">clusterIP: None</code></td>
-      <td>Virtual IP 없이 Backend별 DNS Record 제공</td>
-    </tr>
-    <tr>
-      <td>Selector가 없는 Service</td>
-      <td>Selector 생략, EndpointSlice 별도 관리</td>
-      <td>Cluster 밖 Backend나 수동 Endpoint 연결</td>
-    </tr>
-    <tr>
-      <td>External IP</td>
-      <td><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code></td>
-      <td>외부에서 Node로 Routing되는 특정 IP를 Service에 연결</td>
-    </tr>
-    <tr>
-      <td>Ingress</td>
-      <td>별도 Resource</td>
-      <td>HTTP·HTTPS의 Host와 Path 기반 Routing</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>External IP, Headless와 Selector가 없는 Service는 별도의 <code class="language-plaintext highlighter-rouge">type</code> 값이 아니라 Service를 구성하는 방식이다. Ingress도 Service Type이 아니며 실제 Traffic 처리를 위해 Ingress Controller가 필요하다.</p>
-
-<h2 id="3--service-backend-deployment-생성">3 ) Service Backend Deployment 생성</h2>
-
-<hr />
-
-<p>Service 실습에 사용할 Echo Server Deployment를 생성한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-service-deployment.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-service-deployment</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">matchLabels</span><span class="pi">:</span>
-      <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-  <span class="na">template</span><span class="pi">:</span>
-    <span class="na">metadata</span><span class="pi">:</span>
-      <span class="na">labels</span><span class="pi">:</span>
-        <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-    <span class="na">spec</span><span class="pi">:</span>
-      <span class="na">containers</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-          <span class="na">image</span><span class="pi">:</span> <span class="s">amsy810/echo-nginx:v2.0</span>
-          <span class="na">ports</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
-</code></pre></div></div>
-
-<p>Master 또는 kubeconfig가 설정된 관리 Client에서 Deployment를 생성하고 Pod가 Ready 상태가 될 때까지 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-service-deployment.yaml
-kubectl rollout status deployment/sample-service-deployment
-</code></pre></div></div>
-
-<p>Pod IP와 배치된 Worker를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="se">\</span>
-  <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-service-app <span class="se">\</span>
-  <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p>Pod마다 서로 다른 IP가 할당되며 Scaling, Update와 장애 복구 과정에서 Pod가 다시 생성되면 IP도 바뀔 수 있다.</p>
-
-<h2 id="4--clusterip-service-생성">4 ) ClusterIP Service 생성</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>ClusterIP</strong></p>
-
-  <p>Cluster 내부에서만 접근할 수 있는 Virtual IP를 제공하는 기본 Service Type이다.</p>
-</blockquote>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-clusterip.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-clusterip</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">type: ClusterIP</code></td>
-      <td>Cluster 내부 Virtual IP 사용</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ports[].port</code></td>
-      <td>Client가 Service에 요청할 Port</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">ports[].targetPort</code></td>
-      <td>Service가 Backend Pod에 전달할 Port</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">selector</code></td>
-      <td>Backend로 사용할 Pod Label 조건</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">containerPort</code>는 Container가 사용할 Port를 문서화하는 Field이며 실제 Process가 해당 Port에서 Listen하도록 만들지는 않는다. Service의 <code class="language-plaintext highlighter-rouge">targetPort</code>는 실제 Application이 Listen하는 Port와 일치해야 한다.</p>
-
-<p>Service를 생성하고 할당된 ClusterIP를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-clusterip.yaml
-kubectl get service sample-clusterip
-kubectl describe service sample-clusterip
-</code></pre></div></div>
-
-<p>Selector와 일치하는 Backend가 EndpointSlice에 등록되었는지 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get endpointslices <span class="se">\</span>
-  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span>sample-clusterip
-</code></pre></div></div>
-
-<p>Endpoint가 비어 있다면 다음 항목을 확인한다.</p>
-
-<ul>
-  <li>
-    <p>Service의 <code class="language-plaintext highlighter-rouge">spec.selector</code>와 Pod Label이 일치하는가</p>
-  </li>
-  <li>
-    <p>Pod가 Ready 상태인가</p>
-  </li>
-  <li>
-    <p>Service의 <code class="language-plaintext highlighter-rouge">targetPort</code>와 Application의 Listen Port가 일치하는가</p>
-  </li>
-</ul>
-
-<h2 id="5--service-traffic-전달-흐름">5 ) Service Traffic 전달 흐름</h2>
-
-<hr />
-
-<p>Service Manifest를 적용한 뒤 Control Plane과 Worker는 다음 역할을 수행한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Master·관리 Client의 kubectl apply
-                │
-                ▼
-            API Server
-                │
-                ├── EndpointSlice Controller가 대상 Pod 기록
-                ├── CoreDNS가 Service DNS Record 제공
-                └── Service Proxy가 참조할 상태 제공
-                                  │
-                                  ▼
-                    Worker의 kube-proxy 또는
-                    CNI Service 구현이 Data Plane 구성
-                                  │
-                                  ▼
-                         Backend Pod의 targetPort
-</code></pre></div></div>
-
-<p>Kubernetes의 기본 Service Proxy 구현은 kube-proxy이지만 CNI 구현이 Service Data Plane을 대신 구성할 수도 있다. Control Plane은 Service와 EndpointSlice 상태를 관리하고 실제 Packet 전달은 Worker의 Network Data Plane에서 처리된다.</p>
-
-<p>Cluster 내부 요청을 보낼 Test Pod를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl run testpod <span class="se">\</span>
-  <span class="nt">--image</span><span class="o">=</span>amsy810/tools:v2.0 <span class="se">\</span>
-  <span class="nt">--restart</span><span class="o">=</span>Never
-
-kubectl <span class="nb">wait</span> <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Ready <span class="se">\</span>
-  pod/testpod <span class="se">\</span>
-  <span class="nt">--timeout</span><span class="o">=</span>60s
-</code></pre></div></div>
-
-<p>Test Pod에서 Service DNS 이름으로 여러 번 요청한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
-  curl <span class="nt">-s</span> http://sample-clusterip:8080
-</code></pre></div></div>
-
-<p>응답에 Backend Pod 정보가 포함되어 있다면 명령을 여러 번 실행하여 서로 다른 Pod가 선택되는지 확인할 수 있다. 다만 Service는 모든 HTTP 요청을 항상 정확히 같은 비율로 분배한다고 보장하지 않는다. Connection 재사용과 Service Proxy 구현에 따라 같은 Backend가 연속해서 선택될 수 있다.</p>
-
-<h2 id="6--여러-port를-제공하는-service">6 ) 여러 Port를 제공하는 Service</h2>
-
-<hr />
-
-<p>하나의 Service에 여러 Port를 정의할 수 있다. 여러 Port를 사용하면 각 항목을 구분할 수 있도록 <code class="language-plaintext highlighter-rouge">name</code>을 지정한다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-clusterip-multi.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-clusterip-multi</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">https-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8443</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">443</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-</code></pre></div></div>
-
-<p>Service를 적용하고 Port 목록을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-clusterip-multi.yaml
-kubectl describe service sample-clusterip-multi
-</code></pre></div></div>
-
-<p>이 예제의 Backend Image는 <code class="language-plaintext highlighter-rouge">80</code> Port에서만 Listen하므로 <code class="language-plaintext highlighter-rouge">8080</code> 요청은 처리할 수 있지만 <code class="language-plaintext highlighter-rouge">8443</code>에서 <code class="language-plaintext highlighter-rouge">443</code>으로 전달한 요청은 응답하지 않는다. Service에 Port를 정의했다는 사실만으로 Container Process가 해당 Port에서 실행되는 것은 아니다.</p>
-
-<h2 id="7--named-port로-서로-다른-container-port-연결">7 ) Named Port로 서로 다른 Container Port 연결</h2>
-
-<hr />
-
-<p>Service의 <code class="language-plaintext highlighter-rouge">targetPort</code>에는 숫자 대신 Pod의 Port 이름을 사용할 수 있다. Pod마다 실제 Port 번호가 달라도 같은 이름을 부여하면 하나의 Service가 해당 이름을 기준으로 연결한다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-named-port-pods.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-named-port-pod-80</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-named-port-app</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">amsy810/echo-nginx:v2.0</span>
-      <span class="na">ports</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
-          <span class="na">containerPort</span><span class="pi">:</span> <span class="m">80</span>
-<span class="nn">---</span>
-<span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Pod</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-named-port-pod-81</span>
-  <span class="na">labels</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-named-port-app</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">containers</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-container</span>
-      <span class="na">image</span><span class="pi">:</span> <span class="s">amsy810/echo-nginx:v2.0</span>
-      <span class="na">env</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">NGINX_PORT</span>
-          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">81"</span>
-      <span class="na">ports</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
-          <span class="na">containerPort</span><span class="pi">:</span> <span class="m">81</span>
-</code></pre></div></div>
-
-<p>두 Pod의 Port 이름은 모두 <code class="language-plaintext highlighter-rouge">http</code>이지만 실제 Port는 <code class="language-plaintext highlighter-rouge">80</code>과 <code class="language-plaintext highlighter-rouge">81</code>이다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-named-port-service.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-named-port-service</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="s">http</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-named-port-app</span>
-</code></pre></div></div>
-
-<p>Pod와 Service를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-named-port-pods.yaml
-kubectl apply <span class="nt">-f</span> sample-named-port-service.yaml
-</code></pre></div></div>
-
-<p>Pod 상태와 EndpointSlice의 Port를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-l</span> <span class="nv">app</span><span class="o">=</span>sample-named-port-app
-kubectl get endpointslices <span class="se">\</span>
-  <span class="nt">-l</span> kubernetes.io/service-name<span class="o">=</span>sample-named-port-service <span class="se">\</span>
-  <span class="nt">-o</span> yaml
-</code></pre></div></div>
-
-<p>Service는 각 Pod에서 <code class="language-plaintext highlighter-rouge">http</code>라는 이름에 대응하는 실제 Port로 Traffic을 전달한다.</p>
-
-<h2 id="8--service-discovery">8 ) Service Discovery</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Service Discovery</strong></p>
-
-  <p>Client가 직접 Backend Pod 목록을 관리하지 않고 Service 이름이나 Cluster 상태를 이용해 접근 대상을 찾는 기능이다.</p>
-</blockquote>
-
-<p>Cluster 내부 Pod는 주로 다음 두 방식으로 Service를 찾는다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>특징</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>환경 변수</td>
-      <td>Pod 생성 시점에 존재하는 Service 정보를 kubelet이 주입</td>
-    </tr>
-    <tr>
-      <td>DNS</td>
-      <td>CoreDNS가 Service 이름을 ClusterIP 또는 Backend DNS Record로 해석</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Kubernetes API를 직접 사용하는 Application은 EndpointSlice를 조회할 수도 있지만 일반적인 Application은 Service DNS를 사용하는 방식이 적합하다.</p>
-
-<h3 id="환경-변수를-이용한-discovery">환경 변수를 이용한 Discovery</h3>
-
-<p>Service 이름의 <code class="language-plaintext highlighter-rouge">-</code>는 <code class="language-plaintext highlighter-rouge">_</code>로 바뀌고 대문자로 변환되어 환경 변수 이름에 사용된다. <code class="language-plaintext highlighter-rouge">sample-clusterip</code> Service는 다음과 같은 변수를 제공할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SAMPLE_CLUSTERIP_SERVICE_HOST=&lt;CLUSTER_IP&gt;
-SAMPLE_CLUSTERIP_SERVICE_PORT=8080
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">testpod</code>가 <code class="language-plaintext highlighter-rouge">sample-clusterip</code> Service보다 나중에 만들어졌다면 환경 변수를 확인할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
-  <span class="nb">env</span> | <span class="nb">grep </span>SAMPLE_CLUSTERIP
-</code></pre></div></div>
-
-<p>환경 변수는 Pod가 생성될 때 주입된다. Service보다 먼저 만들어진 Pod에는 나중에 생성된 Service 환경 변수가 자동으로 추가되지 않으므로 환경 변수 방식을 사용할 때는 Service를 먼저 생성해야 한다.</p>
-
-<h3 id="dns를-이용한-discovery">DNS를 이용한 Discovery</h3>
-
-<p>Service의 기본 FQDN은 다음 형식이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;service-name&gt;.&lt;namespace&gt;.svc.cluster.local
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">default</code> Namespace의 <code class="language-plaintext highlighter-rouge">sample-clusterip</code> Service는 다음 이름으로 조회한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
-  dig sample-clusterip.default.svc.cluster.local
-</code></pre></div></div>
-
-<p>같은 Namespace에서는 Service 이름만으로 접근할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">exec </span>pod/testpod <span class="nt">--</span> <span class="se">\</span>
-  curl <span class="nt">-s</span> http://sample-clusterip:8080
-</code></pre></div></div>
-
-<p>다른 Namespace에서는 <code class="language-plaintext highlighter-rouge">&lt;service-name&gt;.&lt;namespace&gt;</code> 또는 FQDN을 사용한다. DNS는 Service가 먼저 만들어졌는지와 관계없이 현재 Service 정보를 조회할 수 있어 환경 변수 방식보다 일반적으로 사용하기 편하다.</p>
-
-<h2 id="9--clusterip의-port와-고정-ip">9 ) ClusterIP의 Port와 고정 IP</h2>
-
-<hr />
-
-<p>ClusterIP Service의 Port 관계는 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Client
-  │ sample-clusterip:8080
-  ▼
-Service port: 8080
-  │
-  ▼
-Pod targetPort: 80
-</code></pre></div></div>
-
-<p>Service를 생성할 때 <code class="language-plaintext highlighter-rouge">.spec.clusterIP</code>를 직접 지정할 수 있다. 지정할 주소는 API Server에 설정된 Service CIDR 안에 있어야 하고 다른 Service가 사용하지 않는 주소여야 한다.</p>
-
-<p>Master에서 Service CIDR을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo grep </span>service-cluster-ip-range <span class="se">\</span>
-  /etc/kubernetes/manifests/kube-apiserver.yaml
-
-kubectl get services <span class="nt">-A</span> <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p>실습 Cluster의 Service CIDR과 사용 현황을 확인한 뒤 다음 내용을 <code class="language-plaintext highlighter-rouge">sample-clusterip-vip.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-clusterip-vip</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
-  <span class="na">clusterIP</span><span class="pi">:</span> <span class="s">10.101.106.108</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">10.101.106.108</code>은 예시 주소이다. 실제 Service CIDR 밖에 있거나 이미 할당된 주소이면 API Server가 생성을 거부하므로 환경에 맞는 미사용 주소로 바꾼다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-clusterip-vip.yaml
-kubectl get service sample-clusterip-vip
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">.spec.clusterIP</code>는 Service 생성 후 변경할 수 없는 Field이다. 변경하려면 Service를 삭제하고 다시 생성해야 하므로 Client 설정에는 고정 IP보다 Service DNS 이름을 사용하는 편이 적합하다.</p>
-
-<p>ClusterIP 직접 접근은 DNS 문제와 Service Data Plane을 구분하여 확인하는 진단 과정에서 사용할 수 있다. DNS 조회 비용을 피하기 위해 Application 설정에 ClusterIP를 고정하는 방식은 Pod와 Service 운영의 유연성을 떨어뜨린다.</p>
-
-<h2 id="10--externalips-설정">10 ) externalIPs 설정</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>현재 상태: Deprecated</strong></p>
-
-  <p><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code>는 Kubernetes v1.36부터 Deprecated 상태이다. 수업에서 진행한 방식은 학습 기록을 위해 내용을 유지하지만, 신규 구성에서는 External Load Balancer Controller나 Gateway API 를 고려해야 한다.</p>
-</blockquote>
-
-<p><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code>는 외부에서 하나 이상의 Cluster Node로 Routing되는 IP Address와 Service Port로 들어온 Traffic을 Backend에 전달한다. Kubernetes는 해당 외부 IP를 할당하거나 Network Route를 만들어 주지 않으며 Cluster 관리자가 Infrastructure를 준비해야 한다.</p>
-
-<p>Worker 주소를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get nodes <span class="nt">-o</span> wide
-</code></pre></div></div>
-
-<p>다음 내용은 <code class="language-plaintext highlighter-rouge">192.168.0.201</code>과 <code class="language-plaintext highlighter-rouge">192.168.0.202</code>가 실제 Worker 주소이고 외부 Client에서 해당 주소로 Routing할 수 있는 실습 환경을 가정한다. <code class="language-plaintext highlighter-rouge">sample-externalip.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-externalip</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
-  <span class="na">externalIPs</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="s">192.168.0.201</span>
-    <span class="pi">-</span> <span class="s">192.168.0.202</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-</code></pre></div></div>
-
-<p>환경의 실제 Routing 가능한 IP로 바꾼 뒤 Service를 적용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-externalip.yaml
-kubectl get service sample-externalip
-</code></pre></div></div>
-
-<p>Cluster 외부 Linux Client에서 접근한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-s</span> http://192.168.0.201:8080
-curl <span class="nt">-s</span> http://192.168.0.202:8080
-</code></pre></div></div>
-
-<p>Node IP를 <code class="language-plaintext highlighter-rouge">externalIPs</code>에 넣는 동작은 Network 구성에 따라 달라질 수 있다. 해당 IP가 외부에서 Node까지 Routing되고 방화벽과 Service Data Plane이 Traffic을 허용해야 한다.</p>
-
-<h2 id="11--nodeport-service">11 ) NodePort Service</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>NodePort</strong></p>
-
-  <p>각 Node의 접근 가능한 IP Address와 지정된 Port를 통해 Service를 외부에 노출하는 Type이다.</p>
-</blockquote>
-
-<p>NodePort Service는 ClusterIP 기능을 기반으로 하고 각 Node에 동일한 NodePort를 제공한다. 기본 할당 범위는 <code class="language-plaintext highlighter-rouge">30000</code>~<code class="language-plaintext highlighter-rouge">32767</code>이며 값을 생략하면 Control Plane이 사용 가능한 Port를 할당한다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-nodeport.yaml</code>로 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-nodeport</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">NodePort</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-      <span class="na">nodePort</span><span class="pi">:</span> <span class="m">30080</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-</code></pre></div></div>
-
-<p>Service를 생성하고 ClusterIP와 NodePort를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-nodeport.yaml
-kubectl get service sample-nodeport
-</code></pre></div></div>
-
-<p>외부 Client에서 접근 가능한 Node IP로 요청한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-s</span> http://&lt;NODE_IP&gt;:30080
-</code></pre></div></div>
-
-<p>NodePort가 모든 Network Interface에 일반 Process처럼 <code class="language-plaintext highlighter-rouge">0.0.0.0</code>으로 Listen한다고 단정할 수는 없다. kube-proxy 또는 CNI Service 구현이 Packet 처리 규칙을 구성하며 NodePort Address 설정, 방화벽과 Network Route에 따라 접근 가능한 Node IP가 달라질 수 있다.</p>
-
-<p>Control Plane Node를 포함한 모든 Node IP로 항상 접근할 수 있는 것도 아니다. 해당 Node에서 Service Data Plane이 동작하고 방화벽과 외부 Routing이 허용되는지 확인해야 한다.</p>
-
-<h2 id="12--loadbalancer-service">12 ) LoadBalancer Service</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>LoadBalancer</strong></p>
-
-  <p>Cloud Provider 또는 별도의 Load Balancer Controller와 연동하여 Cluster 외부 주소를 Service에 제공하는 Type이다.</p>
-</blockquote>
-
-<p>LoadBalancer Service는 기본적으로 ClusterIP 기능을 포함하고 구현에 따라 NodePort를 통해 Node로 Traffic을 전달할 수 있다. 환경에 따라 NodePort 할당을 사용하지 않는 LoadBalancer 구성도 가능하다.</p>
-
-<p>다음 내용을 <code class="language-plaintext highlighter-rouge">sample-loadbalancer.yaml</code>로 저장한다. 앞서 사용한 <code class="language-plaintext highlighter-rouge">30080</code>과 충돌하지 않도록 이 예제에서는 <code class="language-plaintext highlighter-rouge">30081</code>을 사용한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">sample-loadbalancer</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">type</span><span class="pi">:</span> <span class="s">LoadBalancer</span>
-  <span class="na">ports</span><span class="pi">:</span>
-    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http-port</span>
-      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
-      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
-      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">80</span>
-      <span class="na">nodePort</span><span class="pi">:</span> <span class="m">30081</span>
-  <span class="na">selector</span><span class="pi">:</span>
-    <span class="na">app</span><span class="pi">:</span> <span class="s">sample-service-app</span>
-</code></pre></div></div>
-
-<p>Service를 적용하고 외부 주소 할당 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> sample-loadbalancer.yaml
-kubectl get service sample-loadbalancer <span class="nt">--watch</span>
-</code></pre></div></div>
-
-<p>Public Cloud처럼 LoadBalancer 연동을 제공하는 환경에서는 Controller가 외부 IP Address 또는 Hostname을 할당한다. 외부 Load Balancer는 정상 Node로 Traffic을 전달하며 Node 장애를 감지하고 대상에서 제외하기까지 일시적인 지연이 발생할 수 있다.</p>
-
-<p>외부 Load Balancer 구현이 없는 직접 구축 Cluster에서는 <code class="language-plaintext highlighter-rouge">EXTERNAL-IP</code>가 <code class="language-plaintext highlighter-rouge">&lt;pending&gt;</code> 상태로 유지될 수 있다. 이는 Service Object가 잘못되었다는 뜻이 아니라 외부 주소를 할당할 Controller가 없거나 아직 처리를 완료하지 않았다는 뜻이다.</p>
-
-<p>Bare Metal 환경에서는 MetalLB와 같은 Load Balancer 구현을 별도로 구성할 수 있다. 이 문서에서는 외부 Package 설치나 MetalLB 배포를 진행하지 않는다.</p>
-
-<h2 id="13--service-유형-비교">13 ) Service 유형 비교</h2>
-
-<hr />
-
-<table>
-  <thead>
-    <tr>
-      <th>구성</th>
-      <th>접근 범위</th>
-      <th>Infrastructure 요구 사항</th>
-      <th>현재 사용 판단</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>ClusterIP</td>
-      <td>Cluster 내부</td>
-      <td>CNI와 Service Data Plane</td>
-      <td>내부 Service의 기본 선택</td>
-    </tr>
-    <tr>
-      <td>NodePort</td>
-      <td>Node IP와 Port</td>
-      <td>외부 Route와 방화벽</td>
-      <td>Test 또는 외부 Load Balancer의 Backend</td>
-    </tr>
-    <tr>
-      <td>LoadBalancer</td>
-      <td>외부 Load Balancer 주소</td>
-      <td>Cloud 연동 또는 Load Balancer Controller</td>
-      <td>외부 L4 Service 노출</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">externalIPs</code></td>
-      <td>외부에서 Routing되는 지정 IP</td>
-      <td>IP 할당과 Route를 관리자가 구성</td>
-      <td>Deprecated, 기존 구성 이해용</td>
-    </tr>
-    <tr>
-      <td>ExternalName</td>
-      <td>Cluster DNS를 외부 FQDN에 연결</td>
-      <td>CoreDNS와 외부 DNS</td>
-      <td>DNS 수준 외부 Service 연결</td>
-    </tr>
-    <tr>
-      <td>Headless</td>
-      <td>개별 Backend DNS</td>
-      <td>CoreDNS</td>
-      <td>StatefulSet과 개별 Pod Discovery</td>
-    </tr>
-    <tr>
-      <td>Ingress</td>
-      <td>외부 HTTP·HTTPS</td>
-      <td>Ingress Controller</td>
-      <td>Host·Path 기반 L7 Routing</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>실습에서는 NodePort로 간단히 외부 접근을 확인할 수 있다. 운영 환경에서는 직접 Node IP를 Client에 고정하기보다 Infrastructure에 맞는 Load Balancer, Ingress 또는 Gateway API를 이용하여 장애 처리와 주소 관리를 분리한다.</p>
-
-<h2 id="14--실습-resource-정리">14 ) 실습 Resource 정리</h2>
-
-<hr />
-
-<p>Master 또는 관리 Client에서 외부 노출 Service부터 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-loadbalancer.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-nodeport.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-externalip.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-clusterip-vip.yaml <span class="nt">--ignore-not-found</span>
-</code></pre></div></div>
-
-<p>나머지 Service, Pod와 Deployment를 정리한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> sample-named-port-service.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-named-port-pods.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-clusterip-multi.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-clusterip.yaml <span class="nt">--ignore-not-found</span>
-kubectl delete pod testpod <span class="nt">--ignore-not-found</span>
-kubectl delete <span class="nt">-f</span> sample-service-deployment.yaml <span class="nt">--ignore-not-found</span>
-</code></pre></div></div>
-
-<p>남아 있는 Resource를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get services,deployments,pods
-</code></pre></div></div>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>같은 Pod의 Container는 <code class="language-plaintext highlighter-rouge">localhost</code>로 통신하고 서로 다른 Pod는 CNI가 구성한 Pod Network를 사용한다.</p>
-    </li>
-    <li>
-      <p>Service는 변하는 Pod 집합에 안정적인 ClusterIP와 DNS 이름을 제공하고 EndpointSlice가 Backend 정보를 기록한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">port</code>는 Client가 Service에 접근할 Port이고 <code class="language-plaintext highlighter-rouge">targetPort</code>는 Backend Application이 Listen하는 Port이다.</p>
-    </li>
-    <li>
-      <p>Service Discovery에는 환경 변수와 DNS를 사용할 수 있으며 일반적인 Application 연결에는 DNS가 적합하다.</p>
-    </li>
-    <li>
-      <p>ClusterIP는 내부 통신, NodePort는 Node 주소를 통한 외부 접근, LoadBalancer는 외부 Load Balancer 구현과의 연동에 사용한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">.spec.externalIPs</code>는 Kubernetes가 IP나 Route를 제공하지 않으며 현재 Deprecated 상태이다.</p>
-    </li>
-    <li>
-      <p>Control Plane은 Service와 EndpointSlice 상태를 관리하고 Worker의 kube-proxy 또는 CNI Service 구현이 실제 Traffic 경로를 구성한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<p>여기까지 이해하면 Service의 기본 구조, DNS 기반 Discovery와 외부 노출 방식에 대한 학습이 완료된다. 다음 단계에서는 <a href="/cloud-native-32-kubernetes-service-traffic-policy-metallb/">Kubernetes Service Traffic Policy와 MetalLB</a>에서 Session Affinity, Traffic Policy, 특수 Service와 Bare-metal LoadBalancer 구현을 다룬다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Pod Network부터 Service·EndpointSlice·DNS 기반 Discovery와 ClusterIP·NodePort·LoadBalancer를 이용한 Traffic 전달 정리]]></summary></entry></feed>
+<p>다음 단계에서는 <a href="/cloud-native-34-kubernetes-env-secret-configmap/">Kubernetes 환경 변수와 Secret·ConfigMap</a>에서 Application 설정과 기밀 정보를 Container에 전달하는 방법을 다룬다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Kubernetes" /><summary type="html"><![CDATA[Ingress Resource와 Controller의 관계, Bare-metal Cluster의 외부 진입점 및 Host·Path 기반 HTTP Routing 실습 정리]]></summary></entry></feed>
