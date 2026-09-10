@@ -2,6 +2,7 @@
 title: Version Control과 Git 기본 작업 흐름
 description: Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름
 date: 2026-09-09
+updated_at: 2026-09-10
 series: CloudNative
 tags:
   - CloudNative
@@ -10,6 +11,8 @@ tags:
 ---
 
 Container Image, Kubernetes Manifest와 Helm Chart도 Source Code와 함께 계속 변경된다. Git을 사용하면 이러한 File의 변경 이력을 기록하고, 특정 시점의 상태를 다시 확인하며, 여러 사람이 변경 내용을 교환하고 병합할 수 있다.
+
+이 글에서 Local Repository와 Commit의 기본 구조를 익힌 뒤 [Git 이력 관리와 Branch 작업](/cloud-native-43-git-history-branch/)에서 이력 비교, 복구와 Branch 통합을 다룬다. Remote Repository와의 작업은 [GitHub Remote Repository 작업 흐름](/cloud-native-44-github-remote-workflow/)으로 이어진다.
 
 ## 1 ) Version Control System
 
@@ -262,6 +265,49 @@ git diff --staged
 
 `git status`는 상태를 요약하고 `git diff`는 Working Tree와 Index의 차이, `git diff --staged`는 Index와 현재 Commit의 차이를 보여준다.
 
+### `.gitignore`
+
+`.gitignore`는 Git이 추적하지 않을 File과 Directory Pattern을 기록한다. Build 결과, Package 설치 Directory, 가상 환경과 Local Credential처럼 Repository에 포함할 필요가 없는 항목을 제외할 때 사용한다.
+
+```text
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node.js
+node_modules/
+
+# Java·Spring
+.gradle/
+build/
+target/
+
+# Local 환경과 Credential
+.env
+*.key
+```
+
+Project 구성원이 공통으로 제외할 Pattern은 Repository의 `.gitignore`에 기록하고 함께 Commit한다. 개인 Editor의 임시 File처럼 Project에 공유할 필요가 없는 Pattern은 Repository의 `.git/info/exclude`나 사용자 전역 Ignore File에서 관리할 수 있다.
+
+`.gitignore`는 Untracked File에 적용된다. 이미 Commit했거나 Stage하여 Git이 추적 중인 File은 Pattern을 추가해도 자동으로 추적 대상에서 빠지지 않는다.
+
+```bash
+git status
+git check-ignore -v <file>
+git ls-files <file>
+```
+
+추적 중인 File을 Working Tree에는 남겨두고 이후 Commit 대상에서 제외하려면 먼저 변경 범위와 Repository 정책을 확인한 뒤 Index에서 제거한다.
+
+```bash
+git rm --cached <file>
+git status
+git diff --staged
+```
+
+`git rm --cached` 결과는 다음 Commit에 반영되는 변경이다. Directory 전체나 넓은 Pattern에 실행하기 전에 `git status`와 `git diff --staged`로 제거 대상을 확인한다. 이미 History에 들어간 Password나 Token은 `.gitignore`로 제거되지 않으므로 Credential을 폐기하고 History 정리 필요 여부를 별도로 판단해야 한다.
+
 ## 10 ) Local Repository 기본 실습
 
 ---
@@ -476,6 +522,8 @@ Secret을 `.gitignore`에 넣는 것은 실수 방지 수단일 뿐 이미 Commi
 > - `git add`는 다음 Commit에 포함할 내용을 선택하고 `git commit`은 이를 Local Repository에 기록한다.
 >
 > - `git push`는 Local Commit과 Branch Reference를 Remote Repository로 전송한다.
+>
+> - `.gitignore`는 의도적으로 추적하지 않을 File을 지정하며 이미 추적 중인 File에는 자동으로 적용되지 않는다.
 >
 > - 초기 Branch 이름과 Object ID 길이는 Version과 Repository 형식에 따라 달라질 수 있으므로 고정된 값으로 단정하지 않는다.
 >
