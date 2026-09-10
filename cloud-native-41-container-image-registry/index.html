@@ -1,0 +1,1141 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Container Image Registry와 Kubernetes Image Pull | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Public·Private Image Registry의 구조와 Docker Hub 배포, 자체 Registry 구성, Kubernetes Worker의 Image Pull 및 Harbor의 역할">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-41-container-image-registry/">
+<meta property="og:title" content="Container Image Registry와 Kubernetes Image Pull | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Public·Private Image Registry의 구조와 Docker Hub 배포, 자체 Registry 구성, Kubernetes Worker의 Image Pull 및 Harbor의 역할">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-41-container-image-registry/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Container Image Registry와 Kubernetes Image Pull | renamed.log">
+<meta name="twitter:description" content="Public·Private Image Registry의 구조와 Docker Hub 배포, 자체 Registry 구성, Kubernetes Worker의 Image Pull 및 Harbor의 역할">
+
+  <meta property="article:published_time" content="2026-09-09T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1789046891" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789046891" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789046891">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789046891" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789046891">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Container Image Registry와 Kubernetes Image Pull | renamed.log",
+    "description": "Public·Private Image Registry의 구조와 Docker Hub 배포, 자체 Registry 구성, Kubernetes Worker의 Image Pull 및 Harbor의 역할",
+    "url": "https://kkr010128.github.io/cloud-native-41-container-image-registry/",
+    "datePublished": "2026-09-09T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Container Image Registry와 Kubernetes Image Pull</h1>
+    
+      <p class="post-head__description">Public·Private Image Registry의 구조와 Docker Hub 배포, 자체 Registry 구성, Kubernetes Worker의 Image Pull 및 Harbor의 역할</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 9일 · 10분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Docker">Docker</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-10-docker-images/">Docker 이미지와 Union File System</a>에서는 Image 이름, Tag와 Docker Hub Push를 다뤘다. 이 글에서는 범위를 Registry 전체로 확장하여 Image가 저장되고 배포되는 과정과 Kubernetes Worker가 Registry에서 Image를 가져오는 과정을 연결한다.</p>
+
+<h2 id="1--image-registry">1 ) Image Registry</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Image Registry</strong></p>
+
+  <p>Container Image와 OCI Artifact를 이름과 Version별로 저장하고 Client의 Push와 Pull 요청에 응답하는 Service이다.</p>
+</blockquote>
+
+<p>Registry는 Image File 하나를 그대로 보관하는 단순 File Server가 아니다. Image Manifest, 여러 Layer와 설정 정보를 Content Digest로 관리하고 Repository와 Tag를 통해 이를 찾을 수 있게 한다.</p>
+
+<p>Image의 전체 참조 형식은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>REGISTRY/NAMESPACE/REPOSITORY:TAG
+REGISTRY/NAMESPACE/REPOSITORY@DIGEST
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>예시</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Registry</td>
+      <td><code class="language-plaintext highlighter-rouge">docker.io</code></td>
+      <td>Image를 제공하는 Registry 주소</td>
+    </tr>
+    <tr>
+      <td>Namespace</td>
+      <td><code class="language-plaintext highlighter-rouge">example-user</code></td>
+      <td>사용자, 조직 또는 Project 구분</td>
+    </tr>
+    <tr>
+      <td>Repository</td>
+      <td><code class="language-plaintext highlighter-rouge">python-app</code></td>
+      <td>하나의 Application Image 계열</td>
+    </tr>
+    <tr>
+      <td>Tag</td>
+      <td><code class="language-plaintext highlighter-rouge">v1.0</code></td>
+      <td>사람이 읽을 수 있는 Version 별칭</td>
+    </tr>
+    <tr>
+      <td>Digest</td>
+      <td><code class="language-plaintext highlighter-rouge">sha256:...</code></td>
+      <td>Image Content를 식별하는 불변 Hash</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">docker.io/library/nginx:1.29</code>에서 <code class="language-plaintext highlighter-rouge">docker.io</code>는 Registry, <code class="language-plaintext highlighter-rouge">library</code>는 Namespace, <code class="language-plaintext highlighter-rouge">nginx</code>는 Repository, <code class="language-plaintext highlighter-rouge">1.29</code>는 Tag이다. Tag는 다른 Image를 가리키도록 바뀔 수 있지만 Digest는 같은 Content를 계속 가리킨다.</p>
+
+<h2 id="2--public-registry와-private-registry">2 ) Public Registry와 Private Registry</h2>
+
+<hr />
+
+<p>Registry는 접근 범위와 운영 주체에 따라 구분할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>예시</th>
+      <th>특징</th>
+      <th>확인할 사항</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Public Registry Service</td>
+      <td>Docker Hub, GHCR, Quay.io</td>
+      <td>Internet에서 바로 사용하기 쉽고 공개 Image 생태계가 큼</td>
+      <td>Rate Limit, 공개 범위, 계정 보안</td>
+    </tr>
+    <tr>
+      <td>Cloud Registry Service</td>
+      <td>Amazon ECR, Google Artifact Registry 등</td>
+      <td>Cloud IAM, Audit와 CI/CD Service 연동</td>
+      <td>Region, 권한, Network와 비용 정책</td>
+    </tr>
+    <tr>
+      <td>자체 Private Registry</td>
+      <td>CNCF Distribution, Harbor</td>
+      <td>내부 Network와 보안 정책에 맞게 직접 운영</td>
+      <td>TLS, 인증, Storage, Backup, 고가용성</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Private Registry가 반드시 사내 Server를 의미하는 것은 아니다. Docker Hub, GHCR와 Cloud Registry에서도 비공개 Repository를 사용할 수 있다. 반대로 자체 Registry를 실행해도 인증과 Network 접근 제어가 없다면 안전한 Private Registry라고 볼 수 없다.</p>
+
+<p>Service의 무료 범위, 저장 용량과 과금 정책은 변경될 수 있으므로 Registry 선택 시 현재 공식 Plan을 확인한다.</p>
+
+<h2 id="3--image-배포-흐름">3 ) Image 배포 흐름</h2>
+
+<hr />
+
+<p>Application을 Registry를 통해 배포하는 기본 흐름은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Source Code + Dockerfile
+          │ docker build
+          ▼
+      Local Image
+          │ docker tag
+          ▼
+Registry 주소가 포함된 Image 참조
+          │ docker push
+          ▼
+        Registry
+          │ docker pull
+          ▼
+Docker Host 또는 Kubernetes Worker
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>단계</th>
+      <th>명령</th>
+      <th>결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Build</td>
+      <td><code class="language-plaintext highlighter-rouge">docker build</code></td>
+      <td>Local Image Store에 Image 생성</td>
+    </tr>
+    <tr>
+      <td>Tag</td>
+      <td><code class="language-plaintext highlighter-rouge">docker tag</code></td>
+      <td>같은 Image에 Registry용 참조 이름 추가</td>
+    </tr>
+    <tr>
+      <td>Push</td>
+      <td><code class="language-plaintext highlighter-rouge">docker push</code></td>
+      <td>Registry에 Manifest와 Layer 업로드</td>
+    </tr>
+    <tr>
+      <td>Pull</td>
+      <td><code class="language-plaintext highlighter-rouge">docker pull</code></td>
+      <td>Registry에서 Manifest와 필요한 Layer 다운로드</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Application Image를 만드는 방법은 <a href="/cloud-native-14-application-image/">애플리케이션별 Docker 이미지 빌드</a>에서 자세히 다룬다. 여기서는 다음 Image가 Local에 준비되어 있다고 가정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image <span class="nb">ls </span>my-python-app
+</code></pre></div></div>
+
+<h2 id="4--docker-hub에-image-배포">4 ) Docker Hub에 Image 배포</h2>
+
+<hr />
+
+<h3 id="로그인">로그인</h3>
+
+<p>Docker Hub 계정 이름을 지정하고 로그인한다. Password 대신 Personal Access Token을 사용하는 경우에도 명령 인자에 Token을 직접 작성하지 않고 Prompt에 입력한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker login <span class="nt">-u</span> &lt;docker-hub-username&gt;
+</code></pre></div></div>
+
+<p>로그인 결과는 일반적으로 사용자별 Docker 설정 File에 저장된다. 개인 Token을 Markdown, Shell Script, Git Repository나 화면에 표시되는 명령에 넣지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker info
+</code></pre></div></div>
+
+<h3 id="tag와-push">Tag와 Push</h3>
+
+<p>Local Image에 Docker Hub Namespace가 포함된 이름을 추가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker tag my-python-app:latest <span class="se">\</span>
+  &lt;docker-hub-username&gt;/python-app:v1.0
+</code></pre></div></div>
+
+<p>두 이름이 같은 Image ID를 가리키는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker image <span class="nb">ls</span> <span class="se">\</span>
+  &lt;docker-hub-username&gt;/python-app:v1.0
+</code></pre></div></div>
+
+<p>Registry로 Push한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker push <span class="se">\</span>
+  &lt;docker-hub-username&gt;/python-app:v1.0
+</code></pre></div></div>
+
+<p>Push가 끝나면 다른 Host 또는 Local Image를 사용하지 않는 격리된 환경에서 Pull하여 Registry 배포를 검증한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker pull <span class="se">\</span>
+  &lt;docker-hub-username&gt;/python-app:v1.0
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">latest</code>는 자동으로 최신 Version을 찾는 기능이 아니라 이름이 <code class="language-plaintext highlighter-rouge">latest</code>인 Tag이다. 배포 Manifest에는 검증한 Version Tag를 사용하고 더 강한 재현성이 필요하면 Digest를 고정한다.</p>
+
+<h3 id="public과-private-repository">Public과 Private Repository</h3>
+
+<p>Public Repository의 Image는 일반적으로 인증 없이 Pull할 수 있다. Private Repository는 Registry가 발급한 Credential이 필요하며 Docker Hub의 제공 범위와 비용 정책은 현재 Plan을 확인해야 한다.</p>
+
+<p>로그인하지 않은 상태에서 Private Image Pull이 실패하면 다음 항목을 확인한다.</p>
+
+<ul>
+  <li>
+    <p>Image 이름의 Namespace와 Repository가 정확한지 확인한다.</p>
+  </li>
+  <li>
+    <p>계정 또는 Token에 Repository를 읽을 권한이 있는지 확인한다.</p>
+  </li>
+  <li>
+    <p>Token이 만료되거나 폐기되지 않았는지 확인한다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">docker logout</code> 후 올바른 계정으로 다시 로그인했는지 확인한다.</p>
+  </li>
+</ul>
+
+<h2 id="5--kubernetes의-image-pull">5 ) Kubernetes의 Image Pull</h2>
+
+<hr />
+
+<p>Kubernetes는 Registry에 Image를 Push하지 않는다. 관리자가 Deployment를 생성하면 Control Plane이 Pod 배치를 결정하고, 선택된 Worker의 kubelet이 Container Runtime을 통해 Image를 Pull한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>관리 Client
+    │ Deployment 제출
+    ▼
+API Server
+    │
+    ├── Deployment·ReplicaSet Controller가 Pod 생성
+    │
+    └── Scheduler가 실행할 Worker 결정
+                         │
+                         ▼
+                    Worker kubelet
+                         │ CRI 요청
+                         ▼
+                       containerd
+                         │ Image Pull
+                         ▼
+                       Registry
+                         │ Layer 저장
+                         ▼
+                    Container 실행
+</code></pre></div></div>
+
+<h3 id="public-image를-사용하는-deployment">Public Image를 사용하는 Deployment</h3>
+
+<p>다음 내용을 <code class="language-plaintext highlighter-rouge">flask-deployment.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">apps/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Deployment</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">flask-deployment</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">replicas</span><span class="pi">:</span> <span class="m">3</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">matchLabels</span><span class="pi">:</span>
+      <span class="na">app</span><span class="pi">:</span> <span class="s">flask-web</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">metadata</span><span class="pi">:</span>
+      <span class="na">labels</span><span class="pi">:</span>
+        <span class="na">app</span><span class="pi">:</span> <span class="s">flask-web</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">flask-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">&lt;docker-hub-username&gt;/python-app:v1.0</span>
+          <span class="na">ports</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+              <span class="na">containerPort</span><span class="pi">:</span> <span class="m">5000</span>
+</code></pre></div></div>
+
+<p>Service는 세 Pod의 Port <code class="language-plaintext highlighter-rouge">5000</code>으로 요청을 전달한다. 다음 내용을 <code class="language-plaintext highlighter-rouge">flask-service.yaml</code>로 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Service</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">flask-service</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">type</span><span class="pi">:</span> <span class="s">ClusterIP</span>
+  <span class="na">selector</span><span class="pi">:</span>
+    <span class="na">app</span><span class="pi">:</span> <span class="s">flask-web</span>
+  <span class="na">ports</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">http</span>
+      <span class="na">protocol</span><span class="pi">:</span> <span class="s">TCP</span>
+      <span class="na">port</span><span class="pi">:</span> <span class="m">8080</span>
+      <span class="na">targetPort</span><span class="pi">:</span> <span class="m">5000</span>
+</code></pre></div></div>
+
+<p>Control Plane에 접근 가능한 관리 Client에서 적용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> flask-deployment.yaml
+kubectl apply <span class="nt">-f</span> flask-service.yaml
+kubectl rollout status deployment/flask-deployment
+kubectl get pods <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<p>Ingress를 연결하기 전에 Port Forwarding으로 Service와 Pod 응답을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl port-forward service/flask-service 8080:8080
+</code></pre></div></div>
+
+<p>다른 Terminal에서 요청한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://127.0.0.1:8080
+</code></pre></div></div>
+
+<p>Application Log와 Pod Event를 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl logs deployment/flask-deployment <span class="nt">--all-pods</span><span class="o">=</span><span class="nb">true
+</span>kubectl describe pod &lt;pod-name&gt;
+kubectl get events <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+</code></pre></div></div>
+
+<p>외부 Host 기반 Routing은 <a href="/cloud-native-33-kubernetes-ingress-routing/">Kubernetes Ingress와 HTTP Routing</a>에서 이어서 다룬다. 새 Ingress Manifest는 Legacy Annotation 대신 <code class="language-plaintext highlighter-rouge">spec.ingressClassName</code>을 사용한다.</p>
+
+<h3 id="private-image와-imagepullsecrets">Private Image와 <code class="language-plaintext highlighter-rouge">imagePullSecrets</code></h3>
+
+<p>Private Repository를 사용하는 Pod는 같은 Namespace의 Registry Credential Secret을 참조한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">template</span><span class="pi">:</span>
+    <span class="na">spec</span><span class="pi">:</span>
+      <span class="na">imagePullSecrets</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">regcred</span>
+      <span class="na">containers</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">flask-container</span>
+          <span class="na">image</span><span class="pi">:</span> <span class="s">&lt;docker-hub-username&gt;/private-python-app:v1.0</span>
+</code></pre></div></div>
+
+<p>동작 관계는 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Pod의 imagePullSecrets
+        │
+        ▼
+Worker kubelet이 같은 Namespace의 Secret 확인
+        │
+        ▼
+CRI Image Pull 요청에 Registry 인증 정보 전달
+        │
+        ▼
+containerd가 Private Registry에서 Image Pull
+</code></pre></div></div>
+
+<p>Secret 생성과 안전한 Credential 관리 방법은 <a href="/cloud-native-34-kubernetes-env-secret-configmap/">Kubernetes 환경 변수, Secret과 ConfigMap</a>의 Private Registry Secret 절에서 다룬다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ImagePullBackOff</code>가 발생하면 Application Log보다 Pod Event를 먼저 확인한다. Container가 시작되기 전 Image Pull 단계에서 실패하면 Application Log가 존재하지 않을 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe pod &lt;pod-name&gt;
+kubectl get pod &lt;pod-name&gt; <span class="se">\</span>
+  <span class="nt">-o</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.containers[*].image}{"\n"}'</span>
+</code></pre></div></div>
+
+<h2 id="6--자체-registry-구성">6 ) 자체 Registry 구성</h2>
+
+<hr />
+
+<p>CNCF Distribution은 OCI Distribution API를 제공하는 가벼운 Registry 구현이다. Local File System을 기본 Storage로 사용할 수 있고 필요에 따라 외부 Object Storage와 인증 구성을 연결할 수 있다.</p>
+
+<h3 id="격리된-실습용-registry-실행">격리된 실습용 Registry 실행</h3>
+
+<p>다음 구성은 <code class="language-plaintext highlighter-rouge">localhost</code> 또는 신뢰할 수 있는 폐쇄형 실습 Network에서 Registry API를 확인하기 위한 예제이다. 외부에 공개할 운영 구성으로 사용하지 않는다.</p>
+
+<p>Registry Data를 Container 삭제와 분리하기 위해 Named Volume을 먼저 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker volume create registry-data
+</code></pre></div></div>
+
+<p>Registry Container를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker run <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">--name</span> registry <span class="se">\</span>
+  <span class="nt">--restart</span><span class="o">=</span>always <span class="se">\</span>
+  <span class="nt">-p</span> 5000:5000 <span class="se">\</span>
+  <span class="nt">-v</span> registry-data:/var/lib/registry <span class="se">\</span>
+  registry:3
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-p 5000:5000</code></td>
+      <td>Host의 TCP <code class="language-plaintext highlighter-rouge">5000</code>을 Registry API에 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--restart=always</code></td>
+      <td>Docker Daemon 재시작 후 Container 재실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-v registry-data:/var/lib/registry</code></td>
+      <td>Registry Manifest와 Layer를 Volume에 저장</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">registry:3</code></td>
+      <td>CNCF Distribution 3.x Image 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Container 상태, API 응답과 Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker ps <span class="nt">--filter</span> <span class="nv">name</span><span class="o">=</span>registry
+curl <span class="nt">-i</span> http://127.0.0.1:5000/v2/
+docker logs registry
+</code></pre></div></div>
+
+<p>인증이 없는 Local Registry의 <code class="language-plaintext highlighter-rouge">/v2/</code>가 정상 동작하면 빈 JSON Object인 <code class="language-plaintext highlighter-rouge">{}</code>가 반환될 수 있다. 인증을 적용한 Registry에서는 <code class="language-plaintext highlighter-rouge">401 Unauthorized</code>와 인증 Challenge가 정상 상태일 수 있다.</p>
+
+<h3 id="local-registry에-push">Local Registry에 Push</h3>
+
+<p>Image에 Registry 주소가 포함된 Tag를 추가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker tag my-python-app:latest <span class="se">\</span>
+  127.0.0.1:5000/python-app:v1
+</code></pre></div></div>
+
+<p>Push한 뒤 Registry Catalog와 Tag를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker push 127.0.0.1:5000/python-app:v1
+curl http://127.0.0.1:5000/v2/_catalog
+curl http://127.0.0.1:5000/v2/python-app/tags/list
+</code></pre></div></div>
+
+<p>Registry Container를 재시작하고 Image를 다시 Pull하여 Volume의 Data가 유지되는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker restart registry
+docker pull 127.0.0.1:5000/python-app:v1
+docker logs <span class="nt">--tail</span> 50 registry
+</code></pre></div></div>
+
+<h2 id="7--http-registry와-tls-registry">7 ) HTTP Registry와 TLS Registry</h2>
+
+<hr />
+
+<p>Docker와 containerd는 Registry 통신에서 HTTPS를 기본으로 기대한다. Plain HTTP Registry는 Traffic과 Credential을 보호하지 못하므로 격리된 실습 환경에서만 제한적으로 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>환경</th>
+      <th>통신 방식</th>
+      <th>요구 사항</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Local 단일 Host 실습</td>
+      <td><code class="language-plaintext highlighter-rouge">http://127.0.0.1:5000</code></td>
+      <td>외부 접근 차단, 실제 Credential 사용 금지</td>
+    </tr>
+    <tr>
+      <td>폐쇄형 다중 Node 실습</td>
+      <td>임시 HTTP 또는 내부 CA 기반 HTTPS</td>
+      <td>접근 가능한 Node 제한, 사용 목적과 위험 명시</td>
+    </tr>
+    <tr>
+      <td>운영 환경</td>
+      <td>신뢰 가능한 TLS 기반 HTTPS</td>
+      <td>인증, 권한, 영구 Storage, Backup, Monitoring</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>운영 Registry는 다음 항목을 함께 설계한다.</p>
+
+<ul>
+  <li>
+    <p>DNS Name과 Server 인증서의 Subject Alternative Name이 일치해야 한다.</p>
+  </li>
+  <li>
+    <p>Registry를 사용하는 모든 Client가 인증서 발급 CA를 신뢰해야 한다.</p>
+  </li>
+  <li>
+    <p>Repository별 Push와 Pull 권한을 분리한다.</p>
+  </li>
+  <li>
+    <p>Registry Metadata와 Blob Storage를 영구 저장하고 Backup한다.</p>
+  </li>
+  <li>
+    <p>Disk 사용량, 오류율, 인증 실패와 취약점 Scan 결과를 Monitoring한다.</p>
+  </li>
+</ul>
+
+<h3 id="docker-engine의-실습용-http-허용">Docker Engine의 실습용 HTTP 허용</h3>
+
+<p>Docker Engine으로 Remote HTTP Registry에 Push하거나 Pull해야 하는 격리된 실습 환경에서는 <code class="language-plaintext highlighter-rouge">/etc/docker/daemon.json</code>의 <code class="language-plaintext highlighter-rouge">insecure-registries</code>에 정확한 Host와 Port를 등록할 수 있다.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"insecure-registries"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"192.168.0.100:5000"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>기존 <code class="language-plaintext highlighter-rouge">daemon.json</code>에 다른 설정이 있다면 File 전체를 덮어쓰지 않고 JSON Object 안에 항목을 병합한다. 문법을 확인한 뒤 Docker를 재시작한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl restart docker
+docker info
+</code></pre></div></div>
+
+<p>이 설정은 해당 Docker Daemon의 동작만 바꾼다. Kubernetes Worker가 containerd를 사용한다면 Docker 설정만으로 kubelet의 Image Pull이 허용되지 않는다.</p>
+
+<h2 id="8--kubernetes-worker의-containerd-registry-설정">8 ) Kubernetes Worker의 containerd Registry 설정</h2>
+
+<hr />
+
+<p>Registry 설정은 실제 Image를 Pull할 가능성이 있는 모든 Worker에 필요하다. Control Plane Node에도 Workload Scheduling을 허용했다면 해당 Node 역시 같은 설정 대상이다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Control Plane
+└── Pod를 어느 Worker에 배치할지 결정
+
+Worker
+├── kubelet이 PodSpec의 Image 참조 확인
+├── containerd에 Pull 요청
+└── Worker Local Storage에 Image Layer 저장
+</code></pre></div></div>
+
+<h3 id="hoststoml-작성"><code class="language-plaintext highlighter-rouge">hosts.toml</code> 작성</h3>
+
+<p>각 Worker에서 Registry Host와 Port에 해당하는 Directory를 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo mkdir</span> <span class="nt">-p</span> <span class="se">\</span>
+  /etc/containerd/certs.d/192.168.0.100:5000
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/containerd/certs.d/192.168.0.100:5000/hosts.toml</code>에 격리된 HTTP 실습 Registry를 등록한다.</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="py">server</span> <span class="p">=</span> <span class="s">"http://192.168.0.100:5000"</span>
+
+<span class="nn">[host."http://192.168.0.100:5000"]</span>
+  <span class="py">capabilities</span> <span class="p">=</span> <span class="p">[</span><span class="s">"pull"</span><span class="p">,</span> <span class="s">"resolve"</span><span class="p">]</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">skip_verify</code>는 HTTPS 인증서 검증을 건너뛰는 Option이다. Plain HTTP를 지정하는 설정에 습관적으로 추가하지 않는다. 운영 환경에서는 <code class="language-plaintext highlighter-rouge">http://</code> 대신 <code class="language-plaintext highlighter-rouge">https://</code>를 사용하고 필요한 CA 인증서를 배포한다.</p>
+
+<h3 id="containerd-1x의-config_path">containerd 1.x의 <code class="language-plaintext highlighter-rouge">config_path</code></h3>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/containerd/config.toml</code>이 Version 2 형식이고 containerd 1.x를 사용한다면 다음 Section을 확인한다.</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="py">version</span> <span class="p">=</span> <span class="mi">2</span>
+
+<span class="nn">[plugins."io.containerd.grpc.v1.cri".registry]</span>
+  <span class="py">config_path</span> <span class="p">=</span> <span class="s">"/etc/containerd/certs.d"</span>
+</code></pre></div></div>
+
+<h3 id="containerd-2x의-config_path">containerd 2.x의 <code class="language-plaintext highlighter-rouge">config_path</code></h3>
+
+<p>containerd 2.x의 Version 3 설정에서는 Plugin 경로가 다르다.</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="py">version</span> <span class="p">=</span> <span class="mi">3</span>
+
+<span class="nn">[plugins."io.containerd.cri.v1.images".registry]</span>
+  <span class="py">config_path</span> <span class="p">=</span> <span class="s">"/etc/containerd/certs.d"</span>
+</code></pre></div></div>
+
+<p>기존 설정의 <code class="language-plaintext highlighter-rouge">version</code>과 Plugin Section을 먼저 확인하고 서로 다른 Version 예제를 한 File에 동시에 넣지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>containerd <span class="nt">--version</span>
+<span class="nb">sudo </span>containerd config dump | less
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">config_path</code>를 처음 활성화하도록 <code class="language-plaintext highlighter-rouge">config.toml</code>을 변경했다면 containerd를 재시작하고 상태와 Log를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl restart containerd
+<span class="nb">sudo </span>systemctl status containerd <span class="nt">--no-pager</span>
+<span class="nb">sudo </span>journalctl <span class="nt">-u</span> containerd <span class="nt">-n</span> 100 <span class="nt">--no-pager</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">config_path</code>가 이미 설정된 환경에서 Registry별 <code class="language-plaintext highlighter-rouge">hosts.toml</code>만 변경하는 경우에는 containerd가 해당 Directory의 변경을 읽으므로 일반적으로 Daemon 재시작이 필요하지 않다.</p>
+
+<p>각 Worker에서 CRI 경로를 직접 검증한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>crictl pull <span class="se">\</span>
+  192.168.0.100:5000/python-app:v1
+<span class="nb">sudo </span>crictl images
+</code></pre></div></div>
+
+<p>그다음 Control Plane에 접근 가능한 관리 Client에서 Pod를 다시 생성하거나 Deployment Rollout을 수행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl rollout restart deployment/flask-deployment
+kubectl rollout status deployment/flask-deployment
+kubectl get pods <span class="nt">-o</span> wide
+</code></pre></div></div>
+
+<h3 id="deprecated-registry-설정">Deprecated Registry 설정</h3>
+
+<p>다음과 같이 CRI Plugin 아래에 <code class="language-plaintext highlighter-rouge">registry.mirrors</code>와 <code class="language-plaintext highlighter-rouge">registry.configs</code>를 직접 작성하는 방식은 Deprecated 상태이다.</p>
+
+<div class="language-toml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[plugins."io.containerd.grpc.v1.cri".registry.mirrors."192.168.0.100:5000"]</span>
+  <span class="py">endpoint</span> <span class="p">=</span> <span class="nn">["http://192.168.0.100:5000"]</span>
+</code></pre></div></div>
+
+<p>기존 환경을 확인할 때는 볼 수 있지만 신규 구성은 <code class="language-plaintext highlighter-rouge">config_path</code>와 Registry별 <code class="language-plaintext highlighter-rouge">hosts.toml</code>을 사용한다.</p>
+
+<h2 id="9--legacy-registry-web-ui">9 ) Legacy Registry Web UI</h2>
+
+<hr />
+
+<p>Registry API 자체는 Image 검색과 권한 관리를 위한 완성된 Web Portal을 제공하지 않는다. 과거에는 <code class="language-plaintext highlighter-rouge">hyper/docker-registry-web</code> Container를 <code class="language-plaintext highlighter-rouge">--link</code>로 Registry에 연결하는 예제가 사용되었다.</p>
+
+<p>이 구성은 다음 이유로 신규 환경에 그대로 적용하지 않는다.</p>
+
+<ul>
+  <li>
+    <p>Docker의 Legacy Container Link에 의존한다.</p>
+  </li>
+  <li>
+    <p>오래된 별도 Image의 유지보수와 보안 상태를 추가로 검증해야 한다.</p>
+  </li>
+  <li>
+    <p>인증, 권한, 취약점 Scan과 Project 관리가 Registry와 분리된다.</p>
+  </li>
+</ul>
+
+<p>단순 API 확인은 <code class="language-plaintext highlighter-rouge">/v2/</code>, <code class="language-plaintext highlighter-rouge">/v2/_catalog</code>와 <code class="language-plaintext highlighter-rouge">/tags/list</code>를 사용하고 관리 UI와 보안 기능이 필요하면 Harbor 같은 Registry Platform을 검토한다.</p>
+
+<h2 id="10--harbor">10 ) Harbor</h2>
+
+<hr />
+
+<p>Harbor는 OCI 호환 Registry를 기반으로 내부 Image와 Artifact를 관리하는 Open Source Registry Platform이다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>기능</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Project</td>
+      <td>Repository와 접근 범위를 조직 단위로 구분</td>
+    </tr>
+    <tr>
+      <td>RBAC</td>
+      <td>사용자와 Robot Account의 Push·Pull 권한 관리</td>
+    </tr>
+    <tr>
+      <td>Web UI</td>
+      <td>Repository, Artifact, Tag와 Scan 결과 확인</td>
+    </tr>
+    <tr>
+      <td>Vulnerability Scan</td>
+      <td>저장된 Artifact의 알려진 취약점 검사</td>
+    </tr>
+    <tr>
+      <td>Replication</td>
+      <td>다른 Registry와 Artifact 복제</td>
+    </tr>
+    <tr>
+      <td>OCI Artifact</td>
+      <td>Container Image 외 Helm Chart 등의 Artifact 저장</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>CNCF Distribution이 Registry API의 가벼운 기반을 제공한다면 Harbor는 조직에서 필요한 사용자 관리, 보안 검사와 운영 UI를 함께 제공한다. 그 대신 구성 요소와 운영 부담이 더 크므로 단일 개발 Host의 단순 저장소에는 Distribution이 적합할 수 있고, 여러 사용자와 Project를 관리해야 하는 환경에는 Harbor가 적합할 수 있다.</p>
+
+<p>Helm Chart도 OCI Artifact로 Registry에 저장할 수 있다. Chart Package의 실제 Push와 Pull 과정은 <a href="/cloud-native-40-kubernetes-helm/">Kubernetes Helm Chart와 Release 관리</a>에서 이어서 다룬다.</p>
+
+<h2 id="11--registry-문제-진단-순서">11 ) Registry 문제 진단 순서</h2>
+
+<hr />
+
+<p>Image Pull 실패는 Application 실행 이전 단계의 문제이다. 다음 순서로 범위를 좁힌다.</p>
+
+<ol>
+  <li>
+    <p>Image 참조의 Registry, Namespace, Repository와 Tag가 정확한지 확인한다.</p>
+  </li>
+  <li>
+    <p>실행 주체가 Public Image인지 Private Image인지 확인한다.</p>
+  </li>
+  <li>
+    <p>Registry API와 TCP Port에 접근할 수 있는지 확인한다.</p>
+  </li>
+  <li>
+    <p>TLS 인증서와 Client의 CA 신뢰 상태를 확인한다.</p>
+  </li>
+  <li>
+    <p>Docker 또는 containerd 중 실제 Pull을 수행하는 Runtime 설정을 확인한다.</p>
+  </li>
+  <li>
+    <p>Kubernetes에서는 Secret의 Namespace와 <code class="language-plaintext highlighter-rouge">imagePullSecrets</code> 이름을 확인한다.</p>
+  </li>
+  <li>
+    <p>Pod Event, containerd Log와 Registry Log의 같은 시간대 요청을 대조한다.</p>
+  </li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Registry Host</span>
+docker logs <span class="nt">--since</span> 10m registry
+
+<span class="c"># Worker</span>
+<span class="nb">sudo </span>journalctl <span class="nt">-u</span> containerd <span class="nt">--since</span> <span class="s2">"10 minutes ago"</span>
+
+<span class="c"># Control Plane에 접근 가능한 관리 Client</span>
+kubectl describe pod &lt;pod-name&gt;
+kubectl get events <span class="se">\</span>
+  <span class="nt">--sort-by</span><span class="o">=</span>.metadata.creationTimestamp
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>증상</th>
+      <th>우선 확인 대상</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ImagePullBackOff</code></td>
+      <td>직전 Pull 실패 원인을 보여주는 Pod Event</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">unauthorized</code></td>
+      <td>Registry Credential과 Repository 권한</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">manifest unknown</code></td>
+      <td>Repository, Tag와 Platform Manifest</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">x509: certificate signed by unknown authority</code></td>
+      <td>Worker의 CA Trust와 Registry 인증서 Chain</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">http: server gave HTTP response to HTTPS client</code></td>
+      <td>HTTP Registry 허용 설정과 실제 Protocol</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">connection refused</code></td>
+      <td>Registry Process, Listen Port, Firewall와 주소</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>Registry는 Image Manifest와 Layer를 Repository, Tag와 Digest로 관리하고 Push와 Pull API를 제공한다.</p>
+    </li>
+    <li>
+      <p>Kubernetes에서는 Scheduler가 Worker를 선택하고 해당 Worker의 kubelet과 containerd가 Registry에서 Image를 Pull한다.</p>
+    </li>
+    <li>
+      <p>Private Image는 같은 Namespace의 <code class="language-plaintext highlighter-rouge">imagePullSecrets</code>와 Registry 읽기 권한이 필요하다.</p>
+    </li>
+    <li>
+      <p>Docker Engine의 Registry 설정과 Kubernetes Worker의 containerd Registry 설정은 서로 다른 대상이다.</p>
+    </li>
+    <li>
+      <p>Plain HTTP와 인증서 검증 생략은 격리된 실습에만 제한하고 운영 Registry에는 TLS, 인증, 권한과 영구 Storage를 구성한다.</p>
+    </li>
+    <li>
+      <p>containerd의 Legacy <code class="language-plaintext highlighter-rouge">registry.mirrors</code> 방식은 Deprecated 상태이며 신규 구성은 <code class="language-plaintext highlighter-rouge">config_path</code>와 <code class="language-plaintext highlighter-rouge">hosts.toml</code>을 사용한다.</p>
+    </li>
+    <li>
+      <p>Harbor는 OCI Registry에 Project, RBAC, Web UI, 취약점 Scan과 Replication을 결합한 Platform이다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-40-kubernetes-helm/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Kubernetes Helm Chart와 Release 관리</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-42-git-version-control-basics/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Version Control과 Git 기본 작업 흐름</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789046891"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789046891"></script>
+  </body>
+</html>

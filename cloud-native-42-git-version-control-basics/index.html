@@ -49,13 +49,15 @@
   <meta property="article:published_time" content="2026-09-09T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.png?v=1789011099" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789011099" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789011099">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1789011099" color="#495057">
+  <meta property="article:modified_time" content="2026-09-10T00:00:00+09:00">
+
+<link rel="icon" href="/assets/images/favicon.png?v=1789046891" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789046891" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789046891">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789046891" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1789011099">
+<link rel="stylesheet" href="/assets/css/main.css?v=1789046891">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -99,7 +101,8 @@
     "headline": "Version Control과 Git 기본 작업 흐름 | renamed.log",
     "description": "Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름",
     "url": "https://kkr010128.github.io/cloud-native-42-git-version-control-basics/",
-    "datePublished": "2026-09-09T00:00:00+09:00"
+    "datePublished": "2026-09-09T00:00:00+09:00",
+    "dateModified": "2026-09-10T00:00:00+09:00"
   }
 </script>
 
@@ -228,7 +231,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 9월 9일 · 9분 읽기
+          2026년 9월 9일 · 10분 읽기 · 수정 2026년 9월 10일
         </span>
       </div>
     </div>
@@ -250,6 +253,8 @@
 
   <section class="prose">
     <p>Container Image, Kubernetes Manifest와 Helm Chart도 Source Code와 함께 계속 변경된다. Git을 사용하면 이러한 File의 변경 이력을 기록하고, 특정 시점의 상태를 다시 확인하며, 여러 사람이 변경 내용을 교환하고 병합할 수 있다.</p>
+
+<p>이 글에서 Local Repository와 Commit의 기본 구조를 익힌 뒤 <a href="/cloud-native-43-git-history-branch/">Git 이력 관리와 Branch 작업</a>에서 이력 비교, 복구와 Branch 통합을 다룬다. Remote Repository와의 작업은 <a href="/cloud-native-44-github-remote-workflow/">GitHub Remote Repository 작업 흐름</a>으로 이어진다.</p>
 
 <h2 id="1--version-control-system">1 ) Version Control System</h2>
 
@@ -637,6 +642,46 @@ git diff <span class="nt">--staged</span>
 
 <p><code class="language-plaintext highlighter-rouge">git status</code>는 상태를 요약하고 <code class="language-plaintext highlighter-rouge">git diff</code>는 Working Tree와 Index의 차이, <code class="language-plaintext highlighter-rouge">git diff --staged</code>는 Index와 현재 Commit의 차이를 보여준다.</p>
 
+<h3 id="gitignore"><code class="language-plaintext highlighter-rouge">.gitignore</code></h3>
+
+<p><code class="language-plaintext highlighter-rouge">.gitignore</code>는 Git이 추적하지 않을 File과 Directory Pattern을 기록한다. Build 결과, Package 설치 Directory, 가상 환경과 Local Credential처럼 Repository에 포함할 필요가 없는 항목을 제외할 때 사용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code># Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node.js
+node_modules/
+
+# Java·Spring
+.gradle/
+build/
+target/
+
+# Local 환경과 Credential
+.env
+*.key
+</code></pre></div></div>
+
+<p>Project 구성원이 공통으로 제외할 Pattern은 Repository의 <code class="language-plaintext highlighter-rouge">.gitignore</code>에 기록하고 함께 Commit한다. 개인 Editor의 임시 File처럼 Project에 공유할 필요가 없는 Pattern은 Repository의 <code class="language-plaintext highlighter-rouge">.git/info/exclude</code>나 사용자 전역 Ignore File에서 관리할 수 있다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">.gitignore</code>는 Untracked File에 적용된다. 이미 Commit했거나 Stage하여 Git이 추적 중인 File은 Pattern을 추가해도 자동으로 추적 대상에서 빠지지 않는다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+git check-ignore <span class="nt">-v</span> &lt;file&gt;
+git ls-files &lt;file&gt;
+</code></pre></div></div>
+
+<p>추적 중인 File을 Working Tree에는 남겨두고 이후 Commit 대상에서 제외하려면 먼저 변경 범위와 Repository 정책을 확인한 뒤 Index에서 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git <span class="nb">rm</span> <span class="nt">--cached</span> &lt;file&gt;
+git status
+git diff <span class="nt">--staged</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">git rm --cached</code> 결과는 다음 Commit에 반영되는 변경이다. Directory 전체나 넓은 Pattern에 실행하기 전에 <code class="language-plaintext highlighter-rouge">git status</code>와 <code class="language-plaintext highlighter-rouge">git diff --staged</code>로 제거 대상을 확인한다. 이미 History에 들어간 Password나 Token은 <code class="language-plaintext highlighter-rouge">.gitignore</code>로 제거되지 않으므로 Credential을 폐기하고 History 정리 필요 여부를 별도로 판단해야 한다.</p>
+
 <h2 id="10--local-repository-기본-실습">10 ) Local Repository 기본 실습</h2>
 
 <hr />
@@ -887,6 +932,9 @@ git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span 
       <p><code class="language-plaintext highlighter-rouge">git push</code>는 Local Commit과 Branch Reference를 Remote Repository로 전송한다.</p>
     </li>
     <li>
+      <p><code class="language-plaintext highlighter-rouge">.gitignore</code>는 의도적으로 추적하지 않을 File을 지정하며 이미 추적 중인 File에는 자동으로 적용되지 않는다.</p>
+    </li>
+    <li>
       <p>초기 Branch 이름과 Object ID 길이는 Version과 Repository 형식에 따라 달라질 수 있으므로 고정된 값으로 단정하지 않는다.</p>
     </li>
     <li>
@@ -900,7 +948,7 @@ git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span 
   
     <nav class="post-navigation" aria-label="이전 다음 글">
       
-        <a class="post-navigation__item" href="/cloud-native-40-kubernetes-helm/">
+        <a class="post-navigation__item" href="/cloud-native-41-container-image-registry/">
           <span class="post-navigation__icon" aria-hidden="true">
             <svg viewBox="0 0 24 24">
               <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
@@ -908,10 +956,22 @@ git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span 
           </span>
           <span class="post-navigation__content">
             <span class="post-navigation__label">이전 포스트</span>
-            <strong class="post-navigation__title">Kubernetes Helm Chart와 Release 관리</strong>
+            <strong class="post-navigation__title">Container Image Registry와 Kubernetes Image Pull</strong>
           </span>
         </a>
       
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-43-git-history-branch/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Git 이력 관리와 Branch 작업</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
       
     </nav>
   
@@ -987,7 +1047,7 @@ git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span 
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1789011099"></script>
-    <script src="/assets/js/code-enhancements.js?v=1789011099"></script>
+    <script src="/assets/js/site.js?v=1789046891"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789046891"></script>
   </body>
 </html>

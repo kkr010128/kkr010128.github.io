@@ -4,6 +4,36 @@
       
       
       {
+        "title": "GitHub Remote Repository 작업 흐름",
+        "url": "/cloud-native-44-github-remote-workflow/",
+        "description": "GitHub 인증 방식과 Clone·Fork·Remote·Fetch·Pull·Push의 차이 및 Local Repository를 Remote와 연결하는 방법",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Git"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 10일",
+        "reading_time_label": "8분 읽기",
+        "search": "github remote repository 작업 흐름 github 인증 방식과 clone·fork·remote·fetch·pull·push의 차이 및 local repository를 remote와 연결하는 방법 cloudnative autoeversw git cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Git 이력 관리와 Branch 작업",
+        "url": "/cloud-native-43-git-history-branch/",
+        "description": "SourceTree와 Git CLI를 연결하여 Commit 조회, Tag, Diff, Restore, Reset, Revert, Stash, Merge와 Rebase를 다루는 방법",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Git"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 10일",
+        "reading_time_label": "9분 읽기",
+        "search": "git 이력 관리와 branch 작업 sourcetree와 git cli를 연결하여 commit 조회, tag, diff, restore, reset, revert, stash, merge와 rebase를 다루는 방법 cloudnative autoeversw git cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Version Control과 Git 기본 작업 흐름",
         "url": "/cloud-native-42-git-version-control-basics/",
         "description": "Version Control System의 종류와 Git의 Working Tree·Staging Area·Repository 구조, File 상태 및 기본 Commit 흐름",
@@ -12,8 +42,23 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 9일",
-        "reading_time_label": "9분 읽기",
+        "reading_time_label": "10분 읽기",
         "search": "version control과 git 기본 작업 흐름 version control system의 종류와 git의 working tree·staging area·repository 구조, file 상태 및 기본 commit 흐름 cloudnative autoeversw git cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Container Image Registry와 Kubernetes Image Pull",
+        "url": "/cloud-native-41-container-image-registry/",
+        "description": "Public·Private Image Registry의 구조와 Docker Hub 배포, 자체 Registry 구성, Kubernetes Worker의 Image Pull 및 Harbor의 역할",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Docker"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 9일",
+        "reading_time_label": "10분 읽기",
+        "search": "container image registry와 kubernetes image pull public·private image registry의 구조와 docker hub 배포, 자체 registry 구성, kubernetes worker의 image pull 및 harbor의 역할 cloudnative autoeversw docker cloudnative"
       },
     
       

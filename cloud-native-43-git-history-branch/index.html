@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Git 이력 관리와 Branch 작업 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="SourceTree와 Git CLI를 연결하여 Commit 조회, Tag, Diff, Restore, Reset, Revert, Stash, Merge와 Rebase를 다루는 방법">
+<link rel="canonical" href="https://kkr010128.github.io/cloud-native-43-git-history-branch/">
+<meta property="og:title" content="Git 이력 관리와 Branch 작업 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="SourceTree와 Git CLI를 연결하여 Commit 조회, Tag, Diff, Restore, Reset, Revert, Stash, Merge와 Rebase를 다루는 방법">
+<meta property="og:url" content="https://kkr010128.github.io/cloud-native-43-git-history-branch/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Git 이력 관리와 Branch 작업 | renamed.log">
+<meta name="twitter:description" content="SourceTree와 Git CLI를 연결하여 Commit 조회, Tag, Diff, Restore, Reset, Revert, Stash, Merge와 Rebase를 다루는 방법">
+
+  <meta property="article:published_time" content="2026-09-10T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1789046891" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789046891" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789046891">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789046891" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789046891">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Git 이력 관리와 Branch 작업 | renamed.log",
+    "description": "SourceTree와 Git CLI를 연결하여 Commit 조회, Tag, Diff, Restore, Reset, Revert, Stash, Merge와 Rebase를 다루는 방법",
+    "url": "https://kkr010128.github.io/cloud-native-43-git-history-branch/",
+    "datePublished": "2026-09-10T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Git 이력 관리와 Branch 작업</h1>
+    
+      <p class="post-head__description">SourceTree와 Git CLI를 연결하여 Commit 조회, Tag, Diff, Restore, Reset, Revert, Stash, Merge와 Rebase를 다루는 방법</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 10일 · 9분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Git">Git</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-42-git-version-control-basics/">Version Control과 Git 기본 작업 흐름</a>에서 Working Tree, Staging Area와 Local Repository의 관계를 살펴봤다. 이 글에서는 저장된 Commit을 조회하고 비교하는 방법부터 변경 복구, Branch 통합까지 다룬다.</p>
+
+<p>SourceTree를 사용해도 Git의 상태와 History는 CLI를 사용할 때와 같다. GUI 조작과 명령을 함께 확인하면 버튼을 눌렀을 때 Repository에서 무엇이 바뀌는지 이해할 수 있다.</p>
+
+<h2 id="1--sourcetree와-git-cli">1 ) SourceTree와 Git CLI</h2>
+
+<hr />
+
+<p>SourceTree는 Git Repository를 시각적으로 다루는 GUI Client이다. File 상태, Commit Graph와 Branch 관계를 화면에 표시하고 선택한 작업에 해당하는 Git 명령을 실행한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Git 작업</th>
+      <th>SourceTree에서 확인할 영역</th>
+      <th>CLI</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Repository 생성</td>
+      <td>Local Repository 생성</td>
+      <td><code class="language-plaintext highlighter-rouge">git init</code></td>
+    </tr>
+    <tr>
+      <td>File 상태 확인</td>
+      <td>File Status·Working Copy</td>
+      <td><code class="language-plaintext highlighter-rouge">git status</code></td>
+    </tr>
+    <tr>
+      <td>Stage</td>
+      <td>Stage 대상 선택</td>
+      <td><code class="language-plaintext highlighter-rouge">git add</code>, <code class="language-plaintext highlighter-rouge">git restore --staged</code></td>
+    </tr>
+    <tr>
+      <td>Commit</td>
+      <td>Commit Message 입력 영역</td>
+      <td><code class="language-plaintext highlighter-rouge">git commit</code></td>
+    </tr>
+    <tr>
+      <td>History</td>
+      <td>Commit Graph·History</td>
+      <td><code class="language-plaintext highlighter-rouge">git log --graph</code></td>
+    </tr>
+    <tr>
+      <td>Tag</td>
+      <td>Commit의 Tag 메뉴</td>
+      <td><code class="language-plaintext highlighter-rouge">git tag</code></td>
+    </tr>
+    <tr>
+      <td>Branch 전환</td>
+      <td>Branch 목록</td>
+      <td><code class="language-plaintext highlighter-rouge">git switch</code></td>
+    </tr>
+    <tr>
+      <td>통합</td>
+      <td>Merge·Rebase 메뉴</td>
+      <td><code class="language-plaintext highlighter-rouge">git merge</code>, <code class="language-plaintext highlighter-rouge">git rebase</code></td>
+    </tr>
+    <tr>
+      <td>임시 보관</td>
+      <td>Stash 메뉴</td>
+      <td><code class="language-plaintext highlighter-rouge">git stash</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>버튼 이름과 화면 배치는 SourceTree Version과 운영체제에 따라 달라질 수 있다. 조작 후 <code class="language-plaintext highlighter-rouge">git status</code>, <code class="language-plaintext highlighter-rouge">git log</code>와 <code class="language-plaintext highlighter-rouge">git branch</code>로 실제 Repository 상태를 확인하면 GUI 표시와 Git 개념을 연결할 수 있다.</p>
+
+<h2 id="2--local-repository에서-version-생성">2 ) Local Repository에서 Version 생성</h2>
+
+<hr />
+
+<h3 id="repository-준비">Repository 준비</h3>
+
+<p>SourceTree에서는 Local Repository 생성 화면에서 작업 Directory를 선택한다. CLI에서는 같은 Directory로 이동해 <code class="language-plaintext highlighter-rouge">git init</code>을 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>git-history-lab
+<span class="nb">cd </span>git-history-lab
+git init <span class="nt">--initial-branch</span><span class="o">=</span>main
+</code></pre></div></div>
+
+<p>초기 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+</code></pre></div></div>
+
+<h3 id="첫-번째-commit">첫 번째 Commit</h3>
+
+<p><code class="language-plaintext highlighter-rouge">a.txt</code>, <code class="language-plaintext highlighter-rouge">b.txt</code>, <code class="language-plaintext highlighter-rouge">c.txt</code>를 만들고 각각 <code class="language-plaintext highlighter-rouge">A</code>, <code class="language-plaintext highlighter-rouge">B</code>, <code class="language-plaintext highlighter-rouge">C</code>를 기록한다. File 작성 방식은 사용하는 Editor에 따라 달라지므로 여기서는 Git 상태 변화에 집중한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git-history-lab/
+├── a.txt
+├── b.txt
+└── c.txt
+</code></pre></div></div>
+
+<p>새 File은 Untracked 상태이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+</code></pre></div></div>
+
+<p>세 File을 다음 Commit 대상으로 Stage한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add a.txt b.txt c.txt
+git diff <span class="nt">--staged</span>
+git status
+</code></pre></div></div>
+
+<p>SourceTree에서는 Unstaged File 목록에서 대상을 선택하여 Staged File 영역으로 옮긴다. Commit 전에는 Staged Diff를 읽어 의도한 내용만 포함됐는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit <span class="nt">-m</span> <span class="s2">"docs: add initial text files"</span>
+</code></pre></div></div>
+
+<h3 id="두-번째-commit">두 번째 Commit</h3>
+
+<p><code class="language-plaintext highlighter-rouge">a.txt</code>를 수정하고 <code class="language-plaintext highlighter-rouge">c.txt</code>를 삭제하면 두 File 모두 Working Tree 변경으로 표시된다. 삭제도 Git이 추적하는 변경이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+git diff
+</code></pre></div></div>
+
+<p>변경을 Stage하고 두 번째 Commit을 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add a.txt c.txt
+git diff <span class="nt">--staged</span>
+git commit <span class="nt">-m</span> <span class="s2">"docs: update A and remove C"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">git add .</code>은 현재 Directory 아래의 추가, 수정과 삭제를 한꺼번에 Stage할 수 있다. 범위가 넓으므로 사용 직후 <code class="language-plaintext highlighter-rouge">git diff --staged</code>로 Commit 대상을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add <span class="nb">.</span>
+git diff <span class="nt">--staged</span>
+</code></pre></div></div>
+
+<p>이미 추적 중인 File의 수정과 삭제를 Stage하면서 Commit까지 수행할 때는 <code class="language-plaintext highlighter-rouge">-a</code>를 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit <span class="nt">-am</span> <span class="s2">"docs: update tracked files"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">git commit -am</code>은 Untracked File을 포함하지 않는다. 새 File은 먼저 <code class="language-plaintext highlighter-rouge">git add</code>로 추적 대상에 포함해야 한다.</p>
+
+<h2 id="3--commit-history-조회">3 ) Commit History 조회</h2>
+
+<hr />
+
+<p>SourceTree의 History 화면은 Commit을 Graph로 표시한다. CLI에서는 목적에 따라 <code class="language-plaintext highlighter-rouge">git log</code> Option을 조합한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 상세 History</span>
+git log
+
+<span class="c"># 한 Commit을 한 줄로 표시</span>
+git log <span class="nt">--oneline</span>
+
+<span class="c"># Commit별 Patch 포함</span>
+git log <span class="nt">--patch</span>
+
+<span class="c"># Branch와 Tag를 함께 표시</span>
+git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
+</code></pre></div></div>
+
+<p>Commit을 선택하면 작성자, 시각, Message, Parent와 변경된 File을 확인할 수 있다. CLI에서는 <code class="language-plaintext highlighter-rouge">git show</code>를 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git show &lt;commit&gt;
+git show <span class="nt">--stat</span> &lt;commit&gt;
+git show <span class="nt">--name-status</span> &lt;commit&gt;
+</code></pre></div></div>
+
+<p>Commit 개수는 작업을 나눈 방식에 따라 크게 달라진다. 많은 Commit이 Project 품질이나 기여 수준을 자동으로 증명하지 않으므로 변경 내용과 Message, Review 결과를 함께 봐야 한다.</p>
+
+<h2 id="4--tag로-version-표시">4 ) Tag로 Version 표시</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Tag</strong></p>
+
+  <p>특정 Git Object를 읽기 쉬운 이름으로 가리키는 Reference이다. Release Version을 표시할 때 주로 Commit에 연결한다.</p>
+</blockquote>
+
+<p>Commit Object ID는 Git이 Content와 Metadata를 바탕으로 생성한다. 사용자가 원하는 문자열로 Object ID를 정할 수 없으므로 <code class="language-plaintext highlighter-rouge">v1.0.0</code> 같은 Tag를 별도로 붙인다.</p>
+
+<h3 id="lightweight-tag">Lightweight Tag</h3>
+
+<p>현재 Commit을 직접 가리키는 Lightweight Tag를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag v1.0.0
+</code></pre></div></div>
+
+<h3 id="annotated-tag">Annotated Tag</h3>
+
+<p>Annotated Tag에는 작성자, 생성 시각과 Message가 별도 Tag Object로 기록된다. Release 표시에는 Annotated Tag가 적합하다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag <span class="nt">-a</span> v1.0.0 <span class="nt">-m</span> <span class="s2">"release v1.0.0"</span>
+</code></pre></div></div>
+
+<p>특정 Commit에 Tag를 붙이려면 Commit을 함께 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git log <span class="nt">--oneline</span>
+git tag <span class="nt">-a</span> v0.9.0 &lt;commit&gt; <span class="nt">-m</span> <span class="s2">"release v0.9.0"</span>
+</code></pre></div></div>
+
+<p>Tag 목록과 대상을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag <span class="nt">--list</span>
+git show v1.0.0
+</code></pre></div></div>
+
+<p>Local Tag를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag <span class="nt">--delete</span> v1.0.0
+</code></pre></div></div>
+
+<p>Tag는 기본 <code class="language-plaintext highlighter-rouge">git push</code>에 항상 포함되지 않는다. Remote에 특정 Tag를 올리거나 삭제하는 작업은 명시적으로 수행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git push origin v1.0.0
+git push origin <span class="nt">--delete</span> v1.0.0
+</code></pre></div></div>
+
+<p>SourceTree에서는 History에서 대상 Commit을 선택해 Tag를 만들 수 있다. 생성 후 Local Tag인지 Remote에도 Push된 Tag인지 구분해서 확인한다.</p>
+
+<h2 id="5--version-비교">5 ) Version 비교</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">git diff</code>는 어떤 두 상태를 비교하는지에 따라 출력 범위가 달라진다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>비교 대상</th>
+      <th>명령</th>
+      <th>확인하는 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Working Tree ↔ Staging Area</td>
+      <td><code class="language-plaintext highlighter-rouge">git diff</code></td>
+      <td>아직 Stage하지 않은 변경</td>
+    </tr>
+    <tr>
+      <td>Staging Area ↔ <code class="language-plaintext highlighter-rouge">HEAD</code></td>
+      <td><code class="language-plaintext highlighter-rouge">git diff --staged</code></td>
+      <td>다음 Commit에 들어갈 변경</td>
+    </tr>
+    <tr>
+      <td>Commit ↔ Commit</td>
+      <td><code class="language-plaintext highlighter-rouge">git diff &lt;commit-a&gt; &lt;commit-b&gt;</code></td>
+      <td>두 Commit의 Snapshot 차이</td>
+    </tr>
+    <tr>
+      <td>Branch ↔ Branch</td>
+      <td><code class="language-plaintext highlighter-rouge">git diff &lt;branch-a&gt;..&lt;branch-b&gt;</code></td>
+      <td>두 Branch Tip의 Snapshot 차이</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git diff
+git diff <span class="nt">--staged</span>
+git diff HEAD~1 HEAD
+git diff main..feature/login
+</code></pre></div></div>
+
+<p>SourceTree에서는 Commit 두 개를 선택하여 변경 File과 Diff를 비교할 수 있다. 다중 선택에 사용하는 보조 Key는 운영체제에 따라 다르므로 선택된 두 Commit의 ID를 화면에서 확인한다.</p>
+
+<h3 id="head-와-"><code class="language-plaintext highlighter-rouge">HEAD</code>, <code class="language-plaintext highlighter-rouge">^</code>와 <code class="language-plaintext highlighter-rouge">~</code></h3>
+
+<p><code class="language-plaintext highlighter-rouge">HEAD</code>는 현재 Checkout한 위치를 가리킨다. Branch에 정상적으로 연결된 상태에서는 현재 Branch의 Tip Commit을 가리킨다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>표현</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">HEAD</code></td>
+      <td>현재 Checkout한 Commit</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">HEAD^</code></td>
+      <td><code class="language-plaintext highlighter-rouge">HEAD</code>의 첫 번째 Parent</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">HEAD^2</code></td>
+      <td>Merge Commit인 <code class="language-plaintext highlighter-rouge">HEAD</code>의 두 번째 Parent</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">HEAD~2</code></td>
+      <td>첫 번째 Parent를 두 번 따라간 Commit</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>일직선 History에서는 <code class="language-plaintext highlighter-rouge">HEAD^</code>와 <code class="language-plaintext highlighter-rouge">HEAD~1</code>이 같은 Commit을 가리킨다. Parent가 여러 개인 Merge Commit에서는 <code class="language-plaintext highlighter-rouge">^&lt;번호&gt;</code>로 어느 Parent를 선택하는지 지정할 수 있다.</p>
+
+<h2 id="6--file-변경-복구">6 ) File 변경 복구</h2>
+
+<hr />
+
+<p>File 복구는 Staging Area만 되돌리는 작업과 Working Tree의 내용을 폐기하는 작업을 구분해야 한다.</p>
+
+<h3 id="stage-취소">Stage 취소</h3>
+
+<p>다음 명령은 File의 Staged 상태를 <code class="language-plaintext highlighter-rouge">HEAD</code> 기준으로 되돌린다. Working Tree의 수정 내용은 유지한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git restore <span class="nt">--staged</span> &lt;file&gt;
+git status
+</code></pre></div></div>
+
+<p>SourceTree에서는 Staged File을 Unstaged 영역으로 옮기는 동작에 해당한다.</p>
+
+<h3 id="working-tree-변경-폐기">Working Tree 변경 폐기</h3>
+
+<p>다음 명령은 Working Tree의 File을 Staging Area의 내용으로 복원한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git diff <span class="nt">--</span> &lt;file&gt;
+git restore &lt;file&gt;
+</code></pre></div></div>
+
+<p>저장하지 않은 변경은 사라질 수 있다. 실행 전에 <code class="language-plaintext highlighter-rouge">git diff</code>를 확인하고 보존할 내용이 있으면 Commit이나 Stash로 저장한다.</p>
+
+<p>특정 Commit의 File만 가져올 수도 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git restore <span class="nt">--source</span><span class="o">=</span>&lt;commit&gt; <span class="nt">--</span> &lt;file&gt;
+</code></pre></div></div>
+
+<p>이 명령은 Branch 전체를 해당 Commit으로 이동시키지 않고 선택한 File의 Working Tree 내용만 바꾼다.</p>
+
+<h2 id="7--commit-되돌리기">7 ) Commit 되돌리기</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">reset</code>과 <code class="language-plaintext highlighter-rouge">revert</code>는 결과가 비슷해 보이지만 History 처리 방식이 다르다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>현재 Branch Tip</th>
+      <th>Staging Area</th>
+      <th>Working Tree</th>
+      <th>공유 Branch 사용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">reset --soft</code></td>
+      <td>대상 Commit으로 이동</td>
+      <td>유지</td>
+      <td>유지</td>
+      <td>History가 달라지므로 주의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">reset --mixed</code></td>
+      <td>대상 Commit으로 이동</td>
+      <td>대상 Commit 기준으로 초기화</td>
+      <td>유지</td>
+      <td>History가 달라지므로 주의</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">reset --hard</code></td>
+      <td>대상 Commit으로 이동</td>
+      <td>대상 Commit 기준으로 초기화</td>
+      <td>대상 Commit 기준으로 변경</td>
+      <td>저장하지 않은 변경 손실 가능</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">revert</code></td>
+      <td>새 Commit 추가</td>
+      <td>새 Commit 과정에 따라 반영</td>
+      <td>취소 결과 반영</td>
+      <td>기존 History를 보존하므로 적합</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="soft-reset">Soft Reset</h3>
+
+<p>Commit만 취소하고 변경 내용을 Staging Area와 Working Tree에 유지한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git reset <span class="nt">--soft</span> &lt;target-commit&gt;
+git status
+git diff <span class="nt">--staged</span>
+</code></pre></div></div>
+
+<h3 id="mixed-reset">Mixed Reset</h3>
+
+<p>Option을 생략한 <code class="language-plaintext highlighter-rouge">git reset</code>은 기본적으로 Mixed Mode이다. Branch를 대상 Commit으로 옮기고 Staging Area를 초기화하지만 Working Tree 변경은 유지한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git reset &lt;target-commit&gt;
+git status
+git diff
+</code></pre></div></div>
+
+<h3 id="hard-reset">Hard Reset</h3>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git reset <span class="nt">--hard</span> &lt;target-commit&gt;
+</code></pre></div></div>
+
+<p>Hard Reset은 Branch, Staging Area와 추적 중인 Working Tree File을 대상 Commit 상태에 맞춘다. Commit하지 않은 변경이 사라질 수 있으므로 다음 내용을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+git diff
+git diff <span class="nt">--staged</span>
+git log <span class="nt">--oneline</span> <span class="nt">--decorate</span> <span class="nt">-n</span> 10
+</code></pre></div></div>
+
+<p>필요하면 현재 위치를 임시 Branch로 보존한 뒤 Reset한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch backup-before-reset
+</code></pre></div></div>
+
+<h3 id="revert">Revert</h3>
+
+<p><code class="language-plaintext highlighter-rouge">git revert</code>는 취소할 Commit의 반대 변경을 적용한 새 Commit을 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git revert &lt;commit-to-cancel&gt;
+</code></pre></div></div>
+
+<p>기존 Commit이 History에 남으므로 이미 Remote에 공유한 Branch에서 변경을 취소할 때 사용하기 쉽다. 충돌이 발생하면 File을 수정하고 Stage한 뒤 작업을 계속하거나 중단한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add &lt;resolved-file&gt;
+git revert <span class="nt">--continue</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git revert <span class="nt">--abort</span>
+</code></pre></div></div>
+
+<h2 id="8--stash로-변경-임시-보관">8 ) Stash로 변경 임시 보관</h2>
+
+<hr />
+
+<p>Stash는 Commit하기 이른 Working Tree와 Staging Area의 변경을 임시로 저장하고 현재 Branch의 작업 공간을 정리할 때 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash push <span class="nt">-m</span> <span class="s2">"temporary work"</span>
+git status
+</code></pre></div></div>
+
+<p>기본 Stash에는 추적 중인 File의 Staged·Unstaged 변경이 들어간다. Untracked File은 기본 대상이 아니며 필요할 때 <code class="language-plaintext highlighter-rouge">-u</code>를 명시한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash push <span class="nt">-u</span> <span class="nt">-m</span> <span class="s2">"include untracked files"</span>
+</code></pre></div></div>
+
+<p>저장된 목록과 변경 내용을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash list
+git stash show <span class="nt">--patch</span> stash@<span class="o">{</span>0<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">apply</code>는 Stash를 적용한 뒤 목록에 남긴다. Stage 상태까지 복원하려면 <code class="language-plaintext highlighter-rouge">--index</code>를 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash apply stash@<span class="o">{</span>0<span class="o">}</span>
+git stash apply <span class="nt">--index</span> stash@<span class="o">{</span>0<span class="o">}</span>
+</code></pre></div></div>
+
+<p>더 이상 필요하지 않은 Stash를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash drop stash@<span class="o">{</span>0<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">pop</code>은 적용에 성공하면 해당 Stash를 목록에서 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash pop stash@<span class="o">{</span>0<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Stash 적용 중에도 현재 Branch의 변경과 충돌할 수 있다. 적용 후 <code class="language-plaintext highlighter-rouge">git status</code>와 Diff를 확인한다.</p>
+
+<h2 id="9--branch와-head">9 ) Branch와 <code class="language-plaintext highlighter-rouge">HEAD</code></h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Branch</strong></p>
+
+  <p>Commit을 가리키며 새 Commit이 만들어질 때 함께 이동하는 Reference이다.</p>
+</blockquote>
+
+<p>Branch는 Project File을 통째로 복사한 Directory가 아니다. 여러 작업 흐름이 서로 다른 Commit을 가리키도록 분기한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>              D──E  feature/login
+             /
+A──B──C───────────  main
+</code></pre></div></div>
+
+<p>현재 Branch와 목록을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch <span class="nt">--show-current</span>
+git branch
+</code></pre></div></div>
+
+<p>Branch를 만들고 전환한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch feature/login
+git switch feature/login
+</code></pre></div></div>
+
+<p>생성과 전환을 동시에 수행할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch <span class="nt">-c</span> feature/payment
+</code></pre></div></div>
+
+<p>기존 환경에서는 다음 <code class="language-plaintext highlighter-rouge">checkout</code> 명령도 계속 볼 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout feature/login
+git checkout <span class="nt">-b</span> feature/payment
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">checkout</code>은 Branch 전환과 File 복구를 모두 담당하는 오래된 범용 명령이다. 새 문서에서는 의도가 분명한 <code class="language-plaintext highlighter-rouge">switch</code>와 <code class="language-plaintext highlighter-rouge">restore</code>를 우선 사용한다.</p>
+
+<p>특정 Commit을 직접 Checkout하면 <code class="language-plaintext highlighter-rouge">HEAD</code>가 Branch가 아닌 Commit을 가리키는 Detached HEAD 상태가 될 수 있다. 이 상태에서 만든 Commit을 보존하려면 해당 위치에서 Branch를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch <span class="nt">-c</span> save-detached-work
+</code></pre></div></div>
+
+<h3 id="branch-삭제">Branch 삭제</h3>
+
+<p>현재 Checkout한 Branch는 삭제할 수 없다. 다른 Branch로 이동한 뒤 병합이 끝난 Branch를 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch main
+git branch <span class="nt">-d</span> feature/login
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-d</code>는 병합되지 않은 Commit이 있으면 삭제를 거절한다. <code class="language-plaintext highlighter-rouge">-D</code>는 이를 무시하는 강제 삭제이므로 보존할 Commit이 없는지 확인하지 않고 사용하지 않는다.</p>
+
+<h2 id="10--merge">10 ) Merge</h2>
+
+<hr />
+
+<p>Merge는 현재 Branch에 다른 Branch의 History를 통합한다. <code class="language-plaintext highlighter-rouge">feature/login</code>을 <code class="language-plaintext highlighter-rouge">main</code>에 합치려면 결과를 받을 <code class="language-plaintext highlighter-rouge">main</code>으로 먼저 이동한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch main
+git merge feature/login
+</code></pre></div></div>
+
+<h3 id="fast-forward-merge">Fast-forward Merge</h3>
+
+<p>Branch가 분기된 뒤 <code class="language-plaintext highlighter-rouge">main</code>에 새 Commit이 없다면 <code class="language-plaintext highlighter-rouge">main</code> Reference를 <code class="language-plaintext highlighter-rouge">feature/login</code>의 Tip까지 앞으로 이동할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>병합 전
+
+A──B  main
+    \
+     C──D  feature/login
+
+병합 후
+
+A──B──C──D  main, feature/login
+</code></pre></div></div>
+
+<p>Fast-forward Merge는 별도 Merge Commit을 만들지 않아도 된다.</p>
+
+<h3 id="merge-commit">Merge Commit</h3>
+
+<p>두 Branch가 각각 새 Commit을 가진 경우 Git은 공통 조상을 기준으로 변경을 통합하고 Merge Commit을 만들 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>       C──D  feature/login
+      /    \
+A──B──E─────M  main
+</code></pre></div></div>
+
+<p>특정 Commit을 <code class="language-plaintext highlighter-rouge">git merge &lt;commit&gt;</code> 대상으로 지정할 수 있지만 해당 Commit 하나의 Patch만 적용하는 작업은 아니다. Git은 지정한 Commit까지 이어지는 History를 현재 Branch와 병합한다. 하나의 Commit 변경만 적용하려는 경우에는 목적을 확인한 뒤 <code class="language-plaintext highlighter-rouge">git cherry-pick &lt;commit&gt;</code>을 검토한다.</p>
+
+<h3 id="merge-충돌">Merge 충돌</h3>
+
+<p>서로 다른 Branch가 같은 File의 같은 영역을 다르게 수정하면 Git이 결과를 자동으로 결정하지 못할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+</code></pre></div></div>
+
+<p>충돌 File에는 다음과 같은 Marker가 생길 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+현재 Branch의 내용
+=======
+병합하는 Branch의 내용
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login
+</code></pre></div></div>
+
+<p>적용할 내용을 결정하고 Marker를 제거한 뒤 File을 Stage한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add &lt;resolved-file&gt;
+git commit
+</code></pre></div></div>
+
+<p>Merge를 완료하지 않고 시작 전으로 돌아가려면 다음 명령을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git merge <span class="nt">--abort</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ours</code>와 <code class="language-plaintext highlighter-rouge">theirs</code>는 현재 진행 중인 작업 종류와 방향에 따라 가리키는 쪽을 정확히 확인해야 한다. 이름만 보고 자동으로 한쪽 전체를 선택하지 않는다.</p>
+
+<h2 id="11--rebase">11 ) Rebase</h2>
+
+<hr />
+
+<p>Rebase는 현재 Branch의 Commit을 새로운 Base 위에 다시 적용한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>변경 전
+
+A──B──C  main
+    \
+     D──E  feature/login
+
+변경 후
+
+A──B──C  main
+       \
+        D'──E'  feature/login
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">feature/login</code>을 최신 <code class="language-plaintext highlighter-rouge">main</code> 위로 옮긴다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch feature/login
+git rebase main
+</code></pre></div></div>
+
+<p>Rebase는 <code class="language-plaintext highlighter-rouge">D</code>와 <code class="language-plaintext highlighter-rouge">E</code>를 그대로 이동하지 않는다. 같은 변경을 새 Parent 위에 적용하여 <code class="language-plaintext highlighter-rouge">D'</code>, <code class="language-plaintext highlighter-rouge">E'</code>라는 새 Commit을 만들기 때문에 Object ID가 달라진다.</p>
+
+<p>충돌이 발생하면 File을 수정하고 Stage한 뒤 다음 Commit 적용을 계속한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
+git add &lt;resolved-file&gt;
+git rebase <span class="nt">--continue</span>
+</code></pre></div></div>
+
+<p>현재 Rebase를 중단하고 시작 전 상태로 돌아간다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git rebase <span class="nt">--abort</span>
+</code></pre></div></div>
+
+<p>이미 여러 사람이 사용하는 Remote Branch의 Commit을 Rebase하면 기존 History와 다른 Commit ID가 만들어진다. 공유하기 전의 개인 작업 Branch에서 사용하는 범위와 팀의 History 정책을 먼저 확인한다.</p>
+
+<h2 id="12--non-fast-forward-push와-merge의-차이">12 ) Non-fast-forward Push와 Merge의 차이</h2>
+
+<hr />
+
+<p>Remote Branch에 Local이 가지고 있지 않은 Commit이 있으면 Push가 <code class="language-plaintext highlighter-rouge">non-fast-forward</code>로 거절될 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Local main       A──B──L
+                     
+Remote main      A──B──R
+</code></pre></div></div>
+
+<p>이 오류는 Fast-forward Merge 기능의 실패가 아니다. Remote Branch를 Local Commit까지 단순 이동하면 <code class="language-plaintext highlighter-rouge">R</code>이 History에서 빠질 수 있으므로 Server가 Update를 거절한 것이다.</p>
+
+<p>Remote 상태를 먼저 가져와 History를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git fetch origin
+git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
+</code></pre></div></div>
+
+<p>팀 정책에 따라 Remote 변경을 Merge하거나 Rebase한 뒤 충돌을 해결하고 다시 Push한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git merge origin/main
+</code></pre></div></div>
+
+<p>또는 다음과 같이 현재 Commit을 Remote Branch 위에 다시 적용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git rebase origin/main
+</code></pre></div></div>
+
+<p>원격 Repository 연결과 Push 전체 흐름은 <a href="/cloud-native-44-github-remote-workflow/">GitHub Remote Repository 작업 흐름</a>에서 다룬다.</p>
+
+<h2 id="전체-정리">전체 정리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+
+  <ul>
+    <li>
+      <p>SourceTree와 CLI는 같은 Git Repository와 상태를 다루므로 GUI 작업 뒤에도 Git 명령으로 결과를 확인할 수 있다.</p>
+    </li>
+    <li>
+      <p>Tag는 Commit Object ID를 바꾸지 않고 특정 Version을 읽기 쉬운 이름으로 가리킨다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">git diff</code>는 Working Tree, Staging Area, Commit과 Branch 중 어떤 두 상태를 비교하는지 구분해야 한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">restore</code>는 File, <code class="language-plaintext highlighter-rouge">reset</code>은 Branch와 Index, <code class="language-plaintext highlighter-rouge">revert</code>는 기존 Commit을 취소하는 새 Commit을 다룬다.</p>
+    </li>
+    <li>
+      <p>기본 Stash는 추적 중인 변경을 저장하며 Untracked File을 포함하려면 <code class="language-plaintext highlighter-rouge">-u</code>가 필요하다.</p>
+    </li>
+    <li>
+      <p>Merge는 History를 통합하고 Rebase는 현재 Branch의 Commit을 새 Base 위에 다시 적용한다.</p>
+    </li>
+    <li>
+      <p>Non-fast-forward Push 거절은 Remote에 Local이 가지지 않은 Commit이 있을 때 History 손실을 막기 위해 발생한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-42-git-version-control-basics/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Version Control과 Git 기본 작업 흐름</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-44-github-remote-workflow/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">GitHub Remote Repository 작업 흐름</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://kkr010128.github.io/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://kkr010128.github.io/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789046891"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789046891"></script>
+  </body>
+</html>
