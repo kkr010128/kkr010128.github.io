@@ -1313,6 +1313,74 @@ pre {
   background: var(--bg-element2);
 }
 
+.post-visual {
+  --diagram-primary-soft: #e6fcf5;
+  --diagram-blue: #228be6;
+  --diagram-blue-soft: #e7f5ff;
+  --diagram-violet: #7950f2;
+  --diagram-violet-soft: #f3f0ff;
+  --diagram-orange: #f08c00;
+  --diagram-orange-soft: #fff4e6;
+  margin: 3rem 0;
+}
+
+html[data-theme="dark"] .post-visual {
+  --diagram-primary-soft: #183c34;
+  --diagram-blue: #74c0fc;
+  --diagram-blue-soft: #17324a;
+  --diagram-violet: #b197fc;
+  --diagram-violet-soft: #2d2548;
+  --diagram-orange: #ffd43b;
+  --diagram-orange-soft: #463b1c;
+}
+
+.post-visual__caption {
+  margin-bottom: 1rem;
+  color: var(--text2);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.post-visual__frame {
+  overflow: hidden;
+  border: 1px solid var(--border3);
+  border-radius: 1rem;
+  background: var(--bg-element2);
+}
+
+.post-visual__frame svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.post-visual__notes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.post-visual__note {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--bg-element2);
+}
+
+.post-visual__note strong {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: var(--text1);
+}
+
+.post-visual__note p {
+  margin: 0;
+  color: var(--text2);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
 .prose table {
   width: 100%;
   margin: 2rem 0;
@@ -1582,6 +1650,10 @@ pre {
   .prose iframe,
   .prose video {
     min-height: 14rem;
+  }
+
+  .post-visual__notes {
+    grid-template-columns: 1fr;
   }
 
   .tag-sidebar {

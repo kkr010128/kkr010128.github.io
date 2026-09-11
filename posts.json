@@ -4,6 +4,36 @@
       
       
       {
+        "title": "GitHub Actions Workflow와 CI 실습",
+        "url": "/cloud-native-46-github-actions-ci/",
+        "description": "GitHub Actions의 Event·Workflow·Job·Step·Runner 구조를 이해하고 Node.js와 Python Project의 Test를 자동화한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","GitHubActions"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 11일",
+        "reading_time_label": "12분 읽기",
+        "search": "github actions workflow와 ci 실습 github actions의 event·workflow·job·step·runner 구조를 이해하고 node.js와 python project의 test를 자동화한다 cloudnative autoeversw githubactions cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "CI/CD Pipeline과 Container 배포 흐름",
+        "url": "/cloud-native-45-cicd-pipeline/",
+        "description": "CI·Continuous Delivery·Continuous Deployment의 차이와 Source 변경이 Container Image 및 Kubernetes Pod로 이어지는 과정을 정리한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","CI/CD"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 11일",
+        "reading_time_label": "7분 읽기",
+        "search": "ci/cd pipeline과 container 배포 흐름 ci·continuous delivery·continuous deployment의 차이와 source 변경이 container image 및 kubernetes pod로 이어지는 과정을 정리한다 cloudnative autoeversw ci/cd cloudnative"
+      },
+    
+      
+      
+      {
         "title": "GitHub Remote Repository 작업 흐름",
         "url": "/cloud-native-44-github-remote-workflow/",
         "description": "GitHub 인증 방식과 Clone·Fork·Remote·Fetch·Pull·Push의 차이 및 Local Repository를 Remote와 연결하는 방법",
