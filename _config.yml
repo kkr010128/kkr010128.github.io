@@ -1,6 +1,6 @@
 title: renamed.log
 description: 키보드가 망가지도록 공부하기
-url: "https://kkr010128.github.io"
+url: "https://hyn128.site"
 baseurl: ""
 lang: ko-KR
 timezone: Asia/Seoul
@@ -10,7 +10,7 @@ permalink: /:title/
 
 analytics:
   google:
-    measurement_id: "G-S5JKF3RE2G"
+    measurement_id: "G-ZPEH9XZP5P"
 
 comments:
   provider: "giscus"
