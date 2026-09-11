@@ -1,0 +1,98 @@
+<figure class="post-visual" aria-labelledby="github-actions-flow-caption">
+  <figcaption class="post-visual__caption" id="github-actions-flow-caption">
+    Event부터 Workflow와 Job을 거쳐 Step이 실행되는 GitHub Actions 흐름
+  </figcaption>
+  <div class="post-visual__frame">
+    <svg viewBox="0 0 960 870" role="img" aria-labelledby="github-actions-flow-title github-actions-flow-desc">
+      <title id="github-actions-flow-title">GitHub Actions Event, Workflow, Job, Step, Runner 관계</title>
+      <desc id="github-actions-flow-desc">Push나 Pull Request Event가 Workflow를 시작한다. Workflow의 test Job에서 checkout, setup, install과 test Step이 순차 실행된다. test Job이 성공하면 needs로 연결된 package Job이 별도 Runner에서 시작된다.</desc>
+      <defs>
+        <marker id="arrow-github-actions-flow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L6,3 L0,6 z" fill="var(--text2)"></path>
+        </marker>
+      </defs>
+
+      <g id="github-actions-event">
+        <title>Repository event</title>
+        <rect x="60" y="40" width="840" height="94" rx="18" fill="var(--diagram-violet-soft)" stroke="var(--diagram-violet)" stroke-width="2"></rect>
+        <text x="92" y="73" fill="var(--diagram-violet)" font-size="15" font-weight="700">EVENT</text>
+        <text x="480" y="83" text-anchor="middle" fill="var(--text1)" font-size="22" font-weight="700">Repository 상태 변경</text>
+        <text x="480" y="112" text-anchor="middle" fill="var(--text1)" font-size="16">push · pull_request · workflow_dispatch</text>
+      </g>
+
+      <g id="github-actions-event-to-workflow">
+        <title>Event triggers workflow</title>
+        <line x1="480" y1="134" x2="480" y2="174" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-github-actions-flow)"></line>
+        <rect x="500" y="142" width="112" height="28" rx="14" fill="var(--bg-element1)" stroke="var(--border3)"></rect>
+        <text x="556" y="162" text-anchor="middle" fill="var(--text1)" font-size="14">trigger</text>
+      </g>
+
+      <g id="github-actions-workflow">
+        <title>One workflow YAML file</title>
+        <rect x="60" y="186" width="840" height="106" rx="18" fill="var(--diagram-primary-soft)" stroke="var(--primary2)" stroke-width="3"></rect>
+        <text x="92" y="220" fill="var(--primary1)" font-size="15" font-weight="700">WORKFLOW</text>
+        <text x="480" y="228" text-anchor="middle" fill="var(--text1)" font-size="22" font-weight="700">CI Workflow</text>
+        <text x="480" y="260" text-anchor="middle" fill="var(--text1)" font-size="16">.github/workflows/ci.yml</text>
+      </g>
+
+      <g id="github-actions-workflow-to-test">
+        <title>Workflow starts the test job</title>
+        <line x1="480" y1="292" x2="480" y2="332" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-github-actions-flow)"></line>
+        <rect x="500" y="300" width="132" height="28" rx="14" fill="var(--bg-element1)" stroke="var(--border3)"></rect>
+        <text x="566" y="320" text-anchor="middle" fill="var(--text1)" font-size="14">job 시작</text>
+      </g>
+
+      <g id="github-actions-test-job">
+        <title>Test job runs on Runner A</title>
+        <rect x="60" y="344" width="840" height="284" rx="20" fill="var(--diagram-blue-soft)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+        <text x="92" y="378" fill="var(--diagram-blue)" font-size="15" font-weight="700">RUNNER A</text>
+        <text x="480" y="386" text-anchor="middle" fill="var(--text1)" font-size="22" font-weight="700">Job: test</text>
+      </g>
+
+      <g id="github-actions-test-steps">
+        <title>Test job steps run sequentially</title>
+        <rect x="102" y="430" width="188" height="78" rx="13" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+        <text x="196" y="462" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">Step 1</text>
+        <text x="196" y="488" text-anchor="middle" fill="var(--text1)" font-size="15">checkout</text>
+        <line x1="290" y1="469" x2="370" y2="469" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-github-actions-flow)"></line>
+        <rect x="384" y="430" width="188" height="78" rx="13" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+        <text x="478" y="462" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">Step 2</text>
+        <text x="478" y="488" text-anchor="middle" fill="var(--text1)" font-size="15">setup</text>
+        <line x1="572" y1="469" x2="652" y2="469" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-github-actions-flow)"></line>
+        <rect x="666" y="430" width="192" height="78" rx="13" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+        <text x="762" y="462" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">Step 3</text>
+        <text x="762" y="488" text-anchor="middle" fill="var(--text1)" font-size="15">install · test</text>
+        <text x="480" y="552" text-anchor="middle" fill="var(--text1)" font-size="16">Step은 같은 Runner에서 왼쪽부터 순서대로 실행</text>
+        <rect x="302" y="574" width="356" height="36" rx="18" fill="var(--bg-element3)"></rect>
+        <text x="480" y="598" text-anchor="middle" fill="var(--text1)" font-size="15">하나라도 실패하면 test Job은 실패</text>
+      </g>
+
+      <g id="github-actions-test-to-package">
+        <title>Package job waits for test through needs</title>
+        <line x1="480" y1="628" x2="480" y2="682" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-github-actions-flow)"></line>
+        <rect x="500" y="642" width="150" height="30" rx="15" fill="var(--bg-element1)" stroke="var(--border3)"></rect>
+        <text x="575" y="663" text-anchor="middle" fill="var(--text1)" font-size="14" font-weight="700">needs: test</text>
+      </g>
+
+      <g id="github-actions-package-job">
+        <title>Dependent package job starts after test succeeds</title>
+        <rect x="60" y="696" width="840" height="128" rx="18" fill="var(--diagram-orange-soft)" stroke="var(--diagram-orange)" stroke-width="2"></rect>
+        <text x="92" y="730" fill="var(--diagram-orange)" font-size="15" font-weight="700">RUNNER B</text>
+        <text x="480" y="748" text-anchor="middle" fill="var(--text1)" font-size="22" font-weight="700">Job: package</text>
+        <text x="480" y="780" text-anchor="middle" fill="var(--text1)" font-size="16">test Job이 성공한 뒤 별도 Runner에서 시작</text>
+        <rect x="350" y="794" width="260" height="24" rx="12" fill="var(--bg-element1)"></rect>
+        <text x="480" y="811" text-anchor="middle" fill="var(--text1)" font-size="13">Job 간 파일과 설치 상태는 자동 공유되지 않음</text>
+      </g>
+    </svg>
+  </div>
+  <div class="post-visual__notes">
+    <div class="post-visual__note">
+      <strong>Job 간 격리</strong>
+      <p>Job마다 Runner가 달라질 수 있으므로 파일이나 설치 상태를 자동으로 공유하지 않는다.</p>
+    </div>
+    <div class="post-visual__note">
+      <strong>순서가 필요할 때</strong>
+      <p><code>needs</code>를 지정하면 선행 Job의 성공 여부를 기준으로 다음 Job을 시작할 수 있다.</p>
+    </div>
+  </div>
+</figure>

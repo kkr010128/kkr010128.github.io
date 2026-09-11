@@ -1,0 +1,170 @@
+<figure class="post-visual" aria-labelledby="cicd-flow-caption">
+  <figcaption class="post-visual__caption" id="cicd-flow-caption">
+    Source 변경이 Container Image와 Kubernetes Pod로 이어지는 CI/CD 흐름
+  </figcaption>
+  <div class="post-visual__frame">
+    <svg viewBox="0 0 960 920" role="img" aria-labelledby="cicd-flow-title cicd-flow-desc">
+      <title id="cicd-flow-title">Container CI/CD와 Kubernetes 배포 흐름</title>
+      <desc id="cicd-flow-desc">개발자의 코드 Push가 CI의 Build와 Test, Registry의 Image 저장, CD의 배포 요청, Kubernetes Control Plane의 배치 결정, Worker의 Image Pull과 Pod 실행으로 이어진다.</desc>
+      <defs>
+        <marker id="arrow-cicd-flow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L6,3 L0,6 z" fill="var(--text2)"></path>
+        </marker>
+      </defs>
+
+      <g id="cicd-build-lane">
+        <title>Build and verification lane</title>
+        <rect x="32" y="32" width="896" height="162" rx="22" fill="var(--bg-element1)" stroke="var(--border3)" stroke-width="2"></rect>
+        <text x="58" y="65" fill="var(--text3)" font-size="16" font-weight="700">BUILD &amp; VERIFY</text>
+      </g>
+
+      <g id="cicd-source">
+        <title>Developer and source repository</title>
+        <rect x="60" y="92" width="170" height="80" rx="16" fill="var(--diagram-blue-soft)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+        <text x="145" y="124" text-anchor="middle" fill="var(--text1)" font-size="20" font-weight="700">Source</text>
+        <text x="145" y="151" text-anchor="middle" fill="var(--text1)" font-size="15">commit · push</text>
+      </g>
+
+      <g id="cicd-source-to-ci">
+        <title>Push event triggers CI</title>
+        <line x1="230" y1="132" x2="290" y2="132" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-cicd-flow)"></line>
+        <text x="260" y="112" text-anchor="middle" fill="var(--text2)" font-size="15">event</text>
+      </g>
+
+      <g id="cicd-ci-runner">
+        <title>CI runner checks out, builds, tests, and creates an image</title>
+        <rect x="302" y="80" width="340" height="104" rx="16" fill="var(--diagram-primary-soft)" stroke="var(--primary2)" stroke-width="3"></rect>
+        <text x="472" y="112" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">CI Runner</text>
+        <text x="472" y="141" text-anchor="middle" fill="var(--text1)" font-size="15">checkout → build → test</text>
+        <text x="472" y="165" text-anchor="middle" fill="var(--primary1)" font-size="15" font-weight="700">container image 생성</text>
+      </g>
+
+      <g id="cicd-ci-to-registry">
+        <title>CI pushes a versioned image</title>
+        <line x1="642" y1="132" x2="702" y2="132" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-cicd-flow)"></line>
+        <text x="672" y="112" text-anchor="middle" fill="var(--text2)" font-size="15">push</text>
+      </g>
+
+      <g id="cicd-registry">
+        <title>Container registry stores versioned images</title>
+        <rect x="714" y="92" width="186" height="80" rx="16" fill="var(--diagram-violet-soft)" stroke="var(--diagram-violet)" stroke-width="2"></rect>
+        <text x="807" y="124" text-anchor="middle" fill="var(--text1)" font-size="20" font-weight="700">Registry</text>
+        <text x="807" y="151" text-anchor="middle" fill="var(--text1)" font-size="15">image:tag</text>
+      </g>
+
+      <g id="cicd-release-lane">
+        <title>Release and run lane</title>
+        <rect x="32" y="220" width="896" height="668" rx="22" fill="var(--bg-element1)" stroke="var(--border3)" stroke-width="2"></rect>
+        <text x="58" y="252" fill="var(--text2)" font-size="16" font-weight="700">RELEASE &amp; RUN</text>
+      </g>
+
+      <g id="cicd-cd-system">
+        <title>CD system changes the desired deployment state</title>
+        <rect x="60" y="278" width="840" height="106" rx="16" fill="var(--diagram-orange-soft)" stroke="var(--diagram-orange)" stroke-width="2"></rect>
+        <text x="92" y="312" fill="var(--diagram-orange)" font-size="15" font-weight="700">CD SYSTEM</text>
+        <text x="480" y="321" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">Manifest의 Image Version 갱신</text>
+        <text x="480" y="352" text-anchor="middle" fill="var(--text1)" font-size="16">배포 도구가 원하는 상태를 API Server에 전달</text>
+      </g>
+
+      <g id="cicd-registry-to-cd">
+        <title>New image version becomes the release target</title>
+        <path d="M807 172 V206 H820 V268" fill="none" stroke="var(--diagram-violet)" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrow-cicd-flow)"></path>
+        <rect x="574" y="204" width="306" height="34" rx="17" fill="var(--bg-element1)" stroke="var(--border3)"></rect>
+        <text x="727" y="227" text-anchor="middle" fill="var(--text1)" font-size="15">새 Image Version을 배포 대상으로 선택</text>
+      </g>
+
+      <g id="cicd-control-plane">
+        <title>Kubernetes Control Plane</title>
+        <rect x="60" y="438" width="840" height="188" rx="18" fill="var(--diagram-blue-soft)" stroke="var(--diagram-blue)" stroke-width="2" stroke-dasharray="7 6"></rect>
+        <text x="92" y="472" fill="var(--diagram-blue)" font-size="15" font-weight="700">CONTROL PLANE</text>
+      </g>
+
+      <g id="cicd-cd-to-api">
+        <title>CD sends the desired state to the API Server</title>
+        <line x1="480" y1="384" x2="480" y2="426" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-cicd-flow)"></line>
+        <rect x="500" y="394" width="132" height="28" rx="14" fill="var(--bg-element1)"></rect>
+        <text x="566" y="414" text-anchor="middle" fill="var(--text1)" font-size="14">배포 요청</text>
+      </g>
+
+      <g id="cicd-api-server">
+        <title>API Server receives and persists the requested state</title>
+        <rect x="106" y="500" width="254" height="82" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+        <text x="233" y="533" text-anchor="middle" fill="var(--text1)" font-size="19" font-weight="700">API Server</text>
+        <text x="233" y="560" text-anchor="middle" fill="var(--text1)" font-size="15">요청 검증 · 상태 저장</text>
+      </g>
+
+      <g id="cicd-api-to-controllers">
+        <title>Controllers and scheduler reconcile and place the Pod</title>
+        <line x1="360" y1="541" x2="464" y2="541" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-cicd-flow)"></line>
+      </g>
+
+      <g id="cicd-controllers-scheduler">
+        <title>Controllers reconcile state and scheduler chooses a worker</title>
+        <rect x="478" y="500" width="376" height="82" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+        <text x="666" y="533" text-anchor="middle" fill="var(--text1)" font-size="19" font-weight="700">Controllers · Scheduler</text>
+        <text x="666" y="560" text-anchor="middle" fill="var(--text1)" font-size="15">상태 조정 · 실행할 Worker 결정</text>
+      </g>
+
+      <g id="cicd-worker-node">
+        <title>Kubernetes Worker</title>
+        <rect x="60" y="684" width="840" height="170" rx="18" fill="var(--diagram-primary-soft)" stroke="var(--primary2)" stroke-width="2" stroke-dasharray="7 6"></rect>
+        <text x="92" y="718" fill="var(--primary1)" font-size="15" font-weight="700">WORKER NODE</text>
+      </g>
+
+      <g id="cicd-control-plane-to-worker">
+        <title>The assigned Pod specification is observed by kubelet</title>
+        <line x1="480" y1="626" x2="480" y2="672" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-cicd-flow)"></line>
+        <rect x="500" y="638" width="160" height="28" rx="14" fill="var(--bg-element1)"></rect>
+        <text x="580" y="658" text-anchor="middle" fill="var(--text1)" font-size="14">배치된 Pod Spec</text>
+      </g>
+
+      <g id="cicd-kubelet">
+        <title>Kubelet observes the Pod specification on its worker</title>
+        <rect x="106" y="752" width="210" height="70" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+        <text x="211" y="782" text-anchor="middle" fill="var(--text1)" font-size="19" font-weight="700">kubelet</text>
+        <text x="211" y="807" text-anchor="middle" fill="var(--text1)" font-size="14">Pod Spec 확인</text>
+      </g>
+
+      <g id="cicd-kubelet-to-runtime">
+        <title>Kubelet asks the container runtime to create containers</title>
+        <line x1="316" y1="787" x2="374" y2="787" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-cicd-flow)"></line>
+      </g>
+
+      <g id="cicd-runtime">
+        <title>Container runtime pulls the requested image</title>
+        <rect x="388" y="752" width="210" height="70" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+        <text x="493" y="782" text-anchor="middle" fill="var(--text1)" font-size="19" font-weight="700">Runtime</text>
+        <text x="493" y="807" text-anchor="middle" fill="var(--text1)" font-size="14">Image Pull · Container 생성</text>
+      </g>
+
+      <g id="cicd-runtime-to-pod">
+        <title>Runtime starts the Pod containers</title>
+        <line x1="598" y1="787" x2="672" y2="787" stroke="var(--text2)" stroke-width="2.5" marker-end="url(#arrow-cicd-flow)"></line>
+      </g>
+
+      <g id="cicd-pod">
+        <title>Pod runs on the selected worker</title>
+        <rect x="686" y="752" width="168" height="70" rx="35" fill="var(--primary2)" stroke="var(--primary1)" stroke-width="2"></rect>
+        <text x="770" y="782" text-anchor="middle" fill="#08251d" font-size="19" font-weight="800">Pod</text>
+        <text x="770" y="807" text-anchor="middle" fill="#08251d" font-size="14">Running</text>
+      </g>
+
+      <g id="cicd-registry-to-runtime">
+        <title>Worker runtime pulls the image from the registry</title>
+        <path d="M900 132 H938 V736 H493 V744" fill="none" stroke="var(--diagram-violet)" stroke-width="2.2" stroke-dasharray="7 7" marker-end="url(#arrow-cicd-flow)"></path>
+        <rect x="746" y="696" width="144" height="30" rx="15" fill="var(--bg-element1)" stroke="var(--diagram-violet)"></rect>
+        <text x="818" y="717" text-anchor="middle" fill="var(--diagram-violet)" font-size="14" font-weight="700">Registry Pull</text>
+      </g>
+    </svg>
+  </div>
+  <div class="post-visual__notes">
+    <div class="post-visual__note">
+      <strong>CI의 책임</strong>
+      <p>코드를 검증하고 재현 가능한 Image를 Registry에 남긴다. CI 성공은 정의한 검사를 통과했다는 뜻이다.</p>
+    </div>
+    <div class="post-visual__note">
+      <strong>Kubernetes의 책임</strong>
+      <p>Control Plane이 원하는 상태와 배치를 결정하고, 선택된 Worker가 Image를 받아 Pod를 실행한다.</p>
+    </div>
+  </div>
+</figure>
