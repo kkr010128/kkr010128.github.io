@@ -46,8 +46,8 @@
                   {% else %}
                     <span
                       class="github-graph__cell github-graph__cell--{{ day.level | downcase }}"
-                      title="{{ day.tooltip }}"
-                      aria-label="{{ day.tooltip }}"
+                      data-tooltip="{{ day.tooltip | escape }}"
+                      aria-label="{{ day.tooltip | escape }}"
                     ></span>
                   {% endif %}
                 {% endfor %}
