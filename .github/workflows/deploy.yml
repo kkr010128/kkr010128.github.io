@@ -50,7 +50,7 @@ jobs:
 
       # Jekyll 정적 파일 빌드
       - name: Build Site
-        run: bundle exec jekyll build
+        run: JEKYLL_ENV=production bundle exec jekyll build
 
       # 빌드 결과물 최소 검증
       - name: Verify Build
