@@ -43,11 +43,11 @@ html[data-theme="light"] {
   --shadow-color: rgba(0, 0, 0, 0.05);
   --code-bg: #fbfcfd;
   --header-bg: rgba(255, 255, 255, 0.88);
-  --contribution-none: #edf9f4;
-  --contribution-first: #d3f9e8;
-  --contribution-second: #96f2d7;
-  --contribution-third: #38d9a9;
-  --contribution-fourth: #12b886;
+  --contribution-none: #e9ecef;
+  --contribution-first: #b2f2d8;
+  --contribution-second: #63e6be;
+  --contribution-third: #20c997;
+  --contribution-fourth: #087f5b;
 }
 
 html[data-theme="dark"] {
@@ -71,11 +71,11 @@ html[data-theme="dark"] {
   --shadow-color: rgba(0, 0, 0, 0.35);
   --code-bg: #1e1e1e;
   --header-bg: rgba(18, 18, 18, 0.88);
-  --contribution-none: #1b2623;
-  --contribution-first: #1e4d40;
-  --contribution-second: #267a61;
-  --contribution-third: #34c79b;
-  --contribution-fourth: #96f2d7;
+  --contribution-none: #2a2a2a;
+  --contribution-first: #1f5948;
+  --contribution-second: #2f9e79;
+  --contribution-third: #63e6be;
+  --contribution-fourth: #b2f2e2;
 }
 
 * {
@@ -436,6 +436,7 @@ html[data-theme="dark"] .theme-toggle__moon {
 }
 
 .github-graph__cell {
+  position: relative;
   width: 100%;
   height: auto;
   aspect-ratio: 1 / 1;
@@ -445,8 +446,53 @@ html[data-theme="dark"] .theme-toggle__moon {
 }
 
 .github-graph__cell:hover {
+  z-index: 10;
   transform: scale(1.08);
   filter: brightness(1.04);
+}
+
+.github-graph__cell[data-tooltip]::before,
+.github-graph__cell[data-tooltip]::after {
+  position: absolute;
+  left: 50%;
+  z-index: 20;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.github-graph__cell[data-tooltip]::before {
+  content: "";
+  bottom: calc(100% + 0.25rem);
+  width: 0;
+  height: 0;
+  border: 0.3125rem solid transparent;
+  border-top-color: var(--text1);
+  transform: translateX(-50%);
+}
+
+.github-graph__cell[data-tooltip]::after {
+  content: attr(data-tooltip);
+  bottom: calc(100% + 0.875rem);
+  width: max-content;
+  max-width: min(18rem, 80vw);
+  padding: 0.45rem 0.625rem;
+  border-radius: 0.375rem;
+  background: var(--text1);
+  box-shadow: 0 0.375rem 1rem var(--shadow-color);
+  color: var(--bg-page2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  white-space: normal;
+  transform: translateX(-50%);
+}
+
+.github-graph__cell[data-tooltip]:hover::before,
+.github-graph__cell[data-tooltip]:hover::after {
+  visibility: visible;
+  opacity: 1;
 }
 
 .github-graph__cell--padding {
