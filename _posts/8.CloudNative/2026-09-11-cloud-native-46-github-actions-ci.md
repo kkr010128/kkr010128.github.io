@@ -1,7 +1,8 @@
 ---
-title: GitHub Actions Workflow와 CI 실습
-description: GitHub Actions의 Event·Workflow·Job·Step·Runner 구조를 이해하고 Node.js와 Python Project의 Test를 자동화한다
+title: GitHub Actions Workflow와 CI/CD 실습
+description: GitHub Actions의 실행 구조를 이해하고 Node.js와 Python Test부터 Docker Image Build 및 Docker Hub Push까지 자동화한다
 date: 2026-09-11
+updated_at: 2026-09-14
 series: CloudNative
 tags:
   - CloudNative
@@ -655,7 +656,145 @@ git push -u origin main
 
 Push가 끝나면 Actions Tab에서 `Python CI` Workflow의 `Install dependencies`와 `Run tests` Step을 확인한다.
 
-## 8 ) Actions 화면과 Log 확인
+## 8 ) Flask Application을 Image로 만들기
+
+---
+
+Pytest가 통과한 Source를 같은 실행 환경으로 전달하려면 Container Image로 Package할 수 있다. 다음 `Dockerfile`은 Python 3.13 기반 Image에 Dependency와 Application Source를 넣고 Flask Server를 실행한다.
+
+```dockerfile
+FROM python:3.13-slim
+
+WORKDIR /usr/src/app
+
+COPY requirements.txt ./
+RUN python -m pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 5000
+
+CMD ["python", "-m", "flask", "run", "--host=0.0.0.0", "--port=5000"]
+```
+
+Flask는 `app.py`를 기본 Application Module로 탐색한다. File 이름이 다르면 `FLASK_APP` 환경 변수를 지정해야 한다. Image에 Local Virtual Environment와 MongoDB Data가 들어가지 않도록 `.dockerignore`도 작성한다.
+
+```dockerignore
+.git/
+.github/
+.venv/
+__pycache__/
+.pytest_cache/
+data/
+```
+
+Workflow에 연결하기 전에 Local에서 Image를 Build하고 Container가 시작되는지 확인한다.
+
+```bash
+docker build -t flaskweb:local .
+docker run --rm -d \
+  --name flaskweb \
+  -p 5000:5000 \
+  flaskweb:local
+docker ps --filter name=flaskweb
+curl http://localhost:5000
+docker stop flaskweb
+```
+
+`docker build`가 성공해도 Application Process가 정상적으로 시작된다는 보장은 없다. `docker ps`, HTTP 요청과 `docker logs flaskweb`을 함께 사용해 Build 결과와 실행 결과를 구분해서 확인한다.
+
+## 9 ) Test 성공 후 Docker Hub에 Push
+
+---
+
+[Container Image Registry](/cloud-native-41-container-image-registry/)에서 정리한 Docker Hub Repository를 생성하고, Docker Hub Personal Access Token(PAT)을 준비한다. 계정 Password나 Token을 Workflow File에 직접 작성하면 Git 이력과 Log를 통해 노출될 수 있으므로 Repository Secret으로 등록한다.
+
+GitHub Repository의 **Settings → Secrets and variables → Actions → New repository secret**에서 다음 값을 만든다.
+
+| Secret | 저장할 값 | 사용 목적 |
+|---|---|---|
+| `DOCKERHUB_USERNAME` | Docker Hub 계정 이름 | Registry 로그인과 Image 이름 구성 |
+| `DOCKERHUB_TOKEN` | Docker Hub PAT | Password 대신 Registry 인증 |
+| `DOCKERHUB_REPO` | 생성한 Repository 이름 | Push할 Image Repository 지정 |
+
+실제 Token을 Source, Workflow, 화면 캡처 또는 문서에 기록하지 않는다. 이미 노출한 Token은 삭제만으로 안전해지지 않으므로 Docker Hub에서 폐기하고 새 Token을 발급한다.
+
+기존 `.github/workflows/ci-test.yml`을 다음과 같이 확장한다.
+
+{% raw %}
+```yaml
+name: Python CI and Docker Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run tests
+        run: pytest
+
+  build-and-push:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build image
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}
+        run: docker build -t "$IMAGE:${GITHUB_SHA}" -t "$IMAGE:latest" .
+
+      - name: Push image
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}
+        run: |
+          docker push "$IMAGE:${GITHUB_SHA}"
+          docker push "$IMAGE:latest"
+```
+{% endraw %}
+
+`needs: test`는 Test가 성공해야 `build-and-push` Job을 시작한다. `if: github.event_name == 'push'`는 Pull Request 검증에서는 Test만 수행하고 `main` Branch에 실제 Push된 실행에서만 Registry를 변경하도록 제한한다.
+
+Image에는 두 Tag를 붙인다.
+
+| Tag | 역할 |
+|---|---|
+| `${GITHUB_SHA}` | 어떤 Commit으로 만든 Image인지 추적 |
+| `latest` | 가장 최근에 Push한 Image를 가리키는 편의용 Tag |
+
+배포 자동화에서는 변경될 수 있는 `latest`보다 Commit SHA처럼 불변에 가까운 Tag를 지정하는 편이 재현과 Rollback에 유리하다. Workflow를 Push한 뒤 Actions 화면에서 `test`, `build-and-push` 순서와 각 Step의 Log를 확인하고 Docker Hub Repository에서 두 Tag가 생성됐는지 확인한다.
+
+공식 입력 값과 권장 인증 방식은 [docker/login-action](https://github.com/docker/login-action)과 [Docker Hub access token](https://docs.docker.com/security/access-tokens/) 문서에서 확인한다.
+
+## 10 ) Actions 화면과 Log 확인
 
 ---
 
@@ -694,5 +833,9 @@ Workflow를 Push한 뒤 다음 순서로 결과를 확인한다.
 > - Workflow 작성 중에는 Syntax, Event, Context, Variable, Expression과 Action별 README를 구분하여 필요한 값을 찾는다.
 >
 > - Issue 종료에 따른 Project 상태 변경은 내장 자동화를 우선 사용하고, 복잡한 조건과 사용자 정의 Field 변경에는 Actions와 GraphQL API를 사용한다.
+>
+> - Python Test가 성공한 뒤 `needs`로 Image Build를 연결하고, Docker Hub 인증 정보는 Repository Secret으로 주입한다.
+>
+> - Image에는 Commit SHA Tag를 함께 붙여 Source와 배포 Artifact의 관계를 추적한다.
 >
 > - Actions 화면에서는 Workflow, Job과 Step 단위로 상태와 Log를 확인할 수 있다.

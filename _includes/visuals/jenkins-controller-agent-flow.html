@@ -1,0 +1,126 @@
+<figure class="post-visual" aria-labelledby="jenkins-controller-agent-caption">
+  <figcaption class="post-visual__caption" id="jenkins-controller-agent-caption">
+    Trigger부터 Controller의 작업 배정과 Agent의 Build 실행까지 이어지는 Jenkins 흐름
+  </figcaption>
+  <div class="post-visual__frame">
+    <svg viewBox="0 0 840 790" role="img" aria-labelledby="jenkins-flow-title jenkins-flow-desc">
+      <title id="jenkins-flow-title">Jenkins Controller와 Agent의 실행 흐름</title>
+      <desc id="jenkins-flow-desc">Trigger, Controller와 Agent는 수직으로 연결된다. Controller와 Agent 내부의 처리 단계는 왼쪽에서 오른쪽으로 진행하며 상태, 로그와 아티팩트는 Controller로 반환된다.</desc>
+      <defs>
+        <marker id="arrow-jenkins-flow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0 0 7 3.5 0 7z" fill="var(--text3)"></path>
+        </marker>
+        <marker id="arrow-jenkins-dispatch" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0 0 7 3.5 0 7z" fill="var(--diagram-blue)"></path>
+        </marker>
+        <marker id="arrow-jenkins-return" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0 0 7 3.5 0 7z" fill="var(--diagram-orange)"></path>
+        </marker>
+      </defs>
+
+      <g id="jenkins-trigger">
+        <title>Build Trigger</title>
+        <rect x="220" y="38" width="400" height="92" rx="18" fill="var(--diagram-violet-soft)" stroke="var(--diagram-violet)" stroke-width="2"></rect>
+        <text x="420" y="72" text-anchor="middle" fill="var(--diagram-violet)" font-size="14" font-weight="700">TRIGGER</text>
+        <text x="420" y="104" text-anchor="middle" fill="var(--text1)" font-size="20" font-weight="700">SCM · 일정 · 사용자 요청</text>
+      </g>
+      <line id="jenkins-trigger-request" x1="420" y1="130" x2="420" y2="172" stroke="var(--text3)" stroke-width="3" marker-end="url(#arrow-jenkins-flow)"></line>
+
+      <g id="jenkins-controller">
+        <title>Controller 제어 영역</title>
+        <rect x="56" y="184" width="728" height="220" rx="22" fill="var(--diagram-primary-soft)" stroke="var(--primary2)" stroke-width="3"></rect>
+        <text x="86" y="215" fill="var(--primary1)" font-size="14" font-weight="700">CONTROLLER · 제어 영역</text>
+        <text x="420" y="244" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">요청을 판단하고 실행 위치를 결정</text>
+
+        <g id="jenkins-job-config">
+          <title>Job 설정 확인</title>
+          <rect x="100" y="270" width="190" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+          <text x="195" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">1. Job 설정</text>
+          <text x="195" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">SCM · Trigger · Step</text>
+        </g>
+        <line x1="290" y1="316" x2="326" y2="316" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-build-queue">
+          <title>Build Queue</title>
+          <rect x="334" y="270" width="172" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+          <text x="420" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">2. Build Queue</text>
+          <text x="420" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">Executor 대기</text>
+        </g>
+        <line x1="506" y1="316" x2="542" y2="316" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-scheduler">
+          <title>Scheduler가 Agent를 선택</title>
+          <rect x="550" y="270" width="190" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+          <text x="645" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">3. Scheduler</text>
+          <text x="645" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">Label · 빈 Executor</text>
+        </g>
+      </g>
+
+      <line id="jenkins-build-dispatch" x1="420" y1="404" x2="420" y2="478" stroke="var(--diagram-blue)" stroke-width="3" marker-end="url(#arrow-jenkins-dispatch)"></line>
+      <text x="452" y="446" fill="var(--diagram-blue)" font-size="13" font-weight="700">Build 할당</text>
+
+      <g id="jenkins-agent">
+        <title>Agent 실행 영역</title>
+        <rect x="56" y="490" width="728" height="220" rx="22" fill="var(--diagram-blue-soft)" stroke="var(--diagram-blue)" stroke-width="3"></rect>
+        <text x="86" y="521" fill="var(--diagram-blue)" font-size="14" font-weight="700">AGENT · 실행 영역</text>
+        <text x="420" y="550" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">선택된 Node에서 Build 수행</text>
+
+        <g id="jenkins-executor">
+          <title>Executor Slot 점유</title>
+          <rect x="82" y="578" width="146" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+          <text x="155" y="611" text-anchor="middle" fill="var(--text1)" font-size="16" font-weight="700">1. Executor</text>
+          <text x="155" y="638" text-anchor="middle" fill="var(--text2)" font-size="12">Slot 점유</text>
+        </g>
+        <line x1="228" y1="620" x2="258" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-workspace">
+          <title>Workspace 준비</title>
+          <rect x="266" y="578" width="146" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+          <text x="339" y="611" text-anchor="middle" fill="var(--text1)" font-size="16" font-weight="700">2. Workspace</text>
+          <text x="339" y="638" text-anchor="middle" fill="var(--text2)" font-size="12">Source · 중간 결과</text>
+        </g>
+        <line x1="412" y1="620" x2="442" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-build-steps">
+          <title>Build Step 실행</title>
+          <rect x="450" y="578" width="176" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+          <text x="538" y="607" text-anchor="middle" fill="var(--text1)" font-size="15" font-weight="700">3. Build Step</text>
+          <text x="538" y="630" text-anchor="middle" fill="var(--text2)" font-size="11">Checkout · Build</text>
+          <text x="538" y="648" text-anchor="middle" fill="var(--text2)" font-size="11">Test · Package</text>
+        </g>
+        <line x1="626" y1="620" x2="648" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-build-result">
+          <title>Build 결과 생성</title>
+          <rect x="656" y="578" width="102" height="84" rx="14" fill="var(--diagram-orange-soft)" stroke="var(--diagram-orange)" stroke-width="2"></rect>
+          <text x="707" y="607" text-anchor="middle" fill="var(--text1)" font-size="15" font-weight="700">4. 결과</text>
+          <text x="707" y="632" text-anchor="middle" fill="var(--text2)" font-size="11">상태 · Log</text>
+          <text x="707" y="650" text-anchor="middle" fill="var(--text2)" font-size="11">Artifact</text>
+        </g>
+      </g>
+
+      <g id="jenkins-result-return">
+        <title>Build 결과를 Controller로 반환</title>
+        <line x1="758" y1="620" x2="758" y2="404" stroke="var(--diagram-orange)" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow-jenkins-return)"></line>
+        <rect x="572" y="425" width="166" height="40" rx="16" fill="var(--bg-element1)" stroke="var(--diagram-orange)"></rect>
+        <text x="655" y="450" text-anchor="middle" fill="var(--diagram-orange)" font-size="12" font-weight="700">상태 · Log · Artifact 반환</text>
+      </g>
+
+      <g id="jenkins-isolation-note">
+        <title>Controller와 Build 실행 환경 분리</title>
+        <rect x="176" y="736" width="488" height="34" rx="17" fill="var(--bg-element3)"></rect>
+        <text x="420" y="758" text-anchor="middle" fill="var(--text2)" font-size="13">운영 환경에서는 Controller와 Build 실행 환경을 분리</text>
+      </g>
+    </svg>
+  </div>
+  <div class="post-visual__notes">
+    <div class="post-visual__note">
+      <strong>Controller의 관점</strong>
+      <p>실행 요청을 Queue에 넣고 Label과 빈 Executor를 기준으로 Agent를 선택한다.</p>
+    </div>
+    <div class="post-visual__note">
+      <strong>Agent의 관점</strong>
+      <p>Executor가 Workspace에서 Build Step을 실행하고 상태, Log와 Artifact를 반환한다.</p>
+    </div>
+  </div>
+</figure>
