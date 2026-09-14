@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Jenkins Controller-Agent 구조와 설치 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Jenkins의 Job 실행 흐름을 Controller, Queue, Agent와 Executor 관점에서 이해하고 Docker로 설치해 초기 설정과 Plugin을 관리한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/">
+<meta property="og:title" content="Jenkins Controller-Agent 구조와 설치 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Jenkins의 Job 실행 흐름을 Controller, Queue, Agent와 Executor 관점에서 이해하고 Docker로 설치해 초기 설정과 Plugin을 관리한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jenkins Controller-Agent 구조와 설치 | renamed.log">
+<meta name="twitter:description" content="Jenkins의 Job 실행 흐름을 Controller, Queue, Agent와 Executor 관점에서 이해하고 Docker로 설치해 초기 설정과 Plugin을 관리한다">
+
+  <meta property="article:published_time" content="2026-09-14T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1789382564" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789382564" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789382564">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789382564" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789382564">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Jenkins Controller-Agent 구조와 설치 | renamed.log",
+    "description": "Jenkins의 Job 실행 흐름을 Controller, Queue, Agent와 Executor 관점에서 이해하고 Docker로 설치해 초기 설정과 Plugin을 관리한다",
+    "url": "https://hyn128.site/cloud-native-47-jenkins-architecture-installation/",
+    "datePublished": "2026-09-14T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Jenkins Controller-Agent 구조와 설치</h1>
+    
+      <p class="post-head__description">Jenkins의 Job 실행 흐름을 Controller, Queue, Agent와 Executor 관점에서 이해하고 Docker로 설치해 초기 설정과 Plugin을 관리한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 14일 · 7분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Jenkins">Jenkins</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-46-github-actions-ci/">GitHub Actions Workflow와 CI/CD 실습</a>은 GitHub가 제공하는 Runner에서 Build와 Test를 실행했다. Jenkins는 조직이 직접 설치하고 확장할 수 있는 Java 기반 Open Source 자동화 Server이다. Source Checkout, Compile, Test, 정적 분석, Package, 배포와 결과 알림을 Plugin과 Job으로 연결한다.</p>
+
+<h2 id="1--jenkins가-담당하는-자동화">1 ) Jenkins가 담당하는 자동화</h2>
+
+<hr />
+
+<p>여러 개발자의 변경 사항이 Main Branch에 병합되면 Jenkins는 Webhook을 받거나 Repository를 주기적으로 확인해 Job을 시작할 수 있다. 일반적인 처리 과정은 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p>SCM Plugin으로 대상 Commit을 Checkout한다.</p>
+  </li>
+  <li>
+    <p>Maven이나 Gradle 같은 Build Tool로 Source를 Compile한다.</p>
+  </li>
+  <li>
+    <p>Unit Test와 Integration Test를 실행한다.</p>
+  </li>
+  <li>
+    <p>정적 분석 도구로 Coding Convention, 결함과 사용하지 않는 Code를 확인한다.</p>
+  </li>
+  <li>
+    <p>JAR, WAR 또는 Container Image 같은 Artifact로 Package한다.</p>
+  </li>
+  <li>
+    <p>배포 도구를 호출해 검증된 Artifact를 대상 환경으로 전달한다.</p>
+  </li>
+  <li>
+    <p>배포된 Application을 Selenium 같은 자동화 도구로 추가 검증할 수 있다.</p>
+  </li>
+  <li>
+    <p>수행 결과를 Email이나 협업 도구로 알린다.</p>
+  </li>
+</ol>
+
+<p>Jenkins Core가 모든 도구를 직접 구현하는 것은 아니다. Git, Maven, Email Extension처럼 외부 도구와 연결하는 기능은 주로 Plugin이 제공한다. 따라서 Jenkins Version뿐 아니라 설치한 Plugin의 Version과 호환성도 함께 관리해야 한다.</p>
+
+<h2 id="2--controller-agent와-executor">2 ) Controller, Agent와 Executor</h2>
+
+<hr />
+
+<p>Jenkins의 분산 구조를 이해하려면 실행을 결정하는 역할과 실제 명령을 수행하는 역할을 분리해서 봐야 한다.</p>
+
+<blockquote>
+  <p><strong>Controller</strong>
+Jenkins의 중앙 조정 Process이다. 설정과 Plugin을 보관하고 Web UI를 제공하며 Trigger, Build Queue와 Agent 할당을 관리한다. 과거에는 Master라고 불렀지만 현재 공식 용어는 Controller이다.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>Agent</strong>
+Controller에 연결되어 할당받은 Build Step을 실행하는 Machine, Virtual Machine 또는 Container이다.</p>
+</blockquote>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>관점</th>
+      <th>주요 역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Controller</td>
+      <td>제어</td>
+      <td>Job 설정 저장, Trigger 처리, Queue 관리, Agent 선택, UI와 결과 제공</td>
+    </tr>
+    <tr>
+      <td>Queue</td>
+      <td>대기</td>
+      <td>실행 조건을 만족했지만 Executor를 아직 배정받지 못한 Build 보관</td>
+    </tr>
+    <tr>
+      <td>Agent</td>
+      <td>실행</td>
+      <td>Workspace 준비, Source Checkout, Compile, Test와 Package 실행</td>
+    </tr>
+    <tr>
+      <td>Executor</td>
+      <td>동시 실행 용량</td>
+      <td>Node에서 동시에 실행할 수 있는 작업 Slot</td>
+    </tr>
+    <tr>
+      <td>Label</td>
+      <td>작업 배치 조건</td>
+      <td><code class="language-plaintext highlighter-rouge">linux</code>, <code class="language-plaintext highlighter-rouge">docker</code>, <code class="language-plaintext highlighter-rouge">jdk21</code>처럼 Agent의 능력을 표시</td>
+    </tr>
+    <tr>
+      <td>Workspace</td>
+      <td>작업 File 영역</td>
+      <td>Checkout한 Source와 Build 중간 결과를 저장하는 Node의 Directory</td>
+    </tr>
+    <tr>
+      <td>Artifact</td>
+      <td>보존 결과</td>
+      <td>Build가 만든 JAR, WAR, Report와 같은 불변 결과물</td>
+    </tr>
+  </tbody>
+</table>
+
+<figure class="post-visual" aria-labelledby="jenkins-controller-agent-caption">
+  <figcaption class="post-visual__caption" id="jenkins-controller-agent-caption">
+    Trigger부터 Controller의 작업 배정과 Agent의 Build 실행까지 이어지는 Jenkins 흐름
+  </figcaption>
+  <div class="post-visual__frame">
+    <svg viewBox="0 0 840 790" role="img" aria-labelledby="jenkins-flow-title jenkins-flow-desc">
+      <title id="jenkins-flow-title">Jenkins Controller와 Agent의 실행 흐름</title>
+      <desc id="jenkins-flow-desc">Trigger, Controller와 Agent는 수직으로 연결된다. Controller와 Agent 내부의 처리 단계는 왼쪽에서 오른쪽으로 진행하며 상태, 로그와 아티팩트는 Controller로 반환된다.</desc>
+      <defs>
+        <marker id="arrow-jenkins-flow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0 0 7 3.5 0 7z" fill="var(--text3)"></path>
+        </marker>
+        <marker id="arrow-jenkins-dispatch" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0 0 7 3.5 0 7z" fill="var(--diagram-blue)"></path>
+        </marker>
+        <marker id="arrow-jenkins-return" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+          <path d="M0 0 7 3.5 0 7z" fill="var(--diagram-orange)"></path>
+        </marker>
+      </defs>
+
+      <g id="jenkins-trigger">
+        <title>Build Trigger</title>
+        <rect x="220" y="38" width="400" height="92" rx="18" fill="var(--diagram-violet-soft)" stroke="var(--diagram-violet)" stroke-width="2"></rect>
+        <text x="420" y="72" text-anchor="middle" fill="var(--diagram-violet)" font-size="14" font-weight="700">TRIGGER</text>
+        <text x="420" y="104" text-anchor="middle" fill="var(--text1)" font-size="20" font-weight="700">SCM · 일정 · 사용자 요청</text>
+      </g>
+      <line id="jenkins-trigger-request" x1="420" y1="130" x2="420" y2="172" stroke="var(--text3)" stroke-width="3" marker-end="url(#arrow-jenkins-flow)"></line>
+
+      <g id="jenkins-controller">
+        <title>Controller 제어 영역</title>
+        <rect x="56" y="184" width="728" height="220" rx="22" fill="var(--diagram-primary-soft)" stroke="var(--primary2)" stroke-width="3"></rect>
+        <text x="86" y="215" fill="var(--primary1)" font-size="14" font-weight="700">CONTROLLER · 제어 영역</text>
+        <text x="420" y="244" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">요청을 판단하고 실행 위치를 결정</text>
+
+        <g id="jenkins-job-config">
+          <title>Job 설정 확인</title>
+          <rect x="100" y="270" width="190" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+          <text x="195" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">1. Job 설정</text>
+          <text x="195" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">SCM · Trigger · Step</text>
+        </g>
+        <line x1="290" y1="316" x2="326" y2="316" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-build-queue">
+          <title>Build Queue</title>
+          <rect x="334" y="270" width="172" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+          <text x="420" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">2. Build Queue</text>
+          <text x="420" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">Executor 대기</text>
+        </g>
+        <line x1="506" y1="316" x2="542" y2="316" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-scheduler">
+          <title>Scheduler가 Agent를 선택</title>
+          <rect x="550" y="270" width="190" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
+          <text x="645" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">3. Scheduler</text>
+          <text x="645" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">Label · 빈 Executor</text>
+        </g>
+      </g>
+
+      <line id="jenkins-build-dispatch" x1="420" y1="404" x2="420" y2="478" stroke="var(--diagram-blue)" stroke-width="3" marker-end="url(#arrow-jenkins-dispatch)"></line>
+      <text x="452" y="446" fill="var(--diagram-blue)" font-size="13" font-weight="700">Build 할당</text>
+
+      <g id="jenkins-agent">
+        <title>Agent 실행 영역</title>
+        <rect x="56" y="490" width="728" height="220" rx="22" fill="var(--diagram-blue-soft)" stroke="var(--diagram-blue)" stroke-width="3"></rect>
+        <text x="86" y="521" fill="var(--diagram-blue)" font-size="14" font-weight="700">AGENT · 실행 영역</text>
+        <text x="420" y="550" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">선택된 Node에서 Build 수행</text>
+
+        <g id="jenkins-executor">
+          <title>Executor Slot 점유</title>
+          <rect x="82" y="578" width="146" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+          <text x="155" y="611" text-anchor="middle" fill="var(--text1)" font-size="16" font-weight="700">1. Executor</text>
+          <text x="155" y="638" text-anchor="middle" fill="var(--text2)" font-size="12">Slot 점유</text>
+        </g>
+        <line x1="228" y1="620" x2="258" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-workspace">
+          <title>Workspace 준비</title>
+          <rect x="266" y="578" width="146" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+          <text x="339" y="611" text-anchor="middle" fill="var(--text1)" font-size="16" font-weight="700">2. Workspace</text>
+          <text x="339" y="638" text-anchor="middle" fill="var(--text2)" font-size="12">Source · 중간 결과</text>
+        </g>
+        <line x1="412" y1="620" x2="442" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-build-steps">
+          <title>Build Step 실행</title>
+          <rect x="450" y="578" width="176" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
+          <text x="538" y="607" text-anchor="middle" fill="var(--text1)" font-size="15" font-weight="700">3. Build Step</text>
+          <text x="538" y="630" text-anchor="middle" fill="var(--text2)" font-size="11">Checkout · Build</text>
+          <text x="538" y="648" text-anchor="middle" fill="var(--text2)" font-size="11">Test · Package</text>
+        </g>
+        <line x1="626" y1="620" x2="648" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
+
+        <g id="jenkins-build-result">
+          <title>Build 결과 생성</title>
+          <rect x="656" y="578" width="102" height="84" rx="14" fill="var(--diagram-orange-soft)" stroke="var(--diagram-orange)" stroke-width="2"></rect>
+          <text x="707" y="607" text-anchor="middle" fill="var(--text1)" font-size="15" font-weight="700">4. 결과</text>
+          <text x="707" y="632" text-anchor="middle" fill="var(--text2)" font-size="11">상태 · Log</text>
+          <text x="707" y="650" text-anchor="middle" fill="var(--text2)" font-size="11">Artifact</text>
+        </g>
+      </g>
+
+      <g id="jenkins-result-return">
+        <title>Build 결과를 Controller로 반환</title>
+        <line x1="758" y1="620" x2="758" y2="404" stroke="var(--diagram-orange)" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow-jenkins-return)"></line>
+        <rect x="572" y="425" width="166" height="40" rx="16" fill="var(--bg-element1)" stroke="var(--diagram-orange)"></rect>
+        <text x="655" y="450" text-anchor="middle" fill="var(--diagram-orange)" font-size="12" font-weight="700">상태 · Log · Artifact 반환</text>
+      </g>
+
+      <g id="jenkins-isolation-note">
+        <title>Controller와 Build 실행 환경 분리</title>
+        <rect x="176" y="736" width="488" height="34" rx="17" fill="var(--bg-element3)"></rect>
+        <text x="420" y="758" text-anchor="middle" fill="var(--text2)" font-size="13">운영 환경에서는 Controller와 Build 실행 환경을 분리</text>
+      </g>
+    </svg>
+  </div>
+  <div class="post-visual__notes">
+    <div class="post-visual__note">
+      <strong>Controller의 관점</strong>
+      <p>실행 요청을 Queue에 넣고 Label과 빈 Executor를 기준으로 Agent를 선택한다.</p>
+    </div>
+    <div class="post-visual__note">
+      <strong>Agent의 관점</strong>
+      <p>Executor가 Workspace에서 Build Step을 실행하고 상태, Log와 Artifact를 반환한다.</p>
+    </div>
+  </div>
+</figure>
+
+<p>Job이 시작되는 흐름은 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p>사용자의 <strong>Build Now</strong>, SCM 변경 또는 일정 Trigger가 Controller에 실행을 요청한다.</p>
+  </li>
+  <li>
+    <p>Controller가 Job 설정을 읽고 실행할 Build를 Queue에 넣는다.</p>
+  </li>
+  <li>
+    <p>Scheduler가 Label, Agent 연결 상태와 사용 가능한 Executor를 확인한다.</p>
+  </li>
+  <li>
+    <p>조건을 만족하는 Agent의 Executor가 Build를 가져간다.</p>
+  </li>
+  <li>
+    <p>Agent가 자신의 Workspace에서 Checkout, Build와 Test를 실행한다.</p>
+  </li>
+  <li>
+    <p>Console Log, Build 상태와 보관하도록 설정한 Artifact를 Controller가 사용자에게 제공한다.</p>
+  </li>
+</ol>
+
+<p>Agent 한 대에 Executor를 2개 설정하면 원칙적으로 작업 2개를 동시에 실행할 수 있다. 그러나 CPU, Memory, Disk I/O와 외부 Tool이 같은 Node를 공유하므로 Executor 수를 늘리는 것이 항상 처리량 증가로 이어지지는 않는다.</p>
+
+<p>Controller도 Node이므로 Executor를 가질 수 있지만, 운영 환경에서는 중앙 조정 Process와 Build Process를 격리하기 위해 Controller의 Executor를 <code class="language-plaintext highlighter-rouge">0</code>으로 두고 전용 Agent에서 작업을 실행하는 구성이 일반적이다. 실습처럼 단일 Container에서 시작할 때는 Built-In Node가 Build를 실행할 수 있으나 이 차이를 알고 사용해야 한다.</p>
+
+<h2 id="3--확장-방식">3 ) 확장 방식</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>변경 대상</th>
+      <th>장점</th>
+      <th>주의 사항</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>수직 확장</td>
+      <td>Controller 또는 Agent의 CPU, Memory, Disk 증설</td>
+      <td>구성과 운영 지점이 적음</td>
+      <td>한 Node의 한계와 장애 영향 범위가 큼</td>
+    </tr>
+    <tr>
+      <td>Agent 수평 확장</td>
+      <td>같은 Controller에 Agent 추가</td>
+      <td>Build 실행 용량과 환경 격리 확장</td>
+      <td>Queue 정책, Label과 Tool Version 관리 필요</td>
+    </tr>
+    <tr>
+      <td>Controller 분리</td>
+      <td>목적별 Jenkins Instance 운영</td>
+      <td>팀·보안 영역·환경별 독립 설정 가능</td>
+      <td>Plugin, Credential, Job과 Upgrade를 각각 관리해야 함</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>서로 독립된 Controller 여러 대를 운영한다고 해서 자동 Failover가 구성되는 것은 아니다. 한 Controller의 장애 시 다른 Controller가 Build를 자동 인계하려면 별도의 Job 동기화, Shared Storage, Backup과 복구 설계가 필요하다.</p>
+
+<p>Test용과 Production용 Controller를 분리하면 실험적인 Plugin이나 설정 변경이 운영 자동화에 미치는 영향을 줄일 수 있다. 대규모 조직이 Public Cloud와 On-Premises를 함께 사용하며 많은 Build를 처리한 사례는 Jenkins를 역할별로 분리할 수 있음을 보여주는 역사적 사례로 이해한다. 실제 분리 기준은 Build 수보다 보안 경계, 장애 범위와 유지보수 비용으로 결정한다.</p>
+
+<h2 id="4--설치-방법과-요구-사항">4 ) 설치 방법과 요구 사항</h2>
+
+<hr />
+
+<p>Jenkins는 여러 방식으로 설치할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>설치 방식</th>
+      <th>특징</th>
+      <th>관리 대상</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Standalone WAR</td>
+      <td>Java로 <code class="language-plaintext highlighter-rouge">jenkins.war</code> 직접 실행</td>
+      <td>Java, Service와 Jenkins Home</td>
+    </tr>
+    <tr>
+      <td>OS Package</td>
+      <td>Windows MSI, Debian·Ubuntu Package, Homebrew 등 사용</td>
+      <td>OS Package와 Service 설정</td>
+    </tr>
+    <tr>
+      <td>Docker</td>
+      <td>공식 Image와 Volume으로 실행</td>
+      <td>Image Tag, Container와 Volume</td>
+    </tr>
+    <tr>
+      <td>Kubernetes</td>
+      <td>Pod와 Persistent Volume으로 실행</td>
+      <td>Kubernetes Resource와 Storage</td>
+    </tr>
+    <tr>
+      <td>Cloud Service</td>
+      <td>공급자가 제공하는 관리형 환경 사용</td>
+      <td>공급자 정책과 연결 설정</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Jenkins WAR에는 Winstone/Jetty 기반 실행 환경이 포함되어 있어 일반적으로 별도 Tomcat 없이 Standalone Application으로 실행한다. 외부 Servlet Container에 WAR를 배포하는 방식도 존재하지만 지원 범위와 호환성 제약을 먼저 확인해야 한다.</p>
+
+<p>공식 Docker 설치 문서의 최소 요구 사항은 Memory 256 MB와 Disk 1 GB이며, Docker 환경은 Disk 10 GB 이상을 권장한다. 작은 팀에는 이보다 넉넉한 Memory와 Disk가 필요하다. 실제 용량은 Build 수, Workspace, Artifact 보존 기간과 Plugin 수를 기준으로 산정한다. 직접 설치할 때는 현재 Jenkins가 지원하는 Java Version도 확인해야 한다.</p>
+
+<h2 id="5--docker-compose로-설치">5 ) Docker Compose로 설치</h2>
+
+<hr />
+
+<p>다음 구성은 Jenkins Web UI와 향후 Inbound Agent 연결을 위한 Port를 열고 Jenkins Home을 Named Volume에 저장한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
+  <span class="na">jenkins</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">jenkins/jenkins:lts-jdk21</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">jenkins</span>
+    <span class="na">restart</span><span class="pi">:</span> <span class="s">unless-stopped</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:8080"</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">50000:50000"</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">jenkins_home:/var/jenkins_home</span>
+
+<span class="na">volumes</span><span class="pi">:</span>
+  <span class="na">jenkins_home</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">jenkins/jenkins:lts-jdk21</code></td>
+      <td>Java 21이 포함된 Jenkins LTS Image</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">8080:8080</code></td>
+      <td>Browser가 Jenkins Web UI에 접속하는 HTTP Port</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">50000:50000</code></td>
+      <td>외부 Inbound Agent가 Controller에 연결할 때 사용하는 기본 TCP Port</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">jenkins_home</code></td>
+      <td>Job, Plugin, Credential Metadata와 Build 이력을 Container 교체 후에도 유지</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>WebSocket으로 Agent를 연결하거나 외부 Agent를 사용하지 않는다면 <code class="language-plaintext highlighter-rouge">50000</code> Port 공개는 필요하지 않다. Host의 <code class="language-plaintext highlighter-rouge">/var/run/docker.sock</code>을 Mount하고 Container를 <code class="language-plaintext highlighter-rouge">root</code>로 실행하면 Jenkins Job이 Host Docker Daemon을 사실상 제어할 수 있다. 단순한 실습에는 편리하지만 Host 권한 탈취로 이어질 수 있으므로 위 기본 설치에는 포함하지 않는다.</p>
+
+<p>Compose File이 있는 Directory에서 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
+docker compose ps
+docker compose logs jenkins
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">docker compose ps</code>에서 Container가 실행 중인지 확인하고, <code class="language-plaintext highlighter-rouge">docker compose logs jenkins</code>에서 초기화 진행과 오류를 확인한다. Jenkins는 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code>으로 접속한다.</p>
+
+<h2 id="6--초기-잠금-해제와-관리자-생성">6 ) 초기 잠금 해제와 관리자 생성</h2>
+
+<hr />
+
+<p>최초 실행 시 Jenkins가 생성한 초기 관리자 Password로 Setup Wizard의 잠금을 해제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker <span class="nb">exec </span>jenkins <span class="se">\</span>
+  <span class="nb">cat</span> /var/jenkins_home/secrets/initialAdminPassword
+</code></pre></div></div>
+
+<p>이 값은 현재 Instance의 인증 정보이므로 문서, Source Repository 또는 화면 캡처에 남기지 않는다. 화면에 입력한 뒤 추천 Plugin을 설치하거나 필요한 Plugin을 선택하고, 실제로 사용할 관리자 계정을 생성한다.</p>
+
+<p>초기 설정 순서는 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">http://localhost:8080</code>에 접속한다.</p>
+  </li>
+  <li>
+    <p>명령으로 확인한 초기 Password를 입력한다.</p>
+  </li>
+  <li>
+    <p>추천 Plugin 설치 또는 Plugin 선택 설치를 진행한다.</p>
+  </li>
+  <li>
+    <p>관리자 계정과 Jenkins URL을 설정한다.</p>
+  </li>
+  <li>
+    <p>Dashboard가 표시되는지 확인한다.</p>
+  </li>
+</ol>
+
+<h2 id="7--plugin-관리">7 ) Plugin 관리</h2>
+
+<hr />
+
+<p><strong>Manage Jenkins → Plugins</strong>에서 설치 가능, 설치됨과 Update 대상 Plugin을 확인한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Plugin</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Git</td>
+      <td>Git Repository Checkout과 SCM 변경 확인</td>
+    </tr>
+    <tr>
+      <td>Maven Integration</td>
+      <td>Maven Project 유형과 Maven Build 연동</td>
+    </tr>
+    <tr>
+      <td>Email Extension</td>
+      <td>Build 결과에 따른 확장 Email 알림</td>
+    </tr>
+    <tr>
+      <td>Credentials Binding</td>
+      <td>Credential을 Build 환경 변수나 File로 제한적으로 주입</td>
+    </tr>
+    <tr>
+      <td>Throttle Concurrent Builds</td>
+      <td>Job 또는 Category별 동시 Build 수 제한</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Plugin이 많아질수록 기능뿐 아니라 의존성, Upgrade와 보안 관리 범위도 커진다. Job에 필요한 Plugin만 설치하고 Jenkins Core를 Upgrade하기 전에 Plugin 호환성을 확인한다.</p>
+
+<p>Update Center 오류가 발생하면 다음을 점검한다.</p>
+
+<ol>
+  <li>
+    <p>Jenkins Container의 DNS와 외부 Network 연결을 확인한다.</p>
+  </li>
+  <li>
+    <p>Host와 Container의 날짜와 시간이 올바른지 확인한다.</p>
+  </li>
+  <li>
+    <p>Proxy 환경이면 <strong>Manage Jenkins → Plugins → Advanced settings</strong>에서 Proxy를 설정한다.</p>
+  </li>
+  <li>
+    <p>사설 CA를 사용한다면 인증서를 Java Truststore에 올바르게 등록한다.</p>
+  </li>
+  <li>
+    <p>Update Center Metadata를 다시 불러오고 Jenkins Log의 원인을 확인한다.</p>
+  </li>
+</ol>
+
+<p><code class="language-plaintext highlighter-rouge">SSLHandshakeException</code>을 피하려고 Update Center URL을 HTTPS에서 HTTP로 바꾸면 Plugin과 Metadata 전송의 기밀성과 무결성을 잃는다. 인증서 Chain, CA Truststore와 Proxy의 TLS Inspection 여부를 수정해야 한다.</p>
+
+<p>현재 명칭과 설치 요구 사항은 <a href="https://www.jenkins.io/doc/book/glossary/">Jenkins 용어집</a>, <a href="https://www.jenkins.io/doc/book/installing/">Jenkins 설치 문서</a>와 <a href="https://www.jenkins.io/doc/book/installing/docker/">Docker 설치 문서</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Controller는 Trigger, Queue, 설정과 결과를 관리하고 Agent의 Executor가 실제 Build Step을 실행한다.</p>
+    </li>
+    <li>
+      <p>Agent Label과 Executor 수는 작업의 실행 위치와 동시 실행 용량을 결정한다.</p>
+    </li>
+    <li>
+      <p>독립된 Controller를 늘리는 것은 자동 Failover가 아니며 관리 대상도 함께 늘어난다.</p>
+    </li>
+    <li>
+      <p>Docker 설치에서는 <code class="language-plaintext highlighter-rouge">/var/jenkins_home</code>을 영속화하고 외부 Agent 사용 여부에 따라 <code class="language-plaintext highlighter-rouge">50000</code> Port를 결정한다.</p>
+    </li>
+    <li>
+      <p>초기 Password와 Credential은 문서나 Repository에 남기지 않고, TLS 오류는 HTTP 전환이 아니라 인증서와 Network 원인을 수정한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-46-github-actions-ci/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">GitHub Actions Workflow와 CI/CD 실습</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-48-jenkins-freestyle-credentials/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Jenkins Freestyle Job과 Credentials</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789382564"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789382564"></script>
+  </body>
+</html>

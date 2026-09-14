@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Jenkins Maven·Gradle Build와 Email 알림 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-49-jenkins-maven-gradle-build/">
+<meta property="og:title" content="Jenkins Maven·Gradle Build와 Email 알림 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-49-jenkins-maven-gradle-build/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jenkins Maven·Gradle Build와 Email 알림 | renamed.log">
+<meta name="twitter:description" content="Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다">
+
+  <meta property="article:published_time" content="2026-09-14T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1789382564" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789382564" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789382564">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789382564" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789382564">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Jenkins Maven·Gradle Build와 Email 알림 | renamed.log",
+    "description": "Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다",
+    "url": "https://hyn128.site/cloud-native-49-jenkins-maven-gradle-build/",
+    "datePublished": "2026-09-14T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Jenkins Maven·Gradle Build와 Email 알림</h1>
+    
+      <p class="post-head__description">Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 14일 · 7분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Jenkins">Jenkins</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-48-jenkins-freestyle-credentials/">Jenkins Freestyle Job과 Credentials</a>에서 Job의 SCM, Trigger, Build Step과 Credential을 정리했다. 이번에는 Java Project의 Dependency, Compile, Test와 Package 과정을 Maven과 Gradle에 맡기고 Jenkins가 같은 명령을 반복 실행하도록 구성한다.</p>
+
+<h2 id="1--java-build-tool이-담당하는-과정">1 ) Java Build Tool이 담당하는 과정</h2>
+
+<hr />
+
+<p>Java Application을 배포 가능한 결과물로 만들려면 다음 작업이 필요하다.</p>
+
+<ol>
+  <li>
+    <p>외부 Artifact Repository에서 Third-party Library와 Plugin을 내려받는다.</p>
+  </li>
+  <li>
+    <p>Dependency를 Compile과 Test Classpath에 연결한다.</p>
+  </li>
+  <li>
+    <p>Application Source와 Test Source를 Compile한다.</p>
+  </li>
+  <li>
+    <p>Unit Test를 실행하고 Report를 만든다.</p>
+  </li>
+  <li>
+    <p>실행 가능한 JAR 또는 WAR로 Package한다.</p>
+  </li>
+  <li>
+    <p>필요한 경우 Artifact Repository에 결과물을 배포한다.</p>
+  </li>
+</ol>
+
+<p>Ant, Maven과 Gradle은 이 과정을 자동화하는 Java Build Tool이다. Jenkins는 Build Tool을 대체하지 않는다. Jenkins가 Build를 시작하고 환경과 결과를 관리하며, 실제 Compile과 Test는 Project에 정의된 Maven Goal이나 Gradle Task가 수행한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>도구</th>
+      <th>핵심 설정</th>
+      <th>실행 단위</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Ant</td>
+      <td><code class="language-plaintext highlighter-rouge">build.xml</code></td>
+      <td>Target</td>
+      <td>실행 절차를 명시적으로 구성</td>
+    </tr>
+    <tr>
+      <td>Maven</td>
+      <td><code class="language-plaintext highlighter-rouge">pom.xml</code></td>
+      <td>Lifecycle Phase와 Goal</td>
+      <td>Convention과 표준 Directory 중심</td>
+    </tr>
+    <tr>
+      <td>Gradle</td>
+      <td><code class="language-plaintext highlighter-rouge">build.gradle</code> 또는 <code class="language-plaintext highlighter-rouge">build.gradle.kts</code></td>
+      <td>Task</td>
+      <td>Task Graph와 DSL 기반 구성</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="2--maven-lifecycle과-결과-directory">2 ) Maven Lifecycle과 결과 Directory</h2>
+
+<hr />
+
+<p>Maven은 Lifecycle의 Phase를 순서대로 실행한다. 뒤 Phase를 요청하면 앞 Phase도 함께 실행된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Phase</th>
+      <th>주요 동작</th>
+      <th>대표 결과</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">clean</code></td>
+      <td>이전 Build 결과 제거</td>
+      <td><code class="language-plaintext highlighter-rouge">target</code> 정리</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">compile</code></td>
+      <td><code class="language-plaintext highlighter-rouge">src/main/java</code> Source Compile</td>
+      <td><code class="language-plaintext highlighter-rouge">target/classes</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">test-compile</code></td>
+      <td><code class="language-plaintext highlighter-rouge">src/test/java</code> Test Source Compile</td>
+      <td><code class="language-plaintext highlighter-rouge">target/test-classes</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">test</code></td>
+      <td>Surefire Plugin으로 JUnit·TestNG Test 실행</td>
+      <td><code class="language-plaintext highlighter-rouge">target/surefire-reports</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">package</code></td>
+      <td>Packaging 설정에 따라 JAR 또는 WAR 생성</td>
+      <td><code class="language-plaintext highlighter-rouge">target/*.jar</code>, <code class="language-plaintext highlighter-rouge">target/*.war</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">install</code></td>
+      <td>Local Maven Repository에 Artifact 설치</td>
+      <td><code class="language-plaintext highlighter-rouge">~/.m2/repository</code></td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">deploy</code></td>
+      <td>Remote Artifact Repository에 배포</td>
+      <td>원격 Repository Artifact</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">mvn clean package</code>는 이전 결과를 지운 뒤 <code class="language-plaintext highlighter-rouge">package</code>까지 필요한 Compile과 Test Phase를 순서대로 실행한다. 따라서 <code class="language-plaintext highlighter-rouge">mvn clean compile package</code>처럼 <code class="language-plaintext highlighter-rouge">compile</code>을 별도로 넣을 필요가 없다.</p>
+
+<p>Maven은 <a href="https://central.sonatype.com/">Maven Central</a> 같은 Repository에서 Project Dependency뿐 아니라 Build Plugin의 Dependency도 해결한다. Network가 제한된 Jenkins Agent에서는 Proxy, 사내 Mirror와 Local Cache 정책을 별도로 설정해야 한다.</p>
+
+<h2 id="3--maven-spring-calculator-project">3 ) Maven Spring Calculator Project</h2>
+
+<hr />
+
+<p>Spring Initializr에서 Maven Project를 만들고 Spring Web과 Spring Boot DevTools Dependency를 선택한다. WAR가 필요하면 Packaging을 <code class="language-plaintext highlighter-rouge">war</code>로 설정하고, 단독 실행 JAR가 목적이면 기본 <code class="language-plaintext highlighter-rouge">jar</code>를 사용한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">src/main/java/&lt;package&gt;/Calculator.java</code>를 작성한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
+
+<span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Calculator</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">addition</span><span class="o">(</span><span class="kt">int</span> <span class="n">num1</span><span class="o">,</span> <span class="kt">int</span> <span class="n">num2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">num1</span> <span class="o">+</span> <span class="n">num2</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">subtraction</span><span class="o">(</span><span class="kt">int</span> <span class="n">num1</span><span class="o">,</span> <span class="kt">int</span> <span class="n">num2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">num1</span> <span class="o">-</span> <span class="n">num2</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">multiplication</span><span class="o">(</span><span class="kt">int</span> <span class="n">num1</span><span class="o">,</span> <span class="kt">int</span> <span class="n">num2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">num1</span> <span class="o">*</span> <span class="n">num2</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">src/main/java/&lt;package&gt;/CalculatorController.java</code>는 HTTP 요청을 Service에 전달한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RequestMapping</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RequestParam</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
+
+<span class="nd">@RestController</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">CalculatorController</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">CalculatorController</span><span class="o">(</span><span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">calculator</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@RequestMapping</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">index</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">"health check"</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@RequestMapping</span><span class="o">(</span><span class="s">"/add"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">add</span><span class="o">(</span><span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"num1"</span><span class="o">)</span> <span class="kt">int</span> <span class="n">num1</span><span class="o">,</span>
+                      <span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"num2"</span><span class="o">)</span> <span class="kt">int</span> <span class="n">num2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">calculator</span><span class="o">.</span><span class="na">addition</span><span class="o">(</span><span class="n">num1</span><span class="o">,</span> <span class="n">num2</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="nd">@RequestMapping</span><span class="o">(</span><span class="s">"/sub"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">sub</span><span class="o">(</span><span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"num1"</span><span class="o">)</span> <span class="kt">int</span> <span class="n">num1</span><span class="o">,</span>
+                      <span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"num2"</span><span class="o">)</span> <span class="kt">int</span> <span class="n">num2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">calculator</span><span class="o">.</span><span class="na">subtraction</span><span class="o">(</span><span class="n">num1</span><span class="o">,</span> <span class="n">num2</span><span class="o">));</span>
+    <span class="o">}</span>
+
+    <span class="nd">@RequestMapping</span><span class="o">(</span><span class="s">"/mul"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">mul</span><span class="o">(</span><span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"num1"</span><span class="o">)</span> <span class="kt">int</span> <span class="n">num1</span><span class="o">,</span>
+                      <span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"num2"</span><span class="o">)</span> <span class="kt">int</span> <span class="n">num2</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">calculator</span><span class="o">.</span><span class="na">multiplication</span><span class="o">(</span><span class="n">num1</span><span class="o">,</span> <span class="n">num2</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>TestNG를 사용하려면 <code class="language-plaintext highlighter-rouge">pom.xml</code>의 <code class="language-plaintext highlighter-rouge">dependencies</code>에 Test Scope Dependency를 추가한다.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>org.testng<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>testng<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;version&gt;</span>7.11.0<span class="nt">&lt;/version&gt;</span>
+    <span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</code></pre></div></div>
+
+<p>Test Source는 Maven 표준 경로인 <code class="language-plaintext highlighter-rouge">src/test/java/&lt;package&gt;/TestAdditionFunctionality.java</code>에 둔다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.testng.Assert</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.testng.annotations.AfterClass</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.testng.annotations.BeforeClass</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.testng.annotations.BeforeMethod</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.testng.annotations.Test</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">TestAdditionFunctionality</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">result</span><span class="o">;</span>
+
+    <span class="nd">@BeforeClass</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">init</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">calculator</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Calculator</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="nd">@BeforeMethod</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">resetResult</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Test</span><span class="o">(</span><span class="n">priority</span> <span class="o">=</span> <span class="mi">1</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testAdditionWithPositiveNumbers</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="na">addition</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="mi">20</span><span class="o">);</span>
+        <span class="nc">Assert</span><span class="o">.</span><span class="na">assertEquals</span><span class="o">(</span><span class="n">result</span><span class="o">,</span> <span class="mi">30</span><span class="o">,</span> <span class="s">"positive number"</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@AfterClass</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">tearDown</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">calculator</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">@BeforeClass</code>는 Class의 Test 전에 한 번 실행하고, <code class="language-plaintext highlighter-rouge">@BeforeMethod</code>는 각 Test Method 전에 실행한다. <code class="language-plaintext highlighter-rouge">@AfterClass</code>는 Class의 Test가 끝난 뒤 정리한다. Group 단위 준비가 필요한 Test에는 <code class="language-plaintext highlighter-rouge">@BeforeGroups</code>를 추가할 수 있지만 Group을 사용하지 않는 예제에는 불필요하다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">src/main/resources/application.properties</code>에서 실행 Port를 지정한다.</p>
+
+<div class="language-properties highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="py">server.port</span><span class="p">=</span><span class="s">80</span>
+</code></pre></div></div>
+
+<p>Port <code class="language-plaintext highlighter-rouge">80</code>은 Linux에서 일반 사용자 Process가 바로 Binding하지 못할 수 있고 기존 Web Server와 충돌할 수도 있다. Local 검증에서는 기본 <code class="language-plaintext highlighter-rouge">8080</code> 또는 사용하지 않는 일반 Port를 선택해도 된다.</p>
+
+<p>Local에서 먼저 Test와 Package를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./mvnw clean package
+find target <span class="nt">-maxdepth</span> 2 <span class="nt">-type</span> f
+</code></pre></div></div>
+
+<p>Maven Wrapper가 없다면 설치된 Maven으로 <code class="language-plaintext highlighter-rouge">mvn clean package</code>를 실행한다. Test 실패 시 명령이 0이 아닌 종료 Code를 반환하고 Package 단계도 실패한다.</p>
+
+<p>검증된 Project를 Remote Repository에 Push한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add <span class="nb">.</span>
+git commit <span class="nt">-m</span> <span class="s2">"Add Maven calculator project"</span>
+git push
+</code></pre></div></div>
+
+<h2 id="4--jenkins-maven-build-구성">4 ) Jenkins Maven Build 구성</h2>
+
+<hr />
+
+<p>Maven Project 유형을 사용하려면 Maven Integration Plugin을 설치한다. Freestyle Job에서 Shell로 Maven Wrapper를 실행하는 방식이라면 Maven Project 유형 없이도 구성할 수 있다.</p>
+
+<h3 id="jenkins-tool로-maven-사용">Jenkins Tool로 Maven 사용</h3>
+
+<ol>
+  <li>
+    <p><strong>Manage Jenkins → Plugins</strong>에서 Git과 Maven Integration Plugin을 확인한다.</p>
+  </li>
+  <li>
+    <p><strong>Manage Jenkins → Tools</strong>에서 JDK와 Maven Installation을 추가한다.</p>
+  </li>
+  <li>
+    <p>새 Maven Job을 만들고 <strong>Source Code Management → Git</strong>에 Repository URL과 Branch를 입력한다.</p>
+  </li>
+  <li>
+    <p>Private Repository라면 읽기 권한을 가진 Credential을 선택한다.</p>
+  </li>
+  <li>
+    <p>Maven Goal에 다음 값을 입력한다.</p>
+  </li>
+</ol>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>clean package
+</code></pre></div></div>
+
+<ol>
+  <li>저장 후 <strong>Build Now</strong>를 실행한다.</li>
+</ol>
+
+<p><code class="language-plaintext highlighter-rouge">mvn: command not found</code> 또는 Maven Installation을 찾을 수 없다는 오류가 발생하면 <strong>Manage Jenkins → Tools</strong>에서 Maven 이름과 자동 설치 설정을 확인한다. Job이 참조한 Tool 이름과 설정 이름도 일치해야 한다.</p>
+
+<h3 id="maven-wrapper-사용">Maven Wrapper 사용</h3>
+
+<p>Project에 <code class="language-plaintext highlighter-rouge">mvnw</code>와 <code class="language-plaintext highlighter-rouge">.mvn/wrapper</code>가 Commit되어 있다면 Freestyle Job의 <strong>Execute shell</strong>에서 다음과 같이 실행할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x ./mvnw
+./mvnw clean package
+</code></pre></div></div>
+
+<p>Wrapper를 사용하면 Project가 요구하는 Maven Version을 Source와 함께 관리할 수 있다. 다만 JDK는 Agent에 별도로 준비해야 하고 Wrapper가 처음 Maven Distribution을 받을 수 있도록 Network 접근이 필요하다.</p>
+
+<p>Build가 끝나면 다음을 확인한다.</p>
+
+<ul>
+  <li>
+    <p>Console Output에서 Dependency Download, Compile과 Test 결과</p>
+  </li>
+  <li>
+    <p>Workspace의 <code class="language-plaintext highlighter-rouge">target/classes</code>와 <code class="language-plaintext highlighter-rouge">target/test-classes</code></p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">target/surefire-reports</code>의 Test Report</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">target</code>에 생성된 JAR 또는 WAR</p>
+  </li>
+</ul>
+
+<p>Jenkins Container에서 직접 확인해야 한다면 다음 명령을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker <span class="nb">exec</span> <span class="nt">-it</span> jenkins bash
+<span class="nb">cd</span> /var/jenkins_home/workspace/&lt;job-name&gt;
+find target <span class="nt">-maxdepth</span> 2 <span class="nt">-type</span> f
+</code></pre></div></div>
+
+<p>단순히 File이 존재하는지만 확인하지 않고 해당 Build Number와 연결해 Artifact를 보관한다. Freestyle Job의 <strong>Post-build Actions → Archive the artifacts</strong>에 다음 Pattern을 지정할 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>target/*.jar, target/*.war
+</code></pre></div></div>
+
+<h2 id="5--poll-scm으로-변경-감지">5 ) Poll SCM으로 변경 감지</h2>
+
+<hr />
+
+<p>Jenkins가 외부 Webhook을 받을 수 없는 환경에서는 <strong>Build Triggers → Poll SCM</strong>을 사용해 Repository 변경을 확인한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>H/5 * * * *
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">H/5</code>는 Jenkins가 Job별 시작 시점을 분산하면서 약 5분 간격으로 확인하도록 한다. Polling할 때마다 Build하는 것이 아니라 SCM Revision이 바뀐 경우에 Build를 시작한다. 설정 후 Commit을 Push하고 다음을 확인한다.</p>
+
+<ol>
+  <li>
+    <p>Polling Log에서 변경 Commit을 감지했는가</p>
+  </li>
+  <li>
+    <p>새 Build Number가 생성됐는가</p>
+  </li>
+  <li>
+    <p>Console Output에 새 Commit ID가 표시되는가</p>
+  </li>
+  <li>
+    <p>Test와 Package가 성공했는가</p>
+  </li>
+</ol>
+
+<h2 id="6--email-알림">6 ) Email 알림</h2>
+
+<hr />
+
+<p>Jenkins는 Build 결과를 Email로 알릴 수 있다. Gmail이나 Naver 같은 외부 SMTP Server를 사용할 때는 일반 계정 Password 대신 서비스가 제공하는 App Password를 사용한다.</p>
+
+<p><strong>Manage Jenkins → System</strong>의 Email Notification 또는 Extended E-mail Notification 영역에 SMTP Host, Port, TLS와 발신 계정을 설정한다. 항목 이름은 설치한 Plugin과 Jenkins Version에 따라 달라질 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SMTP Server</td>
+      <td>Email을 전달할 Server 주소</td>
+    </tr>
+    <tr>
+      <td>SMTP Port</td>
+      <td>TLS 방식에 맞는 연결 Port</td>
+    </tr>
+    <tr>
+      <td>Authentication</td>
+      <td>발신 계정과 App Password</td>
+    </tr>
+    <tr>
+      <td>Use SSL/TLS</td>
+      <td>SMTP Server가 요구하는 암호화 방식</td>
+    </tr>
+    <tr>
+      <td>Reply-To Address</td>
+      <td>수신자가 회신할 주소</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>가능하면 SMTP 인증 값을 Jenkins Credential로 관리하고 접근 권한을 제한한다. App Password를 Job Script, Repository나 문서에 직접 적지 않는다.</p>
+
+<p>Freestyle Job의 <strong>Post-build Actions</strong>에서 Email Notification을 추가하고 수신 주소를 입력한다. Test Email을 보내 Server 설정을 먼저 확인한 뒤 성공, 실패 또는 불안정 상태 중 어떤 경우에 알릴지 정한다. Email 전송 실패와 Application Build 실패는 원인이 다르므로 Console Log의 Build Step과 Post-build Action을 구분해서 확인한다.</p>
+
+<h2 id="7--gradle-spring-calculator-project">7 ) Gradle Spring Calculator Project</h2>
+
+<hr />
+
+<p>Spring Initializr에서 Gradle Project를 만들고 Spring Boot DevTools, Lombok과 Spring Web Dependency를 선택한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">src/main/java/&lt;package&gt;/Calculator.java</code>를 작성한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
+
+<span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Calculator</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">sum</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">src/main/java/&lt;package&gt;/CalculatorController.java</code>를 작성한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">lombok.RequiredArgsConstructor</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RequestMapping</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RequestParam</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
+
+<span class="nd">@RestController</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">CalculatorController</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">;</span>
+
+    <span class="nd">@RequestMapping</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">health</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">"healthy"</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@RequestMapping</span><span class="o">(</span><span class="s">"/sum"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">sum</span><span class="o">(</span><span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"a"</span><span class="o">)</span> <span class="nc">Integer</span> <span class="n">a</span><span class="o">,</span>
+                      <span class="nd">@RequestParam</span><span class="o">(</span><span class="s">"b"</span><span class="o">)</span> <span class="nc">Integer</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="nc">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">calculator</span><span class="o">.</span><span class="na">sum</span><span class="o">(</span><span class="n">a</span><span class="o">,</span> <span class="n">b</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">src/main/resources/application.properties</code>에 Port를 지정한다.</p>
+
+<div class="language-properties highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="py">server.port</span><span class="p">=</span><span class="s">9000</span>
+</code></pre></div></div>
+
+<p>Gradle Wrapper를 사용해 목적별 Task를 실행한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>명령</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">./gradlew compileJava</code></td>
+      <td>Main Java Source Compile</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">./gradlew build</code></td>
+      <td>Compile, Test와 Package를 포함한 Build</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">./gradlew jar</code></td>
+      <td>Java Plugin의 일반 JAR 생성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">./gradlew bootRun</code></td>
+      <td>Spring Boot Application 실행</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Application을 실행해 Endpoint를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew bootRun
+curl <span class="s2">"http://localhost:9000/sum?a=10&amp;b=20"</span>
+</code></pre></div></div>
+
+<p>예상 응답은 <code class="language-plaintext highlighter-rouge">30</code>이다. 검증 후 Project File과 Gradle Wrapper를 GitHub에 Push한다.</p>
+
+<h2 id="8--jenkins-gradle-build-구성">8 ) Jenkins Gradle Build 구성</h2>
+
+<hr />
+
+<p>Freestyle Job을 만들고 Git Repository와 Branch를 연결한다. Linux Agent에서 Windows가 생성한 Repository를 Checkout하면 <code class="language-plaintext highlighter-rouge">gradlew</code>의 실행 권한이 Git에 기록되지 않았을 수 있다. <strong>Execute shell</strong>에서 권한을 확인한 뒤 Build한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x ./gradlew
+./gradlew clean build
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">build</code> Task가 <code class="language-plaintext highlighter-rouge">compileJava</code>를 포함하므로 두 명령을 연속으로 실행할 필요가 없다. <code class="language-plaintext highlighter-rouge">clean</code>은 이전 <code class="language-plaintext highlighter-rouge">build</code> Directory를 지워 남은 결과가 새 Build에 섞이지 않게 한다.</p>
+
+<p>반복해서 <code class="language-plaintext highlighter-rouge">chmod</code>하지 않으려면 개발 환경에서 실행 Bit를 Git Index에 기록해 Commit한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git update-index <span class="nt">--chmod</span><span class="o">=</span>+x gradlew
+git commit <span class="nt">-m</span> <span class="s2">"Make Gradle wrapper executable"</span>
+git push
+</code></pre></div></div>
+
+<p>Build 후 다음을 확인한다.</p>
+
+<ul>
+  <li>
+    <p>Console Output의 JDK와 Gradle Version</p>
+  </li>
+  <li>
+    <p>Test 실행 결과와 실패한 Test 이름</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">build/classes</code>의 Compile 결과</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">build/reports/tests</code>의 Test Report</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">build/libs</code>의 JAR</p>
+  </li>
+</ul>
+
+<p>JAR를 Jenkins Build에 보관하려면 <strong>Archive the artifacts</strong> Pattern을 지정한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>build/libs/*.jar
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Jenkins는 실행을 조정하고 Maven과 Gradle은 Dependency 해결, Compile, Test와 Package를 수행한다.</p>
+    </li>
+    <li>
+      <p>Maven의 <code class="language-plaintext highlighter-rouge">package</code>는 앞선 Compile과 Test Phase를 포함하므로 <code class="language-plaintext highlighter-rouge">clean package</code>로 충분하다.</p>
+    </li>
+    <li>
+      <p>Maven과 Gradle 표준 Directory에서 Test Report와 JAR·WAR 결과를 확인하고 Build Number에 연결해 Artifact로 보관한다.</p>
+    </li>
+    <li>
+      <p>Poll SCM은 약 5분마다 변경을 확인하고 변경된 Revision이 있을 때 Build를 시작한다.</p>
+    </li>
+    <li>
+      <p>SMTP App Password는 Credential로 관리하고 Email 전송 결과와 Build 결과를 분리해 진단한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-48-jenkins-freestyle-credentials/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Jenkins Freestyle Job과 Credentials</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789382564"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789382564"></script>
+  </body>
+</html>

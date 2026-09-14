@@ -4,16 +4,61 @@
       
       
       {
-        "title": "GitHub Actions Workflow와 CI 실습",
+        "title": "Jenkins Maven·Gradle Build와 Email 알림",
+        "url": "/cloud-native-49-jenkins-maven-gradle-build/",
+        "description": "Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Jenkins"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 14일",
+        "reading_time_label": "7분 읽기",
+        "search": "jenkins maven·gradle build와 email 알림 spring boot project를 maven과 gradle로 build하고 jenkins freestyle job에서 test, package, poll scm과 email 알림을 구성한다 cloudnative autoeversw jenkins cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Jenkins Freestyle Job과 Credentials",
+        "url": "/cloud-native-48-jenkins-freestyle-credentials/",
+        "description": "Jenkins Freestyle Job의 설정 영역과 Build 실행 흐름을 이해하고 SCM 및 외부 서비스 인증 정보를 Credentials로 관리한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Jenkins"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 14일",
+        "reading_time_label": "7분 읽기",
+        "search": "jenkins freestyle job과 credentials jenkins freestyle job의 설정 영역과 build 실행 흐름을 이해하고 scm 및 외부 서비스 인증 정보를 credentials로 관리한다 cloudnative autoeversw jenkins cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Jenkins Controller-Agent 구조와 설치",
+        "url": "/cloud-native-47-jenkins-architecture-installation/",
+        "description": "Jenkins의 Job 실행 흐름을 Controller, Queue, Agent와 Executor 관점에서 이해하고 Docker로 설치해 초기 설정과 Plugin을 관리한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Jenkins"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 14일",
+        "reading_time_label": "7분 읽기",
+        "search": "jenkins controller-agent 구조와 설치 jenkins의 job 실행 흐름을 controller, queue, agent와 executor 관점에서 이해하고 docker로 설치해 초기 설정과 plugin을 관리한다 cloudnative autoeversw jenkins cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "GitHub Actions Workflow와 CI/CD 실습",
         "url": "/cloud-native-46-github-actions-ci/",
-        "description": "GitHub Actions의 Event·Workflow·Job·Step·Runner 구조를 이해하고 Node.js와 Python Project의 Test를 자동화한다",
+        "description": "GitHub Actions의 실행 구조를 이해하고 Node.js와 Python Test부터 Docker Image Build 및 Docker Hub Push까지 자동화한다",
         "thumbnail": null,
         "tags": ["CloudNative","AutoEverSW","GitHubActions"],
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 11일",
-        "reading_time_label": "12분 읽기",
-        "search": "github actions workflow와 ci 실습 github actions의 event·workflow·job·step·runner 구조를 이해하고 node.js와 python project의 test를 자동화한다 cloudnative autoeversw githubactions cloudnative"
+        "reading_time_label": "14분 읽기",
+        "search": "github actions workflow와 ci/cd 실습 github actions의 실행 구조를 이해하고 node.js와 python test부터 docker image build 및 docker hub push까지 자동화한다 cloudnative autoeversw githubactions cloudnative"
       },
     
       
