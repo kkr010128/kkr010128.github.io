@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-15T00:07:05+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">홈서버로 이해하는 VPN</title><link href="https://hyn128.site/notes-09-techbites-vpn/" rel="alternate" type="text/html" title="홈서버로 이해하는 VPN" /><published>2026-09-14T00:00:00+09:00</published><updated>2026-09-14T00:00:00+09:00</updated><id>https://hyn128.site/notes-09-techbites-vpn</id><content type="html" xml:base="https://hyn128.site/notes-09-techbites-vpn/"><![CDATA[<h2 id="1--외부에서-집에-있는-컴퓨터에-접속할-일이-생겼다">1 ) 외부에서 집에 있는 컴퓨터에 접속할 일이 생겼다</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-15T09:34:23+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">홈서버로 이해하는 VPN</title><link href="https://hyn128.site/notes-09-techbites-vpn/" rel="alternate" type="text/html" title="홈서버로 이해하는 VPN" /><published>2026-09-14T00:00:00+09:00</published><updated>2026-09-14T00:00:00+09:00</updated><id>https://hyn128.site/notes-09-techbites-vpn</id><content type="html" xml:base="https://hyn128.site/notes-09-techbites-vpn/"><![CDATA[<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/20.webp" alt="" /></p>
+<h2 id="1--외부에서-집에-있는-컴퓨터에-접속할-일이-생겼다">1 ) 외부에서 집에 있는 컴퓨터에 접속할 일이 생겼다</h2>
 
 <hr />
 
@@ -19,15 +20,7 @@ ipTIME 공유기
 
 <p>처음에는 Windows RDP, Chrome Remote Desktop, VNC, SSH와 SFTP 등 여러 방법을 사용했다. 직접 접속해야 하는 서비스는 공유기에서 포트 포워딩도 설정했다. 외부 포트를 각 서버의 서비스 포트와 연결해두는 방식이다. 참고로 SFTP는 SSH를 기반으로 동작하므로 보통 SSH와 같은 연결 포트를 사용한다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>공인 IP:22   → Server 1의 SSH
-공인 IP:222  → Server 2의 SSH
-공인 IP:2222 → Server 3의 SSH
-
-공인 IP:3389 → Server 1의 RDP
-공인 IP:3390 → Server 2의 RDP
-공인 IP:5900 → Server 2의 VNC
-공인 IP:5959 → Server 3의 VNC
-</code></pre></div></div>
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/22.webp" alt="" /></p>
 
 <p>그런데 사용하다 보니 불편한 점이 생겼다.</p>
 
@@ -53,42 +46,17 @@ ipTIME 공유기
 
 <p>먼저 VPN을 연결하기 전부터 생각해보자. 홈서버가 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>이라는 주소를 사용한다고 가정하겠다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부 맥북 ── 인터넷 ── 공유기 ── 홈서버
-                              192.168.0.10
-</code></pre></div></div>
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/08.webp" alt="" /></p>
 
 <p><code class="language-plaintext highlighter-rouge">192.168.0.10</code>은 집 안에서만 사용하는 사설 IP다. 인터넷에서는 이 주소만 보고 어느 집에 있는 서버인지 찾아갈 수 없다.</p>
 
 <p>학교에 비유하면 이렇다.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>네트워크</th>
-      <th>학교 비유</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>공인 IP</td>
-      <td>학교 주소</td>
-    </tr>
-    <tr>
-      <td>공유기</td>
-      <td>학교 정문</td>
-    </tr>
-    <tr>
-      <td>사설 IP</td>
-      <td>교실 번호</td>
-    </tr>
-    <tr>
-      <td>홈서버</td>
-      <td>우리 교실</td>
-    </tr>
-  </tbody>
-</table>
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/26.webp" alt="" /></p>
 
 <p>학교 밖에서는 학교 주소를 알아야 그 학교까지 찾아갈 수 있다. <code class="language-plaintext highlighter-rouge">3학년 2반</code>이라는 교실 번호만 가지고는 어느 학교인지 알 수 없다. 사설 IP도 마찬가지다. <code class="language-plaintext highlighter-rouge">192.168.0.10</code>은 어느 네트워크에 속한 주소인지 알아야 의미가 있다.</p>
+
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/32.webp" alt="" /></p>
 
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>공인 IP
 → 인터넷에서 어느 네트워크인지 찾는 주소
@@ -105,18 +73,11 @@ ipTIME 공유기
 
 <p>VPN도 비슷하다. VPN에 연결했다고 맥북이 실제로 집 안에 들어가는 것은 아니다. 대신 맥북과 집 공유기 사이에 홈 네트워크용 패킷을 보낼 수 있는 전용 경로가 생긴다. 그래서 밖에서도 집 안의 사설 IP를 목적지로 사용할 수 있다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부 맥북
-    │
-    │ 암호화된 VPN 연결
-    ▼
-ipTIME 공유기
-    │
-    │ 홈 네트워크
-    ▼
-홈서버 192.168.0.10
-</code></pre></div></div>
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/34.webp" alt="" /></p>
 
 <p>실제 연결을 기준으로 보면 다음 네 단계다.</p>
+
+<p>![[36.webp]]</p>
 
 <ol>
   <li>
@@ -191,32 +152,7 @@ SSH 서버
 
 <p>대표적인 VPN 프로토콜에는 다음과 같은 것들이 있다.</p>
 
-<table>
-  <thead>
-    <tr>
-      <th>프로토콜</th>
-      <th>특징</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>L2TP/IPsec</td>
-      <td>L2TP가 데이터를 터널로 전달하고 IPsec이 통신 내용을 보호한다</td>
-    </tr>
-    <tr>
-      <td>IKEv2/IPsec</td>
-      <td>IKEv2로 IPsec 연결을 설정하고 관리한다</td>
-    </tr>
-    <tr>
-      <td>OpenVPN</td>
-      <td>TLS를 이용하며 여러 운영체제에서 사용할 수 있는 오픈 소스 방식이다</td>
-    </tr>
-    <tr>
-      <td>WireGuard</td>
-      <td>비교적 단순한 구조와 적은 코드로 설계된 VPN 프로토콜이다</td>
-    </tr>
-  </tbody>
-</table>
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/38.webp" alt="" /></p>
 
 <p>내가 ipTIME 공유기에서 사용하는 방식은 <strong>L2TP/IPsec</strong>이다. 이름에 두 기술이 함께 들어가는 이유는 맡은 일이 다르기 때문이다.</p>
 
@@ -254,6 +190,8 @@ IPsec
         └── 내용: SSH 요청
 </code></pre></div></div>
 
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/42.webp" alt="" /></p>
+
 <p>쉽게 말하면 편지를 택배 상자에 넣어 보내는 것과 비슷하다. 내부 패킷은 집 안에서 사용할 편지이고, 외부 패킷은 그 편지를 집까지 운반할 택배 상자다.</p>
 
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>택배 상자의 주소: 집 공유기의 공인 IP
@@ -264,16 +202,7 @@ IPsec
 
 <p>공유기는 자신에게 도착한 외부 패킷을 검증하고 복호화한 뒤, 그 안에서 원래 패킷을 꺼낸다. 편지에 적힌 목적지 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>을 확인하고 홈서버로 전달하는 것이다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부 패킷 수신
-    ↓
-IPsec 검증 및 복호화
-    ↓
-L2TP와 PPP 처리
-    ↓
-원래 IP 패킷 확인
-    ↓
-홈서버 192.168.0.10으로 전달
-</code></pre></div></div>
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/44.webp" alt="" /></p>
 
 <p>내가 사용하는 L2TP/IPsec에서는 각 기술이 맡은 일이 다르다.</p>
 
@@ -309,6 +238,8 @@ L2TP와 PPP 처리
 <p>VPN 터널이 만들어졌다고 모든 패킷이 자동으로 터널에 들어가는 것은 아니다. 맥북은 패킷을 보낼 때마다 목적지를 보고 어느 길로 보낼지 먼저 결정한다.</p>
 
 <p>이때 사용하는 것이 <strong>라우팅 테이블(Routing Table)</strong>이다. 목적지에 따라 어느 길을 이용할지 적어둔 길 안내표라고 보면 된다.</p>
+
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/46.webp" alt="" /></p>
 
 <p>예를 들어 VPN에 연결한 뒤 다음과 같은 경로가 추가될 수 있다.</p>
 
@@ -355,6 +286,8 @@ route <span class="nt">-n</span> get 192.168.0.10
 
 <p>맥북에서 홈서버 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>으로 SSH 패킷을 보낸다면 다음 순서로 처리된다.</p>
 
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/48.webp" alt="" /></p>
+
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>① 맥북이 홈서버를 목적지로 하는 패킷을 만든다.
 
 ② 라우팅 테이블에서 홈 네트워크용 VPN 경로를 선택한다.
@@ -390,12 +323,7 @@ route <span class="nt">-n</span> get 192.168.0.10
 
 <p>지금까지는 내가 외부 맥북에서 홈서버에 접속한 과정을 기준으로 살펴봤다. 이것은 외부에 있는 사용자 한 명이 사설 네트워크에 접속하는 <strong>Remote Access VPN</strong>이다.</p>
 
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부의 맥북
-    │
-    │ Remote Access VPN
-    ▼
-홈 네트워크
-</code></pre></div></div>
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/50.webp" alt="" /></p>
 
 <p>회사에서 재택근무를 하는 직원이 사내 서버나 업무 시스템에 접속할 때도 같은 형태를 사용할 수 있다. 집 대신 회사 네트워크에 접속한다는 점만 다르다.</p>
 
@@ -458,6 +386,7 @@ VPN 업체의 서버
 <h2 id="11--느낀-점">11 ) 느낀 점</h2>
 
 <hr />
+<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/52.webp" alt="" /></p>
 
 <p>처음에는 포트 포워딩을 여러 개 설정하는 것이 불편했고, 외부에서 들어오는 접속 시도도 신경 쓰여서 VPN을 사용하기 시작했다. VPN에 연결한 뒤 사설 IP로 접속이 되니 편하게 사용했지만, 정작 그 연결이 어떻게 만들어지는지는 제대로 알지 못했다.</p>
 
@@ -465,7 +394,7 @@ VPN 업체의 서버
 
 <p>평소에는 연결 버튼 한 번 누르고 사용하던 기능이지만, 그 뒤에서는 라우팅과 터널링, 암호화가 각자 맡은 일을 하고 있었다.</p>
 
-<p>내가 홈서버를 사용하면서 궁금했던 VPN 이야기는 여기까지지만, 앞으로도 다양한 곳에서 더 깊은 기술로 접할 때 빠르게 이해하고 적용할 수 있도록 깊은 내용을 공부해야할 필요를 느꼈다.</p>]]></content><author><name></name></author><category term="TechBites" /><category term="VPN" /><category term="Network" /><category term="IPsec" /><category term="Tennel" /><summary type="html"><![CDATA[L2TP/IPsec VPN을 통해 외부 맥북에서 홈 네트워크의 서버에 접근하는 과정]]></summary></entry><entry><title type="html">Jenkins Controller-Agent 구조와 설치</title><link href="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/" rel="alternate" type="text/html" title="Jenkins Controller-Agent 구조와 설치" /><published>2026-09-14T00:00:00+09:00</published><updated>2026-09-14T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-47-jenkins-architecture-installation</id><content type="html" xml:base="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/"><![CDATA[<p><a href="/cloud-native-46-github-actions-ci/">GitHub Actions Workflow와 CI/CD 실습</a>은 GitHub가 제공하는 Runner에서 Build와 Test를 실행했다. Jenkins는 조직이 직접 설치하고 확장할 수 있는 Java 기반 Open Source 자동화 Server이다. Source Checkout, Compile, Test, 정적 분석, Package, 배포와 결과 알림을 Plugin과 Job으로 연결한다.</p>
+<p>내가 홈서버를 사용하면서 궁금했던 VPN의 내용은 여기까지지만, 앞으로도 다양한 곳에서 더 깊은 기술로 접할 때 빠르게 이해하고 적용할 수 있도록 깊은 내용을 공부해야할 필요를 느꼈다.</p>]]></content><author><name></name></author><category term="TechBites" /><category term="VPN" /><category term="Network" /><category term="IPsec" /><category term="Tennel" /><summary type="html"><![CDATA[L2TP/IPsec VPN을 통해 외부 맥북에서 홈 네트워크의 서버에 접근하는 과정]]></summary></entry><entry><title type="html">Jenkins Controller-Agent 구조와 설치</title><link href="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/" rel="alternate" type="text/html" title="Jenkins Controller-Agent 구조와 설치" /><published>2026-09-14T00:00:00+09:00</published><updated>2026-09-14T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-47-jenkins-architecture-installation</id><content type="html" xml:base="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/"><![CDATA[<p><a href="/cloud-native-46-github-actions-ci/">GitHub Actions Workflow와 CI/CD 실습</a>은 GitHub가 제공하는 Runner에서 Build와 Test를 실행했다. Jenkins는 조직이 직접 설치하고 확장할 수 있는 Java 기반 Open Source 자동화 Server이다. Source Checkout, Compile, Test, 정적 분석, Package, 배포와 결과 알림을 Plugin과 Job으로 연결한다.</p>
 
 <h2 id="1--jenkins가-담당하는-자동화">1 ) Jenkins가 담당하는 자동화</h2>
 
