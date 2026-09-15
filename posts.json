@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Jenkins Pipeline과 Jenkinsfile 기반 배포",
+        "url": "/cloud-native-51-jenkins-pipeline-jenkinsfile/",
+        "description": "Jenkins Pipeline의 Declarative·Scripted 문법을 구분하고 Jenkinsfile로 Checkout, Gradle Build, Docker Image Push와 SSH 배포를 연결한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Jenkins"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 15일",
+        "reading_time_label": "7분 읽기",
+        "search": "jenkins pipeline과 jenkinsfile 기반 배포 jenkins pipeline의 declarative·scripted 문법을 구분하고 jenkinsfile로 checkout, gradle build, docker image push와 ssh 배포를 연결한다 cloudnative autoeversw jenkins cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Jenkins Freestyle Trigger와 SSH·Docker 배포",
+        "url": "/cloud-native-50-jenkins-freestyle-deployment/",
+        "description": "Jenkins Freestyle Job에서 주기 실행과 GitHub Webhook을 구성하고 Build Artifact를 SSH Server 또는 Docker Registry를 거쳐 배포한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Jenkins"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 15일",
+        "reading_time_label": "7분 읽기",
+        "search": "jenkins freestyle trigger와 ssh·docker 배포 jenkins freestyle job에서 주기 실행과 github webhook을 구성하고 build artifact를 ssh server 또는 docker registry를 거쳐 배포한다 cloudnative autoeversw jenkins cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Jenkins Maven·Gradle Build와 Email 알림",
         "url": "/cloud-native-49-jenkins-maven-gradle-build/",
         "description": "Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다",
@@ -12,7 +42,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 14일",
-        "reading_time_label": "7분 읽기",
+        "reading_time_label": "8분 읽기",
         "search": "jenkins maven·gradle build와 email 알림 spring boot project를 maven과 gradle로 build하고 jenkins freestyle job에서 test, package, poll scm과 email 알림을 구성한다 cloudnative autoeversw jenkins cloudnative"
       },
     

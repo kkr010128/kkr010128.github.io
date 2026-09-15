@@ -1427,6 +1427,179 @@ html[data-theme="dark"] .post-visual {
   line-height: 1.65;
 }
 
+.pipeline-flow__frame {
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.post-visual .pipeline-flow__phases,
+.post-visual .pipeline-flow__steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pipeline-flow__phases {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.pipeline-flow__phase {
+  position: relative;
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.5rem);
+  border: 1px solid var(--border3);
+  border-radius: 1rem;
+  background: var(--bg-element3);
+}
+
+.pipeline-flow__phase:not(:last-child)::after {
+  position: absolute;
+  bottom: -1.55rem;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  width: 2rem;
+  height: 1.5rem;
+  place-items: center;
+  transform: translateX(-50%);
+  color: var(--text3);
+  background: transparent;
+  content: "↓";
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.pipeline-flow__phase--source {
+  border-color: var(--diagram-violet);
+  background: var(--diagram-violet-soft);
+}
+
+.pipeline-flow__phase--controller,
+.pipeline-flow__phase--server {
+  border-color: var(--primary2);
+  background: var(--diagram-primary-soft);
+}
+
+.pipeline-flow__phase--agent {
+  border-color: var(--diagram-blue);
+  background: var(--diagram-blue-soft);
+}
+
+.pipeline-flow__phase--registry {
+  border-color: var(--diagram-orange);
+  background: var(--diagram-orange-soft);
+}
+
+.pipeline-flow__heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.pipeline-flow__heading strong {
+  color: var(--text1);
+  font-size: 1.15rem;
+}
+
+.pipeline-flow__role {
+  flex: 0 0 auto;
+  color: var(--text3);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.pipeline-flow__steps {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.pipeline-flow__steps > li {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--border3);
+  border-radius: 0.75rem;
+  background: var(--bg-element1);
+}
+
+.pipeline-flow__steps strong,
+.pipeline-flow__steps span {
+  display: block;
+}
+
+.pipeline-flow__steps strong {
+  margin-bottom: 0.35rem;
+  color: var(--text1);
+  font-size: 0.95rem;
+}
+
+.pipeline-flow__steps span {
+  color: var(--text2);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.pipeline-flow__credentials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.85rem;
+}
+
+.pipeline-flow__credentials span {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border3);
+  border-radius: 999px;
+  color: var(--text2);
+  background: var(--bg-element1);
+  font-size: 0.73rem;
+}
+
+.pipeline-flow__notes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+  margin-top: 1.25rem;
+}
+
+.pipeline-flow__notes > div {
+  min-width: 0;
+  padding: 0.9rem;
+  border-radius: 0.75rem;
+  background: var(--bg-element3);
+}
+
+.pipeline-flow__notes strong {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--text1);
+  font-size: 0.88rem;
+}
+
+.pipeline-flow__notes p {
+  margin: 0;
+  color: var(--text2);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+@media (min-width: 680px) {
+  .pipeline-flow__steps--two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pipeline-flow__steps--four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .pipeline-flow__notes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .prose table {
   width: 100%;
   margin: 2rem 0;
