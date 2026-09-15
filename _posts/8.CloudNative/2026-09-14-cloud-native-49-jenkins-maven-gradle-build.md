@@ -2,6 +2,7 @@
 title: Jenkins Maven·Gradle Build와 Email 알림
 description: Spring Boot Project를 Maven과 Gradle로 Build하고 Jenkins Freestyle Job에서 Test, Package, Poll SCM과 Email 알림을 구성한다
 date: 2026-09-14
+updated_at: 2026-09-15
 series: CloudNative
 tags:
   - CloudNative
@@ -407,6 +408,70 @@ JAR를 Jenkins Build에 보관하려면 **Archive the artifacts** Pattern을 지
 build/libs/*.jar
 ```
 
+## 9 ) Gradle Java Toolchain 오류 해결
+
+---
+
+Gradle Build가 다음과 같이 요구하는 Java Version을 찾지 못해 실패할 수 있다.
+
+```text
+Cannot find a Java installation matching this task's requirements
+```
+
+Gradle Java Toolchain은 Compile과 Test에 사용할 JDK Version을 Project 설정으로 고정하는 기능이다. Jenkins Agent에 해당 JDK가 이미 설치되어 있다면 Gradle이 설치 경로를 감지하도록 Agent 환경을 먼저 확인한다.
+
+```bash
+java --version
+./gradlew --version
+```
+
+Application의 `build.gradle`에 다음과 같은 Toolchain 설정이 있다면 `languageVersion`과 Agent의 JDK Version이 일치하는지 확인한다.
+
+```groovy
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+```
+
+JDK 자동 Provisioning이 필요한 환경에서는 `settings.gradle`에 Foojay Toolchain Resolver Plugin을 구성할 수 있다.
+
+```groovy
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+}
+```
+
+이 Plugin은 Project가 요구하는 JDK를 Gradle이 찾거나 내려받을 수 있도록 Toolchain Repository를 연결한다. 위 `0.10.0`은 해당 Project에 적용한 Version이다. 작성 시점의 [Gradle Plugin Portal](https://plugins.gradle.org/plugin/org.gradle.toolchains.foojay-resolver-convention)에는 `1.0.0`이 최신 Version으로 표시되며 Plugin 실행에 Java 17 이상이 필요하다. Version을 무조건 바꾸지 않고 Project의 Gradle·JDK 조건을 확인한 뒤 고정한다. Network가 제한된 Jenkins Agent에서는 자동 Download 대신 관리자가 설치한 JDK 경로와 사내 Repository를 사용한다.
+
+오류에 Gradle Version 조건이 함께 표시되면 Wrapper Version도 확인한다.
+
+```bash
+./gradlew --version
+grep distributionUrl gradle/wrapper/gradle-wrapper.properties
+```
+
+현재 Wrapper가 실행 가능한 상태라면 다음 명령으로 Project가 요구하는 Version으로 갱신한다.
+
+```bash
+./gradlew wrapper --gradle-version 8.14
+git add gradle/wrapper gradlew gradlew.bat
+git commit -m "Update Gradle wrapper"
+```
+
+Wrapper 자체가 시작되지 않는다면 `gradle-wrapper.properties`의 `distributionUrl`을 임의로 바꾸기 전에 별도로 설치된 Gradle로 Wrapper를 재생성하거나, 검증된 Project Template의 Wrapper File 전체를 사용한다. `gradle-wrapper.jar`, Script와 Properties를 함께 Commit해야 Local과 Jenkins가 같은 Gradle Version을 사용한다.
+
+문제를 해결한 뒤 Jenkins에서 다음 항목을 다시 확인한다.
+
+1. `./gradlew --version`에 표시된 JVM과 Gradle Version이 Project 조건을 만족하는가
+
+2. Toolchain을 자동으로 받는다면 Agent에서 Download 대상에 접근할 수 있는가
+
+3. `./gradlew clean build`가 Test와 `bootJar`까지 완료하는가
+
+4. `build/libs`에 배포할 JAR가 생성됐는가
+
 > **최종 정리**
 > - Jenkins는 실행을 조정하고 Maven과 Gradle은 Dependency 해결, Compile, Test와 Package를 수행한다.
 >
@@ -417,3 +482,5 @@ build/libs/*.jar
 > - Poll SCM은 약 5분마다 변경을 확인하고 변경된 Revision이 있을 때 Build를 시작한다.
 >
 > - SMTP App Password는 Credential로 관리하고 Email 전송 결과와 Build 결과를 분리해 진단한다.
+>
+> - Gradle Java Toolchain 오류는 Agent JDK, Project의 `languageVersion`, Wrapper Version과 Toolchain Repository를 순서대로 확인한다.

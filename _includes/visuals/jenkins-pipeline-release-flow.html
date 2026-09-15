@@ -1,0 +1,129 @@
+<figure class="post-visual pipeline-flow" aria-labelledby="jenkins-pipeline-flow-caption">
+  <figcaption class="post-visual__caption" id="jenkins-pipeline-flow-caption">
+    Git Push 이후 Jenkins Controller, Build Agent, Registry와 배포 Server가 연결되는 Pipeline 실행 흐름
+  </figcaption>
+  <div class="post-visual__frame pipeline-flow__frame">
+    <ol class="pipeline-flow__phases" aria-label="Jenkins Pipeline 배포 흐름">
+      <li class="pipeline-flow__phase pipeline-flow__phase--source">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">SOURCE</span>
+          <strong>GitHub</strong>
+        </div>
+        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
+          <li>
+            <strong>Push Event</strong>
+            <span>Webhook으로 Jenkins에 변경 사실을 전달한다.</span>
+          </li>
+          <li>
+            <strong>Jenkinsfile</strong>
+            <span>Repository에서 Pipeline 정의를 관리한다.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="pipeline-flow__phase pipeline-flow__phase--controller">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">CONTROL</span>
+          <strong>Jenkins Controller</strong>
+        </div>
+        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
+          <li>
+            <strong>Build Queue</strong>
+            <span>Webhook으로 들어온 Pipeline 실행 요청을 Queue에 등록한다.</span>
+          </li>
+          <li>
+            <strong>Schedule</strong>
+            <span>Label과 사용 가능한 Executor를 기준으로 Agent를 선택한다.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="pipeline-flow__phase pipeline-flow__phase--agent">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">EXECUTION</span>
+          <strong>Docker Build Agent</strong>
+        </div>
+        <ol class="pipeline-flow__steps pipeline-flow__steps--four">
+          <li>
+            <strong>1. Checkout</strong>
+            <span>대상 Commit SHA를 확정한다.</span>
+          </li>
+          <li>
+            <strong>2. Gradle</strong>
+            <span>Test를 실행하고 bootJar를 생성한다.</span>
+          </li>
+          <li>
+            <strong>3. Image</strong>
+            <span>Build Number와 Commit Tag로 Image를 만든다.</span>
+          </li>
+          <li>
+            <strong>4. Push</strong>
+            <span>완성된 Image를 Registry로 전송한다.</span>
+          </li>
+        </ol>
+        <div class="pipeline-flow__credentials" aria-label="Build Agent 인증 정보">
+          <span>Docker Credential</span>
+          <span>SSH Credential</span>
+          <span>known_hosts</span>
+        </div>
+      </li>
+
+      <li class="pipeline-flow__phase pipeline-flow__phase--registry">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">ARTIFACT</span>
+          <strong>Docker Registry</strong>
+        </div>
+        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
+          <li>
+            <strong>Immutable Tag</strong>
+            <span>Build Number와 Commit SHA로 배포 Version을 식별한다.</span>
+          </li>
+          <li>
+            <strong>Image 보관</strong>
+            <span>배포 Server가 Pull할 Image를 보관한다.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="pipeline-flow__phase pipeline-flow__phase--server">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">RUNTIME</span>
+          <strong>Deploy Server</strong>
+        </div>
+        <ol class="pipeline-flow__steps pipeline-flow__steps--four">
+          <li>
+            <strong>1. SSH</strong>
+            <span>등록된 Host Key로 접속 대상을 검증한다.</span>
+          </li>
+          <li>
+            <strong>2. Pull</strong>
+            <span>Pipeline이 전달한 고정 Tag를 내려받는다.</span>
+          </li>
+          <li>
+            <strong>3. Replace</strong>
+            <span>대상 Application Container만 교체한다.</span>
+          </li>
+          <li>
+            <strong>4. Verify</strong>
+            <span>Container 상태, Log와 HTTP 응답을 확인한다.</span>
+          </li>
+        </ol>
+      </li>
+    </ol>
+
+    <div class="pipeline-flow__notes" aria-label="실행 영역 설명">
+      <div>
+        <strong>Controller</strong>
+        <p>요청과 Stage 상태를 관리하고 실제 Build는 Agent에 할당한다.</p>
+      </div>
+      <div>
+        <strong>Build Agent</strong>
+        <p>Source, JDK, Gradle과 Docker 권한이 존재하는 실행 경계이다.</p>
+      </div>
+      <div>
+        <strong>Deploy Server</strong>
+        <p>Registry에서 지정 Tag를 받아 Runtime Container를 교체한다.</p>
+      </div>
+    </div>
+  </div>
+</figure>
