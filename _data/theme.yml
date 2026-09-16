@@ -1,7 +1,7 @@
 header:
   show_github_link: true
   show_rss_link: true
-  show_theme_toggle: true
+  show_theme_toggle: false
 
 tabs:
   posts_label: 글
