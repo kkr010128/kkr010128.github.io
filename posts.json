@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Jenkins SonarQube 정적 분석과 Quality Gate",
+        "url": "/cloud-native-53-jenkins-sonarqube-analysis/",
+        "description": "SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Jenkins"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 16일",
+        "reading_time_label": "5분 읽기",
+        "search": "jenkins sonarqube 정적 분석과 quality gate sonarqube를 docker로 구성하고 gradle 분석, token credential과 jenkins pipeline quality gate를 안전하게 연결한다 cloudnative autoeversw jenkins cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Jenkins 단위 테스트와 JaCoCo Code Coverage",
+        "url": "/cloud-native-52-jenkins-unit-test-jacoco/",
+        "description": "Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Jenkins"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 16일",
+        "reading_time_label": "6분 읽기",
+        "search": "jenkins 단위 테스트와 jacoco code coverage spring boot 단위·web 계층 test를 구성하고 jenkins pipeline에서 junit 결과와 jacoco coverage 기준을 검증한다 cloudnative autoeversw jenkins cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Jenkins Pipeline과 Jenkinsfile 기반 배포",
         "url": "/cloud-native-51-jenkins-pipeline-jenkinsfile/",
         "description": "Jenkins Pipeline의 Declarative·Scripted 문법을 구분하고 Jenkinsfile로 Checkout, Gradle Build, Docker Image Push와 SSH 배포를 연결한다",

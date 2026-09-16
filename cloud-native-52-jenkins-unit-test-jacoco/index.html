@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Jenkins 단위 테스트와 JaCoCo Code Coverage | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco/">
+<meta property="og:title" content="Jenkins 단위 테스트와 JaCoCo Code Coverage | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jenkins 단위 테스트와 JaCoCo Code Coverage | renamed.log">
+<meta name="twitter:description" content="Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다">
+
+  <meta property="article:published_time" content="2026-09-16T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1789597040" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789597040" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789597040">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789597040" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789597040">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Jenkins 단위 테스트와 JaCoCo Code Coverage | renamed.log",
+    "description": "Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다",
+    "url": "https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco/",
+    "datePublished": "2026-09-16T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Jenkins 단위 테스트와 JaCoCo Code Coverage</h1>
+    
+      <p class="post-head__description">Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 16일 · 6분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Jenkins">Jenkins</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-51-jenkins-pipeline-jenkinsfile/">Jenkins Pipeline과 Jenkinsfile 기반 배포</a>에서는 Checkout부터 Build와 배포까지의 실행 흐름을 Code로 정의했다. 이 글에서는 배포 전에 Application 동작을 검증하는 단위 Test와 Web 계층 Test를 작성하고, Jenkins에서 Test 결과와 JaCoCo Code Coverage를 확인한다.</p>
+
+<h2 id="1--단위-test의-목적">1 ) 단위 Test의 목적</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>단위 Test(Unit Test)</strong>는 Method나 Class처럼 독립적으로 검증할 수 있는 작은 단위가 의도한 결과를 반환하는지 확인하는 Test이다.</p>
+</blockquote>
+
+<p>단위 Test는 변경으로 발생한 문제를 빠르게 찾고, Refactoring 이후 기존 동작이 유지되는지 반복해서 검증한다. 각 Test Case는 실행 순서나 다른 Test의 상태에 의존하지 않아야 한다. Database, 외부 API처럼 독립시키기 어려운 협력 객체는 Mock Object로 대체할 수 있다.</p>
+
+<ul>
+  <li>
+    <p><strong>문제 위치 확인</strong>: 작은 단위마다 실패 여부를 확인하므로 결함이 발생한 범위를 좁히기 쉽다.</p>
+  </li>
+  <li>
+    <p><strong>회귀 방지</strong>: 기존 Test를 다시 실행해 수정한 Code가 이전 기능을 깨뜨리지 않았는지 확인한다.</p>
+  </li>
+  <li>
+    <p><strong>통합 위험 감소</strong>: 단위별 불확실성을 줄인 뒤 Component를 연결하므로 통합 Test의 원인을 구분하기 쉽다.</p>
+  </li>
+  <li>
+    <p><strong>변경 비용 감소</strong>: 자동화된 검증 결과를 바탕으로 Refactoring과 기능 변경을 반복할 수 있다.</p>
+  </li>
+</ul>
+
+<p>Test Code가 존재한다는 사실만으로 정확성이 보장되지는 않는다. 경계값, 예외 조건과 실제 요구 사항을 검증하는 Assertion이 있어야 한다.</p>
+
+<h2 id="2--spring-boot-test-범위-구분">2 ) Spring Boot Test 범위 구분</h2>
+
+<hr />
+
+<p>Spring Boot Application에서는 검증할 범위에 따라 Test Context를 다르게 구성한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>범위</th>
+      <th>대표 구성</th>
+      <th>검증 대상</th>
+      <th>외부 의존성 처리</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>순수 단위 Test</td>
+      <td>JUnit으로 객체 직접 생성</td>
+      <td>Method의 입력과 반환값</td>
+      <td>필요하면 Mock 사용</td>
+    </tr>
+    <tr>
+      <td>Web 계층 Test</td>
+      <td><code class="language-plaintext highlighter-rouge">MockMvc</code>, <code class="language-plaintext highlighter-rouge">@WebMvcTest</code> 또는 <code class="language-plaintext highlighter-rouge">@SpringBootTest</code></td>
+      <td>HTTP Method, URL, Status와 Body</td>
+      <td>Service를 Mock하거나 Test Context 사용</td>
+    </tr>
+    <tr>
+      <td>Repository 계층 Test</td>
+      <td><code class="language-plaintext highlighter-rouge">@DataJpaTest</code></td>
+      <td>Entity Mapping과 Query</td>
+      <td>H2 같은 Test Database 또는 Test Container 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>한 Test가 많은 계층을 동시에 기동할수록 실제 구성에 가까워지지만 실행 시간이 늘고 실패 원인도 넓어진다. 계산처럼 외부 의존성이 없는 Logic은 순수 단위 Test로, HTTP Mapping은 Web 계층 Test로 분리한다.</p>
+
+<p>Repository Test가 필요한 Project는 Spring Data JPA와 운영 Database Driver 외에 H2를 Test Runtime Dependency로 둘 수 있다. <code class="language-plaintext highlighter-rouge">@DataJpaTest</code>는 JPA Component에 필요한 범위만 기동하고 Test가 끝날 때 Transaction을 Rollback한다. H2를 사용하면 외부 Database 없이 빠르게 Mapping과 Query를 확인할 수 있지만, 운영 Database와 SQL Dialect·Constraint 동작이 다를 수 있으므로 실제 Database를 사용한 통합 Test를 별도로 구성한다.</p>
+
+<h2 id="3--calculator-service와-controller">3 ) Calculator Service와 Controller</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">Calculator</code>는 두 정수의 합을 반환한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
+
+<span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Calculator</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">sum</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">CalculatorController</code>는 Root와 상태 확인 Endpoint를 제공한다. HTTP Method를 명확히 하기 위해 <code class="language-plaintext highlighter-rouge">@GetMapping</code>을 사용한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.GetMapping</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
+
+<span class="nd">@RestController</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">CalculatorController</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">CalculatorController</span><span class="o">(</span><span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">calculator</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">index</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">"OK"</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/health"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">health</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">"OK"</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>생성자 주입을 사용하면 운영 Code와 Test Code에서 필요한 의존성을 명시적으로 전달할 수 있다.</p>
+
+<h2 id="4--calculator-단위-test">4 ) Calculator 단위 Test</h2>
+
+<hr />
+
+<p>외부 의존성이 없는 <code class="language-plaintext highlighter-rouge">Calculator</code>는 Spring Context를 기동하지 않고 직접 생성한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Test</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">junit</span><span class="o">.</span><span class="na">jupiter</span><span class="o">.</span><span class="na">api</span><span class="o">.</span><span class="na">Assertions</span><span class="o">.</span><span class="na">assertEquals</span><span class="o">;</span>
+
+<span class="kd">class</span> <span class="nc">CalculatorTest</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Calculator</span><span class="o">();</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">sumReturnsAdditionResult</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="n">calculator</span><span class="o">.</span><span class="na">sum</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">assertEquals(expected, actual)</code>은 기대값 <code class="language-plaintext highlighter-rouge">5</code>와 실제 반환값을 비교한다. Test 이름은 검증하는 동작과 기대 결과가 드러나도록 작성한다.</p>
+
+<h2 id="5--mockmvc로-health-endpoint-검증">5 ) MockMvc로 Health Endpoint 검증</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">MockMvc</code>는 실제 Network Port를 열지 않고 Spring MVC 요청과 응답을 검증한다. 다음 Test는 Application Context를 기동한 뒤 <code class="language-plaintext highlighter-rouge">GET /health</code>의 Status와 Body를 확인한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Test</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Autowired</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.boot.test.context.SpringBootTest</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.test.web.servlet.MockMvc</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">request</span><span class="o">.</span><span class="na">MockMvcRequestBuilders</span><span class="o">.</span><span class="na">get</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultHandlers</span><span class="o">.</span><span class="na">print</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultMatchers</span><span class="o">.</span><span class="na">content</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultMatchers</span><span class="o">.</span><span class="na">status</span><span class="o">;</span>
+
+<span class="nd">@SpringBootTest</span><span class="o">(</span><span class="n">webEnvironment</span> <span class="o">=</span> <span class="nc">SpringBootTest</span><span class="o">.</span><span class="na">WebEnvironment</span><span class="o">.</span><span class="na">MOCK</span><span class="o">)</span>
+<span class="nd">@AutoConfigureMockMvc</span>
+<span class="kd">class</span> <span class="nc">ControllerTest</span> <span class="o">{</span>
+    <span class="nd">@Autowired</span>
+    <span class="kd">private</span> <span class="nc">MockMvc</span> <span class="n">mockMvc</span><span class="o">;</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">healthReturnsOk</span><span class="o">()</span> <span class="kd">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="s">"/health"</span><span class="o">))</span>
+                <span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isOk</span><span class="o">())</span>
+                <span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">content</span><span class="o">().</span><span class="na">string</span><span class="o">(</span><span class="s">"OK"</span><span class="o">))</span>
+                <span class="o">.</span><span class="na">andDo</span><span class="o">(</span><span class="n">print</span><span class="o">());</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>검증</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">get("/health")</code></td>
+      <td>Controller의 <code class="language-plaintext highlighter-rouge">@GetMapping("/health")</code>와 같은 HTTP Method와 경로로 요청</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">status().isOk()</code></td>
+      <td>HTTP Status가 <code class="language-plaintext highlighter-rouge">200 OK</code>인지 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">content().string("OK")</code></td>
+      <td>응답 Body가 <code class="language-plaintext highlighter-rouge">OK</code>인지 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">andDo(print())</code></td>
+      <td>요청과 응답을 Test Log에 출력</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>위 Import 경로는 Spring Boot 3.x 기준이다. Spring Boot 4에서는 <code class="language-plaintext highlighter-rouge">AutoConfigureMockMvc</code>가 <code class="language-plaintext highlighter-rouge">org.springframework.boot.webmvc.test.autoconfigure</code> Package로 이동했다. Project의 Spring Boot Version에 맞는 <a href="https://docs.spring.io/spring-boot/4.0/api/java/org/springframework/boot/webmvc/test/autoconfigure/package-summary.html">API 문서</a>를 확인해야 한다.</p>
+
+<h2 id="6--gradle-test-실행과-결과-확인">6 ) Gradle Test 실행과 결과 확인</h2>
+
+<hr />
+
+<p>Project Root에서 Gradle Wrapper로 Test를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew <span class="nb">test</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">test</code> Task는 필요한 Main·Test Source Compile을 Task Graph에 포함하므로 <code class="language-plaintext highlighter-rouge">compileJava</code>를 먼저 실행할 필요가 없다. 실패한 Test가 있으면 Gradle Process가 0이 아닌 종료 Code를 반환하고 Jenkins Stage도 실패한다.</p>
+
+<p>주요 결과는 다음 위치에 생성된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>결과</th>
+      <th>기본 경로</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>HTML Test Report</td>
+      <td><code class="language-plaintext highlighter-rouge">build/reports/tests/test/index.html</code></td>
+    </tr>
+    <tr>
+      <td>JUnit XML</td>
+      <td><code class="language-plaintext highlighter-rouge">build/test-results/test/*.xml</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">gradlew</code>의 실행 권한은 Repository에 한 번 반영한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x gradlew
+git add gradlew
+git commit <span class="nt">-m</span> <span class="s2">"chore: make Gradle wrapper executable"</span>
+</code></pre></div></div>
+
+<p>Pipeline을 실행할 때마다 <code class="language-plaintext highlighter-rouge">chmod</code>로 작업 환경을 변경하는 것보다 실행 권한을 Version 관리하는 편이 재현 가능하다.</p>
+
+<h2 id="7--jenkins-pipeline에서-test-실행">7 ) Jenkins Pipeline에서 Test 실행</h2>
+
+<hr />
+
+<p>다음 Pipeline은 Source를 Checkout하고 Test를 실행한 뒤 Jenkins에 JUnit 결과를 게시한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
+    <span class="n">agent</span> <span class="n">any</span>
+
+    <span class="n">stages</span> <span class="o">{</span>
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">checkout</span> <span class="n">scm</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Unit Test'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">sh</span> <span class="s1">'./gradlew clean test'</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">post</span> <span class="o">{</span>
+        <span class="n">always</span> <span class="o">{</span>
+            <span class="n">junit</span> <span class="nl">testResults:</span> <span class="s1">'build/test-results/test/*.xml'</span><span class="o">,</span>
+                  <span class="nl">allowEmptyResults:</span> <span class="kc">false</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">post { always { ... } }</code>에 Report 게시를 두면 Test Stage가 실패해도 생성된 XML을 Jenkins가 읽는다. Jenkins Build 화면에서는 전체 Test 수, 실패한 Test와 이전 Build 대비 추이를 확인할 수 있다.</p>
+
+<h2 id="8--code-coverage의-의미">8 ) Code Coverage의 의미</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Code Coverage</strong>는 Test를 실행했을 때 Program의 Code 요소가 실제로 실행된 비율을 나타내는 지표이다.</p>
+</blockquote>
+
+<p>Coverage는 Test가 닿지 않은 Code를 찾는 데 사용한다. Coverage가 높아도 Assertion이 부정확하거나 요구 사항이 누락되면 결함은 남을 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>지표</th>
+      <th>확인 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Line Coverage</td>
+      <td>실행된 Source Line의 비율</td>
+    </tr>
+    <tr>
+      <td>Branch Coverage</td>
+      <td>조건문과 분기에서 실행된 경로의 비율</td>
+    </tr>
+    <tr>
+      <td>Method Coverage</td>
+      <td>한 번 이상 실행된 Method의 비율</td>
+    </tr>
+    <tr>
+      <td>Class Coverage</td>
+      <td>한 번 이상 실행된 Class의 비율</td>
+    </tr>
+    <tr>
+      <td>Instruction Coverage</td>
+      <td>Java Bytecode Instruction 중 실행된 비율</td>
+    </tr>
+    <tr>
+      <td>Complexity</td>
+      <td>분기 구조를 바탕으로 계산한 순환 복잡도와 누락된 Test Case의 규모</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Branch Coverage가 높으려면 <code class="language-plaintext highlighter-rouge">if</code>의 참과 거짓처럼 가능한 분기 결과를 각각 실행해야 한다. Line Coverage가 100%여도 한 줄에 포함된 모든 조건 조합을 검증했다고 단정할 수 없다.</p>
+
+<h2 id="9--jacoco-report와-coverage-기준-구성">9 ) JaCoCo Report와 Coverage 기준 구성</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">plugins</code> Block에 JaCoCo Plugin을 추가한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="o">{</span>
+    <span class="n">id</span> <span class="s1">'java'</span>
+    <span class="n">id</span> <span class="s1">'jacoco'</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Report 생성과 Coverage 기준 검증을 다음처럼 연결한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">test</span> <span class="o">{</span>
+    <span class="n">finalizedBy</span> <span class="n">jacocoTestReport</span>
+<span class="o">}</span>
+
+<span class="n">jacocoTestReport</span> <span class="o">{</span>
+    <span class="n">dependsOn</span> <span class="n">test</span>
+
+    <span class="n">reports</span> <span class="o">{</span>
+        <span class="n">html</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">xml</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">csv</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">jacocoTestCoverageVerification</span> <span class="o">{</span>
+    <span class="n">dependsOn</span> <span class="n">test</span>
+
+    <span class="n">violationRules</span> <span class="o">{</span>
+        <span class="n">rule</span> <span class="o">{</span>
+            <span class="n">limit</span> <span class="o">{</span>
+                <span class="n">minimum</span> <span class="o">=</span> <span class="mf">0.20</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">check</span><span class="o">.</span><span class="na">dependsOn</span> <span class="n">jacocoTestCoverageVerification</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">test.finalizedBy</code></td>
+      <td>Test 종료 후 HTML·XML Report 생성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">jacocoTestReport.dependsOn test</code></td>
+      <td>Report를 직접 실행해도 먼저 Test 수행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">minimum = 0.20</code></td>
+      <td>선택한 Counter의 최소 Coverage를 20%로 설정한 학습용 예시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">check.dependsOn</code></td>
+      <td><code class="language-plaintext highlighter-rouge">check</code> Lifecycle에 Coverage 기준 검증 포함</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Gradle의 JaCoCo Plugin은 기본적으로 <code class="language-plaintext highlighter-rouge">jacocoTestReport</code>와 <code class="language-plaintext highlighter-rouge">test</code>를 자동 연결하지 않으며, Coverage Verification도 <code class="language-plaintext highlighter-rouge">check</code>에 자동 포함하지 않는다. 필요한 Task 관계를 명시해야 한다. 자세한 설정은 <a href="https://docs.gradle.org/current/userguide/jacoco_plugin.html">Gradle JaCoCo Plugin 문서</a>에서 확인할 수 있다.</p>
+
+<p>다음 명령은 Test, Report 생성과 기준 검증을 한 번에 수행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew clean <span class="nb">test </span>jacocoTestReport jacocoTestCoverageVerification
+</code></pre></div></div>
+
+<p>HTML Report는 <code class="language-plaintext highlighter-rouge">build/reports/jacoco/test/html/index.html</code>에서 확인한다. Coverage가 설정한 최소값보다 낮으면 <code class="language-plaintext highlighter-rouge">jacocoTestCoverageVerification</code>이 실패하고 Jenkins Pipeline도 중단된다.</p>
+
+<h2 id="10--coverage-목표-설정">10 ) Coverage 목표 설정</h2>
+
+<hr />
+
+<p>Coverage 100%는 요구 사항을 모두 구현했거나 결함이 없다는 뜻이 아니다. 잘못된 구현을 그대로 기대값으로 사용하거나 중요한 예외 Case를 누락해도 실행 비율은 높게 나올 수 있다.</p>
+
+<p><a href="https://testing.googleblog.com/2020/08/code-coverage-best-practices.html">Google Testing Blog의 Coverage 지침</a>은 60%를 수용 가능한 수준, 75%를 권장할 만한 수준, 90%를 모범적인 수준으로 제시하지만 보편적인 합격 기준은 아니다. Code의 Business 영향, 변경 빈도, 복잡도와 유지 기간에 따라 Team이 기준을 정해야 한다.</p>
+
+<p>Coverage를 운영할 때는 다음 순서로 접근한다.</p>
+
+<ol>
+  <li>
+    <p>핵심 Method가 Test에서 한 번 이상 실행되는지 확인한다.</p>
+  </li>
+  <li>
+    <p>변경된 Code와 장애 영향이 큰 Code의 Line Coverage를 우선 높인다.</p>
+  </li>
+  <li>
+    <p>조건문과 예외 처리의 Branch Coverage를 확인한다.</p>
+  </li>
+  <li>
+    <p>수치만 높이는 Test 대신 요구 사항과 실패 조건을 검증하는 Assertion을 추가한다.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>순수 Logic은 Spring Context 없이 빠른 단위 Test로 검증한다.</p>
+    </li>
+    <li>
+      <p>Controller Test는 실제 Mapping과 같은 HTTP Method, URL, Status와 Body를 검증한다.</p>
+    </li>
+    <li>
+      <p>Gradle <code class="language-plaintext highlighter-rouge">test</code> Task가 Compile을 포함하므로 Pipeline에 중복 Compile Stage를 둘 필요가 없다.</p>
+    </li>
+    <li>
+      <p>JaCoCo Task 관계와 합격 기준은 Project에서 명시적으로 구성한다.</p>
+    </li>
+    <li>
+      <p>Coverage는 미검증 영역을 찾는 지표이며 Software 정확성 자체를 증명하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-53-jenkins-sonarqube-analysis/">Jenkins SonarQube 정적 분석과 Quality Gate</a>에서는 Test를 실행하지 않고 Code의 Bug, Vulnerability와 Code Smell을 분석하고 Jenkins Pipeline에 결과를 연결한다.</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-51-jenkins-pipeline-jenkinsfile/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Jenkins Pipeline과 Jenkinsfile 기반 배포</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-53-jenkins-sonarqube-analysis/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Jenkins SonarQube 정적 분석과 Quality Gate</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789597040"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789597040"></script>
+  </body>
+</html>

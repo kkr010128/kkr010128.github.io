@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Jenkins SonarQube 정적 분석과 Quality Gate | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis/">
+<meta property="og:title" content="Jenkins SonarQube 정적 분석과 Quality Gate | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jenkins SonarQube 정적 분석과 Quality Gate | renamed.log">
+<meta name="twitter:description" content="SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다">
+
+  <meta property="article:published_time" content="2026-09-16T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.png?v=1789597040" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.png?v=1789597040" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png?v=1789597040">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789597040" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789597040">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Jenkins SonarQube 정적 분석과 Quality Gate | renamed.log",
+    "description": "SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다",
+    "url": "https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis/",
+    "datePublished": "2026-09-16T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Jenkins SonarQube 정적 분석과 Quality Gate</h1>
+    
+      <p class="post-head__description">SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 16일 · 5분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Jenkins">Jenkins</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-52-jenkins-unit-test-jacoco/">Jenkins 단위 테스트와 JaCoCo Code Coverage</a>에서는 실행 결과와 Coverage로 Application 동작을 검증했다. 정적 분석은 Code를 실행하지 않고 잠재적인 Bug, Vulnerability, 중복과 유지보수 문제를 찾는다. 이 글에서는 SonarQube 분석을 Gradle과 Jenkins Pipeline에 연결한다.</p>
+
+<h2 id="1--정적-분석의-역할">1 ) 정적 분석의 역할</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>정적 Code 분석</strong>은 Program을 실행하지 않고 Source Code와 Bytecode를 검사해 규칙 위반과 잠재적인 결함을 찾는 과정이다.</p>
+</blockquote>
+
+<ul>
+  <li>
+    <p><strong>Code 품질 개선</strong>: 복잡한 Code, 중복, 읽기 어려운 구조와 Coding Convention 위반을 찾는다.</p>
+  </li>
+  <li>
+    <p><strong>Bug 사전 탐지</strong>: Null 처리와 Resource 누수처럼 Runtime 장애로 이어질 수 있는 Pattern을 확인한다.</p>
+  </li>
+  <li>
+    <p><strong>보안 강화</strong>: Injection, 취약한 암호화와 입력값 검증 누락 같은 보안 문제를 탐지한다.</p>
+  </li>
+  <li>
+    <p><strong>일관성 유지</strong>: Team이 정한 Rule을 같은 기준으로 반복 적용한다.</p>
+  </li>
+</ul>
+
+<p>대표적인 Java 정적 분석 도구에는 SonarQube, Checkstyle, SpotBugs, PMD와 FindSecBugs가 있다. 각 도구의 Rule과 탐지 범위가 다르므로 한 도구의 통과가 모든 결함의 부재를 의미하지는 않는다.</p>
+
+<h2 id="2--sonarqube와-quality-gate">2 ) SonarQube와 Quality Gate</h2>
+
+<hr />
+
+<p>SonarQube는 분석 결과를 Server에 저장하고 Project별 Issue와 변화 추이를 제공한다. 지원 언어와 Rule은 SonarQube Edition과 Version, 설치한 Analyzer에 따라 달라진다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Bugs</td>
+      <td>오동작으로 이어질 가능성이 있는 Code</td>
+    </tr>
+    <tr>
+      <td>Vulnerabilities</td>
+      <td>공격자가 악용할 수 있는 보안 취약점</td>
+    </tr>
+    <tr>
+      <td>Security Hotspots</td>
+      <td>보안 관점의 Review가 필요한 민감한 Code</td>
+    </tr>
+    <tr>
+      <td>Code Smells</td>
+      <td>유지보수성과 이해도를 낮추는 Code</td>
+    </tr>
+    <tr>
+      <td>Coverage</td>
+      <td>Test Report를 통해 계산한 Coverage</td>
+    </tr>
+    <tr>
+      <td>Duplications</td>
+      <td>중복된 Code 비율과 Block</td>
+    </tr>
+    <tr>
+      <td>Lines</td>
+      <td>분석한 Source Line 규모</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>Quality Gate</strong>는 Coverage, 신규 Bug와 중복률 같은 조건을 묶은 통과 기준이다. 분석 결과가 기준을 만족하면 통과하고, 만족하지 못하면 실패 상태가 된다.</p>
+</blockquote>
+
+<p>Quality Gate는 정적 분석 결과에 대한 자동 판정 기준이다. Application의 기능 Test와 Runtime 검증을 대체하지 않는다.</p>
+
+<h2 id="3--docker로-학습용-sonarqube-실행">3 ) Docker로 학습용 SonarQube 실행</h2>
+
+<hr />
+
+<p>Jenkins와 SonarQube Container가 이름으로 통신하도록 사용자 정의 Network를 먼저 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create ci-network
+</code></pre></div></div>
+
+<p><a href="https://docs.sonarsource.com/sonarqube-server/latest/server-installation/from-docker-image/starting-sonarqube-container/">SonarQube Docker 설치 문서</a>와 Image Registry에서 사용할 Community Build Tag를 확인한 뒤 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">SONARQUBE_IMAGE</span><span class="o">=</span><span class="s1">'sonarqube:&lt;verified-community-tag&gt;'</span>
+
+docker run <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">--name</span> sonarqube <span class="se">\</span>
+  <span class="nt">--network</span> ci-network <span class="se">\</span>
+  <span class="nt">-p</span> 9000:9000 <span class="se">\</span>
+  <span class="s2">"</span><span class="nv">$SONARQUBE_IMAGE</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">http://localhost:9000</code>에 접속한다. 초기 계정은 <code class="language-plaintext highlighter-rouge">admin</code>, 비밀번호도 <code class="language-plaintext highlighter-rouge">admin</code>이며 첫 Login 직후 변경해야 한다.</p>
+
+<p>이 구성은 구조를 익히는 학습용이다. <code class="language-plaintext highlighter-rouge">--rm</code>을 사용하거나 Volume 없이 Container를 제거하면 분석 이력과 설정을 잃을 수 있다. 운영 환경에서는 외부 Database와 Persistent Volume을 구성해야 하며, 내장 H2 Database는 Test와 Trial 용도로만 사용한다. 지원 Database와 Version은 <a href="https://docs.sonarsource.com/sonarqube-server/server-installation/installing-the-database">Database 설치 문서</a>에서 확인한다.</p>
+
+<h2 id="4--분석-token-생성과-보관">4 ) 분석 Token 생성과 보관</h2>
+
+<hr />
+
+<p>SonarQube에서 계정 Menu의 <strong>My Account → Security</strong>로 이동해 Token 이름, 종류와 만료일을 지정하고 생성한다. Token 값은 생성 직후 한 번만 확인할 수 있으므로 Password Manager 또는 Jenkins Credential에 저장한다.</p>
+
+<p>다음 위치에는 실제 Token을 기록하지 않는다.</p>
+
+<ul>
+  <li>
+    <p>Git으로 관리하는 <code class="language-plaintext highlighter-rouge">build.gradle</code>과 <code class="language-plaintext highlighter-rouge">Jenkinsfile</code></p>
+  </li>
+  <li>
+    <p>Blog, Screenshot과 공유 문서</p>
+  </li>
+  <li>
+    <p>Shell History에 남는 명령행 Argument</p>
+  </li>
+</ul>
+
+<p>이미 노출된 Token은 문자열을 가리는 것만으로 안전해지지 않는다. SonarQube에서 폐기한 뒤 새 Token을 발급해야 한다.</p>
+
+<h2 id="5--gradle-project에-sonarqube-적용">5 ) Gradle Project에 SonarQube 적용</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">plugins</code> Block에 SonarQube Plugin을 추가한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="o">{</span>
+    <span class="n">id</span> <span class="s1">'java'</span>
+    <span class="n">id</span> <span class="s1">'org.sonarqube'</span> <span class="n">version</span> <span class="s1">'7.2.3.7755'</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">7.2.3.7755</code>는 이 Project에서 사용하는 예시 Version이다. 새 Project에서는 <a href="https://plugins.gradle.org/plugin/org.sonarqube">Gradle Plugin Portal</a>에서 현재 Version과 Gradle·JDK 호환성을 확인한다.</p>
+
+<p>Application Build와 Test를 먼저 수행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew clean build
+</code></pre></div></div>
+
+<p>Token은 <code class="language-plaintext highlighter-rouge">SONAR_TOKEN</code> 환경 변수로 전달하고, Server URL만 System Property로 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">SONAR_TOKEN</span><span class="o">=</span><span class="s1">'&lt;SONARQUBE_TOKEN&gt;'</span>
+./gradlew sonar <span class="nt">-Dsonar</span>.host.url<span class="o">=</span>http://localhost:9000
+<span class="nb">unset </span>SONAR_TOKEN
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">sonar.login</code>과 <code class="language-plaintext highlighter-rouge">sonar.password</code>는 Deprecated되었으며 <code class="language-plaintext highlighter-rouge">sonar.token</code> 또는 <code class="language-plaintext highlighter-rouge">SONAR_TOKEN</code>으로 대체되었다. Token을 명령행이나 Project File에 직접 기록하지 않는 방법은 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-parameters/parameters-not-settable-in-ui">SonarScanner 분석 Parameter 문서</a>에서 확인할 수 있다.</p>
+
+<p>분석이 완료되면 SonarQube Project 화면에서 Issue, Coverage, 중복과 Quality Gate 결과를 확인한다. Scanner 요구 사항과 분석 Task는 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scanners/sonarscanner-for-gradle">SonarScanner for Gradle 문서</a>에서 Version별로 확인한다.</p>
+
+<h2 id="6--jenkins와-sonarqube-통신-구조">6 ) Jenkins와 SonarQube 통신 구조</h2>
+
+<hr />
+
+<p>Jenkins와 SonarQube가 각각 Container에서 실행되면 Jenkins Container의 <code class="language-plaintext highlighter-rouge">localhost</code>는 Jenkins 자신을 가리킨다. 두 Container를 같은 사용자 정의 Network에 연결하고 SonarQube Container 이름을 DNS 주소로 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network connect ci-network jenkins
+</code></pre></div></div>
+
+<p>앞 절의 명령으로 SonarQube를 실행했다면 <code class="language-plaintext highlighter-rouge">sonarqube</code>는 이미 <code class="language-plaintext highlighter-rouge">ci-network</code>에 연결되어 있다. 기존 Jenkins Container만 같은 Network에 추가한다.</p>
+
+<p>Jenkins에서 사용할 URL은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://sonarqube:9000
+</code></pre></div></div>
+
+<p>기본 <code class="language-plaintext highlighter-rouge">bridge</code> Network에서 조회한 Container IP는 재생성할 때 바뀔 수 있다. Pipeline에 고정 IP를 넣지 않고 사용자 정의 Network의 Container 이름을 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>통신 주체</th>
+      <th>사용 주소</th>
+      <th>이유</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Host Browser</td>
+      <td><code class="language-plaintext highlighter-rouge">http://localhost:9000</code></td>
+      <td>Host에 공개한 Port로 접근</td>
+    </tr>
+    <tr>
+      <td>Jenkins Container</td>
+      <td><code class="language-plaintext highlighter-rouge">http://sonarqube:9000</code></td>
+      <td>같은 Docker Network의 DNS 이름으로 접근</td>
+    </tr>
+    <tr>
+      <td>SonarQube Container 자신</td>
+      <td><code class="language-plaintext highlighter-rouge">http://localhost:9000</code></td>
+      <td>자기 Network Namespace 안의 Process에 접근</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="7--jenkins-sonarqube-설정">7 ) Jenkins SonarQube 설정</h2>
+
+<hr />
+
+<p>Jenkins에서 다음 순서로 설정한다.</p>
+
+<ol>
+  <li>
+    <p><strong>Manage Jenkins → Plugins</strong>에서 <strong>SonarQube Scanner for Jenkins</strong> Plugin을 설치한다.</p>
+  </li>
+  <li>
+    <p><strong>Manage Jenkins → Credentials</strong>에서 SonarQube Token을 <strong>Secret text</strong>로 저장한다. 예시 Credential ID는 <code class="language-plaintext highlighter-rouge">sonarqube-token</code>이다.</p>
+  </li>
+  <li>
+    <p><strong>Manage Jenkins → System → SonarQube servers</strong>에 Server를 추가한다.</p>
+  </li>
+  <li>
+    <p>Name을 <code class="language-plaintext highlighter-rouge">SonarQube-Server</code>, Server URL을 <code class="language-plaintext highlighter-rouge">http://sonarqube:9000</code>, Authentication Token을 <code class="language-plaintext highlighter-rouge">sonarqube-token</code>으로 설정한다.</p>
+  </li>
+</ol>
+
+<p>Plugin과 Server 설정 절차는 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/ci-integration/jenkins-integration/global-setup">Jenkins용 SonarQube 설정 문서</a>에서 확인할 수 있다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">withSonarQubeEnv('SonarQube-Server')</code>는 Jenkins에 등록한 Server URL과 Token을 분석 Step의 환경에 주입한다. Token을 Pipeline 전역 <code class="language-plaintext highlighter-rouge">environment</code>에 두지 않으므로 노출 범위를 분석 Stage로 제한할 수 있다.</p>
+
+<h2 id="8--test와-sonarqube-분석-pipeline">8 ) Test와 SonarQube 분석 Pipeline</h2>
+
+<hr />
+
+<p>다음 Jenkinsfile은 Test를 통과한 Source만 SonarQube로 분석한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
+    <span class="n">agent</span> <span class="n">any</span>
+
+    <span class="n">stages</span> <span class="o">{</span>
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">checkout</span> <span class="n">scm</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Unit Test'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">sh</span> <span class="s1">'./gradlew clean test jacocoTestReport'</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'SonarQube Analysis'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">withSonarQubeEnv</span><span class="o">(</span><span class="s1">'SonarQube-Server'</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">sh</span> <span class="s1">'./gradlew sonar'</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">post</span> <span class="o">{</span>
+        <span class="n">always</span> <span class="o">{</span>
+            <span class="n">junit</span> <span class="nl">testResults:</span> <span class="s1">'build/test-results/test/*.xml'</span><span class="o">,</span>
+                  <span class="nl">allowEmptyResults:</span> <span class="kc">false</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Stage</th>
+      <th>Jenkins Agent에서 수행하는 작업</th>
+      <th>외부 연결</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Checkout</td>
+      <td>Repository Source와 Jenkinsfile 확보</td>
+      <td>Git Server</td>
+    </tr>
+    <tr>
+      <td>Unit Test</td>
+      <td>JUnit 실행과 JaCoCo XML·HTML 생성</td>
+      <td>Gradle Dependency Repository</td>
+    </tr>
+    <tr>
+      <td>SonarQube Analysis</td>
+      <td>Source와 Coverage Report 분석 요청</td>
+      <td><code class="language-plaintext highlighter-rouge">SonarQube-Server</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">compileJava</code>는 <code class="language-plaintext highlighter-rouge">test</code> Task가 필요에 따라 실행하므로 별도 Stage로 중복하지 않는다. <code class="language-plaintext highlighter-rouge">withSonarQubeEnv</code>를 사용할 때는 Jenkins System 설정의 이름과 문자열이 정확히 일치해야 한다.</p>
+
+<h2 id="9--quality-gate로-pipeline-중단">9 ) Quality Gate로 Pipeline 중단</h2>
+
+<hr />
+
+<p>SonarQube가 Jenkins에 분석 완료 결과를 돌려주도록 Webhook을 구성하면 Pipeline에서 Quality Gate를 기다릴 수 있다.</p>
+
+<p>SonarQube의 Project 또는 Global Webhook URL을 다음 형식으로 설정한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://&lt;jenkins-host&gt;/sonarqube-webhook/
+</code></pre></div></div>
+
+<p>마지막 <code class="language-plaintext highlighter-rouge">/</code>도 URL에 포함한다. Analysis Stage 뒤에 다음 Stage를 추가한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stage</span><span class="o">(</span><span class="s1">'Quality Gate'</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">steps</span> <span class="o">{</span>
+        <span class="n">timeout</span><span class="o">(</span><span class="nl">time:</span> <span class="mi">10</span><span class="o">,</span> <span class="nl">unit:</span> <span class="s1">'MINUTES'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">waitForQualityGate</span> <span class="nl">abortPipeline:</span> <span class="kc">true</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">waitForQualityGate</code>는 Webhook 결과를 기다리고, <code class="language-plaintext highlighter-rouge">abortPipeline: true</code>는 Gate 실패 시 Pipeline을 중단한다. 무기한 대기를 막기 위해 <code class="language-plaintext highlighter-rouge">timeout</code>을 함께 둔다. Jenkins Extension의 Pipeline 사용 방법은 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scanners/jenkins-extension-sonarqube">SonarQube Jenkins Extension 문서</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>정적 분석은 Test 실행 여부와 별개로 Bug, Vulnerability와 유지보수 문제를 찾는다.</p>
+    </li>
+    <li>
+      <p>학습용 Container와 운영용 SonarQube의 Database·Volume 구성을 구분한다.</p>
+    </li>
+    <li>
+      <p>Token은 Jenkins Secret Text로 저장하고 분석 Stage에서만 주입한다.</p>
+    </li>
+    <li>
+      <p>Container 간 통신에는 바뀔 수 있는 고정 IP 대신 사용자 정의 Network의 DNS 이름을 사용한다.</p>
+    </li>
+    <li>
+      <p>SonarQube Analysis와 Quality Gate를 연결하면 기준을 만족하지 못한 Code의 후속 배포를 중단할 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-52-jenkins-unit-test-jacoco/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Jenkins 단위 테스트와 JaCoCo Code Coverage</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789597040"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789597040"></script>
+  </body>
+</html>

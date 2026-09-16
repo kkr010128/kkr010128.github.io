@@ -1,4 +1,784 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-16T12:32:13+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Jenkins Freestyle Trigger와 SSH·Docker 배포</title><link href="https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment/" rel="alternate" type="text/html" title="Jenkins Freestyle Trigger와 SSH·Docker 배포" /><published>2026-09-15T00:00:00+09:00</published><updated>2026-09-15T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment</id><content type="html" xml:base="https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment/"><![CDATA[<p><a href="/cloud-native-49-jenkins-maven-gradle-build/">Jenkins Maven·Gradle Build와 Email 알림</a>에서 Java Application을 Test하고 JAR로 Package하는 과정을 구성했다. 이번에는 Build를 시작하는 Trigger와 생성된 Artifact를 SSH Server에 전송하는 방법, Docker Image로 만들어 Registry와 배포 Server에 전달하는 방법을 정리한다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-17T07:17:20+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Jenkins 단위 테스트와 JaCoCo Code Coverage</title><link href="https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco/" rel="alternate" type="text/html" title="Jenkins 단위 테스트와 JaCoCo Code Coverage" /><published>2026-09-16T00:00:00+09:00</published><updated>2026-09-16T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco</id><content type="html" xml:base="https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco/"><![CDATA[<p><a href="/cloud-native-51-jenkins-pipeline-jenkinsfile/">Jenkins Pipeline과 Jenkinsfile 기반 배포</a>에서는 Checkout부터 Build와 배포까지의 실행 흐름을 Code로 정의했다. 이 글에서는 배포 전에 Application 동작을 검증하는 단위 Test와 Web 계층 Test를 작성하고, Jenkins에서 Test 결과와 JaCoCo Code Coverage를 확인한다.</p>
+
+<h2 id="1--단위-test의-목적">1 ) 단위 Test의 목적</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>단위 Test(Unit Test)</strong>는 Method나 Class처럼 독립적으로 검증할 수 있는 작은 단위가 의도한 결과를 반환하는지 확인하는 Test이다.</p>
+</blockquote>
+
+<p>단위 Test는 변경으로 발생한 문제를 빠르게 찾고, Refactoring 이후 기존 동작이 유지되는지 반복해서 검증한다. 각 Test Case는 실행 순서나 다른 Test의 상태에 의존하지 않아야 한다. Database, 외부 API처럼 독립시키기 어려운 협력 객체는 Mock Object로 대체할 수 있다.</p>
+
+<ul>
+  <li>
+    <p><strong>문제 위치 확인</strong>: 작은 단위마다 실패 여부를 확인하므로 결함이 발생한 범위를 좁히기 쉽다.</p>
+  </li>
+  <li>
+    <p><strong>회귀 방지</strong>: 기존 Test를 다시 실행해 수정한 Code가 이전 기능을 깨뜨리지 않았는지 확인한다.</p>
+  </li>
+  <li>
+    <p><strong>통합 위험 감소</strong>: 단위별 불확실성을 줄인 뒤 Component를 연결하므로 통합 Test의 원인을 구분하기 쉽다.</p>
+  </li>
+  <li>
+    <p><strong>변경 비용 감소</strong>: 자동화된 검증 결과를 바탕으로 Refactoring과 기능 변경을 반복할 수 있다.</p>
+  </li>
+</ul>
+
+<p>Test Code가 존재한다는 사실만으로 정확성이 보장되지는 않는다. 경계값, 예외 조건과 실제 요구 사항을 검증하는 Assertion이 있어야 한다.</p>
+
+<h2 id="2--spring-boot-test-범위-구분">2 ) Spring Boot Test 범위 구분</h2>
+
+<hr />
+
+<p>Spring Boot Application에서는 검증할 범위에 따라 Test Context를 다르게 구성한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>범위</th>
+      <th>대표 구성</th>
+      <th>검증 대상</th>
+      <th>외부 의존성 처리</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>순수 단위 Test</td>
+      <td>JUnit으로 객체 직접 생성</td>
+      <td>Method의 입력과 반환값</td>
+      <td>필요하면 Mock 사용</td>
+    </tr>
+    <tr>
+      <td>Web 계층 Test</td>
+      <td><code class="language-plaintext highlighter-rouge">MockMvc</code>, <code class="language-plaintext highlighter-rouge">@WebMvcTest</code> 또는 <code class="language-plaintext highlighter-rouge">@SpringBootTest</code></td>
+      <td>HTTP Method, URL, Status와 Body</td>
+      <td>Service를 Mock하거나 Test Context 사용</td>
+    </tr>
+    <tr>
+      <td>Repository 계층 Test</td>
+      <td><code class="language-plaintext highlighter-rouge">@DataJpaTest</code></td>
+      <td>Entity Mapping과 Query</td>
+      <td>H2 같은 Test Database 또는 Test Container 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>한 Test가 많은 계층을 동시에 기동할수록 실제 구성에 가까워지지만 실행 시간이 늘고 실패 원인도 넓어진다. 계산처럼 외부 의존성이 없는 Logic은 순수 단위 Test로, HTTP Mapping은 Web 계층 Test로 분리한다.</p>
+
+<p>Repository Test가 필요한 Project는 Spring Data JPA와 운영 Database Driver 외에 H2를 Test Runtime Dependency로 둘 수 있다. <code class="language-plaintext highlighter-rouge">@DataJpaTest</code>는 JPA Component에 필요한 범위만 기동하고 Test가 끝날 때 Transaction을 Rollback한다. H2를 사용하면 외부 Database 없이 빠르게 Mapping과 Query를 확인할 수 있지만, 운영 Database와 SQL Dialect·Constraint 동작이 다를 수 있으므로 실제 Database를 사용한 통합 Test를 별도로 구성한다.</p>
+
+<h2 id="3--calculator-service와-controller">3 ) Calculator Service와 Controller</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">Calculator</code>는 두 정수의 합을 반환한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
+
+<span class="nd">@Service</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Calculator</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">sum</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">CalculatorController</code>는 Root와 상태 확인 Endpoint를 제공한다. HTTP Method를 명확히 하기 위해 <code class="language-plaintext highlighter-rouge">@GetMapping</code>을 사용한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.GetMapping</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
+
+<span class="nd">@RestController</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">CalculatorController</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">CalculatorController</span><span class="o">(</span><span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">calculator</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">index</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">"OK"</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/health"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">health</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="s">"OK"</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>생성자 주입을 사용하면 운영 Code와 Test Code에서 필요한 의존성을 명시적으로 전달할 수 있다.</p>
+
+<h2 id="4--calculator-단위-test">4 ) Calculator 단위 Test</h2>
+
+<hr />
+
+<p>외부 의존성이 없는 <code class="language-plaintext highlighter-rouge">Calculator</code>는 Spring Context를 기동하지 않고 직접 생성한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Test</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">junit</span><span class="o">.</span><span class="na">jupiter</span><span class="o">.</span><span class="na">api</span><span class="o">.</span><span class="na">Assertions</span><span class="o">.</span><span class="na">assertEquals</span><span class="o">;</span>
+
+<span class="kd">class</span> <span class="nc">CalculatorTest</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Calculator</span><span class="o">();</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">sumReturnsAdditionResult</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="n">calculator</span><span class="o">.</span><span class="na">sum</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">assertEquals(expected, actual)</code>은 기대값 <code class="language-plaintext highlighter-rouge">5</code>와 실제 반환값을 비교한다. Test 이름은 검증하는 동작과 기대 결과가 드러나도록 작성한다.</p>
+
+<h2 id="5--mockmvc로-health-endpoint-검증">5 ) MockMvc로 Health Endpoint 검증</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">MockMvc</code>는 실제 Network Port를 열지 않고 Spring MVC 요청과 응답을 검증한다. 다음 Test는 Application Context를 기동한 뒤 <code class="language-plaintext highlighter-rouge">GET /health</code>의 Status와 Body를 확인한다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Test</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Autowired</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.boot.test.context.SpringBootTest</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.springframework.test.web.servlet.MockMvc</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">request</span><span class="o">.</span><span class="na">MockMvcRequestBuilders</span><span class="o">.</span><span class="na">get</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultHandlers</span><span class="o">.</span><span class="na">print</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultMatchers</span><span class="o">.</span><span class="na">content</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultMatchers</span><span class="o">.</span><span class="na">status</span><span class="o">;</span>
+
+<span class="nd">@SpringBootTest</span><span class="o">(</span><span class="n">webEnvironment</span> <span class="o">=</span> <span class="nc">SpringBootTest</span><span class="o">.</span><span class="na">WebEnvironment</span><span class="o">.</span><span class="na">MOCK</span><span class="o">)</span>
+<span class="nd">@AutoConfigureMockMvc</span>
+<span class="kd">class</span> <span class="nc">ControllerTest</span> <span class="o">{</span>
+    <span class="nd">@Autowired</span>
+    <span class="kd">private</span> <span class="nc">MockMvc</span> <span class="n">mockMvc</span><span class="o">;</span>
+
+    <span class="nd">@Test</span>
+    <span class="kt">void</span> <span class="nf">healthReturnsOk</span><span class="o">()</span> <span class="kd">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
+        <span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="s">"/health"</span><span class="o">))</span>
+                <span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isOk</span><span class="o">())</span>
+                <span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">content</span><span class="o">().</span><span class="na">string</span><span class="o">(</span><span class="s">"OK"</span><span class="o">))</span>
+                <span class="o">.</span><span class="na">andDo</span><span class="o">(</span><span class="n">print</span><span class="o">());</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>검증</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">get("/health")</code></td>
+      <td>Controller의 <code class="language-plaintext highlighter-rouge">@GetMapping("/health")</code>와 같은 HTTP Method와 경로로 요청</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">status().isOk()</code></td>
+      <td>HTTP Status가 <code class="language-plaintext highlighter-rouge">200 OK</code>인지 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">content().string("OK")</code></td>
+      <td>응답 Body가 <code class="language-plaintext highlighter-rouge">OK</code>인지 확인</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">andDo(print())</code></td>
+      <td>요청과 응답을 Test Log에 출력</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>위 Import 경로는 Spring Boot 3.x 기준이다. Spring Boot 4에서는 <code class="language-plaintext highlighter-rouge">AutoConfigureMockMvc</code>가 <code class="language-plaintext highlighter-rouge">org.springframework.boot.webmvc.test.autoconfigure</code> Package로 이동했다. Project의 Spring Boot Version에 맞는 <a href="https://docs.spring.io/spring-boot/4.0/api/java/org/springframework/boot/webmvc/test/autoconfigure/package-summary.html">API 문서</a>를 확인해야 한다.</p>
+
+<h2 id="6--gradle-test-실행과-결과-확인">6 ) Gradle Test 실행과 결과 확인</h2>
+
+<hr />
+
+<p>Project Root에서 Gradle Wrapper로 Test를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew <span class="nb">test</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">test</code> Task는 필요한 Main·Test Source Compile을 Task Graph에 포함하므로 <code class="language-plaintext highlighter-rouge">compileJava</code>를 먼저 실행할 필요가 없다. 실패한 Test가 있으면 Gradle Process가 0이 아닌 종료 Code를 반환하고 Jenkins Stage도 실패한다.</p>
+
+<p>주요 결과는 다음 위치에 생성된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>결과</th>
+      <th>기본 경로</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>HTML Test Report</td>
+      <td><code class="language-plaintext highlighter-rouge">build/reports/tests/test/index.html</code></td>
+    </tr>
+    <tr>
+      <td>JUnit XML</td>
+      <td><code class="language-plaintext highlighter-rouge">build/test-results/test/*.xml</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">gradlew</code>의 실행 권한은 Repository에 한 번 반영한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x gradlew
+git add gradlew
+git commit <span class="nt">-m</span> <span class="s2">"chore: make Gradle wrapper executable"</span>
+</code></pre></div></div>
+
+<p>Pipeline을 실행할 때마다 <code class="language-plaintext highlighter-rouge">chmod</code>로 작업 환경을 변경하는 것보다 실행 권한을 Version 관리하는 편이 재현 가능하다.</p>
+
+<h2 id="7--jenkins-pipeline에서-test-실행">7 ) Jenkins Pipeline에서 Test 실행</h2>
+
+<hr />
+
+<p>다음 Pipeline은 Source를 Checkout하고 Test를 실행한 뒤 Jenkins에 JUnit 결과를 게시한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
+    <span class="n">agent</span> <span class="n">any</span>
+
+    <span class="n">stages</span> <span class="o">{</span>
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">checkout</span> <span class="n">scm</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Unit Test'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">sh</span> <span class="s1">'./gradlew clean test'</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">post</span> <span class="o">{</span>
+        <span class="n">always</span> <span class="o">{</span>
+            <span class="n">junit</span> <span class="nl">testResults:</span> <span class="s1">'build/test-results/test/*.xml'</span><span class="o">,</span>
+                  <span class="nl">allowEmptyResults:</span> <span class="kc">false</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">post { always { ... } }</code>에 Report 게시를 두면 Test Stage가 실패해도 생성된 XML을 Jenkins가 읽는다. Jenkins Build 화면에서는 전체 Test 수, 실패한 Test와 이전 Build 대비 추이를 확인할 수 있다.</p>
+
+<h2 id="8--code-coverage의-의미">8 ) Code Coverage의 의미</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Code Coverage</strong>는 Test를 실행했을 때 Program의 Code 요소가 실제로 실행된 비율을 나타내는 지표이다.</p>
+</blockquote>
+
+<p>Coverage는 Test가 닿지 않은 Code를 찾는 데 사용한다. Coverage가 높아도 Assertion이 부정확하거나 요구 사항이 누락되면 결함은 남을 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>지표</th>
+      <th>확인 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Line Coverage</td>
+      <td>실행된 Source Line의 비율</td>
+    </tr>
+    <tr>
+      <td>Branch Coverage</td>
+      <td>조건문과 분기에서 실행된 경로의 비율</td>
+    </tr>
+    <tr>
+      <td>Method Coverage</td>
+      <td>한 번 이상 실행된 Method의 비율</td>
+    </tr>
+    <tr>
+      <td>Class Coverage</td>
+      <td>한 번 이상 실행된 Class의 비율</td>
+    </tr>
+    <tr>
+      <td>Instruction Coverage</td>
+      <td>Java Bytecode Instruction 중 실행된 비율</td>
+    </tr>
+    <tr>
+      <td>Complexity</td>
+      <td>분기 구조를 바탕으로 계산한 순환 복잡도와 누락된 Test Case의 규모</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Branch Coverage가 높으려면 <code class="language-plaintext highlighter-rouge">if</code>의 참과 거짓처럼 가능한 분기 결과를 각각 실행해야 한다. Line Coverage가 100%여도 한 줄에 포함된 모든 조건 조합을 검증했다고 단정할 수 없다.</p>
+
+<h2 id="9--jacoco-report와-coverage-기준-구성">9 ) JaCoCo Report와 Coverage 기준 구성</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">plugins</code> Block에 JaCoCo Plugin을 추가한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="o">{</span>
+    <span class="n">id</span> <span class="s1">'java'</span>
+    <span class="n">id</span> <span class="s1">'jacoco'</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Report 생성과 Coverage 기준 검증을 다음처럼 연결한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">test</span> <span class="o">{</span>
+    <span class="n">finalizedBy</span> <span class="n">jacocoTestReport</span>
+<span class="o">}</span>
+
+<span class="n">jacocoTestReport</span> <span class="o">{</span>
+    <span class="n">dependsOn</span> <span class="n">test</span>
+
+    <span class="n">reports</span> <span class="o">{</span>
+        <span class="n">html</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">xml</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="n">csv</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">jacocoTestCoverageVerification</span> <span class="o">{</span>
+    <span class="n">dependsOn</span> <span class="n">test</span>
+
+    <span class="n">violationRules</span> <span class="o">{</span>
+        <span class="n">rule</span> <span class="o">{</span>
+            <span class="n">limit</span> <span class="o">{</span>
+                <span class="n">minimum</span> <span class="o">=</span> <span class="mf">0.20</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">check</span><span class="o">.</span><span class="na">dependsOn</span> <span class="n">jacocoTestCoverageVerification</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">test.finalizedBy</code></td>
+      <td>Test 종료 후 HTML·XML Report 생성</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">jacocoTestReport.dependsOn test</code></td>
+      <td>Report를 직접 실행해도 먼저 Test 수행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">minimum = 0.20</code></td>
+      <td>선택한 Counter의 최소 Coverage를 20%로 설정한 학습용 예시</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">check.dependsOn</code></td>
+      <td><code class="language-plaintext highlighter-rouge">check</code> Lifecycle에 Coverage 기준 검증 포함</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Gradle의 JaCoCo Plugin은 기본적으로 <code class="language-plaintext highlighter-rouge">jacocoTestReport</code>와 <code class="language-plaintext highlighter-rouge">test</code>를 자동 연결하지 않으며, Coverage Verification도 <code class="language-plaintext highlighter-rouge">check</code>에 자동 포함하지 않는다. 필요한 Task 관계를 명시해야 한다. 자세한 설정은 <a href="https://docs.gradle.org/current/userguide/jacoco_plugin.html">Gradle JaCoCo Plugin 문서</a>에서 확인할 수 있다.</p>
+
+<p>다음 명령은 Test, Report 생성과 기준 검증을 한 번에 수행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew clean <span class="nb">test </span>jacocoTestReport jacocoTestCoverageVerification
+</code></pre></div></div>
+
+<p>HTML Report는 <code class="language-plaintext highlighter-rouge">build/reports/jacoco/test/html/index.html</code>에서 확인한다. Coverage가 설정한 최소값보다 낮으면 <code class="language-plaintext highlighter-rouge">jacocoTestCoverageVerification</code>이 실패하고 Jenkins Pipeline도 중단된다.</p>
+
+<h2 id="10--coverage-목표-설정">10 ) Coverage 목표 설정</h2>
+
+<hr />
+
+<p>Coverage 100%는 요구 사항을 모두 구현했거나 결함이 없다는 뜻이 아니다. 잘못된 구현을 그대로 기대값으로 사용하거나 중요한 예외 Case를 누락해도 실행 비율은 높게 나올 수 있다.</p>
+
+<p><a href="https://testing.googleblog.com/2020/08/code-coverage-best-practices.html">Google Testing Blog의 Coverage 지침</a>은 60%를 수용 가능한 수준, 75%를 권장할 만한 수준, 90%를 모범적인 수준으로 제시하지만 보편적인 합격 기준은 아니다. Code의 Business 영향, 변경 빈도, 복잡도와 유지 기간에 따라 Team이 기준을 정해야 한다.</p>
+
+<p>Coverage를 운영할 때는 다음 순서로 접근한다.</p>
+
+<ol>
+  <li>
+    <p>핵심 Method가 Test에서 한 번 이상 실행되는지 확인한다.</p>
+  </li>
+  <li>
+    <p>변경된 Code와 장애 영향이 큰 Code의 Line Coverage를 우선 높인다.</p>
+  </li>
+  <li>
+    <p>조건문과 예외 처리의 Branch Coverage를 확인한다.</p>
+  </li>
+  <li>
+    <p>수치만 높이는 Test 대신 요구 사항과 실패 조건을 검증하는 Assertion을 추가한다.</p>
+  </li>
+</ol>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>순수 Logic은 Spring Context 없이 빠른 단위 Test로 검증한다.</p>
+    </li>
+    <li>
+      <p>Controller Test는 실제 Mapping과 같은 HTTP Method, URL, Status와 Body를 검증한다.</p>
+    </li>
+    <li>
+      <p>Gradle <code class="language-plaintext highlighter-rouge">test</code> Task가 Compile을 포함하므로 Pipeline에 중복 Compile Stage를 둘 필요가 없다.</p>
+    </li>
+    <li>
+      <p>JaCoCo Task 관계와 합격 기준은 Project에서 명시적으로 구성한다.</p>
+    </li>
+    <li>
+      <p>Coverage는 미검증 영역을 찾는 지표이며 Software 정확성 자체를 증명하지 않는다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-53-jenkins-sonarqube-analysis/">Jenkins SonarQube 정적 분석과 Quality Gate</a>에서는 Test를 실행하지 않고 Code의 Bug, Vulnerability와 Code Smell을 분석하고 Jenkins Pipeline에 결과를 연결한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다]]></summary></entry><entry><title type="html">Jenkins SonarQube 정적 분석과 Quality Gate</title><link href="https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis/" rel="alternate" type="text/html" title="Jenkins SonarQube 정적 분석과 Quality Gate" /><published>2026-09-16T00:00:00+09:00</published><updated>2026-09-16T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis</id><content type="html" xml:base="https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis/"><![CDATA[<p><a href="/cloud-native-52-jenkins-unit-test-jacoco/">Jenkins 단위 테스트와 JaCoCo Code Coverage</a>에서는 실행 결과와 Coverage로 Application 동작을 검증했다. 정적 분석은 Code를 실행하지 않고 잠재적인 Bug, Vulnerability, 중복과 유지보수 문제를 찾는다. 이 글에서는 SonarQube 분석을 Gradle과 Jenkins Pipeline에 연결한다.</p>
+
+<h2 id="1--정적-분석의-역할">1 ) 정적 분석의 역할</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>정적 Code 분석</strong>은 Program을 실행하지 않고 Source Code와 Bytecode를 검사해 규칙 위반과 잠재적인 결함을 찾는 과정이다.</p>
+</blockquote>
+
+<ul>
+  <li>
+    <p><strong>Code 품질 개선</strong>: 복잡한 Code, 중복, 읽기 어려운 구조와 Coding Convention 위반을 찾는다.</p>
+  </li>
+  <li>
+    <p><strong>Bug 사전 탐지</strong>: Null 처리와 Resource 누수처럼 Runtime 장애로 이어질 수 있는 Pattern을 확인한다.</p>
+  </li>
+  <li>
+    <p><strong>보안 강화</strong>: Injection, 취약한 암호화와 입력값 검증 누락 같은 보안 문제를 탐지한다.</p>
+  </li>
+  <li>
+    <p><strong>일관성 유지</strong>: Team이 정한 Rule을 같은 기준으로 반복 적용한다.</p>
+  </li>
+</ul>
+
+<p>대표적인 Java 정적 분석 도구에는 SonarQube, Checkstyle, SpotBugs, PMD와 FindSecBugs가 있다. 각 도구의 Rule과 탐지 범위가 다르므로 한 도구의 통과가 모든 결함의 부재를 의미하지는 않는다.</p>
+
+<h2 id="2--sonarqube와-quality-gate">2 ) SonarQube와 Quality Gate</h2>
+
+<hr />
+
+<p>SonarQube는 분석 결과를 Server에 저장하고 Project별 Issue와 변화 추이를 제공한다. 지원 언어와 Rule은 SonarQube Edition과 Version, 설치한 Analyzer에 따라 달라진다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Bugs</td>
+      <td>오동작으로 이어질 가능성이 있는 Code</td>
+    </tr>
+    <tr>
+      <td>Vulnerabilities</td>
+      <td>공격자가 악용할 수 있는 보안 취약점</td>
+    </tr>
+    <tr>
+      <td>Security Hotspots</td>
+      <td>보안 관점의 Review가 필요한 민감한 Code</td>
+    </tr>
+    <tr>
+      <td>Code Smells</td>
+      <td>유지보수성과 이해도를 낮추는 Code</td>
+    </tr>
+    <tr>
+      <td>Coverage</td>
+      <td>Test Report를 통해 계산한 Coverage</td>
+    </tr>
+    <tr>
+      <td>Duplications</td>
+      <td>중복된 Code 비율과 Block</td>
+    </tr>
+    <tr>
+      <td>Lines</td>
+      <td>분석한 Source Line 규모</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>Quality Gate</strong>는 Coverage, 신규 Bug와 중복률 같은 조건을 묶은 통과 기준이다. 분석 결과가 기준을 만족하면 통과하고, 만족하지 못하면 실패 상태가 된다.</p>
+</blockquote>
+
+<p>Quality Gate는 정적 분석 결과에 대한 자동 판정 기준이다. Application의 기능 Test와 Runtime 검증을 대체하지 않는다.</p>
+
+<h2 id="3--docker로-학습용-sonarqube-실행">3 ) Docker로 학습용 SonarQube 실행</h2>
+
+<hr />
+
+<p>Jenkins와 SonarQube Container가 이름으로 통신하도록 사용자 정의 Network를 먼저 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create ci-network
+</code></pre></div></div>
+
+<p><a href="https://docs.sonarsource.com/sonarqube-server/latest/server-installation/from-docker-image/starting-sonarqube-container/">SonarQube Docker 설치 문서</a>와 Image Registry에서 사용할 Community Build Tag를 확인한 뒤 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">SONARQUBE_IMAGE</span><span class="o">=</span><span class="s1">'sonarqube:&lt;verified-community-tag&gt;'</span>
+
+docker run <span class="nt">-d</span> <span class="se">\</span>
+  <span class="nt">--name</span> sonarqube <span class="se">\</span>
+  <span class="nt">--network</span> ci-network <span class="se">\</span>
+  <span class="nt">-p</span> 9000:9000 <span class="se">\</span>
+  <span class="s2">"</span><span class="nv">$SONARQUBE_IMAGE</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">http://localhost:9000</code>에 접속한다. 초기 계정은 <code class="language-plaintext highlighter-rouge">admin</code>, 비밀번호도 <code class="language-plaintext highlighter-rouge">admin</code>이며 첫 Login 직후 변경해야 한다.</p>
+
+<p>이 구성은 구조를 익히는 학습용이다. <code class="language-plaintext highlighter-rouge">--rm</code>을 사용하거나 Volume 없이 Container를 제거하면 분석 이력과 설정을 잃을 수 있다. 운영 환경에서는 외부 Database와 Persistent Volume을 구성해야 하며, 내장 H2 Database는 Test와 Trial 용도로만 사용한다. 지원 Database와 Version은 <a href="https://docs.sonarsource.com/sonarqube-server/server-installation/installing-the-database">Database 설치 문서</a>에서 확인한다.</p>
+
+<h2 id="4--분석-token-생성과-보관">4 ) 분석 Token 생성과 보관</h2>
+
+<hr />
+
+<p>SonarQube에서 계정 Menu의 <strong>My Account → Security</strong>로 이동해 Token 이름, 종류와 만료일을 지정하고 생성한다. Token 값은 생성 직후 한 번만 확인할 수 있으므로 Password Manager 또는 Jenkins Credential에 저장한다.</p>
+
+<p>다음 위치에는 실제 Token을 기록하지 않는다.</p>
+
+<ul>
+  <li>
+    <p>Git으로 관리하는 <code class="language-plaintext highlighter-rouge">build.gradle</code>과 <code class="language-plaintext highlighter-rouge">Jenkinsfile</code></p>
+  </li>
+  <li>
+    <p>Blog, Screenshot과 공유 문서</p>
+  </li>
+  <li>
+    <p>Shell History에 남는 명령행 Argument</p>
+  </li>
+</ul>
+
+<p>이미 노출된 Token은 문자열을 가리는 것만으로 안전해지지 않는다. SonarQube에서 폐기한 뒤 새 Token을 발급해야 한다.</p>
+
+<h2 id="5--gradle-project에-sonarqube-적용">5 ) Gradle Project에 SonarQube 적용</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">plugins</code> Block에 SonarQube Plugin을 추가한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="o">{</span>
+    <span class="n">id</span> <span class="s1">'java'</span>
+    <span class="n">id</span> <span class="s1">'org.sonarqube'</span> <span class="n">version</span> <span class="s1">'7.2.3.7755'</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">7.2.3.7755</code>는 이 Project에서 사용하는 예시 Version이다. 새 Project에서는 <a href="https://plugins.gradle.org/plugin/org.sonarqube">Gradle Plugin Portal</a>에서 현재 Version과 Gradle·JDK 호환성을 확인한다.</p>
+
+<p>Application Build와 Test를 먼저 수행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew clean build
+</code></pre></div></div>
+
+<p>Token은 <code class="language-plaintext highlighter-rouge">SONAR_TOKEN</code> 환경 변수로 전달하고, Server URL만 System Property로 지정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">SONAR_TOKEN</span><span class="o">=</span><span class="s1">'&lt;SONARQUBE_TOKEN&gt;'</span>
+./gradlew sonar <span class="nt">-Dsonar</span>.host.url<span class="o">=</span>http://localhost:9000
+<span class="nb">unset </span>SONAR_TOKEN
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">sonar.login</code>과 <code class="language-plaintext highlighter-rouge">sonar.password</code>는 Deprecated되었으며 <code class="language-plaintext highlighter-rouge">sonar.token</code> 또는 <code class="language-plaintext highlighter-rouge">SONAR_TOKEN</code>으로 대체되었다. Token을 명령행이나 Project File에 직접 기록하지 않는 방법은 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-parameters/parameters-not-settable-in-ui">SonarScanner 분석 Parameter 문서</a>에서 확인할 수 있다.</p>
+
+<p>분석이 완료되면 SonarQube Project 화면에서 Issue, Coverage, 중복과 Quality Gate 결과를 확인한다. Scanner 요구 사항과 분석 Task는 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scanners/sonarscanner-for-gradle">SonarScanner for Gradle 문서</a>에서 Version별로 확인한다.</p>
+
+<h2 id="6--jenkins와-sonarqube-통신-구조">6 ) Jenkins와 SonarQube 통신 구조</h2>
+
+<hr />
+
+<p>Jenkins와 SonarQube가 각각 Container에서 실행되면 Jenkins Container의 <code class="language-plaintext highlighter-rouge">localhost</code>는 Jenkins 자신을 가리킨다. 두 Container를 같은 사용자 정의 Network에 연결하고 SonarQube Container 이름을 DNS 주소로 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network connect ci-network jenkins
+</code></pre></div></div>
+
+<p>앞 절의 명령으로 SonarQube를 실행했다면 <code class="language-plaintext highlighter-rouge">sonarqube</code>는 이미 <code class="language-plaintext highlighter-rouge">ci-network</code>에 연결되어 있다. 기존 Jenkins Container만 같은 Network에 추가한다.</p>
+
+<p>Jenkins에서 사용할 URL은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://sonarqube:9000
+</code></pre></div></div>
+
+<p>기본 <code class="language-plaintext highlighter-rouge">bridge</code> Network에서 조회한 Container IP는 재생성할 때 바뀔 수 있다. Pipeline에 고정 IP를 넣지 않고 사용자 정의 Network의 Container 이름을 사용한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>통신 주체</th>
+      <th>사용 주소</th>
+      <th>이유</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Host Browser</td>
+      <td><code class="language-plaintext highlighter-rouge">http://localhost:9000</code></td>
+      <td>Host에 공개한 Port로 접근</td>
+    </tr>
+    <tr>
+      <td>Jenkins Container</td>
+      <td><code class="language-plaintext highlighter-rouge">http://sonarqube:9000</code></td>
+      <td>같은 Docker Network의 DNS 이름으로 접근</td>
+    </tr>
+    <tr>
+      <td>SonarQube Container 자신</td>
+      <td><code class="language-plaintext highlighter-rouge">http://localhost:9000</code></td>
+      <td>자기 Network Namespace 안의 Process에 접근</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="7--jenkins-sonarqube-설정">7 ) Jenkins SonarQube 설정</h2>
+
+<hr />
+
+<p>Jenkins에서 다음 순서로 설정한다.</p>
+
+<ol>
+  <li>
+    <p><strong>Manage Jenkins → Plugins</strong>에서 <strong>SonarQube Scanner for Jenkins</strong> Plugin을 설치한다.</p>
+  </li>
+  <li>
+    <p><strong>Manage Jenkins → Credentials</strong>에서 SonarQube Token을 <strong>Secret text</strong>로 저장한다. 예시 Credential ID는 <code class="language-plaintext highlighter-rouge">sonarqube-token</code>이다.</p>
+  </li>
+  <li>
+    <p><strong>Manage Jenkins → System → SonarQube servers</strong>에 Server를 추가한다.</p>
+  </li>
+  <li>
+    <p>Name을 <code class="language-plaintext highlighter-rouge">SonarQube-Server</code>, Server URL을 <code class="language-plaintext highlighter-rouge">http://sonarqube:9000</code>, Authentication Token을 <code class="language-plaintext highlighter-rouge">sonarqube-token</code>으로 설정한다.</p>
+  </li>
+</ol>
+
+<p>Plugin과 Server 설정 절차는 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/ci-integration/jenkins-integration/global-setup">Jenkins용 SonarQube 설정 문서</a>에서 확인할 수 있다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">withSonarQubeEnv('SonarQube-Server')</code>는 Jenkins에 등록한 Server URL과 Token을 분석 Step의 환경에 주입한다. Token을 Pipeline 전역 <code class="language-plaintext highlighter-rouge">environment</code>에 두지 않으므로 노출 범위를 분석 Stage로 제한할 수 있다.</p>
+
+<h2 id="8--test와-sonarqube-분석-pipeline">8 ) Test와 SonarQube 분석 Pipeline</h2>
+
+<hr />
+
+<p>다음 Jenkinsfile은 Test를 통과한 Source만 SonarQube로 분석한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
+    <span class="n">agent</span> <span class="n">any</span>
+
+    <span class="n">stages</span> <span class="o">{</span>
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">checkout</span> <span class="n">scm</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'Unit Test'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">sh</span> <span class="s1">'./gradlew clean test jacocoTestReport'</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+
+        <span class="n">stage</span><span class="o">(</span><span class="s1">'SonarQube Analysis'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">steps</span> <span class="o">{</span>
+                <span class="n">withSonarQubeEnv</span><span class="o">(</span><span class="s1">'SonarQube-Server'</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">sh</span> <span class="s1">'./gradlew sonar'</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="n">post</span> <span class="o">{</span>
+        <span class="n">always</span> <span class="o">{</span>
+            <span class="n">junit</span> <span class="nl">testResults:</span> <span class="s1">'build/test-results/test/*.xml'</span><span class="o">,</span>
+                  <span class="nl">allowEmptyResults:</span> <span class="kc">false</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Stage</th>
+      <th>Jenkins Agent에서 수행하는 작업</th>
+      <th>외부 연결</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Checkout</td>
+      <td>Repository Source와 Jenkinsfile 확보</td>
+      <td>Git Server</td>
+    </tr>
+    <tr>
+      <td>Unit Test</td>
+      <td>JUnit 실행과 JaCoCo XML·HTML 생성</td>
+      <td>Gradle Dependency Repository</td>
+    </tr>
+    <tr>
+      <td>SonarQube Analysis</td>
+      <td>Source와 Coverage Report 분석 요청</td>
+      <td><code class="language-plaintext highlighter-rouge">SonarQube-Server</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">compileJava</code>는 <code class="language-plaintext highlighter-rouge">test</code> Task가 필요에 따라 실행하므로 별도 Stage로 중복하지 않는다. <code class="language-plaintext highlighter-rouge">withSonarQubeEnv</code>를 사용할 때는 Jenkins System 설정의 이름과 문자열이 정확히 일치해야 한다.</p>
+
+<h2 id="9--quality-gate로-pipeline-중단">9 ) Quality Gate로 Pipeline 중단</h2>
+
+<hr />
+
+<p>SonarQube가 Jenkins에 분석 완료 결과를 돌려주도록 Webhook을 구성하면 Pipeline에서 Quality Gate를 기다릴 수 있다.</p>
+
+<p>SonarQube의 Project 또는 Global Webhook URL을 다음 형식으로 설정한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://&lt;jenkins-host&gt;/sonarqube-webhook/
+</code></pre></div></div>
+
+<p>마지막 <code class="language-plaintext highlighter-rouge">/</code>도 URL에 포함한다. Analysis Stage 뒤에 다음 Stage를 추가한다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stage</span><span class="o">(</span><span class="s1">'Quality Gate'</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">steps</span> <span class="o">{</span>
+        <span class="n">timeout</span><span class="o">(</span><span class="nl">time:</span> <span class="mi">10</span><span class="o">,</span> <span class="nl">unit:</span> <span class="s1">'MINUTES'</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">waitForQualityGate</span> <span class="nl">abortPipeline:</span> <span class="kc">true</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">waitForQualityGate</code>는 Webhook 결과를 기다리고, <code class="language-plaintext highlighter-rouge">abortPipeline: true</code>는 Gate 실패 시 Pipeline을 중단한다. 무기한 대기를 막기 위해 <code class="language-plaintext highlighter-rouge">timeout</code>을 함께 둔다. Jenkins Extension의 Pipeline 사용 방법은 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scanners/jenkins-extension-sonarqube">SonarQube Jenkins Extension 문서</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>정적 분석은 Test 실행 여부와 별개로 Bug, Vulnerability와 유지보수 문제를 찾는다.</p>
+    </li>
+    <li>
+      <p>학습용 Container와 운영용 SonarQube의 Database·Volume 구성을 구분한다.</p>
+    </li>
+    <li>
+      <p>Token은 Jenkins Secret Text로 저장하고 분석 Stage에서만 주입한다.</p>
+    </li>
+    <li>
+      <p>Container 간 통신에는 바뀔 수 있는 고정 IP 대신 사용자 정의 Network의 DNS 이름을 사용한다.</p>
+    </li>
+    <li>
+      <p>SonarQube Analysis와 Quality Gate를 연결하면 기준을 만족하지 못한 Code의 후속 배포를 중단할 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다]]></summary></entry><entry><title type="html">Jenkins Freestyle Trigger와 SSH·Docker 배포</title><link href="https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment/" rel="alternate" type="text/html" title="Jenkins Freestyle Trigger와 SSH·Docker 배포" /><published>2026-09-15T00:00:00+09:00</published><updated>2026-09-15T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment</id><content type="html" xml:base="https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment/"><![CDATA[<p><a href="/cloud-native-49-jenkins-maven-gradle-build/">Jenkins Maven·Gradle Build와 Email 알림</a>에서 Java Application을 Test하고 JAR로 Package하는 과정을 구성했다. 이번에는 Build를 시작하는 Trigger와 생성된 Artifact를 SSH Server에 전송하는 방법, Docker Image로 만들어 Registry와 배포 Server에 전달하는 방법을 정리한다.</p>
 
 <h2 id="1--build-trigger-선택">1 ) Build Trigger 선택</h2>
 
@@ -4715,1319 +5495,4 @@ docker stop flaskweb
       <p>Actions 화면에서는 Workflow, Job과 Step 단위로 상태와 Log를 확인할 수 있다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="GitHubActions" /><summary type="html"><![CDATA[GitHub Actions의 실행 구조를 이해하고 Node.js와 Python Test부터 Docker Image Build 및 Docker Hub Push까지 자동화한다]]></summary></entry><entry><title type="html">Git 이력 관리와 Branch 작업</title><link href="https://hyn128.site/cloud-native-43-git-history-branch/" rel="alternate" type="text/html" title="Git 이력 관리와 Branch 작업" /><published>2026-09-10T00:00:00+09:00</published><updated>2026-09-10T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-43-git-history-branch</id><content type="html" xml:base="https://hyn128.site/cloud-native-43-git-history-branch/"><![CDATA[<p><a href="/cloud-native-42-git-version-control-basics/">Version Control과 Git 기본 작업 흐름</a>에서 Working Tree, Staging Area와 Local Repository의 관계를 살펴봤다. 이 글에서는 저장된 Commit을 조회하고 비교하는 방법부터 변경 복구, Branch 통합까지 다룬다.</p>
-
-<p>SourceTree를 사용해도 Git의 상태와 History는 CLI를 사용할 때와 같다. GUI 조작과 명령을 함께 확인하면 버튼을 눌렀을 때 Repository에서 무엇이 바뀌는지 이해할 수 있다.</p>
-
-<h2 id="1--sourcetree와-git-cli">1 ) SourceTree와 Git CLI</h2>
-
-<hr />
-
-<p>SourceTree는 Git Repository를 시각적으로 다루는 GUI Client이다. File 상태, Commit Graph와 Branch 관계를 화면에 표시하고 선택한 작업에 해당하는 Git 명령을 실행한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Git 작업</th>
-      <th>SourceTree에서 확인할 영역</th>
-      <th>CLI</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Repository 생성</td>
-      <td>Local Repository 생성</td>
-      <td><code class="language-plaintext highlighter-rouge">git init</code></td>
-    </tr>
-    <tr>
-      <td>File 상태 확인</td>
-      <td>File Status·Working Copy</td>
-      <td><code class="language-plaintext highlighter-rouge">git status</code></td>
-    </tr>
-    <tr>
-      <td>Stage</td>
-      <td>Stage 대상 선택</td>
-      <td><code class="language-plaintext highlighter-rouge">git add</code>, <code class="language-plaintext highlighter-rouge">git restore --staged</code></td>
-    </tr>
-    <tr>
-      <td>Commit</td>
-      <td>Commit Message 입력 영역</td>
-      <td><code class="language-plaintext highlighter-rouge">git commit</code></td>
-    </tr>
-    <tr>
-      <td>History</td>
-      <td>Commit Graph·History</td>
-      <td><code class="language-plaintext highlighter-rouge">git log --graph</code></td>
-    </tr>
-    <tr>
-      <td>Tag</td>
-      <td>Commit의 Tag 메뉴</td>
-      <td><code class="language-plaintext highlighter-rouge">git tag</code></td>
-    </tr>
-    <tr>
-      <td>Branch 전환</td>
-      <td>Branch 목록</td>
-      <td><code class="language-plaintext highlighter-rouge">git switch</code></td>
-    </tr>
-    <tr>
-      <td>통합</td>
-      <td>Merge·Rebase 메뉴</td>
-      <td><code class="language-plaintext highlighter-rouge">git merge</code>, <code class="language-plaintext highlighter-rouge">git rebase</code></td>
-    </tr>
-    <tr>
-      <td>임시 보관</td>
-      <td>Stash 메뉴</td>
-      <td><code class="language-plaintext highlighter-rouge">git stash</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>버튼 이름과 화면 배치는 SourceTree Version과 운영체제에 따라 달라질 수 있다. 조작 후 <code class="language-plaintext highlighter-rouge">git status</code>, <code class="language-plaintext highlighter-rouge">git log</code>와 <code class="language-plaintext highlighter-rouge">git branch</code>로 실제 Repository 상태를 확인하면 GUI 표시와 Git 개념을 연결할 수 있다.</p>
-
-<h2 id="2--local-repository에서-version-생성">2 ) Local Repository에서 Version 생성</h2>
-
-<hr />
-
-<h3 id="repository-준비">Repository 준비</h3>
-
-<p>SourceTree에서는 Local Repository 생성 화면에서 작업 Directory를 선택한다. CLI에서는 같은 Directory로 이동해 <code class="language-plaintext highlighter-rouge">git init</code>을 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>git-history-lab
-<span class="nb">cd </span>git-history-lab
-git init <span class="nt">--initial-branch</span><span class="o">=</span>main
-</code></pre></div></div>
-
-<p>초기 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-</code></pre></div></div>
-
-<h3 id="첫-번째-commit">첫 번째 Commit</h3>
-
-<p><code class="language-plaintext highlighter-rouge">a.txt</code>, <code class="language-plaintext highlighter-rouge">b.txt</code>, <code class="language-plaintext highlighter-rouge">c.txt</code>를 만들고 각각 <code class="language-plaintext highlighter-rouge">A</code>, <code class="language-plaintext highlighter-rouge">B</code>, <code class="language-plaintext highlighter-rouge">C</code>를 기록한다. File 작성 방식은 사용하는 Editor에 따라 달라지므로 여기서는 Git 상태 변화에 집중한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git-history-lab/
-├── a.txt
-├── b.txt
-└── c.txt
-</code></pre></div></div>
-
-<p>새 File은 Untracked 상태이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-</code></pre></div></div>
-
-<p>세 File을 다음 Commit 대상으로 Stage한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add a.txt b.txt c.txt
-git diff <span class="nt">--staged</span>
-git status
-</code></pre></div></div>
-
-<p>SourceTree에서는 Unstaged File 목록에서 대상을 선택하여 Staged File 영역으로 옮긴다. Commit 전에는 Staged Diff를 읽어 의도한 내용만 포함됐는지 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit <span class="nt">-m</span> <span class="s2">"docs: add initial text files"</span>
-</code></pre></div></div>
-
-<h3 id="두-번째-commit">두 번째 Commit</h3>
-
-<p><code class="language-plaintext highlighter-rouge">a.txt</code>를 수정하고 <code class="language-plaintext highlighter-rouge">c.txt</code>를 삭제하면 두 File 모두 Working Tree 변경으로 표시된다. 삭제도 Git이 추적하는 변경이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-git diff
-</code></pre></div></div>
-
-<p>변경을 Stage하고 두 번째 Commit을 만든다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add a.txt c.txt
-git diff <span class="nt">--staged</span>
-git commit <span class="nt">-m</span> <span class="s2">"docs: update A and remove C"</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">git add .</code>은 현재 Directory 아래의 추가, 수정과 삭제를 한꺼번에 Stage할 수 있다. 범위가 넓으므로 사용 직후 <code class="language-plaintext highlighter-rouge">git diff --staged</code>로 Commit 대상을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add <span class="nb">.</span>
-git diff <span class="nt">--staged</span>
-</code></pre></div></div>
-
-<p>이미 추적 중인 File의 수정과 삭제를 Stage하면서 Commit까지 수행할 때는 <code class="language-plaintext highlighter-rouge">-a</code>를 사용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git commit <span class="nt">-am</span> <span class="s2">"docs: update tracked files"</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">git commit -am</code>은 Untracked File을 포함하지 않는다. 새 File은 먼저 <code class="language-plaintext highlighter-rouge">git add</code>로 추적 대상에 포함해야 한다.</p>
-
-<h2 id="3--commit-history-조회">3 ) Commit History 조회</h2>
-
-<hr />
-
-<p>SourceTree의 History 화면은 Commit을 Graph로 표시한다. CLI에서는 목적에 따라 <code class="language-plaintext highlighter-rouge">git log</code> Option을 조합한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 상세 History</span>
-git log
-
-<span class="c"># 한 Commit을 한 줄로 표시</span>
-git log <span class="nt">--oneline</span>
-
-<span class="c"># Commit별 Patch 포함</span>
-git log <span class="nt">--patch</span>
-
-<span class="c"># Branch와 Tag를 함께 표시</span>
-git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
-</code></pre></div></div>
-
-<p>Commit을 선택하면 작성자, 시각, Message, Parent와 변경된 File을 확인할 수 있다. CLI에서는 <code class="language-plaintext highlighter-rouge">git show</code>를 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git show &lt;commit&gt;
-git show <span class="nt">--stat</span> &lt;commit&gt;
-git show <span class="nt">--name-status</span> &lt;commit&gt;
-</code></pre></div></div>
-
-<p>Commit 개수는 작업을 나눈 방식에 따라 크게 달라진다. 많은 Commit이 Project 품질이나 기여 수준을 자동으로 증명하지 않으므로 변경 내용과 Message, Review 결과를 함께 봐야 한다.</p>
-
-<h2 id="4--tag로-version-표시">4 ) Tag로 Version 표시</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Tag</strong></p>
-
-  <p>특정 Git Object를 읽기 쉬운 이름으로 가리키는 Reference이다. Release Version을 표시할 때 주로 Commit에 연결한다.</p>
-</blockquote>
-
-<p>Commit Object ID는 Git이 Content와 Metadata를 바탕으로 생성한다. 사용자가 원하는 문자열로 Object ID를 정할 수 없으므로 <code class="language-plaintext highlighter-rouge">v1.0.0</code> 같은 Tag를 별도로 붙인다.</p>
-
-<h3 id="lightweight-tag">Lightweight Tag</h3>
-
-<p>현재 Commit을 직접 가리키는 Lightweight Tag를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag v1.0.0
-</code></pre></div></div>
-
-<h3 id="annotated-tag">Annotated Tag</h3>
-
-<p>Annotated Tag에는 작성자, 생성 시각과 Message가 별도 Tag Object로 기록된다. Release 표시에는 Annotated Tag가 적합하다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag <span class="nt">-a</span> v1.0.0 <span class="nt">-m</span> <span class="s2">"release v1.0.0"</span>
-</code></pre></div></div>
-
-<p>특정 Commit에 Tag를 붙이려면 Commit을 함께 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git log <span class="nt">--oneline</span>
-git tag <span class="nt">-a</span> v0.9.0 &lt;commit&gt; <span class="nt">-m</span> <span class="s2">"release v0.9.0"</span>
-</code></pre></div></div>
-
-<p>Tag 목록과 대상을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag <span class="nt">--list</span>
-git show v1.0.0
-</code></pre></div></div>
-
-<p>Local Tag를 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git tag <span class="nt">--delete</span> v1.0.0
-</code></pre></div></div>
-
-<p>Tag는 기본 <code class="language-plaintext highlighter-rouge">git push</code>에 항상 포함되지 않는다. Remote에 특정 Tag를 올리거나 삭제하는 작업은 명시적으로 수행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git push origin v1.0.0
-git push origin <span class="nt">--delete</span> v1.0.0
-</code></pre></div></div>
-
-<p>SourceTree에서는 History에서 대상 Commit을 선택해 Tag를 만들 수 있다. 생성 후 Local Tag인지 Remote에도 Push된 Tag인지 구분해서 확인한다.</p>
-
-<h2 id="5--version-비교">5 ) Version 비교</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">git diff</code>는 어떤 두 상태를 비교하는지에 따라 출력 범위가 달라진다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>비교 대상</th>
-      <th>명령</th>
-      <th>확인하는 내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Working Tree ↔ Staging Area</td>
-      <td><code class="language-plaintext highlighter-rouge">git diff</code></td>
-      <td>아직 Stage하지 않은 변경</td>
-    </tr>
-    <tr>
-      <td>Staging Area ↔ <code class="language-plaintext highlighter-rouge">HEAD</code></td>
-      <td><code class="language-plaintext highlighter-rouge">git diff --staged</code></td>
-      <td>다음 Commit에 들어갈 변경</td>
-    </tr>
-    <tr>
-      <td>Commit ↔ Commit</td>
-      <td><code class="language-plaintext highlighter-rouge">git diff &lt;commit-a&gt; &lt;commit-b&gt;</code></td>
-      <td>두 Commit의 Snapshot 차이</td>
-    </tr>
-    <tr>
-      <td>Branch ↔ Branch</td>
-      <td><code class="language-plaintext highlighter-rouge">git diff &lt;branch-a&gt;..&lt;branch-b&gt;</code></td>
-      <td>두 Branch Tip의 Snapshot 차이</td>
-    </tr>
-  </tbody>
-</table>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git diff
-git diff <span class="nt">--staged</span>
-git diff HEAD~1 HEAD
-git diff main..feature/login
-</code></pre></div></div>
-
-<p>SourceTree에서는 Commit 두 개를 선택하여 변경 File과 Diff를 비교할 수 있다. 다중 선택에 사용하는 보조 Key는 운영체제에 따라 다르므로 선택된 두 Commit의 ID를 화면에서 확인한다.</p>
-
-<h3 id="head-와-"><code class="language-plaintext highlighter-rouge">HEAD</code>, <code class="language-plaintext highlighter-rouge">^</code>와 <code class="language-plaintext highlighter-rouge">~</code></h3>
-
-<p><code class="language-plaintext highlighter-rouge">HEAD</code>는 현재 Checkout한 위치를 가리킨다. Branch에 정상적으로 연결된 상태에서는 현재 Branch의 Tip Commit을 가리킨다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>표현</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">HEAD</code></td>
-      <td>현재 Checkout한 Commit</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">HEAD^</code></td>
-      <td><code class="language-plaintext highlighter-rouge">HEAD</code>의 첫 번째 Parent</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">HEAD^2</code></td>
-      <td>Merge Commit인 <code class="language-plaintext highlighter-rouge">HEAD</code>의 두 번째 Parent</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">HEAD~2</code></td>
-      <td>첫 번째 Parent를 두 번 따라간 Commit</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>일직선 History에서는 <code class="language-plaintext highlighter-rouge">HEAD^</code>와 <code class="language-plaintext highlighter-rouge">HEAD~1</code>이 같은 Commit을 가리킨다. Parent가 여러 개인 Merge Commit에서는 <code class="language-plaintext highlighter-rouge">^&lt;번호&gt;</code>로 어느 Parent를 선택하는지 지정할 수 있다.</p>
-
-<h2 id="6--file-변경-복구">6 ) File 변경 복구</h2>
-
-<hr />
-
-<p>File 복구는 Staging Area만 되돌리는 작업과 Working Tree의 내용을 폐기하는 작업을 구분해야 한다.</p>
-
-<h3 id="stage-취소">Stage 취소</h3>
-
-<p>다음 명령은 File의 Staged 상태를 <code class="language-plaintext highlighter-rouge">HEAD</code> 기준으로 되돌린다. Working Tree의 수정 내용은 유지한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git restore <span class="nt">--staged</span> &lt;file&gt;
-git status
-</code></pre></div></div>
-
-<p>SourceTree에서는 Staged File을 Unstaged 영역으로 옮기는 동작에 해당한다.</p>
-
-<h3 id="working-tree-변경-폐기">Working Tree 변경 폐기</h3>
-
-<p>다음 명령은 Working Tree의 File을 Staging Area의 내용으로 복원한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git diff <span class="nt">--</span> &lt;file&gt;
-git restore &lt;file&gt;
-</code></pre></div></div>
-
-<p>저장하지 않은 변경은 사라질 수 있다. 실행 전에 <code class="language-plaintext highlighter-rouge">git diff</code>를 확인하고 보존할 내용이 있으면 Commit이나 Stash로 저장한다.</p>
-
-<p>특정 Commit의 File만 가져올 수도 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git restore <span class="nt">--source</span><span class="o">=</span>&lt;commit&gt; <span class="nt">--</span> &lt;file&gt;
-</code></pre></div></div>
-
-<p>이 명령은 Branch 전체를 해당 Commit으로 이동시키지 않고 선택한 File의 Working Tree 내용만 바꾼다.</p>
-
-<h2 id="7--commit-되돌리기">7 ) Commit 되돌리기</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">reset</code>과 <code class="language-plaintext highlighter-rouge">revert</code>는 결과가 비슷해 보이지만 History 처리 방식이 다르다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>명령</th>
-      <th>현재 Branch Tip</th>
-      <th>Staging Area</th>
-      <th>Working Tree</th>
-      <th>공유 Branch 사용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">reset --soft</code></td>
-      <td>대상 Commit으로 이동</td>
-      <td>유지</td>
-      <td>유지</td>
-      <td>History가 달라지므로 주의</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">reset --mixed</code></td>
-      <td>대상 Commit으로 이동</td>
-      <td>대상 Commit 기준으로 초기화</td>
-      <td>유지</td>
-      <td>History가 달라지므로 주의</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">reset --hard</code></td>
-      <td>대상 Commit으로 이동</td>
-      <td>대상 Commit 기준으로 초기화</td>
-      <td>대상 Commit 기준으로 변경</td>
-      <td>저장하지 않은 변경 손실 가능</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">revert</code></td>
-      <td>새 Commit 추가</td>
-      <td>새 Commit 과정에 따라 반영</td>
-      <td>취소 결과 반영</td>
-      <td>기존 History를 보존하므로 적합</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="soft-reset">Soft Reset</h3>
-
-<p>Commit만 취소하고 변경 내용을 Staging Area와 Working Tree에 유지한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git reset <span class="nt">--soft</span> &lt;target-commit&gt;
-git status
-git diff <span class="nt">--staged</span>
-</code></pre></div></div>
-
-<h3 id="mixed-reset">Mixed Reset</h3>
-
-<p>Option을 생략한 <code class="language-plaintext highlighter-rouge">git reset</code>은 기본적으로 Mixed Mode이다. Branch를 대상 Commit으로 옮기고 Staging Area를 초기화하지만 Working Tree 변경은 유지한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git reset &lt;target-commit&gt;
-git status
-git diff
-</code></pre></div></div>
-
-<h3 id="hard-reset">Hard Reset</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git reset <span class="nt">--hard</span> &lt;target-commit&gt;
-</code></pre></div></div>
-
-<p>Hard Reset은 Branch, Staging Area와 추적 중인 Working Tree File을 대상 Commit 상태에 맞춘다. Commit하지 않은 변경이 사라질 수 있으므로 다음 내용을 먼저 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-git diff
-git diff <span class="nt">--staged</span>
-git log <span class="nt">--oneline</span> <span class="nt">--decorate</span> <span class="nt">-n</span> 10
-</code></pre></div></div>
-
-<p>필요하면 현재 위치를 임시 Branch로 보존한 뒤 Reset한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch backup-before-reset
-</code></pre></div></div>
-
-<h3 id="revert">Revert</h3>
-
-<p><code class="language-plaintext highlighter-rouge">git revert</code>는 취소할 Commit의 반대 변경을 적용한 새 Commit을 만든다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git revert &lt;commit-to-cancel&gt;
-</code></pre></div></div>
-
-<p>기존 Commit이 History에 남으므로 이미 Remote에 공유한 Branch에서 변경을 취소할 때 사용하기 쉽다. 충돌이 발생하면 File을 수정하고 Stage한 뒤 작업을 계속하거나 중단한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add &lt;resolved-file&gt;
-git revert <span class="nt">--continue</span>
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git revert <span class="nt">--abort</span>
-</code></pre></div></div>
-
-<h2 id="8--stash로-변경-임시-보관">8 ) Stash로 변경 임시 보관</h2>
-
-<hr />
-
-<p>Stash는 Commit하기 이른 Working Tree와 Staging Area의 변경을 임시로 저장하고 현재 Branch의 작업 공간을 정리할 때 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash push <span class="nt">-m</span> <span class="s2">"temporary work"</span>
-git status
-</code></pre></div></div>
-
-<p>기본 Stash에는 추적 중인 File의 Staged·Unstaged 변경이 들어간다. Untracked File은 기본 대상이 아니며 필요할 때 <code class="language-plaintext highlighter-rouge">-u</code>를 명시한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash push <span class="nt">-u</span> <span class="nt">-m</span> <span class="s2">"include untracked files"</span>
-</code></pre></div></div>
-
-<p>저장된 목록과 변경 내용을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash list
-git stash show <span class="nt">--patch</span> stash@<span class="o">{</span>0<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">apply</code>는 Stash를 적용한 뒤 목록에 남긴다. Stage 상태까지 복원하려면 <code class="language-plaintext highlighter-rouge">--index</code>를 사용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash apply stash@<span class="o">{</span>0<span class="o">}</span>
-git stash apply <span class="nt">--index</span> stash@<span class="o">{</span>0<span class="o">}</span>
-</code></pre></div></div>
-
-<p>더 이상 필요하지 않은 Stash를 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash drop stash@<span class="o">{</span>0<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">pop</code>은 적용에 성공하면 해당 Stash를 목록에서 제거한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash pop stash@<span class="o">{</span>0<span class="o">}</span>
-</code></pre></div></div>
-
-<p>Stash 적용 중에도 현재 Branch의 변경과 충돌할 수 있다. 적용 후 <code class="language-plaintext highlighter-rouge">git status</code>와 Diff를 확인한다.</p>
-
-<h2 id="9--branch와-head">9 ) Branch와 <code class="language-plaintext highlighter-rouge">HEAD</code></h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Branch</strong></p>
-
-  <p>Commit을 가리키며 새 Commit이 만들어질 때 함께 이동하는 Reference이다.</p>
-</blockquote>
-
-<p>Branch는 Project File을 통째로 복사한 Directory가 아니다. 여러 작업 흐름이 서로 다른 Commit을 가리키도록 분기한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>              D──E  feature/login
-             /
-A──B──C───────────  main
-</code></pre></div></div>
-
-<p>현재 Branch와 목록을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch <span class="nt">--show-current</span>
-git branch
-</code></pre></div></div>
-
-<p>Branch를 만들고 전환한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch feature/login
-git switch feature/login
-</code></pre></div></div>
-
-<p>생성과 전환을 동시에 수행할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch <span class="nt">-c</span> feature/payment
-</code></pre></div></div>
-
-<p>기존 환경에서는 다음 <code class="language-plaintext highlighter-rouge">checkout</code> 명령도 계속 볼 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git checkout feature/login
-git checkout <span class="nt">-b</span> feature/payment
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">checkout</code>은 Branch 전환과 File 복구를 모두 담당하는 오래된 범용 명령이다. 새 문서에서는 의도가 분명한 <code class="language-plaintext highlighter-rouge">switch</code>와 <code class="language-plaintext highlighter-rouge">restore</code>를 우선 사용한다.</p>
-
-<p>특정 Commit을 직접 Checkout하면 <code class="language-plaintext highlighter-rouge">HEAD</code>가 Branch가 아닌 Commit을 가리키는 Detached HEAD 상태가 될 수 있다. 이 상태에서 만든 Commit을 보존하려면 해당 위치에서 Branch를 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch <span class="nt">-c</span> save-detached-work
-</code></pre></div></div>
-
-<h3 id="branch-삭제">Branch 삭제</h3>
-
-<p>현재 Checkout한 Branch는 삭제할 수 없다. 다른 Branch로 이동한 뒤 병합이 끝난 Branch를 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch main
-git branch <span class="nt">-d</span> feature/login
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">-d</code>는 병합되지 않은 Commit이 있으면 삭제를 거절한다. <code class="language-plaintext highlighter-rouge">-D</code>는 이를 무시하는 강제 삭제이므로 보존할 Commit이 없는지 확인하지 않고 사용하지 않는다.</p>
-
-<h2 id="10--merge">10 ) Merge</h2>
-
-<hr />
-
-<p>Merge는 현재 Branch에 다른 Branch의 History를 통합한다. <code class="language-plaintext highlighter-rouge">feature/login</code>을 <code class="language-plaintext highlighter-rouge">main</code>에 합치려면 결과를 받을 <code class="language-plaintext highlighter-rouge">main</code>으로 먼저 이동한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch main
-git merge feature/login
-</code></pre></div></div>
-
-<h3 id="fast-forward-merge">Fast-forward Merge</h3>
-
-<p>Branch가 분기된 뒤 <code class="language-plaintext highlighter-rouge">main</code>에 새 Commit이 없다면 <code class="language-plaintext highlighter-rouge">main</code> Reference를 <code class="language-plaintext highlighter-rouge">feature/login</code>의 Tip까지 앞으로 이동할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>병합 전
-
-A──B  main
-    \
-     C──D  feature/login
-
-병합 후
-
-A──B──C──D  main, feature/login
-</code></pre></div></div>
-
-<p>Fast-forward Merge는 별도 Merge Commit을 만들지 않아도 된다.</p>
-
-<h3 id="merge-commit">Merge Commit</h3>
-
-<p>두 Branch가 각각 새 Commit을 가진 경우 Git은 공통 조상을 기준으로 변경을 통합하고 Merge Commit을 만들 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>       C──D  feature/login
-      /    \
-A──B──E─────M  main
-</code></pre></div></div>
-
-<p>특정 Commit을 <code class="language-plaintext highlighter-rouge">git merge &lt;commit&gt;</code> 대상으로 지정할 수 있지만 해당 Commit 하나의 Patch만 적용하는 작업은 아니다. Git은 지정한 Commit까지 이어지는 History를 현재 Branch와 병합한다. 하나의 Commit 변경만 적용하려는 경우에는 목적을 확인한 뒤 <code class="language-plaintext highlighter-rouge">git cherry-pick &lt;commit&gt;</code>을 검토한다.</p>
-
-<h3 id="merge-충돌">Merge 충돌</h3>
-
-<p>서로 다른 Branch가 같은 File의 같은 영역을 다르게 수정하면 Git이 결과를 자동으로 결정하지 못할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-</code></pre></div></div>
-
-<p>충돌 File에는 다음과 같은 Marker가 생길 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-현재 Branch의 내용
-=======
-병합하는 Branch의 내용
-&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/login
-</code></pre></div></div>
-
-<p>적용할 내용을 결정하고 Marker를 제거한 뒤 File을 Stage한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add &lt;resolved-file&gt;
-git commit
-</code></pre></div></div>
-
-<p>Merge를 완료하지 않고 시작 전으로 돌아가려면 다음 명령을 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git merge <span class="nt">--abort</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ours</code>와 <code class="language-plaintext highlighter-rouge">theirs</code>는 현재 진행 중인 작업 종류와 방향에 따라 가리키는 쪽을 정확히 확인해야 한다. 이름만 보고 자동으로 한쪽 전체를 선택하지 않는다.</p>
-
-<h2 id="11--rebase">11 ) Rebase</h2>
-
-<hr />
-
-<p>Rebase는 현재 Branch의 Commit을 새로운 Base 위에 다시 적용한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>변경 전
-
-A──B──C  main
-    \
-     D──E  feature/login
-
-변경 후
-
-A──B──C  main
-       \
-        D'──E'  feature/login
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">feature/login</code>을 최신 <code class="language-plaintext highlighter-rouge">main</code> 위로 옮긴다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch feature/login
-git rebase main
-</code></pre></div></div>
-
-<p>Rebase는 <code class="language-plaintext highlighter-rouge">D</code>와 <code class="language-plaintext highlighter-rouge">E</code>를 그대로 이동하지 않는다. 같은 변경을 새 Parent 위에 적용하여 <code class="language-plaintext highlighter-rouge">D'</code>, <code class="language-plaintext highlighter-rouge">E'</code>라는 새 Commit을 만들기 때문에 Object ID가 달라진다.</p>
-
-<p>충돌이 발생하면 File을 수정하고 Stage한 뒤 다음 Commit 적용을 계속한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-git add &lt;resolved-file&gt;
-git rebase <span class="nt">--continue</span>
-</code></pre></div></div>
-
-<p>현재 Rebase를 중단하고 시작 전 상태로 돌아간다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git rebase <span class="nt">--abort</span>
-</code></pre></div></div>
-
-<p>이미 여러 사람이 사용하는 Remote Branch의 Commit을 Rebase하면 기존 History와 다른 Commit ID가 만들어진다. 공유하기 전의 개인 작업 Branch에서 사용하는 범위와 팀의 History 정책을 먼저 확인한다.</p>
-
-<h2 id="12--non-fast-forward-push와-merge의-차이">12 ) Non-fast-forward Push와 Merge의 차이</h2>
-
-<hr />
-
-<p>Remote Branch에 Local이 가지고 있지 않은 Commit이 있으면 Push가 <code class="language-plaintext highlighter-rouge">non-fast-forward</code>로 거절될 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Local main       A──B──L
-                     
-Remote main      A──B──R
-</code></pre></div></div>
-
-<p>이 오류는 Fast-forward Merge 기능의 실패가 아니다. Remote Branch를 Local Commit까지 단순 이동하면 <code class="language-plaintext highlighter-rouge">R</code>이 History에서 빠질 수 있으므로 Server가 Update를 거절한 것이다.</p>
-
-<p>Remote 상태를 먼저 가져와 History를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git fetch origin
-git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
-</code></pre></div></div>
-
-<p>팀 정책에 따라 Remote 변경을 Merge하거나 Rebase한 뒤 충돌을 해결하고 다시 Push한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git merge origin/main
-</code></pre></div></div>
-
-<p>또는 다음과 같이 현재 Commit을 Remote Branch 위에 다시 적용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git rebase origin/main
-</code></pre></div></div>
-
-<p>원격 Repository 연결과 Push 전체 흐름은 <a href="/cloud-native-44-github-remote-workflow/">GitHub Remote Repository 작업 흐름</a>에서 다룬다.</p>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>SourceTree와 CLI는 같은 Git Repository와 상태를 다루므로 GUI 작업 뒤에도 Git 명령으로 결과를 확인할 수 있다.</p>
-    </li>
-    <li>
-      <p>Tag는 Commit Object ID를 바꾸지 않고 특정 Version을 읽기 쉬운 이름으로 가리킨다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">git diff</code>는 Working Tree, Staging Area, Commit과 Branch 중 어떤 두 상태를 비교하는지 구분해야 한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">restore</code>는 File, <code class="language-plaintext highlighter-rouge">reset</code>은 Branch와 Index, <code class="language-plaintext highlighter-rouge">revert</code>는 기존 Commit을 취소하는 새 Commit을 다룬다.</p>
-    </li>
-    <li>
-      <p>기본 Stash는 추적 중인 변경을 저장하며 Untracked File을 포함하려면 <code class="language-plaintext highlighter-rouge">-u</code>가 필요하다.</p>
-    </li>
-    <li>
-      <p>Merge는 History를 통합하고 Rebase는 현재 Branch의 Commit을 새 Base 위에 다시 적용한다.</p>
-    </li>
-    <li>
-      <p>Non-fast-forward Push 거절은 Remote에 Local이 가지지 않은 Commit이 있을 때 History 손실을 막기 위해 발생한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Git" /><summary type="html"><![CDATA[SourceTree와 Git CLI를 연결하여 Commit 조회, Tag, Diff, Restore, Reset, Revert, Stash, Merge와 Rebase를 다루는 방법]]></summary></entry><entry><title type="html">GitHub Remote Repository 작업 흐름</title><link href="https://hyn128.site/cloud-native-44-github-remote-workflow/" rel="alternate" type="text/html" title="GitHub Remote Repository 작업 흐름" /><published>2026-09-10T00:00:00+09:00</published><updated>2026-09-10T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-44-github-remote-workflow</id><content type="html" xml:base="https://hyn128.site/cloud-native-44-github-remote-workflow/"><![CDATA[<p><a href="/cloud-native-42-git-version-control-basics/">Version Control과 Git 기본 작업 흐름</a>에서 Local Repository의 구조를 정리했고 <a href="/cloud-native-43-git-history-branch/">Git 이력 관리와 Branch 작업</a>에서 Branch를 나누고 통합하는 방법을 다뤘다. 이 글에서는 Local Repository와 GitHub의 Remote Repository 사이에서 Commit과 Branch를 교환한다.</p>
-
-<h2 id="1--github와-git">1 ) GitHub와 Git</h2>
-
-<hr />
-
-<p>Git은 Local에서 Commit과 Branch History를 관리하는 Version Control System이다. GitHub는 Git Repository를 Hosting하고 협업 기능을 제공하는 Service이다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>GitHub 기능</th>
-      <th>용도</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Repository Hosting</td>
-      <td>Git Commit, Branch와 Tag 저장·공유</td>
-    </tr>
-    <tr>
-      <td>Pull Request</td>
-      <td>Branch 변경 검토와 병합</td>
-    </tr>
-    <tr>
-      <td>Issues</td>
-      <td>작업과 문제 추적</td>
-    </tr>
-    <tr>
-      <td>Actions</td>
-      <td>Build, Test와 배포 Workflow 실행</td>
-    </tr>
-    <tr>
-      <td>Packages</td>
-      <td>Package와 Container Image 저장</td>
-    </tr>
-    <tr>
-      <td>Projects</td>
-      <td>Issue와 Pull Request 기반 작업 관리</td>
-    </tr>
-    <tr>
-      <td>Pages</td>
-      <td>Repository Content 기반 정적 Site 배포</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>GitHub의 무료 범위, Storage와 Actions 사용량은 Plan에 따라 달라질 수 있으므로 사용 시점의 공식 정책을 확인한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Local Repository
-├── Working Tree
-├── Staging Area
-└── Local Branch와 Commit
-          │
-          │ fetch·pull·push
-          ▼
-GitHub Remote Repository
-├── Remote Branch
-├── Tag
-└── Pull Request·Issue·Actions
-</code></pre></div></div>
-
-<h2 id="2--remote-repository-인증-방식">2 ) Remote Repository 인증 방식</h2>
-
-<hr />
-
-<p>Private Repository를 Clone하거나 Push할 때 GitHub는 사용자를 인증하고 Repository 권한을 확인한다. Remote URL 형식에 따라 HTTPS 또는 SSH 인증을 사용한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>인증 수단</th>
-      <th>특징</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>HTTPS</td>
-      <td>Personal Access Token과 Credential Helper</td>
-      <td>HTTPS URL을 사용하며 운영체제 Credential Store와 연동 가능</td>
-    </tr>
-    <tr>
-      <td>SSH</td>
-      <td>SSH Private Key와 GitHub에 등록한 Public Key</td>
-      <td>GitHub Password나 PAT를 Push마다 전달하지 않음</td>
-    </tr>
-    <tr>
-      <td>GitHub CLI</td>
-      <td><code class="language-plaintext highlighter-rouge">gh auth login</code></td>
-      <td>Browser, HTTPS 또는 SSH 인증 설정을 안내하고 GitHub API도 함께 사용</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="https와-personal-access-token">HTTPS와 Personal Access Token</h3>
-
-<p>GitHub의 HTTPS Git 작업에서 Account Password를 대신해 Personal Access Token을 사용할 수 있다. Token에는 필요한 Repository와 작업 범위만 부여하고 만료 기간을 설정한다.</p>
-
-<p>Token 값을 다음 위치에 직접 작성하지 않는다.</p>
-
-<ul>
-  <li>
-    <p>Markdown과 Source Code</p>
-  </li>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">git remote</code> URL</p>
-  </li>
-  <li>
-    <p>Shell Script</p>
-  </li>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">.gitconfig</code>의 평문 설정</p>
-  </li>
-  <li>
-    <p>CI Log에 출력되는 명령 인자</p>
-  </li>
-</ul>
-
-<p>현재 Credential Helper 설정을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git config <span class="nt">--show-origin</span> <span class="nt">--get-all</span> credential.helper
-</code></pre></div></div>
-
-<p>Git Credential Manager, macOS Keychain 같은 Helper를 사용하면 Credential을 운영체제의 Credential Store와 연결할 수 있다. 설치 방식과 Helper 이름은 운영체제와 Git 배포판에 따라 다르므로 임의로 덮어쓰기 전에 기존 설정을 확인한다.</p>
-
-<p>저장된 계정을 바꿀 때는 Git 설정만 반복해서 추가하지 않는다. 현재 Helper 또는 운영체제 Credential Manager에서 기존 GitHub Credential을 제거한 뒤 다시 인증한다.</p>
-
-<h3 id="ssh-인증">SSH 인증</h3>
-
-<p>SSH Remote는 다음 형식을 사용한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git@github.com:&lt;owner&gt;/&lt;repository&gt;.git
-</code></pre></div></div>
-
-<p>Local Private Key는 외부에 공개하지 않고 대응하는 Public Key만 GitHub 계정이나 조직에 등록한다. SSH Key 생성과 공개키 등록 이유는 <a href="/12-remote-access/">원격 접속</a>의 SSH Key 절에서 다룬다.</p>
-
-<p>GitHub SSH 연결을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh <span class="nt">-T</span> git@github.com
-</code></pre></div></div>
-
-<p>첫 연결에서는 Host Key Fingerprint를 GitHub 공식 문서의 값과 대조한 뒤 신뢰 여부를 결정한다.</p>
-
-<h3 id="github-cli-인증">GitHub CLI 인증</h3>
-
-<p>GitHub CLI를 사용한다면 대화형 Login 절차를 실행할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gh auth login
-gh auth status
-</code></pre></div></div>
-
-<p>필요한 경우 현재 <code class="language-plaintext highlighter-rouge">gh</code> 인증을 Git Credential 설정에 연결한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gh auth setup-git
-</code></pre></div></div>
-
-<p>계정을 변경할 때는 현재 인증 상태를 확인하고 Logout한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gh auth status
-gh auth <span class="nb">logout
-</span>gh auth login
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">gh</code> 인증과 SSH Agent에 올라간 Key는 별도 상태일 수 있다. 오류가 발생하면 Remote URL이 HTTPS인지 SSH인지 먼저 확인한다.</p>
-
-<h2 id="3--올바른-remote-url">3 ) 올바른 Remote URL</h2>
-
-<hr />
-
-<p>GitHub Repository의 HTTPS와 SSH URL은 형식이 다르다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HTTPS
-https://github.com/&lt;owner&gt;/&lt;repository&gt;.git
-
-SSH
-git@github.com:&lt;owner&gt;/&lt;repository&gt;.git
-</code></pre></div></div>
-
-<p>다음 주소는 HTTPS Scheme과 SSH 구분자를 섞었으므로 올바른 GitHub Remote URL이 아니다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>https://github.com:&lt;owner&gt;/&lt;repository&gt;.git
-</code></pre></div></div>
-
-<p>현재 Repository의 Remote 이름과 URL을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote <span class="nt">-v</span>
-git remote get-url origin
-</code></pre></div></div>
-
-<p>Remote 이름은 URL 자체가 아니다. <code class="language-plaintext highlighter-rouge">origin</code>은 <code class="language-plaintext highlighter-rouge">git clone</code>이 기본으로 등록하는 관례적인 이름이며 원하는 이름으로 바꿀 수 있다.</p>
-
-<h2 id="4--clone과-fork">4 ) Clone과 Fork</h2>
-
-<hr />
-
-<p>Clone과 Fork는 Repository의 복사 위치와 소유 관계가 다르다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>작업</th>
-      <th>생성 위치</th>
-      <th>결과</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Clone</td>
-      <td>Local Computer</td>
-      <td>Remote Repository의 Local Repository와 Working Tree 생성</td>
-    </tr>
-    <tr>
-      <td>Fork</td>
-      <td>GitHub 계정</td>
-      <td>원본과 별도로 관리되는 GitHub Remote Repository 생성</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="clone">Clone</h3>
-
-<p>Repository를 현재 Directory 아래에 복제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone <span class="se">\</span>
-  https://github.com/&lt;owner&gt;/&lt;repository&gt;.git
-</code></pre></div></div>
-
-<p>Local Directory 이름을 직접 지정할 수 있다. 대상 Directory는 비어 있거나 존재하지 않아야 한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone <span class="se">\</span>
-  https://github.com/&lt;owner&gt;/&lt;repository&gt;.git <span class="se">\</span>
-  &lt;local-directory&gt;
-</code></pre></div></div>
-
-<p>Clone이 끝나면 등록된 Remote와 Branch를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> &lt;local-directory&gt;
-git remote <span class="nt">-v</span>
-git branch <span class="nt">--all</span>
-git log <span class="nt">--oneline</span> <span class="nt">--decorate</span> <span class="nt">-n</span> 5
-</code></pre></div></div>
-
-<p>큰 공개 Repository를 예제로 그대로 Clone하면 Network와 Disk를 많이 사용할 수 있다. Git 명령 학습에는 직접 만든 작은 Repository나 전용 실습 Repository를 사용한다.</p>
-
-<h3 id="fork">Fork</h3>
-
-<p>Fork는 GitHub에서 원본 Repository를 자신의 계정이나 조직 아래에 복사하는 기능이다. 원본 Repository에 직접 Push 권한이 없어도 Fork에서 Branch를 Push하고 Pull Request를 만들 수 있다.</p>
-
-<p>Fork를 Clone하면 일반적으로 자신의 Fork가 <code class="language-plaintext highlighter-rouge">origin</code>이 된다. 원본 Repository의 변경을 가져오려면 <code class="language-plaintext highlighter-rouge">upstream</code> Remote를 별도로 등록한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote add upstream <span class="se">\</span>
-  https://github.com/&lt;original-owner&gt;/&lt;repository&gt;.git
-git remote <span class="nt">-v</span>
-</code></pre></div></div>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>origin
-└── 자신의 GitHub Fork
-
-upstream
-└── 원본 GitHub Repository
-</code></pre></div></div>
-
-<h2 id="5--remote-연결과-변경">5 ) Remote 연결과 변경</h2>
-
-<hr />
-
-<h3 id="remote-추가">Remote 추가</h3>
-
-<p>기존 Local Repository에 GitHub Repository를 연결한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote add origin <span class="se">\</span>
-  https://github.com/&lt;owner&gt;/&lt;repository&gt;.git
-git remote <span class="nt">-v</span>
-</code></pre></div></div>
-
-<p>같은 이름의 Remote가 이미 있으면 <code class="language-plaintext highlighter-rouge">remote origin already exists</code> 오류가 발생한다. 기존 URL을 확인하고 새 Remote가 필요한지 URL 변경이 필요한지 판단한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote get-url origin
-</code></pre></div></div>
-
-<h3 id="remote-url-변경">Remote URL 변경</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote set-url origin <span class="se">\</span>
-  git@github.com:&lt;owner&gt;/&lt;repository&gt;.git
-git remote <span class="nt">-v</span>
-</code></pre></div></div>
-
-<p>이 명령은 Local Repository의 연결 URL을 변경한다. GitHub Repository의 이름이나 소유자를 바꾸는 작업은 아니다.</p>
-
-<h3 id="remote-이름-변경">Remote 이름 변경</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote rename &lt;old-name&gt; &lt;new-name&gt;
-git remote <span class="nt">-v</span>
-</code></pre></div></div>
-
-<h3 id="remote-연결-제거">Remote 연결 제거</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote remove &lt;remote-name&gt;
-git remote <span class="nt">-v</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">git remote remove</code>는 Local <code class="language-plaintext highlighter-rouge">.git/config</code>의 Remote 연결을 제거한다. GitHub의 Remote Repository와 그 안의 Data는 삭제하지 않는다.</p>
-
-<h2 id="6--fetch와-pull">6 ) Fetch와 Pull</h2>
-
-<hr />
-
-<p>Remote의 변경을 가져오는 명령은 Local Branch를 자동으로 바꾸는지에 따라 구분한다.</p>
-
-<h3 id="fetch">Fetch</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git fetch origin
-</code></pre></div></div>
-
-<p>Fetch는 Remote의 새 Commit, Tag와 Branch Reference를 Local Repository로 가져온다. 현재 Working Tree와 Local Branch에는 자동으로 통합하지 않는다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GitHub origin/main
-        │ git fetch origin
-        ▼
-Local origin/main 갱신
-        │
-        └── 현재 Local main은 그대로 유지
-</code></pre></div></div>
-
-<p>가져온 상태와 Local Branch를 비교한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
-git diff main..origin/main
-</code></pre></div></div>
-
-<h3 id="pull">Pull</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git pull origin main
-</code></pre></div></div>
-
-<p>Pull은 먼저 Fetch한 뒤 가져온 변경을 현재 Branch에 통합한다. 기본 통합 방식은 Git 설정과 Option에 따라 Merge 또는 Rebase가 될 수 있다.</p>
-
-<p>실행 전 현재 Branch와 Working Tree 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch <span class="nt">--show-current</span>
-git status
-git fetch origin
-git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
-</code></pre></div></div>
-
-<p>통합 방식을 명시하면 의도가 분명해진다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Merge 방식</span>
-git pull <span class="nt">--no-rebase</span> origin main
-
-<span class="c"># Rebase 방식</span>
-git pull <span class="nt">--rebase</span> origin main
-
-<span class="c"># Fast-forward만 허용</span>
-git pull <span class="nt">--ff-only</span> origin main
-</code></pre></div></div>
-
-<p>팀이 정한 History 정책과 현재 Branch의 공유 여부에 맞는 방식을 선택한다.</p>
-
-<h2 id="7--local-repository를-github에-push">7 ) Local Repository를 GitHub에 Push</h2>
-
-<hr />
-
-<p>빈 GitHub Repository를 준비한 뒤 기존 Local Repository를 연결하는 흐름은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Local File 작성
-      │ git add
-      ▼
-Staging Area
-      │ git commit
-      ▼
-Local Branch
-      │ git remote add
-      ▼
-Remote 연결
-      │ git push -u
-      ▼
-GitHub Remote Branch
-</code></pre></div></div>
-
-<h3 id="local-repository-확인">Local Repository 확인</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-git branch <span class="nt">--show-current</span>
-git log <span class="nt">--oneline</span> <span class="nt">--decorate</span> <span class="nt">-n</span> 5
-</code></pre></div></div>
-
-<p>아직 Commit이 없다면 File을 Stage하고 Commit한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git add &lt;file&gt;
-git diff <span class="nt">--staged</span>
-git commit <span class="nt">-m</span> <span class="s2">"docs: add initial content"</span>
-</code></pre></div></div>
-
-<p>GitHub에서 만든 빈 Repository를 <code class="language-plaintext highlighter-rouge">origin</code>으로 등록한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote add origin <span class="se">\</span>
-  https://github.com/&lt;owner&gt;/&lt;repository&gt;.git
-git remote <span class="nt">-v</span>
-</code></pre></div></div>
-
-<p>현재 Branch 이름을 확인한 뒤 같은 이름의 Remote Branch로 Push한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch <span class="nt">--show-current</span>
-git push <span class="nt">-u</span> origin main
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">-u</code> 또는 <code class="language-plaintext highlighter-rouge">--set-upstream</code>은 현재 Local Branch가 어느 Remote Branch를 추적할지 설정한다. 관계가 설정된 뒤에는 Remote와 Branch 인자를 생략할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git push
-git pull <span class="nt">--ff-only</span>
-</code></pre></div></div>
-
-<p>새로운 Local Branch를 처음 Push할 때는 해당 Branch의 Upstream을 다시 설정할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git switch <span class="nt">-c</span> feature/login
-git push <span class="nt">-u</span> origin feature/login
-</code></pre></div></div>
-
-<p>Local Repository의 초기 Branch가 항상 <code class="language-plaintext highlighter-rouge">master</code>이고 GitHub가 항상 <code class="language-plaintext highlighter-rouge">main</code>인 것은 아니다. 실제 이름을 확인하고 필요할 때만 Branch 이름을 변경한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git branch <span class="nt">--show-current</span>
-git branch <span class="nt">-M</span> main
-</code></pre></div></div>
-
-<p>공유 중인 Branch 이름을 변경하면 Remote 설정, Pull Request와 다른 작업자의 Local Branch에 영향을 줄 수 있다.</p>
-
-<h2 id="8--sourcetree에서-remote-작업">8 ) SourceTree에서 Remote 작업</h2>
-
-<hr />
-
-<p>SourceTree의 Remote 작업도 같은 Git 상태를 변경한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>SourceTree 작업</th>
-      <th>Git 동작</th>
-      <th>실행 후 확인</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Clone</td>
-      <td><code class="language-plaintext highlighter-rouge">git clone</code></td>
-      <td><code class="language-plaintext highlighter-rouge">git remote -v</code></td>
-    </tr>
-    <tr>
-      <td>Remote 추가</td>
-      <td><code class="language-plaintext highlighter-rouge">git remote add</code></td>
-      <td><code class="language-plaintext highlighter-rouge">git remote get-url</code></td>
-    </tr>
-    <tr>
-      <td>Fetch</td>
-      <td><code class="language-plaintext highlighter-rouge">git fetch</code></td>
-      <td><code class="language-plaintext highlighter-rouge">git log --all --graph</code></td>
-    </tr>
-    <tr>
-      <td>Pull</td>
-      <td><code class="language-plaintext highlighter-rouge">git pull</code></td>
-      <td><code class="language-plaintext highlighter-rouge">git status</code>, <code class="language-plaintext highlighter-rouge">git log</code></td>
-    </tr>
-    <tr>
-      <td>Push</td>
-      <td><code class="language-plaintext highlighter-rouge">git push</code></td>
-      <td>Local·Remote Branch 관계</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Push 화면에서는 대상 Remote와 Branch, Tag 포함 여부를 확인한다. GUI에 저장된 계정과 Repository를 실제로 Push할 권한이 있는 GitHub 계정이 다르면 인증 오류가 발생할 수 있다.</p>
-
-<p>SourceTree에서 작업한 뒤 CLI로 다음 상태를 확인할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git status
-git remote <span class="nt">-v</span>
-git branch <span class="nt">-vv</span>
-git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
-</code></pre></div></div>
-
-<h2 id="9--push-실패-진단">9 ) Push 실패 진단</h2>
-
-<hr />
-
-<p>오류 Message에서 인증, 권한, URL과 History 문제를 먼저 구분한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>증상</th>
-      <th>우선 확인할 내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">non-fast-forward</code></td>
-      <td>Remote에 Local이 가지지 않은 Commit이 있는지 확인</td>
-    </tr>
-    <tr>
-      <td>HTTPS <code class="language-plaintext highlighter-rouge">403</code></td>
-      <td>현재 계정의 Repository 쓰기 권한과 Token Scope</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Authentication failed</code></td>
-      <td>PAT 만료·폐기 여부와 Credential Helper의 저장 계정</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Permission denied (publickey)</code></td>
-      <td>SSH Key, SSH Agent, GitHub Public Key 등록과 SSH URL</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Repository not found</code></td>
-      <td>Owner·Repository 이름, Private Repository 접근 권한</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">remote origin already exists</code></td>
-      <td>기존 <code class="language-plaintext highlighter-rouge">origin</code> URL과 추가하려는 URL 비교</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">src refspec ... does not match any</code></td>
-      <td>Local Commit 존재 여부와 Branch 이름</td>
-    </tr>
-  </tbody>
-</table>
-
-<h3 id="현재-연결-상태-확인">현재 연결 상태 확인</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git remote <span class="nt">-v</span>
-git branch <span class="nt">--show-current</span>
-git branch <span class="nt">-vv</span>
-git status
-</code></pre></div></div>
-
-<h3 id="github-cli-인증-확인">GitHub CLI 인증 확인</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gh auth status
-</code></pre></div></div>
-
-<h3 id="ssh-인증-확인">SSH 인증 확인</h3>
-
-<p>Remote가 SSH URL일 때 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh <span class="nt">-T</span> git@github.com
-</code></pre></div></div>
-
-<h3 id="remote-history-확인">Remote History 확인</h3>
-
-<p>Non-fast-forward 오류가 발생하면 Force Push 전에 Remote History를 가져온다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git fetch origin
-git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
-</code></pre></div></div>
-
-<p>Remote 변경을 확인하지 않은 <code class="language-plaintext highlighter-rouge">git push --force</code>는 다른 작업자의 Commit을 Remote Branch에서 제외할 수 있다. History를 다시 써야 하는 명확한 이유와 팀 합의가 없다면 사용하지 않는다.</p>
-
-<h2 id="10--credential-노출-대응">10 ) Credential 노출 대응</h2>
-
-<hr />
-
-<p>PAT, Password나 Private Key가 Source File, Commit 또는 화면 공유에 노출되면 문자열을 지우는 작업만으로 해결되지 않는다.</p>
-
-<ol>
-  <li>
-    <p>GitHub에서 해당 Credential을 폐기한다.</p>
-  </li>
-  <li>
-    <p>필요한 최소 권한과 만료 기간으로 새 Credential을 발급한다.</p>
-  </li>
-  <li>
-    <p>Local Credential Helper와 CI Secret을 새 값으로 갱신한다.</p>
-  </li>
-  <li>
-    <p>Repository에 Commit됐다면 Git History와 Remote Cache의 정리 범위를 확인한다.</p>
-  </li>
-  <li>
-    <p>Audit Log와 관련 Service Log에서 의심스러운 사용 기록을 확인한다.</p>
-  </li>
-</ol>
-
-<p>새 Token 값을 문서의 예제에 다시 넣지 않는다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;GITHUB_USERNAME&gt;
-&lt;GITHUB_PAT&gt;
-&lt;REPOSITORY_URL&gt;
-</code></pre></div></div>
-
-<h2 id="전체-정리">전체 정리</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-
-  <ul>
-    <li>
-      <p>GitHub는 Git Remote Repository를 Hosting하고 Pull Request, Issue와 자동화 기능을 제공한다.</p>
-    </li>
-    <li>
-      <p>HTTPS는 PAT와 Credential Helper를, SSH는 Local Private Key와 GitHub에 등록한 Public Key를 사용한다.</p>
-    </li>
-    <li>
-      <p>Clone은 Local Repository를 만들고 Fork는 GitHub 계정 아래에 별도 Remote Repository를 만든다.</p>
-    </li>
-    <li>
-      <p>Fetch는 Remote 상태를 가져오고 Pull은 가져온 변경을 현재 Branch에 통합한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">git push -u</code>는 현재 Local Branch와 Remote Branch의 Upstream 관계를 설정한다.</p>
-    </li>
-    <li>
-      <p>Push 실패 시 Force Push보다 Remote URL, 인증 계정, 권한, Branch와 Remote History를 먼저 확인한다.</p>
-    </li>
-    <li>
-      <p>노출된 Credential은 문서에서 삭제한 뒤 GitHub에서 폐기하고 새로 발급해야 한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Git" /><summary type="html"><![CDATA[GitHub 인증 방식과 Clone·Fork·Remote·Fetch·Pull·Push의 차이 및 Local Repository를 Remote와 연결하는 방법]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="GitHubActions" /><summary type="html"><![CDATA[GitHub Actions의 실행 구조를 이해하고 Node.js와 Python Test부터 Docker Image Build 및 Docker Hub Push까지 자동화한다]]></summary></entry></feed>
