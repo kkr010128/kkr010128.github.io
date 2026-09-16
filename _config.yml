@@ -58,6 +58,7 @@ defaults:
       path: "assets"
     values:
       layout: null
+      sitemap: false
   - scope:
       path: ""
     values:
