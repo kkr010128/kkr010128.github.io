@@ -2,7 +2,7 @@
 title: GitHub Actions Workflow와 CI/CD 실습
 description: GitHub Actions의 실행 구조를 이해하고 Node.js와 Python Test부터 Docker Image Build 및 Docker Hub Push까지 자동화한다
 date: 2026-09-11
-updated_at: 2026-09-14
+updated_at: 2026-09-17
 series: CloudNative
 tags:
   - CloudNative
@@ -794,7 +794,143 @@ Image에는 두 Tag를 붙인다.
 
 공식 입력 값과 권장 인증 방식은 [docker/login-action](https://github.com/docker/login-action)과 [Docker Hub access token](https://docs.docker.com/security/access-tokens/) 문서에서 확인한다.
 
-## 10 ) Actions 화면과 Log 확인
+## 10 ) SSH로 배포 Server의 Container 교체
+
+---
+
+`build-and-push` Job이 Commit SHA Tag Image를 Docker Hub에 Push하면 별도의 `deploy` Job이 SSH로 배포 Server에 접속해 같은 Tag를 실행할 수 있다. Runner가 Application File을 직접 복사하는 방식이 아니라, 배포 Server가 Registry에서 검증된 Image를 Pull하는 구조이다.
+
+### 배포 Server 준비
+
+배포 Server에는 Docker를 설치하고 SSH 접속이 가능해야 한다. Application Port `5000`을 외부에 직접 공개할지, Reverse Proxy 뒤에서만 사용할지는 Network 정책에 따라 결정한다.
+
+Server에서 Docker 동작을 먼저 확인한다.
+
+```bash
+sudo docker version
+sudo docker run --rm hello-world
+```
+
+GitHub Repository의 **Settings → Secrets and variables → Actions**에 다음 값을 등록한다.
+
+| Secret | 저장할 값 | 사용 범위 |
+|---|---|---|
+| `EC2_HOST` | 배포 Server의 DNS 이름 또는 IP | SSH 접속 대상 |
+| `EC2_USERNAME` | SSH Login 계정 | SSH 인증 |
+| `EC2_SSH_KEY` | 배포 전용 Private Key 전체 내용 | SSH 인증 |
+| `EC2_HOST_FINGERPRINT` | SSH Host Public Key Fingerprint | 접속 대상 검증 |
+| `DOCKERHUB_USERNAME` | Docker Hub 계정 | Private Image Login |
+| `DOCKERHUB_TOKEN` | Docker Hub PAT | Private Image Pull |
+| `DOCKERHUB_REPO` | Docker Hub Repository 이름 | Image 경로 구성 |
+
+배포 전용 SSH Key는 개인용 Key와 분리하고, Server의 `authorized_keys`에는 필요한 계정에만 등록한다. `EC2_HOST_FINGERPRINT`를 사용하면 DNS나 IP만 믿지 않고 접속한 Server의 Host Key도 검증할 수 있다.
+
+### Deploy Job 연결
+
+기존 Workflow의 `jobs` 아래에 `deploy` Job을 추가한다. `needs: build-and-push`에 의해 Test와 Image Push가 모두 성공한 뒤에만 시작한다.
+
+{% raw %}
+```yaml
+  deploy:
+    needs: build-and-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy commit image over SSH
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.DOCKERHUB_REPO }}
+          IMAGE_TAG: ${{ github.sha }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          fingerprint: ${{ secrets.EC2_HOST_FINGERPRINT }}
+          envs: IMAGE,IMAGE_TAG,DOCKERHUB_USERNAME,DOCKERHUB_TOKEN
+          timeout: 30s
+          command_timeout: 5m
+          script: |
+            set -eu
+
+            echo "$DOCKERHUB_TOKEN" \
+              | sudo docker login \
+                  --username "$DOCKERHUB_USERNAME" \
+                  --password-stdin
+
+            sudo docker pull "$IMAGE:$IMAGE_TAG"
+            sudo docker rm --force flaskweb 2>/dev/null || true
+
+            sudo docker run -d \
+              --name flaskweb \
+              --restart unless-stopped \
+              -p 5000:5000 \
+              "$IMAGE:$IMAGE_TAG"
+
+            for attempt in $(seq 1 15); do
+              if curl --fail --silent http://127.0.0.1:5000/ >/dev/null; then
+                sudo docker ps --filter name=flaskweb
+                sudo docker image prune --force
+                exit 0
+              fi
+              sleep 2
+            done
+
+            sudo docker logs --tail 100 flaskweb
+            exit 1
+```
+{% endraw %}
+
+| 설정 | 역할 |
+|---|---|
+| `needs: build-and-push` | Registry Push 성공 후 배포 시작 |
+| `if` | Pull Request에서는 배포하지 않고 `main` Push에서만 실행 |
+| GitHub Commit SHA | Workflow를 시작한 Commit과 배포 Image를 일치시킴 |
+| `fingerprint` | SSH Server Host Key 검증 |
+| `--restart unless-stopped` | Docker Daemon 재시작 후 Container 복구 |
+| HTTP 반복 확인 | Process 시작뿐 아니라 실제 응답 가능 상태 확인 |
+
+Public Docker Hub Image라면 원격 Server의 Registry Login을 생략할 수 있다. Private Image에서는 Token을 SSH Action의 `envs`로 필요한 Session에만 전달하고, Script에서 출력하지 않는다.
+
+이 방식은 기존 Container를 제거한 다음 새 Container를 시작하므로 짧은 중단이 발생한다. 무중단 교체가 필요하면 Reverse Proxy, 복수 Instance, Blue-Green 또는 Kubernetes Rolling Update 같은 별도 배포 전략이 필요하다.
+
+### 배포 결과와 Log 확인
+
+배포 Server에서 실행 상태와 실제 Tag를 확인한다.
+
+{% raw %}
+```bash
+sudo docker ps --filter name=flaskweb
+sudo docker inspect flaskweb --format '{{.Config.Image}}'
+sudo docker logs --tail 100 flaskweb
+curl --fail http://127.0.0.1:5000/
+```
+{% endraw %}
+
+`docker inspect` 결과가 Workflow Run의 Commit SHA Tag와 같아야 Source, Image와 Runtime의 연결을 추적할 수 있다.
+
+### 이전 Image로 Rollback
+
+문제가 발생하면 이전에 정상 동작한 Commit SHA를 지정해 같은 교체 절차를 수행한다.
+
+```bash
+IMAGE='<dockerhub-username>/<repository>'
+PREVIOUS_TAG='<previous-commit-sha>'
+
+sudo docker pull "$IMAGE:$PREVIOUS_TAG"
+sudo docker rm --force flaskweb
+sudo docker run -d \
+  --name flaskweb \
+  --restart unless-stopped \
+  -p 5000:5000 \
+  "$IMAGE:$PREVIOUS_TAG"
+```
+
+`latest`는 새로운 Push에 따라 가리키는 Image가 바뀌므로 Rollback 기준으로 적합하지 않다. 배포와 복구에는 변경되지 않는 Commit SHA Tag를 사용한다.
+
+## 11 ) Actions 화면과 Log 확인
 
 ---
 
@@ -838,4 +974,8 @@ Workflow를 Push한 뒤 다음 순서로 결과를 확인한다.
 >
 > - Image에는 Commit SHA Tag를 함께 붙여 Source와 배포 Artifact의 관계를 추적한다.
 >
+> - SSH 배포는 Host Key를 검증하고 Commit SHA Tag Image로 대상 Container만 교체하며, 상태 확인과 이전 Tag Rollback 절차를 함께 둔다.
+>
 > - Actions 화면에서는 Workflow, Job과 Step 단위로 상태와 Log를 확인할 수 있다.
+
+다음 글인 [Docker로 GitLab CE 설치와 운영 준비](/cloud-native-54-gitlab-docker-installation/)에서는 GitLab Data를 Host Volume에 유지하면서 Docker Container로 Git Server를 구성한다.

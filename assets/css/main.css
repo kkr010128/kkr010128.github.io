@@ -1600,6 +1600,149 @@ html[data-theme="dark"] .post-visual {
   }
 }
 
+.gitops-flow__frame {
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+.post-visual .gitops-flow__layers {
+  display: grid;
+  gap: 1.9rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gitops-flow__layer {
+  position: relative;
+  min-width: 0;
+  padding: clamp(1rem, 2.5vw, 1.4rem);
+  border: 1px solid var(--border3);
+  border-radius: 1rem;
+  background: var(--bg-element3);
+}
+
+.gitops-flow__layer:not(:last-child)::after {
+  position: absolute;
+  bottom: -1.72rem;
+  left: 50%;
+  z-index: 2;
+  padding: 0 0.45rem;
+  transform: translateX(-50%);
+  color: var(--text3);
+  background: var(--bg-element2);
+  content: "↓  " attr(data-edge);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.gitops-flow__layer--source {
+  border-color: var(--diagram-violet);
+  background: var(--diagram-violet-soft);
+}
+
+.gitops-flow__layer--ci,
+.gitops-flow__layer--control {
+  border-color: var(--diagram-blue);
+  background: var(--diagram-blue-soft);
+}
+
+.gitops-flow__layer--handoff {
+  border-color: var(--diagram-orange);
+  background: var(--diagram-orange-soft);
+}
+
+.gitops-flow__layer--repository,
+.gitops-flow__layer--controller,
+.gitops-flow__layer--worker {
+  border-color: var(--primary2);
+  background: var(--diagram-primary-soft);
+}
+
+.gitops-flow__role {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--text3);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.gitops-flow__layer > strong {
+  display: block;
+  color: var(--text1);
+  font-size: 1.05rem;
+}
+
+.gitops-flow__layer > p {
+  margin: 0.45rem 0 0;
+  color: var(--text2);
+  font-size: 0.86rem;
+  line-height: 1.65;
+}
+
+.gitops-flow__actions,
+.gitops-flow__stores {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+}
+
+.gitops-flow__actions > span,
+.gitops-flow__stores > div {
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border3);
+  border-radius: 0.7rem;
+  color: var(--text2);
+  background: var(--bg-element1);
+  font-size: 0.8rem;
+  line-height: 1.55;
+}
+
+.gitops-flow__actions b,
+.gitops-flow__stores b,
+.gitops-flow__stores span {
+  display: block;
+}
+
+.gitops-flow__actions b,
+.gitops-flow__stores b {
+  margin-bottom: 0.2rem;
+  color: var(--text1);
+}
+
+.gitops-flow__feedback {
+  margin-top: 1.25rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid var(--primary2);
+  border-radius: 0.5rem;
+  color: var(--text2);
+  background: var(--bg-element3);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.gitops-flow__feedback strong,
+.gitops-flow__feedback span {
+  display: block;
+}
+
+.gitops-flow__feedback strong {
+  margin-bottom: 0.2rem;
+  color: var(--text1);
+}
+
+@media (max-width: 480px) {
+  .gitops-flow__layer:not(:last-child)::after {
+    max-width: calc(100% - 1rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 .prose table {
   width: 100%;
   margin: 2rem 0;

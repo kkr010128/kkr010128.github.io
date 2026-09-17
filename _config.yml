@@ -71,6 +71,8 @@ exclude:
   - LICENSE
   - NOTICE.md
   - README.md
+  - assets/files/1_text
+  - assets/files/2_pdf/0.NotYet
   - output
   - scripts
   - vendor

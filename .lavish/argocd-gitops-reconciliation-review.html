@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Argo CD GitOps 조정 흐름 검토</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101113;
+      --surface: #181a1e;
+      --surface-2: #21242a;
+      --border: #3b3f47;
+      --text-1: #f2f3f5;
+      --text-2: #c0c4cc;
+      --text-3: #8e949f;
+      --green: #63e6be;
+      --green-soft: #183c34;
+      --blue: #74c0fc;
+      --blue-soft: #17324a;
+      --violet: #b197fc;
+      --violet-soft: #2d2548;
+      --orange: #ffd43b;
+      --orange-soft: #463b1c;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text-1);
+      background: var(--bg);
+      font-family: Pretendard, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    main { width: min(860px, calc(100% - 32px)); margin: 48px auto 72px; }
+    header { margin-bottom: 28px; }
+    h1 { margin: 0 0 10px; font-size: clamp(1.5rem, 4vw, 2.25rem); letter-spacing: -0.035em; }
+    header p { margin: 0; color: var(--text-2); line-height: 1.7; }
+    .review-note {
+      margin: 0 0 20px;
+      padding: 14px 16px;
+      border-left: 3px solid var(--green);
+      border-radius: 8px;
+      color: var(--text-2);
+      background: var(--surface);
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    figure { margin: 0; }
+    figcaption { margin-bottom: 14px; color: var(--text-2); font-size: 0.92rem; line-height: 1.65; }
+    .frame { padding: clamp(16px, 4vw, 32px); border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+    ol { display: grid; gap: 30px; margin: 0; padding: 0; list-style: none; }
+    .layer { position: relative; min-width: 0; padding: clamp(16px, 3vw, 22px); border: 1px solid var(--border); border-radius: 16px; background: var(--surface-2); }
+    .layer:not(:last-child)::after {
+      position: absolute; bottom: -27px; left: 50%; z-index: 2; padding: 0 7px; transform: translateX(-50%);
+      color: var(--text-3); background: var(--surface); content: "↓  " attr(data-edge); font-size: 0.73rem; font-weight: 700;
+      line-height: 1.4; text-align: center; white-space: nowrap;
+    }
+    .source { border-color: var(--violet); background: var(--violet-soft); }
+    .ci, .control { border-color: var(--blue); background: var(--blue-soft); }
+    .handoff { border-color: var(--orange); background: var(--orange-soft); }
+    .repository, .controller, .worker { border-color: var(--green); background: var(--green-soft); }
+    .role { display: block; margin-bottom: 6px; color: var(--text-3); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.09em; }
+    .layer > strong { display: block; font-size: 1.08rem; }
+    .layer > p { margin: 7px 0 0; color: var(--text-2); font-size: 0.88rem; line-height: 1.65; }
+    .actions, .stores { display: grid; gap: 10px; margin-top: 14px; }
+    .actions > span, .stores > div { min-width: 0; padding: 12px 14px; border: 1px solid var(--border); border-radius: 11px; color: var(--text-2); background: var(--surface); font-size: 0.82rem; line-height: 1.55; }
+    .actions b, .stores b, .stores span { display: block; }
+    .actions b, .stores b { margin-bottom: 3px; color: var(--text-1); }
+    .feedback { margin-top: 20px; padding: 14px 16px; border-left: 3px solid var(--green); border-radius: 8px; color: var(--text-2); background: var(--surface-2); font-size: 0.82rem; line-height: 1.6; }
+    .feedback strong, .feedback span { display: block; }
+    .feedback strong { margin-bottom: 3px; color: var(--text-1); }
+    @media (max-width: 480px) {
+      main { width: min(100% - 20px, 860px); margin-top: 24px; }
+      .layer:not(:last-child)::after { max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Argo CD GitOps 조정 흐름</h1>
+      <p>블로그 본문에 들어갈 HTML DOM 시각 자료의 검토본이다.</p>
+    </header>
+    <div class="review-note">검토 대상: 위에서 아래로 이어지는 계층 순서, CI의 두 산출물, Argo CD와 Kubernetes Controller의 책임 경계, Control Plane에서 Worker로 이어지는 흐름</div>
+    <figure>
+      <figcaption>Application Source 변경이 Image와 Deployment Manifest로 분리되고, Argo CD와 Kubernetes의 두 조정 계층을 거쳐 Worker에서 실행되는 흐름</figcaption>
+      <div class="frame">
+        <ol>
+          <li class="layer source" data-edge="Push Event">
+            <span class="role">SOURCE</span><strong>Application Source Repository</strong>
+            <p>Application Code, Test와 Image Build 정의를 Version 관리한다.</p>
+          </li>
+          <li class="layer ci" data-edge="두 결과를 각각 저장">
+            <span class="role">CONTINUOUS INTEGRATION</span><strong>CI Pipeline</strong>
+            <p>Test를 통과한 Commit으로 Image를 Build하고 Commit SHA Tag를 부여한다.</p>
+            <div class="actions"><span><b>Image 결과</b>Registry에 Immutable Tag를 Push</span><span><b>배포 변경</b>Deployment Repository의 Image Tag를 수정</span></div>
+          </li>
+          <li class="layer handoff" data-edge="Git 변경 감지·Rendering">
+            <span class="role">VERSIONED HANDOFF</span><strong>Artifact와 Desired State 분리</strong>
+            <div class="stores"><div><b>Container Registry</b><span>Worker가 실행할 Image를 보관한다.</span></div><div><b>Deployment Repository</b><span>배포할 Image Tag와 Kubernetes Manifest를 보관한다.</span></div></div>
+          </li>
+          <li class="layer repository" data-edge="Desired Manifest 전달">
+            <span class="role">ARGO CD</span><strong>Repository Server</strong>
+            <p>Git의 Manifest를 가져와 Helm이나 Kustomize를 Kubernetes Manifest로 Rendering한다.</p>
+          </li>
+          <li class="layer controller" data-edge="Resource 변경 요청">
+            <span class="role">ARGO CD</span><strong>Application Controller</strong>
+            <p>Git의 Desired State와 Cluster의 Live State를 비교하고 차이를 Kubernetes API에 반영한다.</p>
+          </li>
+          <li class="layer control" data-edge="Pod를 Node에 배치">
+            <span class="role">KUBERNETES CONTROL PLANE</span><strong>API Server · Controller · Scheduler</strong>
+            <p>요청을 저장하고 Resource 상태를 조정한 뒤 새 Pod가 실행될 Worker Node를 선택한다.</p>
+          </li>
+          <li class="layer worker">
+            <span class="role">KUBERNETES WORKER</span><strong>kubelet · Container Runtime · Pod</strong>
+            <p>kubelet이 Manifest에 기록된 Tag로 Registry에서 Image를 Pull하고 Container를 실행한다.</p>
+          </li>
+        </ol>
+        <div class="feedback"><strong>상태 Feedback</strong><span>Worker와 Resource 상태는 Kubernetes API를 통해 Application Controller로 돌아가 Sync와 Health 판단에 사용된다.</span></div>
+      </div>
+    </figure>
+  </main>
+</body>
+</html>

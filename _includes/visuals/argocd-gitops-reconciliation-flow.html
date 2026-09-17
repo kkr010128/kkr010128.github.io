@@ -1,0 +1,69 @@
+<figure class="post-visual gitops-flow" aria-labelledby="argocd-gitops-flow-caption">
+  <figcaption id="argocd-gitops-flow-caption" class="post-visual__caption">
+    Application Source 변경이 Image와 Deployment Manifest로 분리되고, Argo CD와 Kubernetes의 두 조정 계층을 거쳐 Worker에서 실행되는 흐름
+  </figcaption>
+
+  <div class="post-visual__frame gitops-flow__frame">
+    <ol class="gitops-flow__layers">
+      <li class="gitops-flow__layer gitops-flow__layer--source" data-edge="Push Event">
+        <span class="gitops-flow__role">SOURCE</span>
+        <strong>Application Source Repository</strong>
+        <p>Application Code, Test와 Image Build 정의를 Version 관리한다.</p>
+      </li>
+
+      <li class="gitops-flow__layer gitops-flow__layer--ci" data-edge="두 결과를 각각 저장">
+        <span class="gitops-flow__role">CONTINUOUS INTEGRATION</span>
+        <strong>CI Pipeline</strong>
+        <p>Test를 통과한 Commit으로 Image를 Build하고 Commit SHA Tag를 부여한다.</p>
+        <div class="gitops-flow__actions" aria-label="CI가 생성하는 두 결과">
+          <span><b>Image 결과</b> Registry에 Immutable Tag를 Push</span>
+          <span><b>배포 변경</b> Deployment Repository의 Image Tag를 수정</span>
+        </div>
+      </li>
+
+      <li class="gitops-flow__layer gitops-flow__layer--handoff" data-edge="Git 변경 감지·Rendering">
+        <span class="gitops-flow__role">VERSIONED HANDOFF</span>
+        <strong>Artifact와 Desired State 분리</strong>
+        <div class="gitops-flow__stores">
+          <div>
+            <b>Container Registry</b>
+            <span>Worker가 실행할 Image를 보관한다.</span>
+          </div>
+          <div>
+            <b>Deployment Repository</b>
+            <span>배포할 Image Tag와 Kubernetes Manifest를 보관한다.</span>
+          </div>
+        </div>
+      </li>
+
+      <li class="gitops-flow__layer gitops-flow__layer--repository" data-edge="Desired Manifest 전달">
+        <span class="gitops-flow__role">ARGO CD</span>
+        <strong>Repository Server</strong>
+        <p>Git의 Manifest를 가져와 Helm이나 Kustomize를 Kubernetes Manifest로 Rendering한다.</p>
+      </li>
+
+      <li class="gitops-flow__layer gitops-flow__layer--controller" data-edge="Resource 변경 요청">
+        <span class="gitops-flow__role">ARGO CD</span>
+        <strong>Application Controller</strong>
+        <p>Git의 Desired State와 Cluster의 Live State를 비교하고 차이를 Kubernetes API에 반영한다.</p>
+      </li>
+
+      <li class="gitops-flow__layer gitops-flow__layer--control" data-edge="Pod를 Node에 배치">
+        <span class="gitops-flow__role">KUBERNETES CONTROL PLANE</span>
+        <strong>API Server · Controller · Scheduler</strong>
+        <p>요청을 저장하고 Resource 상태를 조정한 뒤 새 Pod가 실행될 Worker Node를 선택한다.</p>
+      </li>
+
+      <li class="gitops-flow__layer gitops-flow__layer--worker">
+        <span class="gitops-flow__role">KUBERNETES WORKER</span>
+        <strong>kubelet · Container Runtime · Pod</strong>
+        <p>kubelet이 Manifest에 기록된 Tag로 Registry에서 Image를 Pull하고 Container를 실행한다.</p>
+      </li>
+    </ol>
+
+    <div class="gitops-flow__feedback">
+      <strong>상태 Feedback</strong>
+      <span>Worker와 Resource 상태는 Kubernetes API를 통해 Application Controller로 돌아가 Sync와 Health 판단에 사용된다.</span>
+    </div>
+  </div>
+</figure>
