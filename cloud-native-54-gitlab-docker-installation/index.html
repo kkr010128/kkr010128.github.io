@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Docker로 GitLab CE 설치와 운영 준비 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-54-gitlab-docker-installation/">
+<meta property="og:title" content="Docker로 GitLab CE 설치와 운영 준비 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-54-gitlab-docker-installation/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker로 GitLab CE 설치와 운영 준비 | renamed.log">
+<meta name="twitter:description" content="GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다">
+
+  <meta property="article:published_time" content="2026-09-17T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.svg?v=1789639823" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1789639823" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1789639823">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789639823" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789639823">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Docker로 GitLab CE 설치와 운영 준비 | renamed.log",
+    "description": "GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다",
+    "url": "https://hyn128.site/cloud-native-54-gitlab-docker-installation/",
+    "datePublished": "2026-09-17T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Docker로 GitLab CE 설치와 운영 준비</h1>
+    
+      <p class="post-head__description">GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 17일 · 4분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=GitLab">GitLab</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-46-github-actions-ci/">GitHub Actions Workflow와 CI/CD 실습</a>에서는 GitHub Repository의 Event를 기준으로 Test, Image Build와 SSH 배포를 자동화했다. GitLab CE는 Source Repository, Merge Request와 CI/CD 기능을 직접 운영할 수 있는 Git Server이다. 이 글에서는 Linux Server에 GitLab CE를 Docker Container로 구성하고 지속적으로 유지할 Data와 운영 확인 항목을 정리한다.</p>
+
+<h2 id="1--gitlab-server-resource-준비">1 ) GitLab Server Resource 준비</h2>
+
+<hr />
+
+<p>GitLab은 Web Application, Background Job, PostgreSQL, Redis와 Repository Storage 등 여러 Component를 함께 실행한다. 작은 실습 환경이라도 Memory를 넉넉하게 할당하고 Host Disk의 여유 공간을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>free <span class="nt">-h</span>
+<span class="nb">df</span> <span class="nt">-h</span>
+<span class="nb">nproc</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Resource</th>
+      <th>실습 환경에서 확인할 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Memory</td>
+      <td>최소 4GiB 이상을 확보하고 실제 사용량을 관찰</td>
+    </tr>
+    <tr>
+      <td>Swap</td>
+      <td>Memory가 일시적으로 부족할 때 Process 종료 가능성을 낮추는 보조 공간</td>
+    </tr>
+    <tr>
+      <td>Disk</td>
+      <td>Repository, Artifact, Container Registry와 Log 증가량 고려</td>
+    </tr>
+    <tr>
+      <td>CPU</td>
+      <td>초기 설정과 Upgrade 중 사용량 증가 고려</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Swap은 Memory를 대체하지 않는다. Disk I/O를 사용하므로 지속적으로 Swap을 사용한다면 Memory 증설이나 GitLab Component 조정이 필요하다.</p>
+
+<h2 id="2--swap-file-생성">2 ) Swap File 생성</h2>
+
+<hr />
+
+<p>4GiB Swap File을 만든다. <code class="language-plaintext highlighter-rouge">fallocate</code>를 지원하지 않는 File System에서는 <code class="language-plaintext highlighter-rouge">dd</code>를 사용할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>fallocate <span class="nt">-l</span> 4G /swapfile
+<span class="nb">sudo chmod </span>600 /swapfile
+<span class="nb">sudo </span>mkswap /swapfile
+<span class="nb">sudo </span>swapon /swapfile
+</code></pre></div></div>
+
+<p>생성 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>swapon <span class="nt">--show</span>
+free <span class="nt">-h</span>
+</code></pre></div></div>
+
+<p>재부팅 후에도 활성화하려면 <code class="language-plaintext highlighter-rouge">/etc/fstab</code>에 다음 항목을 한 번만 추가한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/swapfile none swap sw 0 0
+</code></pre></div></div>
+
+<p>추가 후 문법과 Mount 가능 여부를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>mount <span class="nt">-a</span>
+swapon <span class="nt">--show</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/fstab</code>을 잘못 작성하면 Boot 과정에 영향을 줄 수 있으므로 기존 내용을 Backup하고 중복 항목이 없는지 확인한다.</p>
+
+<h2 id="3--gitlab-data-directory">3 ) GitLab Data Directory</h2>
+
+<hr />
+
+<p>Container를 삭제하거나 교체해도 설정과 Repository가 유지되도록 Host Directory를 준비한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo mkdir</span> <span class="nt">-p</span> <span class="se">\</span>
+  /srv/gitlab/config <span class="se">\</span>
+  /srv/gitlab/logs <span class="se">\</span>
+  /srv/gitlab/data
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Host Directory</th>
+      <th>Container Directory</th>
+      <th>저장 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">/srv/gitlab/config</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/etc/gitlab</code></td>
+      <td><code class="language-plaintext highlighter-rouge">gitlab.rb</code>, 인증서와 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">/srv/gitlab/logs</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/var/log/gitlab</code></td>
+      <td>GitLab Component Log</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">/srv/gitlab/data</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/var/opt/gitlab</code></td>
+      <td>Repository, Database와 Application Data</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>세 Directory는 Backup 대상이다. Image만 보관해서는 GitLab Repository와 설정을 복구할 수 없다.</p>
+
+<h2 id="4--gitlab-ce-container-실행">4 ) GitLab CE Container 실행</h2>
+
+<hr />
+
+<p>운영 환경에서는 <code class="language-plaintext highlighter-rouge">latest</code> 대신 검증한 GitLab Version Tag를 고정한다. 사용할 Version은 <a href="https://docs.gitlab.com/install/docker/installation/">GitLab Docker 설치 문서</a>와 Container Registry의 CE Tag에서 확인한다.</p>
+
+<p>다음 예제에서 Hostname과 Version을 실제 환경 값으로 바꾼다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">GITLAB_HOSTNAME</span><span class="o">=</span><span class="s1">'gitlab.example.com'</span>
+<span class="nb">export </span><span class="nv">GITLAB_VERSION</span><span class="o">=</span><span class="s1">'&lt;major.minor.patch&gt;-ce.0'</span>
+
+<span class="nb">sudo </span>docker run <span class="nt">--detach</span> <span class="se">\</span>
+  <span class="nt">--hostname</span> <span class="s2">"</span><span class="nv">$GITLAB_HOSTNAME</span><span class="s2">"</span> <span class="se">\</span>
+  <span class="nt">--env</span> <span class="nv">GITLAB_OMNIBUS_CONFIG</span><span class="o">=</span><span class="s2">"external_url 'https://</span><span class="nv">$GITLAB_HOSTNAME</span><span class="s2">'; gitlab_rails['gitlab_shell_ssh_port'] = 2222"</span> <span class="se">\</span>
+  <span class="nt">--publish</span> 443:443 <span class="se">\</span>
+  <span class="nt">--publish</span> 80:80 <span class="se">\</span>
+  <span class="nt">--publish</span> 2222:22 <span class="se">\</span>
+  <span class="nt">--name</span> gitlab <span class="se">\</span>
+  <span class="nt">--restart</span> always <span class="se">\</span>
+  <span class="nt">--volume</span> /srv/gitlab/config:/etc/gitlab <span class="se">\</span>
+  <span class="nt">--volume</span> /srv/gitlab/logs:/var/log/gitlab <span class="se">\</span>
+  <span class="nt">--volume</span> /srv/gitlab/data:/var/opt/gitlab <span class="se">\</span>
+  <span class="nt">--shm-size</span> 256m <span class="se">\</span>
+  <span class="s2">"gitlab/gitlab-ce:</span><span class="nv">$GITLAB_VERSION</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--hostname</code></td>
+      <td>GitLab이 Link와 Clone URL 생성에 사용할 DNS 이름</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">external_url</code></td>
+      <td>사용자가 접속할 외부 URL</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">gitlab_shell_ssh_port</code></td>
+      <td>SSH Clone URL에 표시할 외부 Port</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--publish 2222:22</code></td>
+      <td>Host <code class="language-plaintext highlighter-rouge">2222</code>를 Container SSH <code class="language-plaintext highlighter-rouge">22</code>에 연결</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--restart always</code></td>
+      <td>Docker Daemon 시작 후 GitLab 자동 복구</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">--shm-size 256m</code></td>
+      <td>Prometheus Metric 등에 사용하는 Shared Memory 확대</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Host SSH Server가 이미 Port <code class="language-plaintext highlighter-rouge">22</code>를 사용하므로 GitLab SSH는 <code class="language-plaintext highlighter-rouge">2222</code> 같은 별도 Port에 연결한다. Firewall이나 Cloud Security Group에서도 실제로 사용할 HTTP, HTTPS와 SSH Port만 허용한다.</p>
+
+<p>공인 IP를 <code class="language-plaintext highlighter-rouge">--hostname</code>으로 고정하면 IP 변경과 TLS 인증서 관리가 어렵다. DNS 이름을 사용하고, DNS Record와 인증서가 준비되지 않은 학습 환경에서는 HTTP 구성과 운영용 HTTPS 구성을 명확히 분리한다.</p>
+
+<h2 id="5--초기화-상태와-log-확인">5 ) 초기화 상태와 Log 확인</h2>
+
+<hr />
+
+<p>GitLab은 첫 실행에서 내부 Service와 Database를 구성하므로 시작까지 시간이 걸릴 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker ps <span class="nt">--filter</span> <span class="nv">name</span><span class="o">=</span>gitlab
+<span class="nb">sudo </span>docker logs <span class="nt">--follow</span> gitlab
+</code></pre></div></div>
+
+<p>별도 Terminal에서 Health 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker inspect gitlab <span class="se">\</span>
+  <span class="nt">--format</span> <span class="s1">'{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}'</span>
+</code></pre></div></div>
+
+<p>Log 추적은 <code class="language-plaintext highlighter-rouge">Ctrl+C</code>로 종료해도 Container 실행에는 영향을 주지 않는다. 오류가 반복되면 Memory, Disk 여유 공간, Volume 권한과 <code class="language-plaintext highlighter-rouge">external_url</code>을 먼저 확인한다.</p>
+
+<h2 id="6--초기-root-password-처리">6 ) 초기 Root Password 처리</h2>
+
+<hr />
+
+<p>초기 Password File이 남아 있는 기간에는 다음 명령으로 값을 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker <span class="nb">exec </span>gitlab <span class="se">\</span>
+  <span class="nb">grep</span> <span class="s1">'Password:'</span> /etc/gitlab/initial_root_password
+</code></pre></div></div>
+
+<p>이 값은 Blog, Screenshot, Shell Script나 Git Repository에 기록하지 않는다. 첫 Login 직후 Root Password를 변경하고, 초기 Password File이 영구적인 Credential 저장소가 아니라는 점을 전제로 운영한다.</p>
+
+<p>이미 공개된 초기 Password는 File에서 문자열을 지우는 것으로 안전해지지 않는다. Password를 변경하고 활성 Session과 Access Token도 확인해야 한다.</p>
+
+<h2 id="7--container-재시작과-data-유지-확인">7 ) Container 재시작과 Data 유지 확인</h2>
+
+<hr />
+
+<p>Container를 재시작한 뒤 Project와 설정이 유지되는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker restart gitlab
+<span class="nb">sudo </span>docker ps <span class="nt">--filter</span> <span class="nv">name</span><span class="o">=</span>gitlab
+<span class="nb">sudo </span>docker logs <span class="nt">--tail</span> 100 gitlab
+</code></pre></div></div>
+
+<p>Volume 연결 상태도 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>docker inspect gitlab <span class="se">\</span>
+  <span class="nt">--format</span> <span class="s1">'{{range .Mounts}}{{println .Source "-&gt;" .Destination}}{{end}}'</span>
+</code></pre></div></div>
+
+<p>GitLab Upgrade는 Container Image만 바꾸는 단순 작업으로 취급하면 안 된다. 현재 Version에서 지원하는 Upgrade Path를 확인하고 <code class="language-plaintext highlighter-rouge">/srv/gitlab</code> Backup을 만든 뒤 단계적으로 진행한다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>GitLab은 여러 Component를 함께 실행하므로 Memory, Swap과 Disk 사용량을 먼저 확인한다.</p>
+    </li>
+    <li>
+      <p>설정, Log와 Application Data를 Host Volume에 분리해 Container 수명과 Data 수명을 분리한다.</p>
+    </li>
+    <li>
+      <p>운영 환경에서는 <code class="language-plaintext highlighter-rouge">latest</code>가 아니라 검증한 GitLab Version Tag를 고정한다.</p>
+    </li>
+    <li>
+      <p>Hostname, <code class="language-plaintext highlighter-rouge">external_url</code>, 외부 SSH Port와 실제 Port Mapping을 일치시킨다.</p>
+    </li>
+    <li>
+      <p>초기 Root Password는 첫 Login 후 변경하고 공개된 Credential은 즉시 폐기한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-55-gitops-argocd-architecture-installation/">GitOps와 Argo CD Architecture·설치</a>에서는 Git Repository의 Desired State와 Kubernetes Cluster의 Live State를 지속적으로 일치시키는 구조를 정리한다.</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-53-jenkins-sonarqube-analysis/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Jenkins SonarQube 정적 분석과 Quality Gate</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-55-gitops-argocd-architecture-installation/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">GitOps와 Argo CD Architecture·설치</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789639823"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789639823"></script>
+  </body>
+</html>

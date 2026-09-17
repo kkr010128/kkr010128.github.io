@@ -4,6 +4,51 @@
       
       
       {
+        "title": "Argo CD Application 배포와 CLI·Autopilot",
+        "url": "/cloud-native-56-argocd-application-cli-autopilot/",
+        "description": "Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","ArgoCD"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 17일",
+        "reading_time_label": "5분 읽기",
+        "search": "argo cd application 배포와 cli·autopilot argo cd application crd로 helm chart를 배포하고 sync·health, cli 조작과 autopilot bootstrap 구조를 확인한다 cloudnative autoeversw argocd cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "GitOps와 Argo CD Architecture·설치",
+        "url": "/cloud-native-55-gitops-argocd-architecture-installation/",
+        "description": "GitOps의 선언적 Desired State와 지속적 조정을 이해하고 Argo CD 구성 요소를 Kubernetes에 Helm으로 설치한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","ArgoCD"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 17일",
+        "reading_time_label": "6분 읽기",
+        "search": "gitops와 argo cd architecture·설치 gitops의 선언적 desired state와 지속적 조정을 이해하고 argo cd 구성 요소를 kubernetes에 helm으로 설치한다 cloudnative autoeversw argocd cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Docker로 GitLab CE 설치와 운영 준비",
+        "url": "/cloud-native-54-gitlab-docker-installation/",
+        "description": "GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","GitLab"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 17일",
+        "reading_time_label": "4분 읽기",
+        "search": "docker로 gitlab ce 설치와 운영 준비 gitlab ce를 docker container로 설치하고 memory·swap, port, volume, 초기 password와 운영 점검 항목을 정리한다 cloudnative autoeversw gitlab cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Jenkins SonarQube 정적 분석과 Quality Gate",
         "url": "/cloud-native-53-jenkins-sonarqube-analysis/",
         "description": "SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다",
@@ -132,7 +177,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 11일",
-        "reading_time_label": "14분 읽기",
+        "reading_time_label": "17분 읽기",
         "search": "github actions workflow와 ci/cd 실습 github actions의 실행 구조를 이해하고 node.js와 python test부터 docker image build 및 docker hub push까지 자동화한다 cloudnative autoeversw githubactions cloudnative"
       },
     

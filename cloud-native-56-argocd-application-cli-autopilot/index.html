@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Argo CD Application 배포와 CLI·Autopilot | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-56-argocd-application-cli-autopilot/">
+<meta property="og:title" content="Argo CD Application 배포와 CLI·Autopilot | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-56-argocd-application-cli-autopilot/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Argo CD Application 배포와 CLI·Autopilot | renamed.log">
+<meta name="twitter:description" content="Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다">
+
+  <meta property="article:published_time" content="2026-09-17T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.svg?v=1789639823" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1789639823" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1789639823">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789639823" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1789639823">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Argo CD Application 배포와 CLI·Autopilot | renamed.log",
+    "description": "Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다",
+    "url": "https://hyn128.site/cloud-native-56-argocd-application-cli-autopilot/",
+    "datePublished": "2026-09-17T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Argo CD Application 배포와 CLI·Autopilot</h1>
+    
+      <p class="post-head__description">Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 17일 · 5분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=ArgoCD">ArgoCD</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-55-gitops-argocd-architecture-installation/">GitOps와 Argo CD Architecture·설치</a>에서는 Git의 Desired State와 Kubernetes Live State를 비교하는 구성 요소를 정리했다. 이 글에서는 <code class="language-plaintext highlighter-rouge">Application</code> Resource로 Helm Chart를 배포하고 UI, <code class="language-plaintext highlighter-rouge">kubectl</code>과 Argo CD CLI에서 Sync 결과를 확인한 뒤 Autopilot의 Bootstrap 방식을 살펴본다.</p>
+
+<h2 id="1--application-crd">1 ) Application CRD</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Application</strong>은 Argo CD가 어디에서 어떤 Manifest를 가져와 어느 Cluster와 Namespace에 배포할지 선언하는 Custom Resource이다.</p>
+</blockquote>
+
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.project</code></td>
+      <td>Application이 속한 Argo CD Project</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.source</code></td>
+      <td>Git, Helm 또는 OCI Source와 Revision</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.destination</code></td>
+      <td>대상 Cluster API와 Namespace</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.syncPolicy</code></td>
+      <td>자동 Sync, Prune, Self Heal과 Sync Option</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">Application</code> Resource 자체는 일반적으로 Argo CD가 설치된 <code class="language-plaintext highlighter-rouge">argocd</code> Namespace에 생성한다. 실제 Workload는 <code class="language-plaintext highlighter-rouge">spec.destination.namespace</code>에 배포된다.</p>
+
+<h2 id="2--helm-chart-version-확인">2 ) Helm Chart Version 확인</h2>
+
+<hr />
+
+<p>예제는 Bitnami NGINX Chart를 사용한다. Application File에 Version을 기록하기 전에 Repository에서 존재하는 Version을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm search repo bitnami/nginx <span class="nt">--versions</span> | <span class="nb">head</span>
+</code></pre></div></div>
+
+<p>Chart Version과 Container Image Version은 같은 값이 아니다. <code class="language-plaintext highlighter-rouge">targetRevision</code>에는 <code class="language-plaintext highlighter-rouge">helm search</code> 결과의 Chart Version을 사용한다.</p>
+
+<h2 id="3--nginx-application-선언">3 ) NGINX Application 선언</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">application.yaml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">argoproj.io/v1alpha1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Application</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-app</span>
+  <span class="na">namespace</span><span class="pi">:</span> <span class="s">argocd</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">project</span><span class="pi">:</span> <span class="s">default</span>
+
+  <span class="na">source</span><span class="pi">:</span>
+    <span class="na">repoURL</span><span class="pi">:</span> <span class="s">https://charts.bitnami.com/bitnami</span>
+    <span class="na">chart</span><span class="pi">:</span> <span class="s">nginx</span>
+    <span class="na">targetRevision</span><span class="pi">:</span> <span class="s">&lt;verified-chart-version&gt;</span>
+    <span class="na">helm</span><span class="pi">:</span>
+      <span class="na">parameters</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">service.type</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s">NodePort</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">replicaCount</span>
+          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2"</span>
+
+  <span class="na">destination</span><span class="pi">:</span>
+    <span class="na">server</span><span class="pi">:</span> <span class="s">https://kubernetes.default.svc</span>
+    <span class="na">namespace</span><span class="pi">:</span> <span class="s">nginx-deploy</span>
+
+  <span class="na">syncPolicy</span><span class="pi">:</span>
+    <span class="na">automated</span><span class="pi">:</span>
+      <span class="na">prune</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">selfHeal</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">syncOptions</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">CreateNamespace=true</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>동작</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">server: https://kubernetes.default.svc</code></td>
+      <td>Argo CD가 실행 중인 Cluster에 배포</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">replicaCount: "2"</code></td>
+      <td>Helm Value를 통해 NGINX Replica 두 개 요청</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">automated</code></td>
+      <td>OutOfSync 감지 후 자동 Sync</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">prune: true</code></td>
+      <td>Git·Chart에서 제거된 Resource를 Cluster에서도 제거</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">selfHeal: true</code></td>
+      <td>사람이 Cluster Resource를 직접 바꾼 Drift를 Desired State로 복원</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">CreateNamespace=true</code></td>
+      <td>대상 Namespace가 없으면 생성</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">prune</code>과 <code class="language-plaintext highlighter-rouge">selfHeal</code>은 편리하지만 삭제와 되돌림도 자동화한다. 운영 환경에서는 Project 권한, Sync Window, 보호할 Resource와 변경 Review 절차를 함께 구성한다.</p>
+
+<h2 id="4--application-생성과-상태-확인">4 ) Application 생성과 상태 확인</h2>
+
+<hr />
+
+<p>Application을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> application.yaml
+</code></pre></div></div>
+
+<p>Argo CD Application 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get applications <span class="nt">-n</span> argocd
+kubectl describe application nginx-app <span class="nt">-n</span> argocd
+</code></pre></div></div>
+
+<p>대상 Namespace와 Workload도 함께 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all <span class="nt">-n</span> nginx-deploy
+kubectl get pods <span class="nt">-n</span> nginx-deploy <span class="nt">-o</span> wide
+kubectl get service <span class="nt">-n</span> nginx-deploy
+</code></pre></div></div>
+
+<p>Application이 <code class="language-plaintext highlighter-rouge">Synced</code>여도 Pod가 <code class="language-plaintext highlighter-rouge">Pending</code>이나 <code class="language-plaintext highlighter-rouge">CrashLoopBackOff</code>일 수 있다. Argo CD의 Sync·Health와 Kubernetes Pod 상태를 함께 확인한다.</p>
+
+<p>NodePort가 할당됐다면 실제 값을 조회한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get service <span class="nt">-n</span> nginx-deploy <span class="se">\</span>
+  <span class="nt">-o</span> custom-columns<span class="o">=</span><span class="s1">'NAME:.metadata.name,TYPE:.spec.type,NODE_PORT:.spec.ports[*].nodePort'</span>
+</code></pre></div></div>
+
+<p>고정된 <code class="language-plaintext highlighter-rouge">30555</code> 같은 값을 가정하지 않고 조회한 NodePort와 접근 가능한 Node IP를 조합한다.</p>
+
+<h2 id="5--자동-sync와-self-heal-관찰">5 ) 자동 Sync와 Self Heal 관찰</h2>
+
+<hr />
+
+<p>Replica 수를 직접 바꿔 Drift를 만들 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale deployment <span class="se">\</span>
+  <span class="nt">--namespace</span> nginx-deploy <span class="se">\</span>
+  <span class="nt">--replicas</span> 1 <span class="se">\</span>
+  nginx-app
+</code></pre></div></div>
+
+<p>실제 Deployment 이름은 Chart Version에 따라 달라질 수 있으므로 먼저 <code class="language-plaintext highlighter-rouge">kubectl get deployments -n nginx-deploy</code>로 확인한다. <code class="language-plaintext highlighter-rouge">selfHeal: true</code>라면 Argo CD가 Helm Parameter의 Replica 두 개로 다시 맞춘다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment <span class="nt">-n</span> nginx-deploy <span class="nt">--watch</span>
+</code></pre></div></div>
+
+<p>이 실습은 Drift 복원 동작을 확인하기 위한 것이다. 운영 환경에서 <code class="language-plaintext highlighter-rouge">kubectl edit</code>나 <code class="language-plaintext highlighter-rouge">kubectl scale</code>로 영구 변경하지 않고 Deployment Repository의 선언을 수정한다.</p>
+
+<h2 id="6--argo-cd-cli-설치">6 ) Argo CD CLI 설치</h2>
+
+<hr />
+
+<p>Linux <code class="language-plaintext highlighter-rouge">amd64</code> 환경에서는 Release Version을 확인해 Binary를 설치할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">ARGOCD_VERSION</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">--silent</span> <span class="se">\</span>
+  https://api.github.com/repos/argoproj/argo-cd/releases/latest <span class="se">\</span>
+  | <span class="nb">grep</span> <span class="s1">'"tag_name"'</span> <span class="se">\</span>
+  | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">'"'</span> <span class="nt">-f</span> 4<span class="si">)</span>
+
+curl <span class="nt">--fail</span> <span class="nt">--location</span> <span class="se">\</span>
+  <span class="nt">--output</span> argocd-linux-amd64 <span class="se">\</span>
+  <span class="s2">"https://github.com/argoproj/argo-cd/releases/download/</span><span class="nv">$ARGOCD_VERSION</span><span class="s2">/argocd-linux-amd64"</span>
+
+<span class="nb">chmod</span> +x argocd-linux-amd64
+<span class="nb">sudo mv </span>argocd-linux-amd64 /usr/local/bin/argocd
+argocd version <span class="nt">--client</span>
+</code></pre></div></div>
+
+<p>ARM64 Machine은 <code class="language-plaintext highlighter-rouge">argocd-linux-arm64</code>, macOS는 OS와 Architecture에 맞는 Binary 또는 Homebrew Package를 사용한다. Download URL을 바꾸기 전에 <code class="language-plaintext highlighter-rouge">uname -s</code>와 <code class="language-plaintext highlighter-rouge">uname -m</code>으로 환경을 확인한다.</p>
+
+<h2 id="7--cli-login과-application-조작">7 ) CLI Login과 Application 조작</h2>
+
+<hr />
+
+<p>Port Forward가 <code class="language-plaintext highlighter-rouge">localhost:8080</code>에서 실행 중인 상태에서 Login한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd login localhost:8080 <span class="se">\</span>
+  <span class="nt">--username</span> admin <span class="se">\</span>
+  <span class="nt">--insecure</span>
+</code></pre></div></div>
+
+<p>Password는 대화형 Prompt에 입력한다. <code class="language-plaintext highlighter-rouge">--insecure</code>는 자체 서명 인증서를 사용하는 격리된 학습 환경의 Port Forward에서만 사용한다. 운영 Endpoint에서는 신뢰할 수 있는 TLS 인증서를 구성한다.</p>
+
+<p>Application 목록과 상세 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app list
+argocd app get nginx-app
+argocd app <span class="nb">history </span>nginx-app
+</code></pre></div></div>
+
+<p>수동 Sync가 필요한 Application은 다음처럼 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app <span class="nb">sync </span>nginx-app
+argocd app <span class="nb">wait </span>nginx-app <span class="nt">--health</span> <span class="nt">--timeout</span> 300
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">sync</code> 성공은 API 요청이 수락됐다는 의미와 구분해야 한다. <code class="language-plaintext highlighter-rouge">app wait --health</code>로 Workload가 정상 상태에 도달했는지 확인한다.</p>
+
+<h2 id="8--cli로-application-생성">8 ) CLI로 Application 생성</h2>
+
+<hr />
+
+<p>Manifest 대신 CLI로 같은 종류의 Application을 만들 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app create nginx-cli <span class="se">\</span>
+  <span class="nt">--repo</span> https://charts.bitnami.com/bitnami <span class="se">\</span>
+  <span class="nt">--helm-chart</span> nginx <span class="se">\</span>
+  <span class="nt">--revision</span> &lt;verified-chart-version&gt; <span class="se">\</span>
+  <span class="nt">--dest-server</span> https://kubernetes.default.svc <span class="se">\</span>
+  <span class="nt">--dest-namespace</span> nginx-cli <span class="se">\</span>
+  <span class="nt">--sync-option</span> <span class="nv">CreateNamespace</span><span class="o">=</span><span class="nb">true
+
+</span>argocd app <span class="nb">sync </span>nginx-cli
+argocd app <span class="nb">wait </span>nginx-cli <span class="nt">--health</span> <span class="nt">--timeout</span> 300
+</code></pre></div></div>
+
+<p>CLI는 빠른 실습에 유용하지만 Command만 실행하고 기록하지 않으면 Application 생성 과정이 Git Review에 남지 않는다. 운영 구성은 <code class="language-plaintext highlighter-rouge">Application</code> YAML이나 ApplicationSet을 Deployment Repository에서 관리한다.</p>
+
+<h2 id="9--argo-cd-autopilot">9 ) Argo CD Autopilot</h2>
+
+<hr />
+
+<p>Argo CD Autopilot은 Argo CD 설치와 GitOps Repository 구조를 정해진 방식으로 Bootstrap하는 선택 도구이다.</p>
+
+<ul>
+  <li>
+    <p>GitOps Repository Directory 구조 생성</p>
+  </li>
+  <li>
+    <p>Argo CD와 ApplicationSet 설치</p>
+  </li>
+  <li>
+    <p>Project와 Application Manifest Commit</p>
+  </li>
+  <li>
+    <p>기존 또는 새 Repository를 이용한 Bootstrap</p>
+  </li>
+  <li>
+    <p>새 Cluster에서 Repository를 기준으로 복구할 구조 제공</p>
+  </li>
+</ul>
+
+<p>Autopilot은 Bootstrap 단계에서 Kubernetes Cluster에 직접 접근해 Argo CD를 설치한다. 이후 일반적인 Project와 Application 작업은 GitOps Repository에 Manifest를 Commit하고 Argo CD가 이를 조정하는 방식으로 이어진다.</p>
+
+<p>Autopilot Repository는 Archived 상태는 아니지만 독립적인 Version과 Release 주기를 가진다. 사용 전 <a href="https://github.com/argoproj-labs/argocd-autopilot">공식 Repository</a>에서 최신 Release, Issue와 지원 상태를 확인한다. Argo CD 핵심 기능과 Autopilot 사용 여부를 분리해 결정한다.</p>
+
+<h2 id="10--autopilot-설치">10 ) Autopilot 설치</h2>
+
+<hr />
+
+<p>Linux <code class="language-plaintext highlighter-rouge">amd64</code> 예제이다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">AUTOPILOT_VERSION</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">--silent</span> <span class="se">\</span>
+  https://api.github.com/repos/argoproj-labs/argocd-autopilot/releases/latest <span class="se">\</span>
+  | <span class="nb">grep</span> <span class="s1">'"tag_name"'</span> <span class="se">\</span>
+  | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">'"'</span> <span class="nt">-f</span> 4<span class="si">)</span>
+
+curl <span class="nt">--fail</span> <span class="nt">--location</span> <span class="nt">--output</span> - <span class="se">\</span>
+  <span class="s2">"https://github.com/argoproj-labs/argocd-autopilot/releases/download/</span><span class="nv">$AUTOPILOT_VERSION</span><span class="s2">/argocd-autopilot-linux-amd64.tar.gz"</span> <span class="se">\</span>
+  | <span class="nb">tar </span>xz
+
+<span class="nb">sudo mv </span>argocd-autopilot-<span class="k">*</span> /usr/local/bin/argocd-autopilot
+argocd-autopilot version
+</code></pre></div></div>
+
+<p>Pipeline에서 매번 Latest Release를 자동 설치하기보다 검증한 Version을 고정한다. 다른 OS와 Architecture에서는 Release Asset 이름을 확인해 변경한다.</p>
+
+<h2 id="11--gitops-repository-bootstrap">11 ) GitOps Repository Bootstrap</h2>
+
+<hr />
+
+<p>Autopilot이 사용할 Git Repository와 Token을 준비한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">GIT_REPO</span><span class="o">=</span><span class="s1">'https://github.com/&lt;github-owner&gt;/autopilot-nginx.git'</span>
+<span class="nb">read</span> <span class="nt">-s</span> <span class="nt">-p</span> <span class="s1">'Git token: '</span> GIT_TOKEN
+<span class="nb">export </span>GIT_TOKEN
+<span class="nb">echo</span>
+</code></pre></div></div>
+
+<p>Token에는 Repository 생성 또는 Push에 실제로 필요한 최소 권한과 만료 기간만 부여한다. Token을 Shell Script, Blog, Screenshot과 Shell History에 기록하지 않는다.</p>
+
+<p>현재 <code class="language-plaintext highlighter-rouge">kubectl</code> Context가 설치 대상 Cluster를 가리키는지 확인한 뒤 Bootstrap한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config current-context
+argocd-autopilot repo bootstrap
+</code></pre></div></div>
+
+<p>Project와 Application을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd-autopilot project create testing
+
+argocd-autopilot app create nginx <span class="se">\</span>
+  <span class="nt">--app</span> github.com/&lt;github-owner&gt;/autopilot-nginx/apps/nginx <span class="se">\</span>
+  <span class="nt">--project</span> testing
+</code></pre></div></div>
+
+<p>명령 실행 후 GitOps Repository의 Commit과 Directory 구조를 먼저 확인한다. Cluster Resource만 확인하면 어떤 선언이 배포를 만들었는지 놓칠 수 있다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gitops-repo/
+├── bootstrap/
+├── projects/
+└── apps/
+</code></pre></div></div>
+
+<p>실제 Directory는 Autopilot Version과 Option에 따라 달라질 수 있으므로 생성 결과를 기준으로 설명한다. Autopilot 소개 문서에 남아 있는 일부 예정 기능은 구현된 기능으로 단정하지 않고 Release와 공식 문서를 확인한다.</p>
+
+<h2 id="12--실습-resource-정리">12 ) 실습 Resource 정리</h2>
+
+<hr />
+
+<p>CLI로 만든 Application을 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app delete nginx-cli
+</code></pre></div></div>
+
+<p>Manifest로 만든 Application과 Workload를 정리한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> application.yaml
+kubectl get all <span class="nt">-n</span> nginx-deploy
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">prune</code>과 Application 삭제 정책에 따라 대상 Resource가 함께 삭제되는지 확인한다. Namespace가 남아 있고 더 이상 사용하지 않으면 별도로 삭제한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete namespace nginx-deploy nginx-cli
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">Application</code>은 Source, Destination과 Sync Policy를 선언하는 Argo CD CRD이다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">Synced</code>와 <code class="language-plaintext highlighter-rouge">Healthy</code>를 함께 확인해 선언 일치와 Runtime 상태를 구분한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">selfHeal</code>은 직접 수정한 Drift를 되돌리고 <code class="language-plaintext highlighter-rouge">prune</code>은 선언에서 사라진 Resource를 삭제한다.</p>
+    </li>
+    <li>
+      <p>CLI는 조회와 실습에 유용하지만 운영 선언은 Git Repository에서 관리한다.</p>
+    </li>
+    <li>
+      <p>Autopilot은 Argo CD 핵심 기능과 별개인 선택 도구이며 Version과 유지보수 상태를 확인한 뒤 도입한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-55-gitops-argocd-architecture-installation/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">GitOps와 Argo CD Architecture·설치</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1789639823"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789639823"></script>
+  </body>
+</html>
