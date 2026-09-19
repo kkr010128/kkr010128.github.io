@@ -272,6 +272,8 @@ git fetch origin
 
 Fetch는 Remote의 새 Commit, Tag와 Branch Reference를 Local Repository로 가져온다. 현재 Working Tree와 Local Branch에는 자동으로 통합하지 않는다.
 
+`origin/main`은 GitHub Server의 Branch를 실시간으로 조회하는 이름이 아니라 마지막 Fetch 결과를 Local에 기록한 Remote-tracking Branch이다. 따라서 Server에서 변경된 직후 Fetch하지 않으면 Local의 `origin/main`은 이전 상태를 가리킬 수 있다.
+
 ```text
 GitHub origin/main
         │ git fetch origin
@@ -285,7 +287,7 @@ Local origin/main 갱신
 
 ```bash
 git log --oneline --graph --decorate --all
-git diff main..origin/main
+git diff main origin/main
 ```
 
 ### Pull
@@ -514,3 +516,5 @@ PAT, Password나 Private Key가 Source File, Commit 또는 화면 공유에 노�
 > - Push 실패 시 Force Push보다 Remote URL, 인증 계정, 권한, Branch와 Remote History를 먼저 확인한다.
 >
 > - 노출된 Credential은 문서에서 삭제한 뒤 GitHub에서 폐기하고 새로 발급해야 한다.
+
+다음 글인 [CI/CD Pipeline과 Container 배포 흐름](/cloud-native-45-cicd-pipeline/)에서는 Git에 저장된 변경이 Build, Test, Image 생성과 배포로 이어지는 자동화 구조를 다룬다.

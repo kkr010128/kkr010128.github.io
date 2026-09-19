@@ -2,6 +2,7 @@
 title: Argo CD Application 배포와 CLI·Autopilot
 description: Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다
 date: 2026-09-17
+updated_at: 2026-09-18
 series: CloudNative
 tags:
   - CloudNative
@@ -339,3 +340,5 @@ kubectl delete namespace nginx-deploy nginx-cli
 > - CLI는 조회와 실습에 유용하지만 운영 선언은 Git Repository에서 관리한다.
 >
 > - Autopilot은 Argo CD 핵심 기능과 별개인 선택 도구이며 Version과 유지보수 상태를 확인한 뒤 도입한다.
+
+다음 글인 [Argo CD Git Repository 연동과 수동 Sync](/cloud-native-57-argocd-git-repository-manual-sync/)에서는 GitHub Repository의 일반 Kubernetes Manifest를 `Application` Source로 등록하고, `OutOfSync` 상태를 수동으로 동기화한다.

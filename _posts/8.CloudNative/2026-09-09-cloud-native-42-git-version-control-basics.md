@@ -528,3 +528,5 @@ Secret을 `.gitignore`에 넣는 것은 실수 방지 수단일 뿐 이미 Commi
 > - 초기 Branch 이름과 Object ID 길이는 Version과 Repository 형식에 따라 달라질 수 있으므로 고정된 값으로 단정하지 않는다.
 >
 > - Container와 Kubernetes 작업에서는 재현 가능한 설정을 Git에 저장하고 Token, Password와 Private Key는 Commit하지 않는다.
+
+다음 글인 [Git 이력 관리와 Branch 작업](/cloud-native-43-git-history-branch/)에서는 SourceTree와 Git CLI를 연결해 Commit 조회·복구, Stash, Branch, Merge와 Rebase를 다룬다.

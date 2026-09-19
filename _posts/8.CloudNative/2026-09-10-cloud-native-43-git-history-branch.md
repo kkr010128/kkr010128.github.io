@@ -212,13 +212,13 @@ SourceTree에서는 History에서 대상 Commit을 선택해 Tag를 만들 수 �
 | Working Tree ↔ Staging Area | `git diff` | 아직 Stage하지 않은 변경 |
 | Staging Area ↔ `HEAD` | `git diff --staged` | 다음 Commit에 들어갈 변경 |
 | Commit ↔ Commit | `git diff <commit-a> <commit-b>` | 두 Commit의 Snapshot 차이 |
-| Branch ↔ Branch | `git diff <branch-a>..<branch-b>` | 두 Branch Tip의 Snapshot 차이 |
+| Branch ↔ Branch | `git diff <branch-a> <branch-b>` | 두 Branch Tip의 Snapshot 차이 |
 
 ```bash
 git diff
 git diff --staged
 git diff HEAD~1 HEAD
-git diff main..feature/login
+git diff main feature/login
 ```
 
 SourceTree에서는 Commit 두 개를 선택하여 변경 File과 Diff를 비교할 수 있다. 다중 선택에 사용하는 보조 Key는 운영체제에 따라 다르므로 선택된 두 Commit의 ID를 화면에서 확인한다.
@@ -369,10 +369,13 @@ git stash list
 git stash show --patch stash@{0}
 ```
 
-`apply`는 Stash를 적용한 뒤 목록에 남긴다. Stage 상태까지 복원하려면 `--index`를 사용할 수 있다.
+`apply`는 Stash를 적용한 뒤 목록에 남긴다. 일반 복원과 Stage 상태까지 복원하는 방법 중 필요한 명령 하나를 선택한다.
 
 ```bash
+# Working Tree 변경 복원
 git stash apply stash@{0}
+
+# Stage 상태도 함께 복원
 git stash apply --index stash@{0}
 ```
 
