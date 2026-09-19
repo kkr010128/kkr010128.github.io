@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-09-10T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.svg?v=1789788638" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1789788638" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1789788638">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1789788638" color="#495057">
+<link rel="icon" href="/assets/images/favicon.svg?v=1789825515" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1789825515" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1789825515">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789825515" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1789788638">
+<link rel="stylesheet" href="/assets/css/main.css?v=1789825515">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -576,6 +576,8 @@ git remote <span class="nt">-v</span>
 
 <p>Fetch는 Remote의 새 Commit, Tag와 Branch Reference를 Local Repository로 가져온다. 현재 Working Tree와 Local Branch에는 자동으로 통합하지 않는다.</p>
 
+<p><code class="language-plaintext highlighter-rouge">origin/main</code>은 GitHub Server의 Branch를 실시간으로 조회하는 이름이 아니라 마지막 Fetch 결과를 Local에 기록한 Remote-tracking Branch이다. 따라서 Server에서 변경된 직후 Fetch하지 않으면 Local의 <code class="language-plaintext highlighter-rouge">origin/main</code>은 이전 상태를 가리킬 수 있다.</p>
+
 <div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GitHub origin/main
         │ git fetch origin
         ▼
@@ -587,7 +589,7 @@ Local origin/main 갱신
 <p>가져온 상태와 Local Branch를 비교한다.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span class="nt">--decorate</span> <span class="nt">--all</span>
-git diff main..origin/main
+git diff main origin/main
 </code></pre></div></div>
 
 <h3 id="pull">Pull</h3>
@@ -878,6 +880,8 @@ git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span 
   </ul>
 </blockquote>
 
+<p>다음 글인 <a href="/cloud-native-45-cicd-pipeline/">CI/CD Pipeline과 Container 배포 흐름</a>에서는 Git에 저장된 변경이 Build, Test, Image 생성과 배포로 이어지는 자동화 구조를 다룬다.</p>
+
   </section>
 
   
@@ -982,7 +986,7 @@ git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span 
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1789788638"></script>
-    <script src="/assets/js/code-enhancements.js?v=1789788638"></script>
+    <script src="/assets/js/site.js?v=1789825515"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789825515"></script>
   </body>
 </html>

@@ -49,13 +49,13 @@
   <meta property="article:published_time" content="2026-09-10T00:00:00+09:00">
 
 
-<link rel="icon" href="/assets/images/favicon.svg?v=1789788638" type="image/png" sizes="256x256">
-<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1789788638" type="image/png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1789788638">
-<link rel="mask-icon" href="/assets/images/profile.svg?v=1789788638" color="#495057">
+<link rel="icon" href="/assets/images/favicon.svg?v=1789825515" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1789825515" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1789825515">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1789825515" color="#495057">
 <link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
 
-<link rel="stylesheet" href="/assets/css/main.css?v=1789788638">
+<link rel="stylesheet" href="/assets/css/main.css?v=1789825515">
 <script>
   (function () {
     function applyTheme(theme) {
@@ -238,7 +238,7 @@
       <div class="post-head__meta-block">
         <strong>Dohyeon Kim</strong>
         <span>
-          2026년 9월 10일 · 9분 읽기
+          2026년 9월 10일 · 10분 읽기
         </span>
       </div>
     </div>
@@ -512,7 +512,7 @@ git push origin <span class="nt">--delete</span> v1.0.0
     </tr>
     <tr>
       <td>Branch ↔ Branch</td>
-      <td><code class="language-plaintext highlighter-rouge">git diff &lt;branch-a&gt;..&lt;branch-b&gt;</code></td>
+      <td><code class="language-plaintext highlighter-rouge">git diff &lt;branch-a&gt; &lt;branch-b&gt;</code></td>
       <td>두 Branch Tip의 Snapshot 차이</td>
     </tr>
   </tbody>
@@ -521,7 +521,7 @@ git push origin <span class="nt">--delete</span> v1.0.0
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git diff
 git diff <span class="nt">--staged</span>
 git diff HEAD~1 HEAD
-git diff main..feature/login
+git diff main feature/login
 </code></pre></div></div>
 
 <p>SourceTree에서는 Commit 두 개를 선택하여 변경 File과 Diff를 비교할 수 있다. 다중 선택에 사용하는 보조 Key는 운영체제에 따라 다르므로 선택된 두 Commit의 ID를 화면에서 확인한다.</p>
@@ -713,9 +713,12 @@ git status
 git stash show <span class="nt">--patch</span> stash@<span class="o">{</span>0<span class="o">}</span>
 </code></pre></div></div>
 
-<p><code class="language-plaintext highlighter-rouge">apply</code>는 Stash를 적용한 뒤 목록에 남긴다. Stage 상태까지 복원하려면 <code class="language-plaintext highlighter-rouge">--index</code>를 사용할 수 있다.</p>
+<p><code class="language-plaintext highlighter-rouge">apply</code>는 Stash를 적용한 뒤 목록에 남긴다. 일반 복원과 Stage 상태까지 복원하는 방법 중 필요한 명령 하나를 선택한다.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git stash apply stash@<span class="o">{</span>0<span class="o">}</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Working Tree 변경 복원</span>
+git stash apply stash@<span class="o">{</span>0<span class="o">}</span>
+
+<span class="c"># Stage 상태도 함께 복원</span>
 git stash apply <span class="nt">--index</span> stash@<span class="o">{</span>0<span class="o">}</span>
 </code></pre></div></div>
 
@@ -1063,7 +1066,7 @@ git log <span class="nt">--oneline</span> <span class="nt">--graph</span> <span 
 
     
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script src="/assets/js/site.js?v=1789788638"></script>
-    <script src="/assets/js/code-enhancements.js?v=1789788638"></script>
+    <script src="/assets/js/site.js?v=1789825515"></script>
+    <script src="/assets/js/code-enhancements.js?v=1789825515"></script>
   </body>
 </html>

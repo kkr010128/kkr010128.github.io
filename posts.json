@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Argo CD Git Repository 연동과 수동 Sync",
+        "url": "/cloud-native-57-argocd-git-repository-manual-sync/",
+        "description": "Kubernetes Manifest를 GitHub Repository에 저장하고 Argo CD Application으로 등록하여 OutOfSync 상태를 수동 동기화한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","ArgoCD"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 18일",
+        "reading_time_label": "6분 읽기",
+        "search": "argo cd git repository 연동과 수동 sync kubernetes manifest를 github repository에 저장하고 argo cd application으로 등록하여 outofsync 상태를 수동 동기화한다 cloudnative autoeversw argocd cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Argo CD Application 배포와 CLI·Autopilot",
         "url": "/cloud-native-56-argocd-application-cli-autopilot/",
         "description": "Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다",
@@ -222,7 +237,7 @@
         "series_key": "cloudnative",
         "series_title": "CloudNative",
         "date_label": "2026년 9월 10일",
-        "reading_time_label": "9분 읽기",
+        "reading_time_label": "10분 읽기",
         "search": "git 이력 관리와 branch 작업 sourcetree와 git cli를 연결하여 commit 조회, tag, diff, restore, reset, revert, stash, merge와 rebase를 다루는 방법 cloudnative autoeversw git cloudnative"
       },
     
