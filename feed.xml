@@ -1,4 +1,1375 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-22T17:34:52+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Argo CD Git Repository 연동과 수동 Sync</title><link href="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/" rel="alternate" type="text/html" title="Argo CD Git Repository 연동과 수동 Sync" /><published>2026-09-18T00:00:00+09:00</published><updated>2026-09-18T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync</id><content type="html" xml:base="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/"><![CDATA[<p><a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 Helm Chart를 Source로 사용하는 Application과 자동 Sync를 구성했다. 이번에는 Namespace, Deployment와 Service Manifest를 GitHub Repository에 저장하고 <code class="language-plaintext highlighter-rouge">syncPolicy.automated</code>를 설정하지 않은 Application으로 등록한다. Git의 Desired State가 <code class="language-plaintext highlighter-rouge">OutOfSync</code>로 감지된 뒤 사용자가 수동 Sync를 요청했을 때 Control Plane과 Worker에서 어떤 동작이 이어지는지 확인한다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-22T23:35:54+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Ansible Architecture와 Inventory 구성</title><link href="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/" rel="alternate" type="text/html" title="Ansible Architecture와 Inventory 구성" /><published>2026-09-22T00:00:00+09:00</published><updated>2026-09-22T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-58-ansible-architecture-inventory</id><content type="html" xml:base="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/"><![CDATA[<p><a href="/cloud-native-57-argocd-git-repository-manual-sync/">Argo CD Git Repository 연동과 수동 Sync</a>에서는 Git의 Desired State를 Kubernetes Cluster에 반영하는 GitOps 흐름을 구성했다. 이번에는 Ansible이 Control Node에서 여러 Managed Node의 Package, File과 Service 상태를 일관되게 관리하는 구조를 살펴보고 실제 연결 환경을 준비한다.</p>
+
+<h2 id="1--iac와-ansible의-역할">1 ) IaC와 Ansible의 역할</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Infrastructure as Code(IaC)</strong>는 Infrastructure의 구성과 원하는 상태를 Code 또는 선언 File로 관리하고, 변경 이력을 Version Control System에 남기는 방식이다.</p>
+</blockquote>
+
+<p>Infrastructure 자동화 도구는 담당하는 범위에 따라 역할이 다르다. Terraform과 Ansible은 모두 자동화에 사용하지만 중심 영역이 다르다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>항목</th>
+      <th>Terraform</th>
+      <th>Ansible</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>중심 역할</td>
+      <td>Infrastructure Provisioning과 수명 주기 관리</td>
+      <td>Server 구성 관리와 IT 자동화</td>
+    </tr>
+    <tr>
+      <td>정의 언어</td>
+      <td>HCL</td>
+      <td>YAML</td>
+    </tr>
+    <tr>
+      <td>확장 단위</td>
+      <td>Provider</td>
+      <td>Module, Plugin과 Collection</td>
+    </tr>
+    <tr>
+      <td>일반적인 대상</td>
+      <td>Cloud, Network, VM과 Managed Service</td>
+      <td>Package, File, Service, Application과 장비 설정</td>
+    </tr>
+    <tr>
+      <td>Managed Node Agent</td>
+      <td>별도 Agent 불필요</td>
+      <td>별도 Agent 불필요</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>두 도구의 영역이 완전히 분리되는 것은 아니다. Terraform으로 Network와 VM을 생성한 뒤 Ansible로 각 VM의 Package와 설정 File을 배포하는 방식으로 함께 사용할 수 있다. Terraform과 다른 IaC 도구의 관계는 <a href="/cloud-02-technology/">Cloud 기술 개요</a>에서, CI/CD Pipeline에서 Ansible이 담당하는 위치는 <a href="/cloud-native-45-cicd-pipeline/">CI/CD Pipeline 구조와 도구</a>에서 확인할 수 있다.</p>
+
+<p>Ansible은 다음과 같은 작업을 자동화할 수 있다.</p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">apt</code>, <code class="language-plaintext highlighter-rouge">dnf</code>와 같은 Package Manager를 이용한 Software 설치와 제거</p>
+  </li>
+  <li>
+    <p>설정 File, Script와 Application Artifact 배포</p>
+  </li>
+  <li>
+    <p>Service 시작, 중지와 재시작</p>
+  </li>
+  <li>
+    <p>HTTP 또는 FTP Resource Download</p>
+  </li>
+  <li>
+    <p>Git Repository Checkout</p>
+  </li>
+  <li>
+    <p>Cloud, Virtualization, Network와 Container Resource 관리</p>
+  </li>
+  <li>
+    <p>Build와 Test 명령 실행</p>
+  </li>
+</ul>
+
+<h2 id="2--ansible의-동작-특성">2 ) Ansible의 동작 특성</h2>
+
+<hr />
+
+<p>Ansible은 Python으로 작성된 Agentless 자동화 도구이다. 사용자가 Control Node에서 명령을 실행하면 Ansible이 Inventory를 이용해 대상을 선택하고 Module을 실행한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>특성</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Agentless</td>
+      <td>Managed Node에 상시 실행되는 Ansible Agent를 설치하지 않는다.</td>
+    </tr>
+    <tr>
+      <td>Push 방식</td>
+      <td>Control Node가 SSH 등의 연결을 통해 작업을 Managed Node에 전달한다.</td>
+    </tr>
+    <tr>
+      <td>선언적 상태</td>
+      <td>다수의 Module이 실행 절차보다 원하는 최종 상태를 매개변수로 받는다.</td>
+    </tr>
+    <tr>
+      <td>멱등성</td>
+      <td>멱등성을 지원하는 Module은 이미 원하는 상태이면 추가 변경을 만들지 않는다.</td>
+    </tr>
+    <tr>
+      <td>순서 보장</td>
+      <td>기본 Linear Strategy에서는 현재 Task가 대상 Host에서 처리된 뒤 다음 Task로 진행한다.</td>
+    </tr>
+    <tr>
+      <td>병렬 실행</td>
+      <td>선택한 Host를 병렬로 처리하지만 한 번에 실행하는 수는 <code class="language-plaintext highlighter-rouge">forks</code> 설정의 제한을 받는다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>멱등성은 모든 명령이 한 번만 실행된다는 뜻이 아니다. <code class="language-plaintext highlighter-rouge">ansible.builtin.apt</code>, <code class="language-plaintext highlighter-rouge">ansible.builtin.copy</code>처럼 현재 상태를 확인하는 Module은 불필요한 변경을 피할 수 있다. 반면 <code class="language-plaintext highlighter-rouge">ansible.builtin.command</code>와 <code class="language-plaintext highlighter-rouge">ansible.builtin.shell</code>은 별도 조건을 설정하지 않으면 실행할 때마다 명령을 수행한다.</p>
+
+<p>실행 결과에는 Host별 상태가 표시된다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>상태</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ok</code></td>
+      <td>Task가 정상 처리됐고 상태 변경은 없었다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">changed</code></td>
+      <td>Task가 정상 처리됐으며 Managed Node의 상태가 변경됐다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">failed</code></td>
+      <td>Managed Node에 연결했지만 Task 실행이 실패했다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">unreachable</code></td>
+      <td>Network, SSH 또는 인증 문제로 Managed Node에 연결하지 못했다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="3--ansible-architecture">3 ) Ansible Architecture</h2>
+
+<hr />
+
+<p>Ansible 환경은 자동화를 시작하는 Control Node와 실제 작업 대상인 Managed Node로 구분한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>실행 위치</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Control Node</td>
+      <td>Ansible 실행 Host</td>
+      <td>Ansible Core를 실행하고 Inventory와 Playbook을 해석한다.</td>
+    </tr>
+    <tr>
+      <td>Managed Node</td>
+      <td>원격 관리 대상</td>
+      <td>Module이 전달한 작업을 실행하고 결과를 반환한다.</td>
+    </tr>
+    <tr>
+      <td>Inventory</td>
+      <td>Control Node</td>
+      <td>관리할 Host, Group과 연결 변수를 정의한다.</td>
+    </tr>
+    <tr>
+      <td>Playbook</td>
+      <td>Control Node</td>
+      <td>Managed Node에 적용할 Play와 Task를 YAML로 정의한다.</td>
+    </tr>
+    <tr>
+      <td>Module</td>
+      <td>주로 Managed Node</td>
+      <td>Package, File과 Service 같은 실제 작업 단위를 수행한다.</td>
+    </tr>
+    <tr>
+      <td>Plugin</td>
+      <td>주로 Control Node</td>
+      <td>연결, Inventory 처리, Data 변환과 출력 기능을 확장한다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<figure class="post-visual ansible-flow" aria-labelledby="ansible-control-managed-node-caption">
+  <figcaption id="ansible-control-managed-node-caption" class="post-visual__caption">
+    Control Node가 Inventory와 Playbook을 읽고 SSH로 Module을 실행한 뒤 Managed Node의 결과를 집계하는 흐름
+  </figcaption>
+
+  <div class="post-visual__frame pipeline-flow__frame">
+    <ol class="pipeline-flow__phases">
+      <li class="pipeline-flow__phase ansible-flow__phase--control" data-edge="자동화 정의 읽기">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">CONTROL NODE</span>
+          <strong>Ansible 실행 환경</strong>
+        </div>
+        <p class="ansible-flow__description">Ansible Core가 설치된 관리 시작점이다. 운영자가 Ad-hoc 명령이나 Playbook 실행을 요청한다.</p>
+        <div class="ansible-flow__command">ansible lab -m ansible.builtin.ping</div>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--definition" data-edge="대상·작업 결정">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">AUTOMATION DEFINITION</span>
+          <strong>누구에게 어떤 상태를 적용할지 정의</strong>
+        </div>
+        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
+          <li>
+            <strong>Inventory</strong>
+            <span>Managed Node와 Group, 접속 변수를 정의한다.</span>
+          </li>
+          <li>
+            <strong>Playbook</strong>
+            <span>Play, Task와 Module을 YAML 순서로 정의한다.</span>
+          </li>
+          <li>
+            <strong>ansible.cfg</strong>
+            <span>Project의 기본 Inventory와 실행 Option을 지정한다.</span>
+          </li>
+          <li>
+            <strong>Module·Plugin</strong>
+            <span>Module은 대상 작업을, Plugin은 Control Node 기능을 확장한다.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--connection" data-edge="Module 실행">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">CONNECTION</span>
+          <strong>SSH 인증과 Host 검증</strong>
+        </div>
+        <p class="ansible-flow__description">Control Node가 검증된 Host Key와 등록된 공개키를 이용해 대상에 접속하고 필요한 Module을 전송한다.</p>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--managed" data-edge="결과 반환">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">MANAGED NODES</span>
+          <strong>원하는 상태를 실제 시스템에 반영</strong>
+        </div>
+        <p class="ansible-flow__description">Ansible Agent는 설치하지 않는다. 일반적인 POSIX Module 실행에는 Python과 SSH 접속 계정이 필요하다.</p>
+        <ul class="pipeline-flow__steps ansible-flow__nodes">
+          <li>
+            <strong>master</strong>
+            <span>Package·File·Service 상태 적용</span>
+          </li>
+          <li>
+            <strong>worker1</strong>
+            <span>같은 Task를 독립적으로 실행</span>
+          </li>
+          <li>
+            <strong>worker2</strong>
+            <span>실행 결과와 변경 여부 반환</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--result">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">EXECUTION RESULT</span>
+          <strong>Host별 상태를 Control Node에서 집계</strong>
+        </div>
+        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
+          <li>
+            <strong>ok</strong>
+            <span>이미 원하는 상태이거나 정상 확인됨</span>
+          </li>
+          <li>
+            <strong>changed</strong>
+            <span>Managed Node의 상태가 실제로 변경됨</span>
+          </li>
+          <li>
+            <strong>failed</strong>
+            <span>연결 후 Task 실행이 실패함</span>
+          </li>
+          <li>
+            <strong>unreachable</strong>
+            <span>SSH·인증·Network 문제로 대상에 도달하지 못함</span>
+          </li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</figure>
+
+<p>Control Node는 Python이 설치된 Linux, macOS, BSD와 Windows Subsystem for Linux 환경에서 구성할 수 있다. WSL을 사용하지 않는 Native Windows는 Control Node로 지원되지 않는다.</p>
+
+<p>일반적인 POSIX Managed Node에는 다음 조건이 필요하다.</p>
+
+<ul>
+  <li>
+    <p>Control Node에서 접속할 수 있는 SSH Service와 사용자 계정</p>
+  </li>
+  <li>
+    <p>Ansible Module이 생성한 Python Code를 실행할 수 있는 Python</p>
+  </li>
+  <li>
+    <p>Package 설치나 System File 변경에 필요한 <code class="language-plaintext highlighter-rouge">sudo</code> 또는 다른 Privilege Escalation 수단</p>
+  </li>
+</ul>
+
+<p>Network 장비 전용 Module처럼 Managed Node의 Python을 요구하지 않는 예외도 있으므로 사용하는 Module의 요구 조건을 확인한다.</p>
+
+<p>Ansible의 기본 실행 흐름은 다음과 같다.</p>
+
+<ol>
+  <li>
+    <p>Control Node가 Inventory를 읽고 Host Pattern에 해당하는 Managed Node를 선택한다.</p>
+  </li>
+  <li>
+    <p>Ad-hoc 명령 또는 Playbook의 Task에서 실행할 Module과 Argument를 결정한다.</p>
+  </li>
+  <li>
+    <p>SSH 연결로 대상 Host를 인증하고 필요한 Module Code를 실행한다.</p>
+  </li>
+  <li>
+    <p>Managed Node가 현재 상태를 확인하고 필요한 변경을 수행한다.</p>
+  </li>
+  <li>
+    <p>Control Node가 Host별 <code class="language-plaintext highlighter-rouge">ok</code>, <code class="language-plaintext highlighter-rouge">changed</code>, <code class="language-plaintext highlighter-rouge">failed</code>, <code class="language-plaintext highlighter-rouge">unreachable</code> 결과를 집계한다.</p>
+  </li>
+</ol>
+
+<h2 id="4--실습-구성">4 ) 실습 구성</h2>
+
+<hr />
+
+<p>하나의 Control Node와 세 개의 Managed Node를 사용한다. 아래 IP는 문서용 예시 주소이므로 실제 환경의 주소로 바꾼다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Hostname</th>
+      <th>역할</th>
+      <th>예시 IP</th>
+      <th>Ansible 설치</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">control</code></td>
+      <td>Control Node</td>
+      <td><code class="language-plaintext highlighter-rouge">192.0.2.10</code></td>
+      <td>필요</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">master</code></td>
+      <td>Managed Node</td>
+      <td><code class="language-plaintext highlighter-rouge">192.0.2.11</code></td>
+      <td>불필요</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">worker1</code></td>
+      <td>Managed Node</td>
+      <td><code class="language-plaintext highlighter-rouge">192.0.2.12</code></td>
+      <td>불필요</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">worker2</code></td>
+      <td>Managed Node</td>
+      <td><code class="language-plaintext highlighter-rouge">192.0.2.13</code></td>
+      <td>불필요</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">master</code>, <code class="language-plaintext highlighter-rouge">worker1</code>, <code class="language-plaintext highlighter-rouge">worker2</code>는 Kubernetes 역할을 설명하기 위한 이름이 아니라 Ansible이 관리할 세 Linux Host의 식별자이다. Ansible은 세 Host를 같은 Inventory Group으로 묶어 동일한 작업을 적용한다.</p>
+
+<p>작업 위치를 구분하면 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>작업</th>
+      <th style="text-align: right">Control Node</th>
+      <th style="text-align: right">Managed Node</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Ansible 설치</td>
+      <td style="text-align: right">O</td>
+      <td style="text-align: right">X</td>
+    </tr>
+    <tr>
+      <td>자동화 전용 계정 생성</td>
+      <td style="text-align: right">X</td>
+      <td style="text-align: right">O</td>
+    </tr>
+    <tr>
+      <td>SSH Key 생성</td>
+      <td style="text-align: right">O</td>
+      <td style="text-align: right">X</td>
+    </tr>
+    <tr>
+      <td>Public Key 등록</td>
+      <td style="text-align: right">전송</td>
+      <td style="text-align: right">저장</td>
+    </tr>
+    <tr>
+      <td>Inventory와 Playbook 작성</td>
+      <td style="text-align: right">O</td>
+      <td style="text-align: right">X</td>
+    </tr>
+    <tr>
+      <td>Module 실행</td>
+      <td style="text-align: right">요청·결과 수집</td>
+      <td style="text-align: right">실제 처리</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="5--ubuntu-control-node에-ansible-설치">5 ) Ubuntu Control Node에 Ansible 설치</h2>
+
+<hr />
+
+<p>다음 명령은 <code class="language-plaintext highlighter-rouge">control</code> Host에서 실행한다. Ubuntu PPA를 등록할 때 사용하는 <code class="language-plaintext highlighter-rouge">add-apt-repository</code> 명령을 위해 <code class="language-plaintext highlighter-rouge">software-properties-common</code>을 먼저 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> software-properties-common
+<span class="nb">sudo </span>add-apt-repository <span class="nt">--yes</span> <span class="nt">--update</span> ppa:ansible/ansible
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> ansible
+</code></pre></div></div>
+
+<p>설치된 Ansible Core, Python, Module과 Collection 경로를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible <span class="nt">--version</span>
+ansible-community <span class="nt">--version</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ansible --version</code>은 실제 실행 Runtime인 <code class="language-plaintext highlighter-rouge">ansible-core</code> Version을 표시한다. 전체 Community Package Version은 <code class="language-plaintext highlighter-rouge">ansible-community --version</code>으로 구분해 확인한다.</p>
+
+<p>원격 Host를 연결하기 전에 Local Connection으로 Ansible 실행 자체를 확인한다. <code class="language-plaintext highlighter-rouge">localhost,</code> 뒤의 쉼표는 문자열을 Inventory Host 목록으로 해석하게 하고, <code class="language-plaintext highlighter-rouge">-c local</code>은 SSH 대신 Local Connection을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible localhost <span class="se">\</span>
+  <span class="nt">-i</span> localhost, <span class="se">\</span>
+  <span class="nt">-c</span> <span class="nb">local</span> <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.ping
+</code></pre></div></div>
+
+<p>정상 결과에는 <code class="language-plaintext highlighter-rouge">SUCCESS</code>, <code class="language-plaintext highlighter-rouge">changed: false</code>와 <code class="language-plaintext highlighter-rouge">ping: pong</code>이 표시된다.</p>
+
+<h2 id="6--managed-node-계정과-권한-준비">6 ) Managed Node 계정과 권한 준비</h2>
+
+<hr />
+
+<p>다음 작업은 <code class="language-plaintext highlighter-rouge">master</code>, <code class="language-plaintext highlighter-rouge">worker1</code>, <code class="language-plaintext highlighter-rouge">worker2</code> 각각에서 실행한다. 자동화 전용 사용자 <code class="language-plaintext highlighter-rouge">ansible</code>을 만들고 처음 Public Key를 복사할 때 사용할 Password를 설정한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>adduser ansible
+<span class="nb">sudo </span>passwd ansible
+</code></pre></div></div>
+
+<p>Package와 System Service를 관리하려면 Privilege Escalation 권한이 필요하다. 실습 환경에서 Password 없이 <code class="language-plaintext highlighter-rouge">sudo</code>를 사용하려면 <code class="language-plaintext highlighter-rouge">/etc/sudoers</code> 자체의 Permission을 변경하지 않고 전용 Drop-in File을 <code class="language-plaintext highlighter-rouge">visudo</code>로 작성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>visudo <span class="nt">-f</span> /etc/sudoers.d/ansible
+</code></pre></div></div>
+
+<p>다음 한 줄을 입력하고 저장한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible ALL=(ALL:ALL) NOPASSWD: ALL
+</code></pre></div></div>
+
+<p>File Permission과 문법을 검증한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo chmod </span>0440 /etc/sudoers.d/ansible
+<span class="nb">sudo </span>visudo <span class="nt">-cf</span> /etc/sudoers.d/ansible
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">NOPASSWD: ALL</code>은 실습 절차를 단순화하지만 해당 계정에 넓은 Root 권한을 부여한다. 운영 환경에서는 자동화 전용 계정, 접속 Source와 실행 가능한 명령을 제한하거나 <code class="language-plaintext highlighter-rouge">NOPASSWD</code>를 사용하지 않고 실행 시 <code class="language-plaintext highlighter-rouge">--ask-become-pass</code>를 사용한다.</p>
+
+<p>SSH Service 상태와 Python을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>systemctl is-active ssh
+python3 <span class="nt">--version</span>
+</code></pre></div></div>
+
+<p>계정이나 Public Key를 추가했다는 이유만으로 SSH Service를 재시작할 필요는 없다. <code class="language-plaintext highlighter-rouge">sshd_config</code>를 변경한 경우에만 문법을 확인하고 Service를 Reload 또는 Restart한다.</p>
+
+<h2 id="7--ssh-공개키-인증과-host-key-검증">7 ) SSH 공개키 인증과 Host Key 검증</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>사용자 공개키 인증</strong>은 Control Node가 Private Key로 자신의 신원을 증명하고, Managed Node가 <code class="language-plaintext highlighter-rouge">authorized_keys</code>에 등록된 Public Key로 이를 확인하는 방식이다.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>SSH Host Key</strong>는 접속 대상 Server의 신원을 확인한다. 사용자 Key와 Host Key를 모두 검증해야 사용자와 Server 양쪽의 신원을 확인할 수 있다.</p>
+</blockquote>
+
+<p>다음 명령은 <code class="language-plaintext highlighter-rouge">control</code> Host에서 실행한다. 기존 개인용 Key와 구분되는 Ansible 전용 Ed25519 Key Pair를 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh-keygen <span class="se">\</span>
+  <span class="nt">-t</span> ed25519 <span class="se">\</span>
+  <span class="nt">-C</span> <span class="s2">"ansible-control"</span> <span class="se">\</span>
+  <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519_ansible"</span>
+</code></pre></div></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>File</th>
+      <th>역할</th>
+      <th>보관 위치</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">id_ed25519_ansible</code></td>
+      <td>Control Node가 서명에 사용하는 Private Key</td>
+      <td>Control Node에서만 보관</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">id_ed25519_ansible.pub</code></td>
+      <td>Managed Node가 접속 허용 여부를 확인하는 Public Key</td>
+      <td>각 Managed Node의 <code class="language-plaintext highlighter-rouge">authorized_keys</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Public Key만 각 Managed Node의 <code class="language-plaintext highlighter-rouge">ansible</code> 계정에 복사한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh-copy-id <span class="nt">-i</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519_ansible.pub"</span> ansible@192.0.2.11
+ssh-copy-id <span class="nt">-i</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519_ansible.pub"</span> ansible@192.0.2.12
+ssh-copy-id <span class="nt">-i</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519_ansible.pub"</span> ansible@192.0.2.13
+</code></pre></div></div>
+
+<p>Private Key는 전송하거나 Repository에 Commit하지 않는다. Managed Node에서 등록 상태와 Permission을 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod </span>700 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh"</span>
+<span class="nb">chmod </span>600 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/authorized_keys"</span>
+</code></pre></div></div>
+
+<p>최초 연결 전에 각 Managed Node Console에서 실제 SSH Host Key Fingerprint를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>ssh-keygen <span class="nt">-lf</span> /etc/ssh/ssh_host_ed25519_key.pub
+</code></pre></div></div>
+
+<p>Control Node에서 처음 <code class="language-plaintext highlighter-rouge">ssh</code>로 접속할 때 표시되는 Fingerprint가 위 결과와 같은지 확인하고 등록한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh <span class="nt">-i</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519_ansible"</span> ansible@192.0.2.11
+ssh <span class="nt">-i</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519_ansible"</span> ansible@192.0.2.12
+ssh <span class="nt">-i</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519_ansible"</span> ansible@192.0.2.13
+</code></pre></div></div>
+
+<p>Host Key 검사를 끄면 다른 Server를 대상 Host로 오인하는 공격을 탐지할 수 없다. <code class="language-plaintext highlighter-rouge">ANSIBLE_HOST_KEY_CHECKING=False</code>로 우회하지 않고 검증한 Host Key를 <code class="language-plaintext highlighter-rouge">known_hosts</code>에 유지한다.</p>
+
+<h2 id="8--inventory-작성">8 ) Inventory 작성</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Inventory</strong>는 Ansible이 관리할 Host와 Group, 연결에 필요한 변수를 정의하는 Source이다.</p>
+</blockquote>
+
+<p>Control Node에서 Project Directory를 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/ansible-lab"</span>
+<span class="nb">cd</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/ansible-lab"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">inventory.ini</code>를 작성한다. Host Alias와 실제 접속 주소를 분리하면 Playbook에서는 <code class="language-plaintext highlighter-rouge">master</code>, <code class="language-plaintext highlighter-rouge">worker1</code>, <code class="language-plaintext highlighter-rouge">worker2</code>라는 이름을 유지하면서 IP만 바꿀 수 있다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[lab]</span>
+<span class="err">master</span>  <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.11</span>
+<span class="err">worker1</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.12</span>
+<span class="err">worker2</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.13</span>
+
+<span class="nn">[lab:vars]</span>
+<span class="py">ansible_user</span><span class="p">=</span><span class="s">ansible</span>
+<span class="py">ansible_ssh_private_key_file</span><span class="p">=</span><span class="s">~/.ssh/id_ed25519_ansible</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ansible_host</code>를 생략하고 Hostname을 직접 사용하려면 Control Node의 DNS 또는 <code class="language-plaintext highlighter-rouge">/etc/hosts</code>에서 이름이 해석되어야 한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.0.2.11 master
+192.0.2.12 worker1
+192.0.2.13 worker2
+</code></pre></div></div>
+
+<p>이 경우 Inventory는 다음처럼 단순화할 수 있다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[lab]</span>
+<span class="err">master</span>
+<span class="err">worker1</span>
+<span class="err">worker2</span>
+
+<span class="nn">[lab:vars]</span>
+<span class="py">ansible_user</span><span class="p">=</span><span class="s">ansible</span>
+<span class="py">ansible_ssh_private_key_file</span><span class="p">=</span><span class="s">~/.ssh/id_ed25519_ansible</span>
+</code></pre></div></div>
+
+<p>Inventory에 Password나 Private Key 원문을 기록하지 않는다. Private Key는 제한된 File Permission으로 보관하고 Inventory에는 경로만 지정한다.</p>
+
+<h2 id="9--project-local-ansiblecfg">9 ) Project Local ansible.cfg</h2>
+
+<hr />
+
+<p>Project Directory의 <code class="language-plaintext highlighter-rouge">ansible.cfg</code>에 기본 Inventory를 지정하면 매번 <code class="language-plaintext highlighter-rouge">-i inventory.ini</code>를 입력하지 않아도 된다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[defaults]</span>
+<span class="py">inventory</span> <span class="p">=</span> <span class="s">./inventory.ini</span>
+<span class="py">host_key_checking</span> <span class="p">=</span> <span class="s">True</span>
+</code></pre></div></div>
+
+<p>Ansible이 현재 Project의 설정을 읽었는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-config view
+ansible-config dump <span class="nt">--only-changed</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">inventory</code>가 Project의 <code class="language-plaintext highlighter-rouge">inventory.ini</code>를 가리키고 <code class="language-plaintext highlighter-rouge">HOST_KEY_CHECKING</code>이 활성화되어 있어야 한다.</p>
+
+<h2 id="10--inventory와-통신-검증">10 ) Inventory와 통신 검증</h2>
+
+<hr />
+
+<p>Inventory 문법과 Host 구성을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-inventory <span class="nt">--graph</span>
+ansible-inventory <span class="nt">--list</span>
+ansible all <span class="nt">--list-hosts</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">--graph</code>는 Group과 Host 관계를 보여주고, <code class="language-plaintext highlighter-rouge">--list</code>는 Ansible이 해석한 전체 Inventory Data를 JSON으로 출력한다. <code class="language-plaintext highlighter-rouge">--list-hosts</code>는 현재 Host Pattern이 실제로 선택하는 대상만 확인한다.</p>
+
+<p>세 Managed Node에 Ping Module을 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="nt">-m</span> ansible.builtin.ping
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ansible.builtin.ping</code>은 ICMP Echo를 보내는 Network Ping이 아니다. Ansible이 대상에 연결하고 사용할 수 있는 Python으로 Module을 실행한 뒤 <code class="language-plaintext highlighter-rouge">pong</code>을 반환하는 연결 검증이다.</p>
+
+<p>문제가 발생하면 상태에 따라 확인 범위를 나눈다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>증상</th>
+      <th>확인할 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">No inventory was parsed</code></td>
+      <td><code class="language-plaintext highlighter-rouge">ansible.cfg</code> 위치, <code class="language-plaintext highlighter-rouge">inventory</code> 경로와 INI 문법</td>
+    </tr>
+    <tr>
+      <td>Host가 목록에 없음</td>
+      <td>Group 이름, Host Pattern과 <code class="language-plaintext highlighter-rouge">ansible-inventory --graph</code> 결과</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">UNREACHABLE</code></td>
+      <td>IP·DNS, SSH Port, Firewall, 계정과 Private Key 경로</td>
+    </tr>
+    <tr>
+      <td>Host Key 검증 실패</td>
+      <td>대상 Server 변경 여부와 <code class="language-plaintext highlighter-rouge">known_hosts</code>의 기존 Key</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Permission denied (publickey)</code></td>
+      <td>Public Key 등록 계정, <code class="language-plaintext highlighter-rouge">authorized_keys</code>와 Directory Permission</td>
+    </tr>
+    <tr>
+      <td>Python Interpreter 오류</td>
+      <td>Managed Node의 Python 설치와 <code class="language-plaintext highlighter-rouge">ansible_python_interpreter</code> 설정</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">sudo</code> 실패</td>
+      <td><code class="language-plaintext highlighter-rouge">become</code> 사용 여부, <code class="language-plaintext highlighter-rouge">sudoers</code> 문법과 Password 정책</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>공식 문서는 <a href="https://docs.ansible.com/projects/ansible/latest/installation_guide/intro_installation.html">Ansible 설치 요구 조건</a>, <a href="https://docs.ansible.com/projects/ansible/latest/installation_guide/installation_distros.html">Ubuntu 설치</a>와 <a href="https://docs.ansible.com/projects/ansible/latest/inventory_guide/intro_inventory.html">Inventory 작성 방법</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Ansible은 Control Node에서 Inventory와 자동화 정의를 읽고 SSH를 통해 Managed Node의 상태를 관리한다.</p>
+    </li>
+    <li>
+      <p>Agentless는 Managed Node에 상시 Ansible Agent를 설치하지 않는다는 뜻이며 일반적인 POSIX Module 실행에는 SSH와 Python이 필요하다.</p>
+    </li>
+    <li>
+      <p>멱등성을 지원하는 Module은 이미 원하는 상태이면 변경하지 않지만 <code class="language-plaintext highlighter-rouge">command</code>와 <code class="language-plaintext highlighter-rouge">shell</code> 같은 작업은 별도 조건 없이 매번 실행된다.</p>
+    </li>
+    <li>
+      <p>Inventory는 Host Alias, 실제 주소, Group과 연결 변수를 분리하여 여러 Managed Node를 일관되게 선택한다.</p>
+    </li>
+    <li>
+      <p>SSH 사용자 Key와 Server Host Key를 모두 검증하고 <code class="language-plaintext highlighter-rouge">ping</code> Module로 실제 Ansible 연결을 확인한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-59-ansible-adhoc-playbook-nginx/">Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화</a>에서는 연결된 Managed Node에 일회성 명령을 실행하고 반복 가능한 Playbook으로 Nginx를 배포한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible Control Node와 Managed Node의 역할을 이해하고 Ubuntu 설치, SSH 공개키 인증과 Inventory를 구성하여 연결을 검증한다]]></summary></entry><entry><title type="html">Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화</title><link href="https://hyn128.site/cloud-native-59-ansible-adhoc-playbook-nginx/" rel="alternate" type="text/html" title="Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화" /><published>2026-09-22T00:00:00+09:00</published><updated>2026-09-22T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-59-ansible-adhoc-playbook-nginx</id><content type="html" xml:base="https://hyn128.site/cloud-native-59-ansible-adhoc-playbook-nginx/"><![CDATA[<p><a href="/cloud-native-58-ansible-architecture-inventory/">Ansible Architecture와 Inventory 구성</a>에서는 Control Node와 Managed Node의 역할을 구분하고 SSH 공개키 인증과 Inventory를 구성했다. 이번에는 연결된 Host에 Ad-hoc 명령을 실행한 뒤 동일한 작업을 반복 가능한 Playbook으로 전환한다.</p>
+
+<h2 id="1--ad-hoc-명령">1 ) Ad-hoc 명령</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Ad-hoc 명령</strong>은 Playbook File을 만들지 않고 Ansible CLI에서 하나의 Module을 대상 Host에 직접 실행하는 방식이다.</p>
+</blockquote>
+
+<p>일회성 상태 확인, 긴급한 File 복사와 간단한 Package 작업에 적합하다. 같은 작업을 반복하거나 여러 Task의 순서를 관리해야 한다면 Playbook으로 작성한다.</p>
+
+<p>기본 형식은 다음과 같다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible &lt;host-pattern&gt; [option]
+</code></pre></div></div>
+
+<p>예를 들어 Inventory의 모든 Host에 Ping Module을 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="nt">-m</span> ansible.builtin.ping
+</code></pre></div></div>
+
+<p>주요 Option을 구분하면 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Long Option</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-i</code></td>
+      <td><code class="language-plaintext highlighter-rouge">--inventory</code></td>
+      <td>사용할 Inventory Source를 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-m</code></td>
+      <td><code class="language-plaintext highlighter-rouge">--module-name</code></td>
+      <td>실행할 Module을 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-a</code></td>
+      <td><code class="language-plaintext highlighter-rouge">--args</code></td>
+      <td>Module에 전달할 Argument를 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-u</code></td>
+      <td><code class="language-plaintext highlighter-rouge">--user</code></td>
+      <td>SSH로 접속할 Remote User를 지정한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-b</code></td>
+      <td><code class="language-plaintext highlighter-rouge">--become</code></td>
+      <td><code class="language-plaintext highlighter-rouge">sudo</code> 등의 방법으로 권한을 상승한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-k</code></td>
+      <td><code class="language-plaintext highlighter-rouge">--ask-pass</code></td>
+      <td>SSH 접속 Password를 입력받는다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">-K</code></td>
+      <td><code class="language-plaintext highlighter-rouge">--ask-become-pass</code></td>
+      <td>Privilege Escalation Password를 입력받는다.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td><code class="language-plaintext highlighter-rouge">--list-hosts</code></td>
+      <td>명령을 실행하지 않고 선택되는 Host만 표시한다.</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td><code class="language-plaintext highlighter-rouge">--check</code></td>
+      <td>지원하는 Module에서 실제 변경 없이 예상 결과를 확인한다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>SSH Key 인증을 구성했다면 일반적으로 <code class="language-plaintext highlighter-rouge">-k</code>가 필요하지 않다. Managed Node의 <code class="language-plaintext highlighter-rouge">sudo</code>가 Password를 요구하면 <code class="language-plaintext highlighter-rouge">-b -K</code>를 함께 사용한다. <code class="language-plaintext highlighter-rouge">NOPASSWD</code> 정책을 사용한다면 <code class="language-plaintext highlighter-rouge">-b</code>만으로 권한을 상승할 수 있다.</p>
+
+<p>명령을 실행하기 전에 Host Pattern이 의도한 대상을 선택하는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="nt">--list-hosts</span>
+ansible lab <span class="nt">--list-hosts</span>
+</code></pre></div></div>
+
+<h2 id="2--module과-멱등성">2 ) Module과 멱등성</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Module</strong>은 Package, File, Service처럼 Managed Node에서 수행할 작업을 캡슐화한 실행 단위이다.</p>
+</blockquote>
+
+<p>이번 실습에서 사용하는 Module은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Module</th>
+      <th>역할</th>
+      <th>멱등성 판단</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ansible.builtin.command</code></td>
+      <td>Shell을 거치지 않고 명령 실행</td>
+      <td>기본적으로 실행할 때마다 동작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ansible.builtin.shell</code></td>
+      <td>Pipe, Redirect와 환경 변수 등 Shell 문법 사용</td>
+      <td>기본적으로 실행할 때마다 동작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ansible.builtin.copy</code></td>
+      <td>Control Node의 File을 Managed Node에 복사</td>
+      <td>내용과 속성이 같으면 변경하지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ansible.builtin.file</code></td>
+      <td>File, Directory와 Symbolic Link 상태 관리</td>
+      <td>원하는 상태와 같으면 변경하지 않음</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ansible.builtin.get_url</code></td>
+      <td>URL의 Resource를 Managed Node에 Download</td>
+      <td>Checksum과 대상 상태에 따라 판단</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ansible.builtin.apt</code></td>
+      <td>Debian·Ubuntu Package 관리</td>
+      <td>설치·삭제 상태를 비교하여 판단</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ansible.builtin.service</code></td>
+      <td>Service 상태 관리</td>
+      <td>현재 Service 상태를 확인하여 판단</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>단순한 실행은 <code class="language-plaintext highlighter-rouge">command</code>를 우선한다. 다음처럼 Shell 기능이 필요한 경우에만 <code class="language-plaintext highlighter-rouge">shell</code>을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.shell <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s1">'ps -ef | grep [n]ginx &gt; /tmp/nginx-process.txt'</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">shell</code>의 Argument에 외부 입력을 그대로 연결하면 Shell Injection이 발생할 수 있다. 입력을 제한하고, Pipe나 Redirect가 필요하지 않다면 <code class="language-plaintext highlighter-rouge">command</code>를 사용한다.</p>
+
+<p>사용 가능한 Module과 상세 Argument는 Control Node에서 확인할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-doc <span class="nt">-l</span>
+ansible-doc ansible.builtin.command
+ansible-doc ansible.builtin.copy
+ansible-doc ansible.builtin.apt
+</code></pre></div></div>
+
+<p>공식 <a href="https://docs.ansible.com/projects/ansible/latest/collections/ansible/builtin/">Ansible Builtin Collection</a>에서도 Module별 Parameter와 Example을 확인할 수 있다.</p>
+
+<h2 id="3--상태-확인과-file-복사">3 ) 상태 확인과 File 복사</h2>
+
+<hr />
+
+<p>현재 SSH로 접속한 계정을 확인한다. <code class="language-plaintext highlighter-rouge">whoami</code>는 Shell 기능이 필요하지 않으므로 <code class="language-plaintext highlighter-rouge">command</code> Module을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"whoami"</span>
+</code></pre></div></div>
+
+<p>Managed Node의 Memory 상태도 같은 방식으로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"free -h"</span>
+</code></pre></div></div>
+
+<p>각 Host가 실행 결과를 반환하지만 <code class="language-plaintext highlighter-rouge">command</code> Module은 해당 명령이 상태를 변경하는지 판단할 수 없다. 조회 명령도 기본 결과에 <code class="language-plaintext highlighter-rouge">changed</code>가 표시될 수 있으므로 Playbook에서는 <code class="language-plaintext highlighter-rouge">changed_when: false</code>를 지정할 수 있다.</p>
+
+<p>Control Node에서 전송할 File을 만든다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">touch </span>test.txt
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">copy</code> Module로 모든 Managed Node의 <code class="language-plaintext highlighter-rouge">/tmp/test.txt</code>에 복사한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.copy <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"src=./test.txt dest=/tmp/test.txt mode=0644"</span>
+</code></pre></div></div>
+
+<p>복사된 File의 속성을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"ls -l /tmp/test.txt"</span>
+</code></pre></div></div>
+
+<p>같은 <code class="language-plaintext highlighter-rouge">copy</code> 명령을 다시 실행하면 Source 내용과 Permission이 바뀌지 않았으므로 <code class="language-plaintext highlighter-rouge">changed: false</code>가 표시된다.</p>
+
+<h2 id="4--nginx-설치와-삭제">4 ) Nginx 설치와 삭제</h2>
+
+<hr />
+
+<p>Ubuntu Managed Node의 Package 목록을 갱신하고 Nginx를 설치한다. Package 변경에는 Root 권한이 필요하므로 <code class="language-plaintext highlighter-rouge">-b</code>를 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.apt <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"name=nginx state=present update_cache=true"</span> <span class="se">\</span>
+  <span class="nt">-b</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">sudo</code> Password가 필요한 환경에서는 <code class="language-plaintext highlighter-rouge">-K</code>를 추가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.apt <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"name=nginx state=present update_cache=true"</span> <span class="se">\</span>
+  <span class="nt">-b</span> <span class="nt">-K</span>
+</code></pre></div></div>
+
+<p>Nginx Package Version과 Service 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"nginx -v"</span>
+
+ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"systemctl is-active nginx"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">systemctl status nginx</code>는 사람이 읽기 좋은 상세 출력을 제공하지만 상태 확인 자동화에는 종료 Code가 명확한 <code class="language-plaintext highlighter-rouge">systemctl is-active nginx</code>가 간결하다.</p>
+
+<p>Ad-hoc 실습 후 Nginx를 제거하려면 다음 명령을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.apt <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"name=nginx state=absent purge=true autoremove=true"</span> <span class="se">\</span>
+  <span class="nt">-b</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">state=absent</code>는 Package를 제거하고 <code class="language-plaintext highlighter-rouge">purge=true</code>는 Package 설정 File 제거를 요청한다. <code class="language-plaintext highlighter-rouge">autoremove=true</code>는 더 이상 필요하지 않은 자동 설치 의존성을 정리한다.</p>
+
+<h2 id="5--playbook-구조">5 ) Playbook 구조</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Playbook</strong>은 어떤 Host에 어떤 Task를 어떤 순서로 적용할지 YAML로 작성한 자동화 정의이다.</p>
+</blockquote>
+
+<p>Playbook은 다음 단위로 구성한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>구성 요소</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Play</td>
+      <td>대상 Host Group과 실행 정책을 정의한다.</td>
+    </tr>
+    <tr>
+      <td>Task</td>
+      <td>순서대로 실행할 작업 하나를 정의한다.</td>
+    </tr>
+    <tr>
+      <td>Module</td>
+      <td>Task가 호출하는 실제 작업 기능이다.</td>
+    </tr>
+    <tr>
+      <td>Handler</td>
+      <td>다른 Task의 변경 알림을 받았을 때만 실행되는 보조 Task이다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Ansible은 Play를 위에서 아래로 처리하고 각 Play의 Task도 작성된 순서대로 실행한다. 기본 Linear Strategy에서는 현재 Task가 대상 Host에서 처리된 뒤 다음 Task로 이동한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ping-test.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Verify Ansible connections</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">all</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check Python and Ansible connection</span>
+      <span class="na">ansible.builtin.ping</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>YAML 문법과 Ansible 구조를 먼저 검사한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> ping-test.yml
+</code></pre></div></div>
+
+<p>문법이 정상이라면 Playbook을 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook ping-test.yml
+</code></pre></div></div>
+
+<h2 id="6--file-복사-playbook">6 ) File 복사 Playbook</h2>
+
+<hr />
+
+<p>반복할 File 배포 작업을 <code class="language-plaintext highlighter-rouge">filecopy.yml</code>에 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Copy a file from the control node</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">all</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Copy test file to managed nodes</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">src</span><span class="pi">:</span> <span class="s">./test.txt</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/tmp/test.txt</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">ansible</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">ansible</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">mode</code>를 문자열로 작성하면 YAML Parser가 앞자리 <code class="language-plaintext highlighter-rouge">0</code>이 있는 값을 다른 숫자 형식으로 해석하는 문제를 피할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> filecopy.yml
+ansible-playbook filecopy.yml
+</code></pre></div></div>
+
+<h2 id="7--directory-생성과-file-download">7 ) Directory 생성과 File Download</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">file</code> Module로 Directory를 만들고 <code class="language-plaintext highlighter-rouge">get_url</code> Module로 Apache Tomcat Archive를 Download한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Prepare a Tomcat archive directory</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">all</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create Tomcat download directory</span>
+      <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+        <span class="na">path</span><span class="pi">:</span> <span class="s">/tmp/tomcat9</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">directory</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">ansible</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">ansible</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0755"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Download Tomcat archive</span>
+      <span class="na">ansible.builtin.get_url</span><span class="pi">:</span>
+        <span class="na">url</span><span class="pi">:</span> <span class="s">https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.8/bin/apache-tomcat-9.0.8.tar.gz</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/tmp/tomcat9/apache-tomcat-9.0.8.tar.gz</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+</code></pre></div></div>
+
+<p>이 URL의 Tomcat 9.0.8은 <code class="language-plaintext highlighter-rouge">get_url</code> 동작을 확인하기 위한 과거 Archive 예시이다. 실제 운영 설치에는 Apache Tomcat의 현재 지원 Version과 보안 Update 상태를 확인하고 Download File의 Checksum도 함께 검증한다.</p>
+
+<h2 id="8--nginx-설정-file-준비">8 ) Nginx 설정 File 준비</h2>
+
+<hr />
+
+<p>Control Node의 Project Directory를 다음처럼 구성한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-lab/
+├── ansible.cfg
+├── inventory.ini
+├── files/
+│   ├── index.html
+│   └── nginx-default.conf
+├── ping-test.yml
+├── filecopy.yml
+├── download-tomcat.yml
+├── webservers.yml
+└── remove-nginx.yml
+</code></pre></div></div>
+
+<p>Nginx가 제공할 <code class="language-plaintext highlighter-rouge">files/index.html</code>을 작성한다.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!doctype html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Welcome to Nginx<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;h1&gt;</span>Nginx configured by Ansible<span class="nt">&lt;/h1&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div></div>
+
+<p>Ubuntu Nginx의 기본 Site 설정으로 사용할 <code class="language-plaintext highlighter-rouge">files/nginx-default.conf</code>를 작성한다. Document Root는 <code class="language-plaintext highlighter-rouge">/var/www/html</code>로 맞춘다.</p>
+
+<div class="language-nginx highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">server</span> <span class="p">{</span>
+    <span class="kn">listen</span> <span class="mi">80</span> <span class="s">default_server</span><span class="p">;</span>
+    <span class="kn">listen</span> <span class="s">[::]:80</span> <span class="s">default_server</span><span class="p">;</span>
+
+    <span class="kn">root</span> <span class="n">/var/www/html</span><span class="p">;</span>
+    <span class="kn">index</span> <span class="s">index.html</span> <span class="s">index.htm</span><span class="p">;</span>
+
+    <span class="kn">server_name</span> <span class="s">_</span><span class="p">;</span>
+
+    <span class="kn">location</span> <span class="n">/</span> <span class="p">{</span>
+        <span class="kn">try_files</span> <span class="nv">$uri</span> <span class="nv">$uri</span><span class="n">/</span> <span class="p">=</span><span class="mi">404</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="9--nginx-배포-playbook">9 ) Nginx 배포 Playbook</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">webservers.yml</code>은 Package 설치, 설정 File과 Welcome Page 복사, 설정 검증과 Service 시작을 순서대로 처리한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Configure web servers with Nginx</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">all</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install Nginx</span>
+      <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+        <span class="na">update_cache</span><span class="pi">:</span> <span class="no">true</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Copy Nginx default site configuration</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">src</span><span class="pi">:</span> <span class="s">files/nginx-default.conf</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/nginx/sites-available/default</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+      <span class="na">notify</span><span class="pi">:</span> <span class="s">Restart Nginx</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Enable Nginx default site</span>
+      <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+        <span class="na">src</span><span class="pi">:</span> <span class="s">/etc/nginx/sites-available/default</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/nginx/sites-enabled/default</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">link</span>
+        <span class="na">force</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">notify</span><span class="pi">:</span> <span class="s">Restart Nginx</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Copy welcome page</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">src</span><span class="pi">:</span> <span class="s">files/index.html</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/var/www/html/index.html</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Validate Nginx configuration</span>
+      <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s">nginx -t</span>
+      <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure Nginx is enabled and running</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+        <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+
+  <span class="na">handlers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Restart Nginx</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">restarted</span>
+</code></pre></div></div>
+
+<p>설정 File이나 Symbolic Link가 실제로 변경된 경우에만 <code class="language-plaintext highlighter-rouge">notify</code>가 Handler를 호출한다. Welcome Page만 바뀌면 Nginx는 정적 File을 다시 읽을 수 있으므로 Service를 재시작하지 않는다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">nginx -t</code>가 실패하면 Play가 중단되고 알림을 받은 Handler도 실행되지 않는다. 잘못된 설정으로 Service를 재시작하는 상황을 피할 수 있다.</p>
+
+<h2 id="10--playbook-검사와-실행">10 ) Playbook 검사와 실행</h2>
+
+<hr />
+
+<p>먼저 문법을 검사한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> webservers.yml
+</code></pre></div></div>
+
+<p>지원되는 Module에서 예상 변경과 File 차이를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--check</span> <span class="nt">--diff</span> webservers.yml
+</code></pre></div></div>
+
+<p>Check Mode는 모든 Module의 실제 결과를 완전히 재현하지 않는다. 예를 들어 Package가 아직 설치되지 않은 환경에서는 뒤의 Nginx 검증 Task가 실행될 수 없으므로 Preview 결과와 실제 실행을 구분한다.</p>
+
+<p>실제 배포를 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook webservers.yml
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">sudo</code> Password가 필요한 환경에서는 <code class="language-plaintext highlighter-rouge">-K</code>를 추가한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">-K</span> webservers.yml
+</code></pre></div></div>
+
+<h2 id="11--nginx-배포-검증">11 ) Nginx 배포 검증</h2>
+
+<hr />
+
+<p>Control Node에서 Package Version, 설정 문법과 Service 상태를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"nginx -v"</span>
+
+ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"nginx -t"</span>
+
+ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"systemctl is-active nginx"</span>
+</code></pre></div></div>
+
+<p>각 Managed Node의 HTTP 응답을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl http://192.0.2.11
+curl http://192.0.2.12
+curl http://192.0.2.13
+</code></pre></div></div>
+
+<p>응답에 <code class="language-plaintext highlighter-rouge">Nginx configured by Ansible</code>이 포함되어야 한다. 다른 Computer에서 확인한다면 Managed Node의 Firewall과 Network에서 TCP 80 Port 접근도 허용되어 있어야 한다.</p>
+
+<p>같은 Playbook을 다시 실행해 불필요한 변경이 없는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook webservers.yml
+</code></pre></div></div>
+
+<p>두 번째 실행에서는 변경할 상태가 없다면 <code class="language-plaintext highlighter-rouge">changed=0</code>이 표시된다. <code class="language-plaintext highlighter-rouge">nginx -t</code> Task는 명령 자체를 다시 실행하지만 <code class="language-plaintext highlighter-rouge">changed_when: false</code>로 조회 작업임을 명시했기 때문에 변경으로 집계하지 않는다.</p>
+
+<h2 id="12--nginx-제거-playbook">12 ) Nginx 제거 Playbook</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">remove-nginx.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Remove Nginx from managed nodes</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">all</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Stop Nginx before removal</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">nginx</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">stopped</span>
+      <span class="na">ignore_errors</span><span class="pi">:</span> <span class="no">true</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Remove Nginx packages and configuration</span>
+      <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">nginx</span>
+          <span class="pi">-</span> <span class="s">nginx-common</span>
+          <span class="pi">-</span> <span class="s">nginx-core</span>
+          <span class="pi">-</span> <span class="s">nginx-full</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">absent</span>
+        <span class="na">purge</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">autoremove</span><span class="pi">:</span> <span class="no">true</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Reload systemd manager configuration</span>
+      <span class="na">ansible.builtin.systemd_service</span><span class="pi">:</span>
+        <span class="na">daemon_reload</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ignore_errors</code>는 Nginx가 설치되지 않았거나 Service가 없는 Host에서도 Package 제거 Task까지 진행하기 위한 실습용 처리이다. 오류 원인을 숨길 수 있으므로 운영 Playbook에서는 Service Facts나 조건문으로 존재 여부를 확인하는 방식을 우선한다.</p>
+
+<p>문법을 확인한 뒤 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> remove-nginx.yml
+ansible-playbook remove-nginx.yml
+</code></pre></div></div>
+
+<p>제거 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible all <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"systemctl is-active nginx"</span>
+</code></pre></div></div>
+
+<p>Package가 제거됐다면 명령이 실패할 수 있다. 이 결과는 Ansible 연결 실패가 아니라 Nginx Service가 더 이상 존재하지 않거나 실행 중이 아니라는 의미이다.</p>
+
+<h2 id="13--문제-해결">13 ) 문제 해결</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>증상</th>
+      <th>확인할 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Missing sudo password</code></td>
+      <td><code class="language-plaintext highlighter-rouge">-K</code> 사용 여부 또는 Managed Node의 <code class="language-plaintext highlighter-rouge">sudoers</code> 정책</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Could not find or access</code></td>
+      <td><code class="language-plaintext highlighter-rouge">copy.src</code>가 Control Node의 Playbook 기준 경로에 존재하는지 확인</td>
+    </tr>
+    <tr>
+      <td>YAML Syntax Error</td>
+      <td>들여쓰기, <code class="language-plaintext highlighter-rouge">:</code> 뒤 공백과 <code class="language-plaintext highlighter-rouge">--syntax-check</code> 결과</td>
+    </tr>
+    <tr>
+      <td>Nginx 설정 검사 실패</td>
+      <td><code class="language-plaintext highlighter-rouge">nginx-default.conf</code> 문법과 <code class="language-plaintext highlighter-rouge">nginx -t</code>의 <code class="language-plaintext highlighter-rouge">stderr</code></td>
+    </tr>
+    <tr>
+      <td>Service 시작 실패</td>
+      <td><code class="language-plaintext highlighter-rouge">systemctl status nginx</code>와 <code class="language-plaintext highlighter-rouge">journalctl -u nginx</code> 결과</td>
+    </tr>
+    <tr>
+      <td>HTTP 연결 실패</td>
+      <td>Service 상태, TCP 80 Firewall, Network 경로와 대상 IP</td>
+    </tr>
+    <tr>
+      <td>매번 <code class="language-plaintext highlighter-rouge">changed</code> 표시</td>
+      <td><code class="language-plaintext highlighter-rouge">command</code>·<code class="language-plaintext highlighter-rouge">shell</code> 사용 여부와 <code class="language-plaintext highlighter-rouge">changed_when</code>, Module의 상태 Parameter</td>
+    </tr>
+    <tr>
+      <td>일부 Host만 실패</td>
+      <td>Play Recap의 Host별 <code class="language-plaintext highlighter-rouge">failed</code>, <code class="language-plaintext highlighter-rouge">unreachable</code>와 해당 Host의 상세 출력</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Playbook 구조와 실행 방식은 <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_intro.html">Ansible Playbook 공식 문서</a>에서, 일회성 명령은 <a href="https://docs.ansible.com/projects/ansible/latest/command_guide/intro_adhoc.html">Ad-hoc 명령 공식 문서</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Ad-hoc 명령은 하나의 Module을 즉시 실행하는 방식이며 반복 작업과 여러 단계 자동화는 Playbook으로 관리한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">-k</code>는 SSH Password, <code class="language-plaintext highlighter-rouge">-K</code>는 Privilege Escalation Password를 요청하고 <code class="language-plaintext highlighter-rouge">-b</code>는 권한 상승을 활성화한다.</p>
+    </li>
+    <li>
+      <p>Shell 기능이 필요하지 않다면 <code class="language-plaintext highlighter-rouge">command</code>를 사용하고 Package, File과 Service는 목적에 맞는 전용 Module로 상태를 관리한다.</p>
+    </li>
+    <li>
+      <p>Playbook은 Play, Task와 Module을 순서대로 실행하며 Handler는 변경 알림이 발생했을 때만 실행한다.</p>
+    </li>
+    <li>
+      <p>Nginx 배포는 Package 설치, 설정·Page 복사, 문법 검사, Service 상태와 HTTP 응답을 함께 확인해야 완료된다.</p>
+    </li>
+    <li>
+      <p>같은 Playbook을 다시 실행했을 때 불필요한 변경이 없는지 확인하면 Module의 멱등성과 Task 설계를 검증할 수 있다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다]]></summary></entry><entry><title type="html">Argo CD Git Repository 연동과 수동 Sync</title><link href="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/" rel="alternate" type="text/html" title="Argo CD Git Repository 연동과 수동 Sync" /><published>2026-09-18T00:00:00+09:00</published><updated>2026-09-18T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync</id><content type="html" xml:base="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/"><![CDATA[<p><a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 Helm Chart를 Source로 사용하는 Application과 자동 Sync를 구성했다. 이번에는 Namespace, Deployment와 Service Manifest를 GitHub Repository에 저장하고 <code class="language-plaintext highlighter-rouge">syncPolicy.automated</code>를 설정하지 않은 Application으로 등록한다. Git의 Desired State가 <code class="language-plaintext highlighter-rouge">OutOfSync</code>로 감지된 뒤 사용자가 수동 Sync를 요청했을 때 Control Plane과 Worker에서 어떤 동작이 이어지는지 확인한다.</p>
 
 <h2 id="1--실습-구조와-준비-사항">1 ) 실습 구조와 준비 사항</h2>
 
@@ -402,7 +1773,9 @@ kubectl get events <span class="nt">-n</span> bgd <span class="nt">--sort-by</sp
       <p>Argo CD가 Kubernetes API에 Desired Resource를 전달한 뒤 Control Plane의 Controller·Scheduler와 Worker의 kubelet·Runtime이 실제 Pod 실행을 이어간다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="ArgoCD" /><summary type="html"><![CDATA[Kubernetes Manifest를 GitHub Repository에 저장하고 Argo CD Application으로 등록하여 OutOfSync 상태를 수동 동기화한다]]></summary></entry><entry><title type="html">Docker로 GitLab CE 설치와 운영 준비</title><link href="https://hyn128.site/cloud-native-54-gitlab-docker-installation/" rel="alternate" type="text/html" title="Docker로 GitLab CE 설치와 운영 준비" /><published>2026-09-17T00:00:00+09:00</published><updated>2026-09-17T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-54-gitlab-docker-installation</id><content type="html" xml:base="https://hyn128.site/cloud-native-54-gitlab-docker-installation/"><![CDATA[<p><a href="/cloud-native-46-github-actions-ci/">GitHub Actions Workflow와 CI/CD 실습</a>에서는 GitHub Repository의 Event를 기준으로 Test, Image Build와 SSH 배포를 자동화했다. GitLab CE는 Source Repository, Merge Request와 CI/CD 기능을 직접 운영할 수 있는 Git Server이다. 이 글에서는 Linux Server에 GitLab CE를 Docker Container로 구성하고 지속적으로 유지할 Data와 운영 확인 항목을 정리한다.</p>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-58-ansible-architecture-inventory/">Ansible Architecture와 Inventory 구성</a>에서는 Control Node가 Inventory와 Playbook을 읽고 SSH로 여러 Managed Node를 자동화하는 구조를 구성한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="ArgoCD" /><summary type="html"><![CDATA[Kubernetes Manifest를 GitHub Repository에 저장하고 Argo CD Application으로 등록하여 OutOfSync 상태를 수동 동기화한다]]></summary></entry><entry><title type="html">Docker로 GitLab CE 설치와 운영 준비</title><link href="https://hyn128.site/cloud-native-54-gitlab-docker-installation/" rel="alternate" type="text/html" title="Docker로 GitLab CE 설치와 운영 준비" /><published>2026-09-17T00:00:00+09:00</published><updated>2026-09-17T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-54-gitlab-docker-installation</id><content type="html" xml:base="https://hyn128.site/cloud-native-54-gitlab-docker-installation/"><![CDATA[<p><a href="/cloud-native-46-github-actions-ci/">GitHub Actions Workflow와 CI/CD 실습</a>에서는 GitHub Repository의 Event를 기준으로 Test, Image Build와 SSH 배포를 자동화했다. GitLab CE는 Source Repository, Merge Request와 CI/CD 기능을 직접 운영할 수 있는 Git Server이다. 이 글에서는 Linux Server에 GitLab CE를 Docker Container로 구성하고 지속적으로 유지할 Data와 운영 확인 항목을 정리한다.</p>
 
 <h2 id="1--gitlab-server-resource-준비">1 ) GitLab Server Resource 준비</h2>
 
@@ -3352,913 +4725,4 @@ curl <span class="nt">--fail</span> <span class="s2">"http://localhost:9000/"</s
       <p>Build Number와 Commit SHA로 고정한 Image Tag를 배포하면 실행 Version과 Rollback 대상을 추적할 수 있다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Jenkins Pipeline의 Declarative·Scripted 문법을 구분하고 Jenkinsfile로 Checkout, Gradle Build, Docker Image Push와 SSH 배포를 연결한다]]></summary></entry><entry><title type="html">홈서버로 이해하는 VPN</title><link href="https://hyn128.site/notes-09-techbites-vpn/" rel="alternate" type="text/html" title="홈서버로 이해하는 VPN" /><published>2026-09-14T00:00:00+09:00</published><updated>2026-09-14T00:00:00+09:00</updated><id>https://hyn128.site/notes-09-techbites-vpn</id><content type="html" xml:base="https://hyn128.site/notes-09-techbites-vpn/"><![CDATA[<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/20.webp" alt="" /></p>
-<h2 id="1--외부에서-집에-있는-컴퓨터에-접속할-일이-생겼다">1 ) 외부에서 집에 있는 컴퓨터에 접속할 일이 생겼다</h2>
-
-<hr />
-
-<p>부트캠프 실습 환경을 구성해둔 데스크톱이 맥북보다 빠르고 편했다. 문제는 밖에서도 이 데스크톱으로 실습하고 싶었다는 것이다. 집에는 그 외에도 사용 중인 서버가 몇 대 더 있었다.</p>
-
-<p>홈 네트워크는 다음과 같이 구성되어 있었다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부의 맥북
-    │
-    │ 인터넷
-    ▼
-ipTIME 공유기
-    │
-    ├── Server 1
-    ├── Server 2
-    └── Server 3
-</code></pre></div></div>
-
-<p>처음에는 Windows RDP, Chrome Remote Desktop, VNC, SSH와 SFTP 등 여러 방법을 사용했다. 직접 접속해야 하는 서비스는 공유기에서 포트 포워딩도 설정했다. 외부 포트를 각 서버의 서비스 포트와 연결해두는 방식이다. 참고로 SFTP는 SSH를 기반으로 동작하므로 보통 SSH와 같은 연결 포트를 사용한다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/22.webp" alt="" /></p>
-
-<p>그런데 사용하다 보니 불편한 점이 생겼다.</p>
-
-<ol>
-  <li>
-    <p>SSH, RDP, VNC처럼 필요한 서비스마다 포트 포워딩을 설정해야 했다.</p>
-  </li>
-  <li>
-    <p>외부에 포트를 열어둔 몇몇 서버에는 알 수 없는 IP의 접속 시도 로그가 남았다.</p>
-  </li>
-  <li>
-    <p>여러 서버가 같은 서비스 포트를 사용하면 외부 포트를 다르게 정하고 기억해야 했다.</p>
-  </li>
-</ol>
-
-<p>그러던 중 ipTIME 공유기에서 L2TP VPN 서버를 만들 수 있다는 것을 알게 됐다. 원래 나만 접속할 용도였기 때문에 기존 포트 포워딩은 전부 비활성화하고, 외부에서는 먼저 VPN에 연결한 뒤 각 서버의 사설 IP로 접속하도록 바꿨다.</p>
-
-<p>그럼 VPN에 연결했을 뿐인데, 밖에 있는 맥북에서 어떻게 집 안의 사설 IP로 접속할 수 있었을까? 여러 VPN 형태 중 내가 사용한 <strong>Remote Access VPN</strong>을 기준으로 알아보자.</p>
-
-<h2 id="2--사설-ip는-왜-밖에서-바로-사용할-수-없을까">2 ) 사설 IP는 왜 밖에서 바로 사용할 수 없을까?</h2>
-
-<hr />
-
-<p>먼저 VPN을 연결하기 전부터 생각해보자. 홈서버가 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>이라는 주소를 사용한다고 가정하겠다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/08.webp" alt="" /></p>
-
-<p><code class="language-plaintext highlighter-rouge">192.168.0.10</code>은 집 안에서만 사용하는 사설 IP다. 인터넷에서는 이 주소만 보고 어느 집에 있는 서버인지 찾아갈 수 없다.</p>
-
-<p>학교에 비유하면 이렇다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/26.webp" alt="" /></p>
-
-<p>학교 밖에서는 학교 주소를 알아야 그 학교까지 찾아갈 수 있다. <code class="language-plaintext highlighter-rouge">3학년 2반</code>이라는 교실 번호만 가지고는 어느 학교인지 알 수 없다. 사설 IP도 마찬가지다. <code class="language-plaintext highlighter-rouge">192.168.0.10</code>은 어느 네트워크에 속한 주소인지 알아야 의미가 있다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/32.webp" alt="" /></p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>공인 IP
-→ 인터넷에서 어느 네트워크인지 찾는 주소
-
-사설 IP (192.168.0.10)
-→ 해당 네트워크 안에서 어느 기기인지 찾는 주소
-</code></pre></div></div>
-
-<h2 id="3--vpn을-연결하면-무엇이-달라질까">3 ) VPN을 연결하면 무엇이 달라질까?</h2>
-
-<hr />
-
-<p>VPN을 학교 참관 수업에 참석하려는 학부모의 출입증이라고 생각해보자. 출입증을 확인받으면 학교 안으로 들어가 필요한 교실까지 갈 수 있다.</p>
-
-<p>VPN도 비슷하다. VPN에 연결했다고 맥북이 실제로 집 안에 들어가는 것은 아니다. 대신 맥북과 집 공유기 사이에 홈 네트워크용 패킷을 보낼 수 있는 전용 경로가 생긴다. 그래서 밖에서도 집 안의 사설 IP를 목적지로 사용할 수 있다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/34.webp" alt="" /></p>
-
-<p>실제 연결을 기준으로 보면 다음 네 단계다.</p>
-
-<p>![[36.webp]]</p>
-
-<ol>
-  <li>
-    <p>맥북이 인터넷을 통해 ipTIME VPN 서버에 접속한다.</p>
-  </li>
-  <li>
-    <p>공유기가 VPN 비밀키와 사용자 계정을 확인한다.</p>
-  </li>
-  <li>
-    <p>맥북과 공유기 사이에 암호화로 보호된 터널이 만들어진다.</p>
-  </li>
-  <li>
-    <p>맥북에 홈 네트워크로 패킷을 보낼 경로가 추가된다.</p>
-  </li>
-</ol>
-
-<p>여기서 터널과 경로라는 말이 조금 막연하게 느껴질 수 있다. 뒤에서 패킷이 실제로 어떻게 이동하는지 하나씩 살펴보겠다.</p>
-
-<h2 id="4--포트-포워딩과는-뭐가-다를까">4 ) 포트 포워딩과는 뭐가 다를까?</h2>
-
-<hr />
-
-<p>먼저 포트 포워딩부터 똑같이 학교와 비교해보자. 포트 포워딩은 외부의 특정 포트로 들어온 요청을 내부 서버의 포트로 전달한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부 사용자
-    │
-    │ 공인 IP:2222
-    ▼
-공유기
-    │
-    │ 192.168.0.10:22
-    ▼
-SSH 서버
-</code></pre></div></div>
-
-<p>학교로 치면 특정 교실의 창문에 사다리를 놓아 외부에서 바로 들어올 수 있게 만드는 것과 비슷하다. SSH를 위한 창문, 웹 서버를 위한 창문, DB를 위한 창문이 따로 있는 셈이다. 서비스가 늘어날수록 사다리를 놓고 관리할 창문도 늘어난다.</p>
-
-<p>VPN은 교실마다 외부 출입구를 만들지 않는다. VPN이라는 정문 하나로 들어온 뒤, 신원을 확인받은 사람이 필요한 교실로 이동한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>포트 포워딩</th>
-      <th>VPN</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>서비스별 외부 포트를 공개한다</td>
-      <td>VPN 진입점을 공개한다</td>
-    </tr>
-    <tr>
-      <td>공인 IP와 외부 포트로 접근한다</td>
-      <td>VPN 연결 후 사설 IP로 접근한다</td>
-    </tr>
-    <tr>
-      <td>공개한 서비스마다 공격에 대비해야 한다</td>
-      <td>VPN 인증을 먼저 통과해야 한다</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>그렇다면 포트가 하나도 열리지 않은 것일까? 그렇지는 않다. 홈서버의 SSH, RDP, VNC 포트를 각각 공개하지 않을 뿐, ipTIME의 VPN 서버는 외부 연결을 받는 진입점으로 남아 있다.</p>
-
-<h2 id="5--vpn-프로토콜은-뭘까">5 ) VPN 프로토콜은 뭘까?</h2>
-
-<hr />
-
-<p>VPN이라고 해서 모두 같은 방법으로 연결되는 것은 아니다. 연결을 시작하는 방법, 사용자를 확인하는 방법, 패킷을 감싸고 보호하는 방법이 서로 다를 수 있다. 이렇게 통신할 때 지켜야 하는 약속을 <strong>프로토콜(Protocol)</strong>이라고 한다.</p>
-
-<p>택배를 보내는 방법에도 일반 택배와 등기가 있듯이 VPN에도 데이터를 전달하고 보호하는 여러 방식이 있다고 생각하면 된다.</p>
-
-<p>대표적인 VPN 프로토콜에는 다음과 같은 것들이 있다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/38.webp" alt="" /></p>
-
-<p>내가 ipTIME 공유기에서 사용하는 방식은 <strong>L2TP/IPsec</strong>이다. 이름에 두 기술이 함께 들어가는 이유는 맡은 일이 다르기 때문이다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>L2TP
-→ PPP 데이터를 터널로 전달한다
-
-IPsec
-→ L2TP 통신을 암호화하고 변조를 방지한다
-</code></pre></div></div>
-
-<p>L2TP 자체가 데이터를 암호화하는 것은 아니다. 지금 사용하는 환경에서는 IPsec이 L2TP 통신을 보호한다. 각 프로토콜의 패킷 구조나 암호화 알고리즘까지 들어가면 내용이 너무 길어지므로, 여기서는 VPN 연결을 만드는 방법이 여러 가지라는 것만 알고 넘어가겠다.</p>
-
-<h2 id="6--암호화된-통로-터널은-뭘까">6 ) 암호화된 통로, 터널은 뭘까?</h2>
-
-<hr />
-
-<p>앞에서 맥북과 공유기 사이에 암호화로 보호된 터널이 생긴다고 했다. 여기서 터널은 땅을 뚫어 만든 실제 통로가 아니다. <strong>원래 패킷을 다른 패킷 안에 넣어 두 지점 사이로 운반하는 방식</strong>을 말한다.</p>
-
-<p>맥북이 홈서버에 SSH 요청을 보낸다고 가정하자.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>원래 패킷
-
-출발지: 맥북의 VPN IP
-목적지: 홈서버 192.168.0.10
-내용: SSH 요청
-</code></pre></div></div>
-
-<p>목적지인 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>은 사설 IP라서 인터넷이 이 패킷을 그대로 홈서버까지 배달할 수 없다. 그래서 VPN은 원래 패킷을 집 공유기까지 전달할 수 있는 외부 패킷 안에 넣는다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>외부 패킷
-├── 목적지: 집 공유기의 공인 IP
-└── IPsec으로 보호된 내용
-    └── 원래 패킷
-        ├── 목적지: 홈서버 192.168.0.10
-        └── 내용: SSH 요청
-</code></pre></div></div>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/42.webp" alt="" /></p>
-
-<p>쉽게 말하면 편지를 택배 상자에 넣어 보내는 것과 비슷하다. 내부 패킷은 집 안에서 사용할 편지이고, 외부 패킷은 그 편지를 집까지 운반할 택배 상자다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>택배 상자의 주소: 집 공유기의 공인 IP
-상자 안 편지의 주소: 홈서버 192.168.0.10
-</code></pre></div></div>
-
-<p>택배 기사 역할을 하는 인터넷은 상자 바깥에 적힌 주소를 보고 집 공유기까지 배달하면 된다. 중간 네트워크에서는 외부 IP 헤더나 패킷 크기 같은 정보는 볼 수 있지만, IPsec으로 보호된 내부 내용은 직접 읽기 어렵다.</p>
-
-<p>공유기는 자신에게 도착한 외부 패킷을 검증하고 복호화한 뒤, 그 안에서 원래 패킷을 꺼낸다. 편지에 적힌 목적지 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>을 확인하고 홈서버로 전달하는 것이다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/44.webp" alt="" /></p>
-
-<p>내가 사용하는 L2TP/IPsec에서는 각 기술이 맡은 일이 다르다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성 요소</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>L2TP</td>
-      <td>PPP 데이터를 터널로 전달한다</td>
-    </tr>
-    <tr>
-      <td>IPsec</td>
-      <td>L2TP 통신을 암호화하고 변조를 방지한다</td>
-    </tr>
-    <tr>
-      <td>라우팅</td>
-      <td>어떤 패킷을 VPN으로 보낼지 결정한다</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>여기서 터널링과 암호화는 같은 개념이 아니다. 터널링은 패킷을 감싸서 운반하는 방식이고, 암호화는 그 내용을 보호하는 방식이다. L2TP/IPsec VPN은 이 둘을 함께 사용한다.</p>
-
-<h2 id="7--홈-네트워크로-가는-경로가-추가된다는-건-무슨-뜻일까">7 ) “홈 네트워크로 가는 경로가 추가된다”는 건 무슨 뜻일까?</h2>
-
-<hr />
-
-<p>VPN 터널이 만들어졌다고 모든 패킷이 자동으로 터널에 들어가는 것은 아니다. 맥북은 패킷을 보낼 때마다 목적지를 보고 어느 길로 보낼지 먼저 결정한다.</p>
-
-<p>이때 사용하는 것이 <strong>라우팅 테이블(Routing Table)</strong>이다. 목적지에 따라 어느 길을 이용할지 적어둔 길 안내표라고 보면 된다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/46.webp" alt="" /></p>
-
-<p>예를 들어 VPN에 연결한 뒤 다음과 같은 경로가 추가될 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.0.0/24로 가는 패킷 → VPN으로 전달
-그 밖의 목적지로 가는 패킷 → 기존 Wi-Fi로 전달
-</code></pre></div></div>
-
-<p>맥북에서 홈서버 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>으로 SSH 접속을 시도해보자. 이 주소는 <code class="language-plaintext highlighter-rouge">192.168.0.0/24</code> 홈 네트워크에 포함되므로 맥북은 VPN 경로를 선택한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>목적지 192.168.0.10
-    ↓
-라우팅 테이블 확인
-    ↓
-VPN 경로 선택
-    ↓
-터널로 집 공유기까지 전달
-</code></pre></div></div>
-
-<p>이처럼 홈 네트워크로 가는 트래픽만 VPN으로 보내고, 일반 인터넷 트래픽은 기존 네트워크로 보내는 방식을 <strong>Split Tunnel</strong>이라고 한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>맥북
-├── 홈 네트워크 → VPN → 집 공유기 → 홈서버
-└── 일반 인터넷 → 기존 Wi-Fi → 인터넷 서비스
-</code></pre></div></div>
-
-<p>반대로 홈 네트워크뿐 아니라 일반 인터넷 트래픽까지 전부 VPN으로 보내는 방식도 있다. 이것을 <strong>Full Tunnel</strong>이라고 한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>맥북
-├── 홈서버 ─┐
-├── 검색 ───┼──→ VPN → 집 공유기
-└── 동영상 ─┘
-</code></pre></div></div>
-
-<p>내 환경이 어느 방식으로 동작하는지는 VPN 설정과 라우팅 테이블을 직접 확인해야 한다. macOS에서는 다음 명령으로 VPN 연결 전후의 경로를 비교할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>netstat <span class="nt">-rn</span> <span class="nt">-f</span> inet
-route <span class="nt">-n</span> get default
-route <span class="nt">-n</span> get 192.168.0.10
-</code></pre></div></div>
-
-<h2 id="8--지금까지의-과정을-한-번에-보면">8 ) 지금까지의 과정을 한 번에 보면</h2>
-
-<hr />
-
-<p>맥북에서 홈서버 <code class="language-plaintext highlighter-rouge">192.168.0.10</code>으로 SSH 패킷을 보낸다면 다음 순서로 처리된다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/48.webp" alt="" /></p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>① 맥북이 홈서버를 목적지로 하는 패킷을 만든다.
-
-② 라우팅 테이블에서 홈 네트워크용 VPN 경로를 선택한다.
-
-③ L2TP가 데이터를 터널로 전달할 형태로 감싼다.
-
-④ IPsec이 L2TP 통신을 암호화하고 보호한다.
-
-⑤ 외부 패킷이 인터넷을 통해 집 공유기의 공인 IP로 전달된다.
-
-⑥ ipTIME이 패킷을 검증하고 복호화한 뒤 원래 패킷을 꺼낸다.
-
-⑦ 공유기가 원래 목적지인 홈서버로 패킷을 전달한다.
-</code></pre></div></div>
-
-<p>헷갈리기 쉬운 세 가지 역할만 다시 구분하면 된다.</p>
-
-<ul>
-  <li>
-    <p><strong>라우팅</strong>은 어떤 패킷을 VPN으로 보낼지 결정한다.</p>
-  </li>
-  <li>
-    <p><strong>터널링</strong>은 선택된 패킷을 다른 패킷 안에 넣어 공유기까지 운반한다.</p>
-  </li>
-  <li>
-    <p><strong>암호화</strong>는 운반되는 내용을 외부에서 읽거나 변조하기 어렵게 보호한다.</p>
-  </li>
-</ul>
-
-<h2 id="9--vpn은-실제로-어디에-쓰일까">9 ) VPN은 실제로 어디에 쓰일까?</h2>
-
-<hr />
-
-<p>지금까지는 내가 외부 맥북에서 홈서버에 접속한 과정을 기준으로 살펴봤다. 이것은 외부에 있는 사용자 한 명이 사설 네트워크에 접속하는 <strong>Remote Access VPN</strong>이다.</p>
-
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/50.webp" alt="" /></p>
-
-<p>회사에서 재택근무를 하는 직원이 사내 서버나 업무 시스템에 접속할 때도 같은 형태를 사용할 수 있다. 집 대신 회사 네트워크에 접속한다는 점만 다르다.</p>
-
-<p>반대로 사용자 한 명이 아니라 서로 떨어진 두 네트워크를 연결할 수도 있다. 본사와 지사 네트워크를 연결하거나, 회사 내부 네트워크와 클라우드의 가상 네트워크를 연결하는 <strong>Site-to-Site VPN</strong>이 여기에 해당한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>회사 내부 네트워크
-        │
-        │ Site-to-Site VPN
-        ▼
-클라우드의 가상 네트워크
-</code></pre></div></div>
-
-<p>이 경우에는 각 사용자가 VPN에 접속하기보다 양쪽 네트워크의 VPN 장비가 연결을 유지한다. 사용자는 목적지에 맞는 경로만 설정되어 있으면 반대편 네트워크의 서버와 통신할 수 있다.</p>
-
-<p>일반 사용자가 사용하는 상용 VPN 서비스는 인터넷 트래픽을 VPN 업체의 서버를 거쳐 보내는 경우가 많다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>사용자
-   │
-   │ VPN 터널
-   ▼
-VPN 업체의 서버
-   │
-   ▼
-인터넷 서비스
-</code></pre></div></div>
-
-<p>웹사이트에서는 사용자의 원래 공인 IP 대신 VPN 서버의 공인 IP에서 요청이 온 것으로 보게 된다. 그래서 VPN이 흔히 IP를 바꾸거나 숨기는 도구로 소개되기도 한다. 하지만 VPN의 기본 동작은 떨어져 있는 두 지점 사이에 보호된 통신 경로를 만드는 것이다. 트래픽이 VPN 서버를 거쳐 나가면서 외부에 VPN 서버의 IP가 보이는 것이다.</p>
-
-<p>카페나 공항처럼 내가 관리하지 않는 Wi-Fi에서 기기와 VPN 서버 사이의 통신을 보호하려고 사용할 수도 있다. 다만 VPN 서버를 지난 뒤의 구간까지 전부 VPN이 보호하는 것은 아니다. 접속한 웹사이트가 HTTPS를 사용하는지, 서비스 자체가 안전한지는 따로 확인해야 한다.</p>
-
-<p>정리하면 내가 사용한 홈서버 VPN, 회사의 원격 접속 VPN, 네트워크를 서로 연결하는 VPN과 상용 VPN은 목적은 달라도 모두 떨어진 두 지점 사이에서 패킷을 전달한다는 공통점이 있다.</p>
-
-<h2 id="10--그럼-vpn만-사용하면-안전할까">10 ) 그럼 VPN만 사용하면 안전할까?</h2>
-
-<hr />
-
-<p>VPN을 사용하면 홈서버의 여러 관리 포트를 외부에 하나씩 노출하지 않아도 된다. 외부 진입점을 VPN 서버로 모으고, 인증을 통과한 사용자만 홈 네트워크에 접근하게 만들 수 있다.</p>
-
-<p>하지만 VPN을 쓴다고 무조건 안전해지는 것은 아니다. VPN 서버 자체도 외부 연결을 받는 서비스이고, 비밀키나 사용자 계정이 유출되면 공격자가 내부 네트워크에 접근할 수 있다. 그래서 다음과 같은 관리는 여전히 필요하다.</p>
-
-<ul>
-  <li>
-    <p>충분히 긴 VPN 비밀키와 계정 암호를 사용한다.</p>
-  </li>
-  <li>
-    <p>사용하지 않는 VPN 계정은 제거한다.</p>
-  </li>
-  <li>
-    <p>공유기 펌웨어를 최신 상태로 유지한다.</p>
-  </li>
-  <li>
-    <p>VPN에 연결한 뒤에도 SSH나 RDP의 자체 인증을 유지한다.</p>
-  </li>
-</ul>
-
-<p>내가 포트 포워딩 대신 VPN을 사용했을 때 일어난 일은 생각보다 단순하다. 맥북은 라우팅 테이블을 보고 홈 네트워크로 가는 패킷을 VPN에 보낸다. 패킷은 터널링과 암호화 과정을 거쳐 집 공유기까지 이동하고, 공유기는 그 안의 원래 목적지를 확인해 홈서버로 전달한다.</p>
-
-<p>이 덕분에 여러 서버의 관리 포트를 하나씩 외부에 공개하지 않고도 사설 IP로 접속할 수 있었다. 다만 외부 진입점이 사라진 것은 아니다. 이제는 그 진입점이 VPN 서버로 모인 것이므로 VPN 계정과 공유기 자체를 계속 안전하게 관리해야 한다.</p>
-
-<h2 id="11--느낀-점">11 ) 느낀 점</h2>
-
-<hr />
-<p><img src="../../assets/post/2026-09-14-notes-09-techbites-vpn/52.webp" alt="" /></p>
-
-<p>처음에는 포트 포워딩을 여러 개 설정하는 것이 불편했고, 외부에서 들어오는 접속 시도도 신경 쓰여서 VPN을 사용하기 시작했다. VPN에 연결한 뒤 사설 IP로 접속이 되니 편하게 사용했지만, 정작 그 연결이 어떻게 만들어지는지는 제대로 알지 못했다.</p>
-
-<p>이번에 알아보면서 VPN에 연결된 맥북이 실제로 집 안의 네트워크로 들어가는 것은 아니라는 점을 알게 됐다. 맥북에 홈 네트워크로 가는 경로가 추가되고, 그 패킷이 터널을 통해 집 공유기까지 전달되고 있었던 것이다.</p>
-
-<p>평소에는 연결 버튼 한 번 누르고 사용하던 기능이지만, 그 뒤에서는 라우팅과 터널링, 암호화가 각자 맡은 일을 하고 있었다.</p>
-
-<p>내가 홈서버를 사용하면서 궁금했던 VPN의 내용은 여기까지지만, 앞으로도 다양한 곳에서 더 깊은 기술로 접할 때 빠르게 이해하고 적용할 수 있도록 깊은 내용을 공부해야할 필요를 느꼈다.</p>]]></content><author><name></name></author><category term="TechBites" /><category term="VPN" /><category term="Network" /><category term="IPsec" /><category term="Tennel" /><summary type="html"><![CDATA[L2TP/IPsec VPN을 통해 외부 맥북에서 홈 네트워크의 서버에 접근하는 과정]]></summary></entry><entry><title type="html">Jenkins Controller-Agent 구조와 설치</title><link href="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/" rel="alternate" type="text/html" title="Jenkins Controller-Agent 구조와 설치" /><published>2026-09-14T00:00:00+09:00</published><updated>2026-09-14T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-47-jenkins-architecture-installation</id><content type="html" xml:base="https://hyn128.site/cloud-native-47-jenkins-architecture-installation/"><![CDATA[<p><a href="/cloud-native-46-github-actions-ci/">GitHub Actions Workflow와 CI/CD 실습</a>은 GitHub가 제공하는 Runner에서 Build와 Test를 실행했다. Jenkins는 조직이 직접 설치하고 확장할 수 있는 Java 기반 Open Source 자동화 Server이다. Source Checkout, Compile, Test, 정적 분석, Package, 배포와 결과 알림을 Plugin과 Job으로 연결한다.</p>
-
-<h2 id="1--jenkins가-담당하는-자동화">1 ) Jenkins가 담당하는 자동화</h2>
-
-<hr />
-
-<p>여러 개발자의 변경 사항이 Main Branch에 병합되면 Jenkins는 Webhook을 받거나 Repository를 주기적으로 확인해 Job을 시작할 수 있다. 일반적인 처리 과정은 다음과 같다.</p>
-
-<ol>
-  <li>
-    <p>SCM Plugin으로 대상 Commit을 Checkout한다.</p>
-  </li>
-  <li>
-    <p>Maven이나 Gradle 같은 Build Tool로 Source를 Compile한다.</p>
-  </li>
-  <li>
-    <p>Unit Test와 Integration Test를 실행한다.</p>
-  </li>
-  <li>
-    <p>정적 분석 도구로 Coding Convention, 결함과 사용하지 않는 Code를 확인한다.</p>
-  </li>
-  <li>
-    <p>JAR, WAR 또는 Container Image 같은 Artifact로 Package한다.</p>
-  </li>
-  <li>
-    <p>배포 도구를 호출해 검증된 Artifact를 대상 환경으로 전달한다.</p>
-  </li>
-  <li>
-    <p>배포된 Application을 Selenium 같은 자동화 도구로 추가 검증할 수 있다.</p>
-  </li>
-  <li>
-    <p>수행 결과를 Email이나 협업 도구로 알린다.</p>
-  </li>
-</ol>
-
-<p>Jenkins Core가 모든 도구를 직접 구현하는 것은 아니다. Git, Maven, Email Extension처럼 외부 도구와 연결하는 기능은 주로 Plugin이 제공한다. 따라서 Jenkins Version뿐 아니라 설치한 Plugin의 Version과 호환성도 함께 관리해야 한다.</p>
-
-<h2 id="2--controller-agent와-executor">2 ) Controller, Agent와 Executor</h2>
-
-<hr />
-
-<p>Jenkins의 분산 구조를 이해하려면 실행을 결정하는 역할과 실제 명령을 수행하는 역할을 분리해서 봐야 한다.</p>
-
-<blockquote>
-  <p><strong>Controller</strong>
-Jenkins의 중앙 조정 Process이다. 설정과 Plugin을 보관하고 Web UI를 제공하며 Trigger, Build Queue와 Agent 할당을 관리한다. 과거에는 Master라고 불렀지만 현재 공식 용어는 Controller이다.</p>
-</blockquote>
-
-<blockquote>
-  <p><strong>Agent</strong>
-Controller에 연결되어 할당받은 Build Step을 실행하는 Machine, Virtual Machine 또는 Container이다.</p>
-</blockquote>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성 요소</th>
-      <th>관점</th>
-      <th>주요 역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Controller</td>
-      <td>제어</td>
-      <td>Job 설정 저장, Trigger 처리, Queue 관리, Agent 선택, UI와 결과 제공</td>
-    </tr>
-    <tr>
-      <td>Queue</td>
-      <td>대기</td>
-      <td>실행 조건을 만족했지만 Executor를 아직 배정받지 못한 Build 보관</td>
-    </tr>
-    <tr>
-      <td>Agent</td>
-      <td>실행</td>
-      <td>Workspace 준비, Source Checkout, Compile, Test와 Package 실행</td>
-    </tr>
-    <tr>
-      <td>Executor</td>
-      <td>동시 실행 용량</td>
-      <td>Node에서 동시에 실행할 수 있는 작업 Slot</td>
-    </tr>
-    <tr>
-      <td>Label</td>
-      <td>작업 배치 조건</td>
-      <td><code class="language-plaintext highlighter-rouge">linux</code>, <code class="language-plaintext highlighter-rouge">docker</code>, <code class="language-plaintext highlighter-rouge">jdk21</code>처럼 Agent의 능력을 표시</td>
-    </tr>
-    <tr>
-      <td>Workspace</td>
-      <td>작업 File 영역</td>
-      <td>Checkout한 Source와 Build 중간 결과를 저장하는 Node의 Directory</td>
-    </tr>
-    <tr>
-      <td>Artifact</td>
-      <td>보존 결과</td>
-      <td>Build가 만든 JAR, WAR, Report와 같은 불변 결과물</td>
-    </tr>
-  </tbody>
-</table>
-
-<figure class="post-visual" aria-labelledby="jenkins-controller-agent-caption">
-  <figcaption class="post-visual__caption" id="jenkins-controller-agent-caption">
-    Trigger부터 Controller의 작업 배정과 Agent의 Build 실행까지 이어지는 Jenkins 흐름
-  </figcaption>
-  <div class="post-visual__frame">
-    <svg viewBox="0 0 840 790" role="img" aria-labelledby="jenkins-flow-title jenkins-flow-desc">
-      <title id="jenkins-flow-title">Jenkins Controller와 Agent의 실행 흐름</title>
-      <desc id="jenkins-flow-desc">Trigger, Controller와 Agent는 수직으로 연결된다. Controller와 Agent 내부의 처리 단계는 왼쪽에서 오른쪽으로 진행하며 상태, 로그와 아티팩트는 Controller로 반환된다.</desc>
-      <defs>
-        <marker id="arrow-jenkins-flow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-          <path d="M0 0 7 3.5 0 7z" fill="var(--text3)"></path>
-        </marker>
-        <marker id="arrow-jenkins-dispatch" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-          <path d="M0 0 7 3.5 0 7z" fill="var(--diagram-blue)"></path>
-        </marker>
-        <marker id="arrow-jenkins-return" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
-          <path d="M0 0 7 3.5 0 7z" fill="var(--diagram-orange)"></path>
-        </marker>
-      </defs>
-
-      <g id="jenkins-trigger">
-        <title>Build Trigger</title>
-        <rect x="220" y="38" width="400" height="92" rx="18" fill="var(--diagram-violet-soft)" stroke="var(--diagram-violet)" stroke-width="2"></rect>
-        <text x="420" y="72" text-anchor="middle" fill="var(--diagram-violet)" font-size="14" font-weight="700">TRIGGER</text>
-        <text x="420" y="104" text-anchor="middle" fill="var(--text1)" font-size="20" font-weight="700">SCM · 일정 · 사용자 요청</text>
-      </g>
-      <line id="jenkins-trigger-request" x1="420" y1="130" x2="420" y2="172" stroke="var(--text3)" stroke-width="3" marker-end="url(#arrow-jenkins-flow)"></line>
-
-      <g id="jenkins-controller">
-        <title>Controller 제어 영역</title>
-        <rect x="56" y="184" width="728" height="220" rx="22" fill="var(--diagram-primary-soft)" stroke="var(--primary2)" stroke-width="3"></rect>
-        <text x="86" y="215" fill="var(--primary1)" font-size="14" font-weight="700">CONTROLLER · 제어 영역</text>
-        <text x="420" y="244" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">요청을 판단하고 실행 위치를 결정</text>
-
-        <g id="jenkins-job-config">
-          <title>Job 설정 확인</title>
-          <rect x="100" y="270" width="190" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
-          <text x="195" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">1. Job 설정</text>
-          <text x="195" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">SCM · Trigger · Step</text>
-        </g>
-        <line x1="290" y1="316" x2="326" y2="316" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
-
-        <g id="jenkins-build-queue">
-          <title>Build Queue</title>
-          <rect x="334" y="270" width="172" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
-          <text x="420" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">2. Build Queue</text>
-          <text x="420" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">Executor 대기</text>
-        </g>
-        <line x1="506" y1="316" x2="542" y2="316" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
-
-        <g id="jenkins-scheduler">
-          <title>Scheduler가 Agent를 선택</title>
-          <rect x="550" y="270" width="190" height="92" rx="14" fill="var(--bg-element1)" stroke="var(--primary2)" stroke-width="2"></rect>
-          <text x="645" y="305" text-anchor="middle" fill="var(--text1)" font-size="17" font-weight="700">3. Scheduler</text>
-          <text x="645" y="333" text-anchor="middle" fill="var(--text2)" font-size="13">Label · 빈 Executor</text>
-        </g>
-      </g>
-
-      <line id="jenkins-build-dispatch" x1="420" y1="404" x2="420" y2="478" stroke="var(--diagram-blue)" stroke-width="3" marker-end="url(#arrow-jenkins-dispatch)"></line>
-      <text x="452" y="446" fill="var(--diagram-blue)" font-size="13" font-weight="700">Build 할당</text>
-
-      <g id="jenkins-agent">
-        <title>Agent 실행 영역</title>
-        <rect x="56" y="490" width="728" height="220" rx="22" fill="var(--diagram-blue-soft)" stroke="var(--diagram-blue)" stroke-width="3"></rect>
-        <text x="86" y="521" fill="var(--diagram-blue)" font-size="14" font-weight="700">AGENT · 실행 영역</text>
-        <text x="420" y="550" text-anchor="middle" fill="var(--text1)" font-size="21" font-weight="700">선택된 Node에서 Build 수행</text>
-
-        <g id="jenkins-executor">
-          <title>Executor Slot 점유</title>
-          <rect x="82" y="578" width="146" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
-          <text x="155" y="611" text-anchor="middle" fill="var(--text1)" font-size="16" font-weight="700">1. Executor</text>
-          <text x="155" y="638" text-anchor="middle" fill="var(--text2)" font-size="12">Slot 점유</text>
-        </g>
-        <line x1="228" y1="620" x2="258" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
-
-        <g id="jenkins-workspace">
-          <title>Workspace 준비</title>
-          <rect x="266" y="578" width="146" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
-          <text x="339" y="611" text-anchor="middle" fill="var(--text1)" font-size="16" font-weight="700">2. Workspace</text>
-          <text x="339" y="638" text-anchor="middle" fill="var(--text2)" font-size="12">Source · 중간 결과</text>
-        </g>
-        <line x1="412" y1="620" x2="442" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
-
-        <g id="jenkins-build-steps">
-          <title>Build Step 실행</title>
-          <rect x="450" y="578" width="176" height="84" rx="14" fill="var(--bg-element1)" stroke="var(--diagram-blue)" stroke-width="2"></rect>
-          <text x="538" y="607" text-anchor="middle" fill="var(--text1)" font-size="15" font-weight="700">3. Build Step</text>
-          <text x="538" y="630" text-anchor="middle" fill="var(--text2)" font-size="11">Checkout · Build</text>
-          <text x="538" y="648" text-anchor="middle" fill="var(--text2)" font-size="11">Test · Package</text>
-        </g>
-        <line x1="626" y1="620" x2="648" y2="620" stroke="var(--text3)" stroke-width="2" marker-end="url(#arrow-jenkins-flow)"></line>
-
-        <g id="jenkins-build-result">
-          <title>Build 결과 생성</title>
-          <rect x="656" y="578" width="102" height="84" rx="14" fill="var(--diagram-orange-soft)" stroke="var(--diagram-orange)" stroke-width="2"></rect>
-          <text x="707" y="607" text-anchor="middle" fill="var(--text1)" font-size="15" font-weight="700">4. 결과</text>
-          <text x="707" y="632" text-anchor="middle" fill="var(--text2)" font-size="11">상태 · Log</text>
-          <text x="707" y="650" text-anchor="middle" fill="var(--text2)" font-size="11">Artifact</text>
-        </g>
-      </g>
-
-      <g id="jenkins-result-return">
-        <title>Build 결과를 Controller로 반환</title>
-        <line x1="758" y1="620" x2="758" y2="404" stroke="var(--diagram-orange)" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow-jenkins-return)"></line>
-        <rect x="572" y="425" width="166" height="40" rx="16" fill="var(--bg-element1)" stroke="var(--diagram-orange)"></rect>
-        <text x="655" y="450" text-anchor="middle" fill="var(--diagram-orange)" font-size="12" font-weight="700">상태 · Log · Artifact 반환</text>
-      </g>
-
-      <g id="jenkins-isolation-note">
-        <title>Controller와 Build 실행 환경 분리</title>
-        <rect x="176" y="736" width="488" height="34" rx="17" fill="var(--bg-element3)"></rect>
-        <text x="420" y="758" text-anchor="middle" fill="var(--text2)" font-size="13">운영 환경에서는 Controller와 Build 실행 환경을 분리</text>
-      </g>
-    </svg>
-  </div>
-  <div class="post-visual__notes">
-    <div class="post-visual__note">
-      <strong>Controller의 관점</strong>
-      <p>실행 요청을 Queue에 넣고 Label과 빈 Executor를 기준으로 Agent를 선택한다.</p>
-    </div>
-    <div class="post-visual__note">
-      <strong>Agent의 관점</strong>
-      <p>Executor가 Workspace에서 Build Step을 실행하고 상태, Log와 Artifact를 반환한다.</p>
-    </div>
-  </div>
-</figure>
-
-<p>Job이 시작되는 흐름은 다음과 같다.</p>
-
-<ol>
-  <li>
-    <p>사용자의 <strong>Build Now</strong>, SCM 변경 또는 일정 Trigger가 Controller에 실행을 요청한다.</p>
-  </li>
-  <li>
-    <p>Controller가 Job 설정을 읽고 실행할 Build를 Queue에 넣는다.</p>
-  </li>
-  <li>
-    <p>Scheduler가 Label, Agent 연결 상태와 사용 가능한 Executor를 확인한다.</p>
-  </li>
-  <li>
-    <p>조건을 만족하는 Agent의 Executor가 Build를 가져간다.</p>
-  </li>
-  <li>
-    <p>Agent가 자신의 Workspace에서 Checkout, Build와 Test를 실행한다.</p>
-  </li>
-  <li>
-    <p>Console Log, Build 상태와 보관하도록 설정한 Artifact를 Controller가 사용자에게 제공한다.</p>
-  </li>
-</ol>
-
-<p>Agent 한 대에 Executor를 2개 설정하면 원칙적으로 작업 2개를 동시에 실행할 수 있다. 그러나 CPU, Memory, Disk I/O와 외부 Tool이 같은 Node를 공유하므로 Executor 수를 늘리는 것이 항상 처리량 증가로 이어지지는 않는다.</p>
-
-<p>Controller도 Node이므로 Executor를 가질 수 있지만, 운영 환경에서는 중앙 조정 Process와 Build Process를 격리하기 위해 Controller의 Executor를 <code class="language-plaintext highlighter-rouge">0</code>으로 두고 전용 Agent에서 작업을 실행하는 구성이 일반적이다. 실습처럼 단일 Container에서 시작할 때는 Built-In Node가 Build를 실행할 수 있으나 이 차이를 알고 사용해야 한다.</p>
-
-<h2 id="3--확장-방식">3 ) 확장 방식</h2>
-
-<hr />
-
-<table>
-  <thead>
-    <tr>
-      <th>방식</th>
-      <th>변경 대상</th>
-      <th>장점</th>
-      <th>주의 사항</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>수직 확장</td>
-      <td>Controller 또는 Agent의 CPU, Memory, Disk 증설</td>
-      <td>구성과 운영 지점이 적음</td>
-      <td>한 Node의 한계와 장애 영향 범위가 큼</td>
-    </tr>
-    <tr>
-      <td>Agent 수평 확장</td>
-      <td>같은 Controller에 Agent 추가</td>
-      <td>Build 실행 용량과 환경 격리 확장</td>
-      <td>Queue 정책, Label과 Tool Version 관리 필요</td>
-    </tr>
-    <tr>
-      <td>Controller 분리</td>
-      <td>목적별 Jenkins Instance 운영</td>
-      <td>팀·보안 영역·환경별 독립 설정 가능</td>
-      <td>Plugin, Credential, Job과 Upgrade를 각각 관리해야 함</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>서로 독립된 Controller 여러 대를 운영한다고 해서 자동 Failover가 구성되는 것은 아니다. 한 Controller의 장애 시 다른 Controller가 Build를 자동 인계하려면 별도의 Job 동기화, Shared Storage, Backup과 복구 설계가 필요하다.</p>
-
-<p>Test용과 Production용 Controller를 분리하면 실험적인 Plugin이나 설정 변경이 운영 자동화에 미치는 영향을 줄일 수 있다. 대규모 조직이 Public Cloud와 On-Premises를 함께 사용하며 많은 Build를 처리한 사례는 Jenkins를 역할별로 분리할 수 있음을 보여주는 역사적 사례로 이해한다. 실제 분리 기준은 Build 수보다 보안 경계, 장애 범위와 유지보수 비용으로 결정한다.</p>
-
-<h2 id="4--설치-방법과-요구-사항">4 ) 설치 방법과 요구 사항</h2>
-
-<hr />
-
-<p>Jenkins는 여러 방식으로 설치할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>설치 방식</th>
-      <th>특징</th>
-      <th>관리 대상</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Standalone WAR</td>
-      <td>Java로 <code class="language-plaintext highlighter-rouge">jenkins.war</code> 직접 실행</td>
-      <td>Java, Service와 Jenkins Home</td>
-    </tr>
-    <tr>
-      <td>OS Package</td>
-      <td>Windows MSI, Debian·Ubuntu Package, Homebrew 등 사용</td>
-      <td>OS Package와 Service 설정</td>
-    </tr>
-    <tr>
-      <td>Docker</td>
-      <td>공식 Image와 Volume으로 실행</td>
-      <td>Image Tag, Container와 Volume</td>
-    </tr>
-    <tr>
-      <td>Kubernetes</td>
-      <td>Pod와 Persistent Volume으로 실행</td>
-      <td>Kubernetes Resource와 Storage</td>
-    </tr>
-    <tr>
-      <td>Cloud Service</td>
-      <td>공급자가 제공하는 관리형 환경 사용</td>
-      <td>공급자 정책과 연결 설정</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Jenkins WAR에는 Winstone/Jetty 기반 실행 환경이 포함되어 있어 일반적으로 별도 Tomcat 없이 Standalone Application으로 실행한다. 외부 Servlet Container에 WAR를 배포하는 방식도 존재하지만 지원 범위와 호환성 제약을 먼저 확인해야 한다.</p>
-
-<p>공식 Docker 설치 문서의 최소 요구 사항은 Memory 256 MB와 Disk 1 GB이며, Docker 환경은 Disk 10 GB 이상을 권장한다. 작은 팀에는 이보다 넉넉한 Memory와 Disk가 필요하다. 실제 용량은 Build 수, Workspace, Artifact 보존 기간과 Plugin 수를 기준으로 산정한다. 직접 설치할 때는 현재 Jenkins가 지원하는 Java Version도 확인해야 한다.</p>
-
-<h2 id="5--docker-compose로-설치">5 ) Docker Compose로 설치</h2>
-
-<hr />
-
-<p>다음 구성은 Jenkins Web UI와 향후 Inbound Agent 연결을 위한 Port를 열고 Jenkins Home을 Named Volume에 저장한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">services</span><span class="pi">:</span>
-  <span class="na">jenkins</span><span class="pi">:</span>
-    <span class="na">image</span><span class="pi">:</span> <span class="s">jenkins/jenkins:lts-jdk21</span>
-    <span class="na">container_name</span><span class="pi">:</span> <span class="s">jenkins</span>
-    <span class="na">restart</span><span class="pi">:</span> <span class="s">unless-stopped</span>
-    <span class="na">ports</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s2">"</span><span class="s">8080:8080"</span>
-      <span class="pi">-</span> <span class="s2">"</span><span class="s">50000:50000"</span>
-    <span class="na">volumes</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s">jenkins_home:/var/jenkins_home</span>
-
-<span class="na">volumes</span><span class="pi">:</span>
-  <span class="na">jenkins_home</span><span class="pi">:</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>설정</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">jenkins/jenkins:lts-jdk21</code></td>
-      <td>Java 21이 포함된 Jenkins LTS Image</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">8080:8080</code></td>
-      <td>Browser가 Jenkins Web UI에 접속하는 HTTP Port</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">50000:50000</code></td>
-      <td>외부 Inbound Agent가 Controller에 연결할 때 사용하는 기본 TCP Port</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">jenkins_home</code></td>
-      <td>Job, Plugin, Credential Metadata와 Build 이력을 Container 교체 후에도 유지</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>WebSocket으로 Agent를 연결하거나 외부 Agent를 사용하지 않는다면 <code class="language-plaintext highlighter-rouge">50000</code> Port 공개는 필요하지 않다. Host의 <code class="language-plaintext highlighter-rouge">/var/run/docker.sock</code>을 Mount하고 Container를 <code class="language-plaintext highlighter-rouge">root</code>로 실행하면 Jenkins Job이 Host Docker Daemon을 사실상 제어할 수 있다. 단순한 실습에는 편리하지만 Host 권한 탈취로 이어질 수 있으므로 위 기본 설치에는 포함하지 않는다.</p>
-
-<p>Compose File이 있는 Directory에서 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker compose up <span class="nt">-d</span>
-docker compose ps
-docker compose logs jenkins
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">docker compose ps</code>에서 Container가 실행 중인지 확인하고, <code class="language-plaintext highlighter-rouge">docker compose logs jenkins</code>에서 초기화 진행과 오류를 확인한다. Jenkins는 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code>으로 접속한다.</p>
-
-<h2 id="6--초기-잠금-해제와-관리자-생성">6 ) 초기 잠금 해제와 관리자 생성</h2>
-
-<hr />
-
-<p>최초 실행 시 Jenkins가 생성한 초기 관리자 Password로 Setup Wizard의 잠금을 해제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker <span class="nb">exec </span>jenkins <span class="se">\</span>
-  <span class="nb">cat</span> /var/jenkins_home/secrets/initialAdminPassword
-</code></pre></div></div>
-
-<p>이 값은 현재 Instance의 인증 정보이므로 문서, Source Repository 또는 화면 캡처에 남기지 않는다. 화면에 입력한 뒤 추천 Plugin을 설치하거나 필요한 Plugin을 선택하고, 실제로 사용할 관리자 계정을 생성한다.</p>
-
-<p>초기 설정 순서는 다음과 같다.</p>
-
-<ol>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">http://localhost:8080</code>에 접속한다.</p>
-  </li>
-  <li>
-    <p>명령으로 확인한 초기 Password를 입력한다.</p>
-  </li>
-  <li>
-    <p>추천 Plugin 설치 또는 Plugin 선택 설치를 진행한다.</p>
-  </li>
-  <li>
-    <p>관리자 계정과 Jenkins URL을 설정한다.</p>
-  </li>
-  <li>
-    <p>Dashboard가 표시되는지 확인한다.</p>
-  </li>
-</ol>
-
-<h2 id="7--plugin-관리">7 ) Plugin 관리</h2>
-
-<hr />
-
-<p><strong>Manage Jenkins → Plugins</strong>에서 설치 가능, 설치됨과 Update 대상 Plugin을 확인한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Plugin</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Git</td>
-      <td>Git Repository Checkout과 SCM 변경 확인</td>
-    </tr>
-    <tr>
-      <td>Maven Integration</td>
-      <td>Maven Project 유형과 Maven Build 연동</td>
-    </tr>
-    <tr>
-      <td>Email Extension</td>
-      <td>Build 결과에 따른 확장 Email 알림</td>
-    </tr>
-    <tr>
-      <td>Credentials Binding</td>
-      <td>Credential을 Build 환경 변수나 File로 제한적으로 주입</td>
-    </tr>
-    <tr>
-      <td>Throttle Concurrent Builds</td>
-      <td>Job 또는 Category별 동시 Build 수 제한</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Plugin이 많아질수록 기능뿐 아니라 의존성, Upgrade와 보안 관리 범위도 커진다. Job에 필요한 Plugin만 설치하고 Jenkins Core를 Upgrade하기 전에 Plugin 호환성을 확인한다.</p>
-
-<p>Update Center 오류가 발생하면 다음을 점검한다.</p>
-
-<ol>
-  <li>
-    <p>Jenkins Container의 DNS와 외부 Network 연결을 확인한다.</p>
-  </li>
-  <li>
-    <p>Host와 Container의 날짜와 시간이 올바른지 확인한다.</p>
-  </li>
-  <li>
-    <p>Proxy 환경이면 <strong>Manage Jenkins → Plugins → Advanced settings</strong>에서 Proxy를 설정한다.</p>
-  </li>
-  <li>
-    <p>사설 CA를 사용한다면 인증서를 Java Truststore에 올바르게 등록한다.</p>
-  </li>
-  <li>
-    <p>Update Center Metadata를 다시 불러오고 Jenkins Log의 원인을 확인한다.</p>
-  </li>
-</ol>
-
-<p><code class="language-plaintext highlighter-rouge">SSLHandshakeException</code>을 피하려고 Update Center URL을 HTTPS에서 HTTP로 바꾸면 Plugin과 Metadata 전송의 기밀성과 무결성을 잃는다. 인증서 Chain, CA Truststore와 Proxy의 TLS Inspection 여부를 수정해야 한다.</p>
-
-<p>현재 명칭과 설치 요구 사항은 <a href="https://www.jenkins.io/doc/book/glossary/">Jenkins 용어집</a>, <a href="https://www.jenkins.io/doc/book/installing/">Jenkins 설치 문서</a>와 <a href="https://www.jenkins.io/doc/book/installing/docker/">Docker 설치 문서</a>에서 확인할 수 있다.</p>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-  <ul>
-    <li>
-      <p>Controller는 Trigger, Queue, 설정과 결과를 관리하고 Agent의 Executor가 실제 Build Step을 실행한다.</p>
-    </li>
-    <li>
-      <p>Agent Label과 Executor 수는 작업의 실행 위치와 동시 실행 용량을 결정한다.</p>
-    </li>
-    <li>
-      <p>독립된 Controller를 늘리는 것은 자동 Failover가 아니며 관리 대상도 함께 늘어난다.</p>
-    </li>
-    <li>
-      <p>Docker 설치에서는 <code class="language-plaintext highlighter-rouge">/var/jenkins_home</code>을 영속화하고 외부 Agent 사용 여부에 따라 <code class="language-plaintext highlighter-rouge">50000</code> Port를 결정한다.</p>
-    </li>
-    <li>
-      <p>초기 Password와 Credential은 문서나 Repository에 남기지 않고, TLS 오류는 HTTP 전환이 아니라 인증서와 Network 원인을 수정한다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Jenkins의 Job 실행 흐름을 Controller, Queue, Agent와 Executor 관점에서 이해하고 Docker로 설치해 초기 설정과 Plugin을 관리한다]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Jenkins Pipeline의 Declarative·Scripted 문법을 구분하고 Jenkinsfile로 Checkout, Gradle Build, Docker Image Push와 SSH 배포를 연결한다]]></summary></entry></feed>

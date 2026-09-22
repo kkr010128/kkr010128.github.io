@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화",
+        "url": "/cloud-native-59-ansible-adhoc-playbook-nginx/",
+        "description": "Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Ansible"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 22일",
+        "reading_time_label": "8분 읽기",
+        "search": "ansible ad-hoc 명령과 playbook으로 nginx 자동화 ansible ad-hoc 명령의 option과 module을 익히고 반복 가능한 playbook으로 nginx 설치, 설정 배포와 검증을 자동화한다 cloudnative autoeversw ansible cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Ansible Architecture와 Inventory 구성",
+        "url": "/cloud-native-58-ansible-architecture-inventory/",
+        "description": "Ansible Control Node와 Managed Node의 역할을 이해하고 Ubuntu 설치, SSH 공개키 인증과 Inventory를 구성하여 연결을 검증한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Ansible"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 22일",
+        "reading_time_label": "8분 읽기",
+        "search": "ansible architecture와 inventory 구성 ansible control node와 managed node의 역할을 이해하고 ubuntu 설치, ssh 공개키 인증과 inventory를 구성하여 연결을 검증한다 cloudnative autoeversw ansible cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Argo CD Git Repository 연동과 수동 Sync",
         "url": "/cloud-native-57-argocd-git-repository-manual-sync/",
         "description": "Kubernetes Manifest를 GitHub Repository에 저장하고 Argo CD Application으로 등록하여 OutOfSync 상태를 수동 동기화한다",
