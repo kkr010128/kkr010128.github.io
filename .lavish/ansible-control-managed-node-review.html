@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ansible Control Node와 Managed Node 실행 흐름 검토</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-page: #121212;
+        --bg-card: #1e1e1e;
+        --bg-layer: #252525;
+        --bg-chip: #2e2e2e;
+        --text-strong: #ececec;
+        --text-body: #d9d9d9;
+        --text-muted: #acacac;
+        --border: #4d4d4d;
+        --primary: #63e6be;
+        --primary-soft: #183c34;
+        --blue: #74c0fc;
+        --blue-soft: #17324a;
+        --violet: #b197fc;
+        --violet-soft: #2d2548;
+        --orange: #ffd43b;
+        --orange-soft: #463b1c;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg-page);
+        color: var(--text-body);
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Apple SD Gothic Neo",
+          "Malgun Gothic", sans-serif;
+      }
+
+      main {
+        width: min(768px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 3rem 0 4rem;
+      }
+
+      header {
+        margin-bottom: 2rem;
+      }
+
+      h1 {
+        margin: 0;
+        color: var(--text-strong);
+        font-size: clamp(1.65rem, 5vw, 2.4rem);
+        line-height: 1.25;
+      }
+
+      header p {
+        margin: 0.9rem 0 0;
+        color: var(--text-muted);
+        line-height: 1.7;
+      }
+
+      figure {
+        margin: 0;
+      }
+
+      figcaption {
+        margin-bottom: 1rem;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.7;
+      }
+
+      .frame {
+        overflow: hidden;
+        padding: clamp(1rem, 4vw, 2rem);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        background: var(--bg-card);
+      }
+
+      .layers {
+        display: grid;
+        gap: 2rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .layer {
+        position: relative;
+        min-width: 0;
+        padding: clamp(1rem, 4vw, 1.45rem);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        background: var(--bg-layer);
+      }
+
+      .layer:not(:last-child)::after {
+        position: absolute;
+        bottom: -1.7rem;
+        left: 50%;
+        z-index: 2;
+        padding: 0 0.45rem;
+        transform: translateX(-50%);
+        color: var(--text-muted);
+        background: var(--bg-card);
+        content: "\2193  " attr(data-edge);
+        font-size: 0.88rem;
+        font-weight: 800;
+        line-height: 1.4;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .layer--control {
+        border-color: var(--violet);
+        background: var(--violet-soft);
+      }
+
+      .layer--definition {
+        border-color: var(--blue);
+        background: var(--blue-soft);
+      }
+
+      .layer--transport {
+        border-color: var(--orange);
+        background: var(--orange-soft);
+      }
+
+      .layer--managed,
+      .layer--result {
+        border-color: var(--primary);
+        background: var(--primary-soft);
+      }
+
+      .role {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: var(--text-muted);
+        font-size: 0.7rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+      }
+
+      .layer > strong {
+        display: block;
+        color: var(--text-strong);
+        font-size: 1.08rem;
+      }
+
+      .layer > p {
+        margin: 0.5rem 0 0;
+        line-height: 1.65;
+      }
+
+      .items,
+      .nodes,
+      .results {
+        display: grid;
+        gap: 0.7rem;
+        margin-top: 1rem;
+      }
+
+      .item,
+      .node,
+      .result {
+        min-width: 0;
+        padding: 0.85rem;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        background: var(--bg-card);
+      }
+
+      .item b,
+      .node b,
+      .result b,
+      .item span,
+      .node span,
+      .result span {
+        display: block;
+      }
+
+      .item b,
+      .node b,
+      .result b {
+        margin-bottom: 0.25rem;
+        color: var(--text-strong);
+      }
+
+      .item span,
+      .node span,
+      .result span {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .command {
+        margin-top: 1rem;
+        padding: 0.75rem 0.9rem;
+        border-radius: 0.7rem;
+        color: var(--primary);
+        background: #151515;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.78rem;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .review-note {
+        margin-top: 1.25rem;
+        padding: 1rem;
+        border-left: 3px solid var(--primary);
+        border-radius: 0.6rem;
+        background: var(--bg-layer);
+        color: var(--text-muted);
+        font-size: 0.86rem;
+        line-height: 1.65;
+      }
+
+      @media (min-width: 620px) {
+        .items,
+        .results {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .nodes {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 480px) {
+        main {
+          width: min(100% - 1rem, 768px);
+          padding-top: 1.5rem;
+        }
+
+        .layer:not(:last-child)::after {
+          max-width: calc(100% - 1rem);
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Ansible은 어디에서 무엇을 실행하는가</h1>
+        <p>Control Node가 자동화 정의를 읽고 SSH로 Module을 실행한 뒤 여러 Managed Node의 결과를 한곳에 모으는 흐름이다.</p>
+      </header>
+
+      <figure aria-labelledby="ansible-flow-caption">
+        <figcaption id="ansible-flow-caption">
+          Inventory와 Playbook에서 선택한 대상과 작업이 SSH 연결을 거쳐 Managed Node의 상태 변경으로 이어진다.
+        </figcaption>
+
+        <div class="frame">
+          <ol class="layers">
+            <li class="layer layer--control" data-edge="자동화 정의 읽기">
+              <span class="role">CONTROL NODE</span>
+              <strong>Ansible 실행 환경</strong>
+              <p>Ansible Core가 설치된 관리 시작점이다. 운영자가 Ad-hoc 명령이나 Playbook 실행을 요청한다.</p>
+              <div class="command">ansible webservers -m ansible.builtin.ping</div>
+            </li>
+
+            <li class="layer layer--definition" data-edge="대상·작업 결정">
+              <span class="role">AUTOMATION DEFINITION</span>
+              <strong>누구에게 어떤 상태를 적용할지 정의</strong>
+              <div class="items">
+                <div class="item">
+                  <b>Inventory</b>
+                  <span>Managed Node와 Group, 접속 변수를 정의한다.</span>
+                </div>
+                <div class="item">
+                  <b>Playbook</b>
+                  <span>Play, Task와 Module을 YAML 순서로 정의한다.</span>
+                </div>
+                <div class="item">
+                  <b>ansible.cfg</b>
+                  <span>Project의 기본 Inventory와 실행 Option을 지정한다.</span>
+                </div>
+                <div class="item">
+                  <b>Module·Plugin</b>
+                  <span>Module은 대상 작업을, Plugin은 Control Node 기능을 확장한다.</span>
+                </div>
+              </div>
+            </li>
+
+            <li class="layer layer--transport" data-edge="Module 실행">
+              <span class="role">CONNECTION</span>
+              <strong>SSH 인증과 Host 검증</strong>
+              <p>Control Node가 검증된 Host Key와 등록된 공개키를 이용해 대상에 접속하고 필요한 Module을 전송한다.</p>
+            </li>
+
+            <li class="layer layer--managed" data-edge="결과 반환">
+              <span class="role">MANAGED NODES</span>
+              <strong>원하는 상태를 실제 시스템에 반영</strong>
+              <p>Ansible Agent는 설치하지 않는다. 일반적인 POSIX Module 실행에는 Python과 SSH 접속 계정이 필요하다.</p>
+              <div class="nodes">
+                <div class="node">
+                  <b>master</b>
+                  <span>Package·File·Service 상태 적용</span>
+                </div>
+                <div class="node">
+                  <b>worker1</b>
+                  <span>같은 Task를 독립적으로 실행</span>
+                </div>
+                <div class="node">
+                  <b>worker2</b>
+                  <span>실행 결과와 변경 여부 반환</span>
+                </div>
+              </div>
+            </li>
+
+            <li class="layer layer--result">
+              <span class="role">EXECUTION RESULT</span>
+              <strong>Host별 상태를 Control Node에서 집계</strong>
+              <div class="results">
+                <div class="result"><b>ok</b><span>이미 원하는 상태이거나 정상 확인됨</span></div>
+                <div class="result"><b>changed</b><span>Managed Node의 상태가 실제로 변경됨</span></div>
+                <div class="result"><b>failed</b><span>연결 후 Task 실행이 실패함</span></div>
+                <div class="result"><b>unreachable</b><span>SSH·인증·Network 문제로 대상에 도달하지 못함</span></div>
+              </div>
+            </li>
+          </ol>
+
+          <div class="review-note">
+            검토 대상: 외부 Layer의 수직 순서, Inventory·Playbook의 위치, SSH 연결 설명, Managed Node와 결과 상태의 표현이다.
+          </div>
+        </div>
+      </figure>
+    </main>
+  </body>
+</html>

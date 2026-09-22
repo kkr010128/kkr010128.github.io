@@ -2,6 +2,7 @@
 title: Argo CD Git Repository 연동과 수동 Sync
 description: Kubernetes Manifest를 GitHub Repository에 저장하고 Argo CD Application으로 등록하여 OutOfSync 상태를 수동 동기화한다
 date: 2026-09-18
+updated_at: 2026-09-22
 series: CloudNative
 tags:
   - CloudNative
@@ -313,3 +314,5 @@ kubectl get events -n bgd --sort-by=.lastTimestamp
 > - `OutOfSync`와 `Missing`은 동기화 전 예상 가능한 상태이며, Sync 이후에는 Argo CD 상태와 Kubernetes Pod·Service 상태를 함께 확인한다.
 >
 > - Argo CD가 Kubernetes API에 Desired Resource를 전달한 뒤 Control Plane의 Controller·Scheduler와 Worker의 kubelet·Runtime이 실제 Pod 실행을 이어간다.
+
+다음 글인 [Ansible Architecture와 Inventory 구성](/cloud-native-58-ansible-architecture-inventory/)에서는 Control Node가 Inventory와 Playbook을 읽고 SSH로 여러 Managed Node를 자동화하는 구조를 구성한다.

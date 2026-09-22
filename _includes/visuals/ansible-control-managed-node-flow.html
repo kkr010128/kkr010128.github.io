@@ -1,0 +1,98 @@
+<figure class="post-visual ansible-flow" aria-labelledby="ansible-control-managed-node-caption">
+  <figcaption id="ansible-control-managed-node-caption" class="post-visual__caption">
+    Control Node가 Inventory와 Playbook을 읽고 SSH로 Module을 실행한 뒤 Managed Node의 결과를 집계하는 흐름
+  </figcaption>
+
+  <div class="post-visual__frame pipeline-flow__frame">
+    <ol class="pipeline-flow__phases">
+      <li class="pipeline-flow__phase ansible-flow__phase--control" data-edge="자동화 정의 읽기">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">CONTROL NODE</span>
+          <strong>Ansible 실행 환경</strong>
+        </div>
+        <p class="ansible-flow__description">Ansible Core가 설치된 관리 시작점이다. 운영자가 Ad-hoc 명령이나 Playbook 실행을 요청한다.</p>
+        <div class="ansible-flow__command">ansible lab -m ansible.builtin.ping</div>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--definition" data-edge="대상·작업 결정">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">AUTOMATION DEFINITION</span>
+          <strong>누구에게 어떤 상태를 적용할지 정의</strong>
+        </div>
+        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
+          <li>
+            <strong>Inventory</strong>
+            <span>Managed Node와 Group, 접속 변수를 정의한다.</span>
+          </li>
+          <li>
+            <strong>Playbook</strong>
+            <span>Play, Task와 Module을 YAML 순서로 정의한다.</span>
+          </li>
+          <li>
+            <strong>ansible.cfg</strong>
+            <span>Project의 기본 Inventory와 실행 Option을 지정한다.</span>
+          </li>
+          <li>
+            <strong>Module·Plugin</strong>
+            <span>Module은 대상 작업을, Plugin은 Control Node 기능을 확장한다.</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--connection" data-edge="Module 실행">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">CONNECTION</span>
+          <strong>SSH 인증과 Host 검증</strong>
+        </div>
+        <p class="ansible-flow__description">Control Node가 검증된 Host Key와 등록된 공개키를 이용해 대상에 접속하고 필요한 Module을 전송한다.</p>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--managed" data-edge="결과 반환">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">MANAGED NODES</span>
+          <strong>원하는 상태를 실제 시스템에 반영</strong>
+        </div>
+        <p class="ansible-flow__description">Ansible Agent는 설치하지 않는다. 일반적인 POSIX Module 실행에는 Python과 SSH 접속 계정이 필요하다.</p>
+        <ul class="pipeline-flow__steps ansible-flow__nodes">
+          <li>
+            <strong>master</strong>
+            <span>Package·File·Service 상태 적용</span>
+          </li>
+          <li>
+            <strong>worker1</strong>
+            <span>같은 Task를 독립적으로 실행</span>
+          </li>
+          <li>
+            <strong>worker2</strong>
+            <span>실행 결과와 변경 여부 반환</span>
+          </li>
+        </ul>
+      </li>
+
+      <li class="pipeline-flow__phase ansible-flow__phase--result">
+        <div class="pipeline-flow__heading">
+          <span class="pipeline-flow__role">EXECUTION RESULT</span>
+          <strong>Host별 상태를 Control Node에서 집계</strong>
+        </div>
+        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
+          <li>
+            <strong>ok</strong>
+            <span>이미 원하는 상태이거나 정상 확인됨</span>
+          </li>
+          <li>
+            <strong>changed</strong>
+            <span>Managed Node의 상태가 실제로 변경됨</span>
+          </li>
+          <li>
+            <strong>failed</strong>
+            <span>연결 후 Task 실행이 실패함</span>
+          </li>
+          <li>
+            <strong>unreachable</strong>
+            <span>SSH·인증·Network 문제로 대상에 도달하지 못함</span>
+          </li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</figure>
