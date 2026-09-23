@@ -2,6 +2,7 @@
 title: Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화
 description: Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다
 date: 2026-09-22
+updated_at: 2026-09-23
 series: CloudNative
 tags:
   - CloudNative
@@ -556,3 +557,5 @@ Playbook 구조와 실행 방식은 [Ansible Playbook 공식 문서](https://doc
 > - Nginx 배포는 Package 설치, 설정·Page 복사, 문법 검사, Service 상태와 HTTP 응답을 함께 확인해야 완료된다.
 >
 > - 같은 Playbook을 다시 실행했을 때 불필요한 변경이 없는지 확인하면 Module의 멱등성과 Task 설계를 검증할 수 있다.
+
+다음 글인 [Ansible 변수와 Vault·Facts·제어문](/cloud-native-60-ansible-variables-vault-facts-control-flow/)에서는 같은 Playbook을 여러 Host와 환경에서 재사용하기 위한 변수, 암호화 Data, Facts, 반복문과 조건문을 구성한다.
