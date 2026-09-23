@@ -4,6 +4,36 @@
       
       
       {
+        "title": "Ansible Role·Collection과 Docker 자동화",
+        "url": "/cloud-native-61-ansible-roles-collections-docker/",
+        "description": "Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Ansible"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 23일",
+        "reading_time_label": "7분 읽기",
+        "search": "ansible role·collection과 docker 자동화 ansible role의 표준 구조와 galaxy·collection의 관계를 이해하고 현재 docker apt repository와 community.docker module로 container 배포를 자동화한다 cloudnative autoeversw ansible cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Ansible 변수와 Vault·Facts·제어문",
+        "url": "/cloud-native-60-ansible-variables-vault-facts-control-flow/",
+        "description": "Ansible 변수의 범위와 우선순위를 구분하고 Vault, Facts, 반복문, 조건문, Handler와 실패 처리를 이용해 재사용 가능한 Playbook을 작성한다",
+        "thumbnail": null,
+        "tags": ["CloudNative","AutoEverSW","Ansible"],
+        "series_key": "cloudnative",
+        "series_title": "CloudNative",
+        "date_label": "2026년 9월 23일",
+        "reading_time_label": "8분 읽기",
+        "search": "ansible 변수와 vault·facts·제어문 ansible 변수의 범위와 우선순위를 구분하고 vault, facts, 반복문, 조건문, handler와 실패 처리를 이용해 재사용 가능한 playbook을 작성한다 cloudnative autoeversw ansible cloudnative"
+      },
+    
+      
+      
+      {
         "title": "Client Isolation으로 인한 단말 간 통신 실패",
         "url": "/notes-11-troubleshooting-client-isolation/",
         "description": "서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안",

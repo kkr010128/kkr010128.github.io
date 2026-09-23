@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-23T17:36:53+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Client Isolation으로 인한 단말 간 통신 실패</title><link href="https://hyn128.site/notes-11-troubleshooting-client-isolation/" rel="alternate" type="text/html" title="Client Isolation으로 인한 단말 간 통신 실패" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/notes-11-troubleshooting-client-isolation</id><content type="html" xml:base="https://hyn128.site/notes-11-troubleshooting-client-isolation/"><![CDATA[<hr />
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-24T00:58:18+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Client Isolation으로 인한 단말 간 통신 실패</title><link href="https://hyn128.site/notes-11-troubleshooting-client-isolation/" rel="alternate" type="text/html" title="Client Isolation으로 인한 단말 간 통신 실패" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/notes-11-troubleshooting-client-isolation</id><content type="html" xml:base="https://hyn128.site/notes-11-troubleshooting-client-isolation/"><![CDATA[<hr />
 
 <h2 id="요약">요약</h2>
 <blockquote>
@@ -284,7 +284,1166 @@ Server  ──→ AP ──→ Internet
 
 <h2 id="10-해야-할-것">10. 해야 할 것</h2>
 
-<p>TailScale이 조직으로도 사용이 가능한지, 다른 Overlay Network 또는 VPN으로 구축이 가능한지 찾아보기</p>]]></content><author><name></name></author><category term="TroubleShooting" /><category term="TechBites" /><summary type="html"><![CDATA[서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안]]></summary></entry><entry><title type="html">Ansible Architecture와 Inventory 구성</title><link href="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/" rel="alternate" type="text/html" title="Ansible Architecture와 Inventory 구성" /><published>2026-09-22T00:00:00+09:00</published><updated>2026-09-22T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-58-ansible-architecture-inventory</id><content type="html" xml:base="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/"><![CDATA[<p><a href="/cloud-native-57-argocd-git-repository-manual-sync/">Argo CD Git Repository 연동과 수동 Sync</a>에서는 Git의 Desired State를 Kubernetes Cluster에 반영하는 GitOps 흐름을 구성했다. 이번에는 Ansible이 Control Node에서 여러 Managed Node의 Package, File과 Service 상태를 일관되게 관리하는 구조를 살펴보고 실제 연결 환경을 준비한다.</p>
+<p>TailScale이 조직으로도 사용이 가능한지, 다른 Overlay Network 또는 VPN으로 구축이 가능한지 찾아보기</p>]]></content><author><name></name></author><category term="TroubleShooting" /><category term="TechBites" /><summary type="html"><![CDATA[서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안]]></summary></entry><entry><title type="html">Ansible 변수와 Vault·Facts·제어문</title><link href="https://hyn128.site/cloud-native-60-ansible-variables-vault-facts-control-flow/" rel="alternate" type="text/html" title="Ansible 변수와 Vault·Facts·제어문" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-60-ansible-variables-vault-facts-control-flow</id><content type="html" xml:base="https://hyn128.site/cloud-native-60-ansible-variables-vault-facts-control-flow/"><![CDATA[<p><a href="/cloud-native-59-ansible-adhoc-playbook-nginx/">Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화</a>에서는 반복 가능한 Nginx 배포 절차를 Playbook으로 작성했다. 이번에는 Host와 환경마다 달라지는 값을 변수로 분리하고, Managed Node에서 수집한 Facts와 이전 Task의 결과를 이용해 실행 대상을 판단한다. 비밀 값은 Ansible Vault로 암호화하고 상태 변경이 발생했을 때만 Handler를 호출한다.</p>
+
+<h2 id="1--변수의-역할과-이름">1 ) 변수의 역할과 이름</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>변수</strong>는 사용자, Package, Service, File 경로처럼 Host나 환경에 따라 달라지는 값을 이름으로 저장한 것이다.</p>
+</blockquote>
+
+<p>같은 값을 Task마다 직접 적으면 환경이 바뀔 때 여러 위치를 수정해야 한다. 변수를 사용하면 Playbook의 작업 구조는 유지하면서 입력 값만 바꿀 수 있다.</p>
+
+<p>변수 이름은 문자, 숫자와 밑줄로 구성하며 숫자로 시작할 수 없다. Python이나 Ansible이 내부에서 사용하는 이름은 피한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>이름</th>
+      <th>판단</th>
+      <th>이유</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">web_package</code></td>
+      <td>사용 가능</td>
+      <td>의미가 분명하고 영문자와 밑줄만 사용한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">web-package</code></td>
+      <td>사용하지 않음</td>
+      <td>하이픈은 식별자에서 빼기 연산자로 해석될 수 있다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">1st_user</code></td>
+      <td>사용 불가</td>
+      <td>숫자로 시작한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">environment</code></td>
+      <td>사용하지 않음</td>
+      <td>Ansible에서 특별한 의미를 가지는 예약 이름이다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>변수는 Jinja2 표현식으로 참조한다. 값 전체가 변수라면 YAML 문자열로 감싸는 것이 안전하다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">ansible.builtin.user</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">managed_user</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+</code></pre></div></div>
+
+<h2 id="2--변수의-정의-위치와-범위">2 ) 변수의 정의 위치와 범위</h2>
+
+<hr />
+
+<p>변수는 Inventory, Playbook, 외부 File, Role과 실행 명령에서 정의할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>정의 위치</th>
+      <th>적용 범위</th>
+      <th>일반적인 용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Group 변수</td>
+      <td>Inventory의 Group 또는 <code class="language-plaintext highlighter-rouge">group_vars/</code></td>
+      <td>Group에 속한 Host</td>
+      <td>공통 Package, Port와 계정</td>
+    </tr>
+    <tr>
+      <td>Host 변수</td>
+      <td>Inventory의 Host 또는 <code class="language-plaintext highlighter-rouge">host_vars/</code></td>
+      <td>특정 Host</td>
+      <td>Host별 IP, 장치명과 예외 값</td>
+    </tr>
+    <tr>
+      <td>Play 변수</td>
+      <td>Play의 <code class="language-plaintext highlighter-rouge">vars</code></td>
+      <td>해당 Play</td>
+      <td>Play 안에서만 사용하는 값</td>
+    </tr>
+    <tr>
+      <td>외부 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">vars_files</code></td>
+      <td>불러온 Play</td>
+      <td>환경별 변수 File 분리</td>
+    </tr>
+    <tr>
+      <td>추가 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">--extra-vars</code>, <code class="language-plaintext highlighter-rouge">-e</code></td>
+      <td>실행 시 전달</td>
+      <td>일회성 Override</td>
+    </tr>
+    <tr>
+      <td>등록 변수</td>
+      <td>Task의 <code class="language-plaintext highlighter-rouge">register</code></td>
+      <td>해당 Host의 현재 실행</td>
+      <td>이전 Task 결과를 후속 Task에서 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>같은 이름이 여러 위치에 있으면 우선순위가 높은 값이 낮은 값을 덮어쓴다. 전체 우선순위에는 많은 단계가 있지만 이번 범위에서는 다음 관계를 먼저 기억한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Role defaults
+  &lt; Inventory Group 변수
+  &lt; Inventory Host 변수
+  &lt; Play vars·vars_files
+  &lt; Role vars
+  &lt; Task·등록 변수
+  &lt; Extra vars
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-e</code>로 전달한 Extra vars는 변수 중 가장 높은 우선순위를 가진다. 우선순위에 의존해 같은 이름을 여러 위치에서 반복 정의하기보다 값의 성격에 맞는 한 위치를 정하는 것이 좋다.</p>
+
+<h2 id="3--group-변수와-host-변수">3 ) Group 변수와 Host 변수</h2>
+
+<hr />
+
+<p>간단한 실습에서는 <code class="language-plaintext highlighter-rouge">inventory.ini</code> 안에 변수를 함께 작성할 수 있다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[lab]</span>
+<span class="err">master</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.11 managed_user=ansible-master</span>
+<span class="err">worker1</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.12</span>
+<span class="err">worker2</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.13</span>
+
+<span class="nn">[lab:vars]</span>
+<span class="py">managed_user</span><span class="p">=</span><span class="s">ansible</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">master</code>는 Host 변수의 <code class="language-plaintext highlighter-rouge">managed_user=ansible-master</code>가 Group 변수보다 우선한다. <code class="language-plaintext highlighter-rouge">worker1</code>과 <code class="language-plaintext highlighter-rouge">worker2</code>는 Group 값인 <code class="language-plaintext highlighter-rouge">ansible</code>을 사용한다.</p>
+
+<p>Project가 커지면 Inventory의 연결 정보와 일반 변수를 분리한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-lab/
+├── ansible.cfg
+├── inventory.ini
+├── group_vars/
+│   └── lab.yml
+└── host_vars/
+    └── master.yml
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">group_vars/lab.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">host_vars/master.yml</code>에서 <code class="language-plaintext highlighter-rouge">master</code>만 Override한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible-master</span>
+</code></pre></div></div>
+
+<p>변수가 Host별로 어떻게 해석되는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-inventory <span class="nt">--host</span> master
+ansible-inventory <span class="nt">--host</span> worker1
+</code></pre></div></div>
+
+<h2 id="4--play-변수와-외부-변수-file">4 ) Play 변수와 외부 변수 File</h2>
+
+<hr />
+
+<p>Play 안에서만 사용할 값은 <code class="language-plaintext highlighter-rouge">vars</code>에 정의한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create a managed user</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible2</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the managed user exists</span>
+      <span class="na">ansible.builtin.user</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">managed_user</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+      <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>여러 Playbook이 같은 값을 사용하면 <code class="language-plaintext highlighter-rouge">vars/users.yml</code>로 분리한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible4</span>
+</code></pre></div></div>
+
+<p>Play에서 <code class="language-plaintext highlighter-rouge">vars_files</code>로 불러온다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create a user from an external variable file</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">vars_files</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">vars/users.yml</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the managed user exists</span>
+      <span class="na">ansible.builtin.user</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">managed_user</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+      <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>실행할 때만 값을 바꾸려면 Extra vars를 전달한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="se">\</span>
+  <span class="nt">-e</span> <span class="s2">"managed_user=ansible5"</span> <span class="se">\</span>
+  create-user.yml
+</code></pre></div></div>
+
+<p>Extra vars는 기존 값을 강제로 덮어쓰므로 자동화 Script에서 무분별하게 사용하면 실제 값의 출처를 추적하기 어렵다.</p>
+
+<h2 id="5--task-결과를-등록-변수로-사용">5 ) Task 결과를 등록 변수로 사용</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">register</code>는 Task의 Return Data를 Host별 변수에 저장한다. 등록 변수는 현재 Playbook 실행 중 후속 Task에서 사용할 수 있으며 다음 실행까지 영구 보존되지 않는다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Inspect a service result</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check whether rsyslog is active</span>
+      <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s">systemctl is-active rsyslog</span>
+      <span class="na">register</span><span class="pi">:</span> <span class="s">rsyslog_status</span>
+      <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+      <span class="na">failed_when</span><span class="pi">:</span> <span class="no">false</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the registered result</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">var</span><span class="pi">:</span> <span class="s">rsyslog_status</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print active status only</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Rsyslog</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">inventory_hostname</span><span class="nv"> </span><span class="s">}}"</span>
+      <span class="na">when</span><span class="pi">:</span> <span class="s">rsyslog_status.rc == </span><span class="m">0</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">command</code> Module은 조회 명령도 기본적으로 변경으로 판단할 수 있으므로 <code class="language-plaintext highlighter-rouge">changed_when: false</code>를 지정했다. <code class="language-plaintext highlighter-rouge">systemctl is-active</code>의 Non-zero Exit Code도 결과로 비교하기 위해 <code class="language-plaintext highlighter-rouge">failed_when: false</code>를 사용했다.</p>
+
+<p>주요 Return 값은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>값</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">rc</code></td>
+      <td>명령의 Exit Code</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">stdout</code></td>
+      <td>표준 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">stderr</code></td>
+      <td>표준 오류</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">changed</code></td>
+      <td>상태 변경 여부</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">failed</code></td>
+      <td>Task 실패 여부</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="6--ansible-vault">6 ) Ansible Vault</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Ansible Vault</strong>는 Password, API Key와 같은 변수를 File 또는 문자열 단위로 암호화하여 평문 노출을 줄이는 기능이다.</p>
+</blockquote>
+
+<p>Vault는 저장된 Data만 보호한다. Playbook 실행 중 복호화된 값이 Module 출력이나 Log에 표시되는 문제까지 자동으로 막지는 않는다. Secret을 사용하는 Task에는 필요에 따라 <code class="language-plaintext highlighter-rouge">no_log: true</code>를 설정한다.</p>
+
+<h3 id="61-암호화-변수-file-생성">6.1 암호화 변수 File 생성</h3>
+
+<p>Control Node에서 <code class="language-plaintext highlighter-rouge">vars/secrets.yml</code>을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> vars
+ansible-vault create <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  vars/secrets.yml
+</code></pre></div></div>
+
+<p>Editor에 다음 구조로 입력한다. 실제 Password를 문서나 Repository에 작성하지 않는다. Linux <code class="language-plaintext highlighter-rouge">user</code> Module의 <code class="language-plaintext highlighter-rouge">password</code>에는 평문 Password가 아니라 대상 OS가 이해하는 Password Hash가 필요하다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">vault_user_name</span><span class="pi">:</span> <span class="s">itstudy</span>
+<span class="na">vault_user_password_hash</span><span class="pi">:</span> <span class="s2">"</span><span class="s">&lt;PASSWORD-HASH&gt;"</span>
+</code></pre></div></div>
+
+<p>암호화된 File은 <code class="language-plaintext highlighter-rouge">$ANSIBLE_VAULT</code> Header와 Ciphertext로 보인다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">head</span> <span class="nt">-n</span> 1 vars/secrets.yml
+ansible-vault view <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  vars/secrets.yml
+</code></pre></div></div>
+
+<p>내용을 수정할 때는 평문 File로 복호화해 방치하지 않고 <code class="language-plaintext highlighter-rouge">edit</code>을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-vault edit <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  vars/secrets.yml
+</code></pre></div></div>
+
+<p>기존 File은 <code class="language-plaintext highlighter-rouge">encrypt</code>, 암호가 노출되었거나 교체 주기가 되면 <code class="language-plaintext highlighter-rouge">rekey</code>로 다시 암호화할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-vault encrypt <span class="nt">--vault-id</span> lab@prompt vars/existing-secret.yml
+ansible-vault rekey vars/secrets.yml
+</code></pre></div></div>
+
+<h3 id="62-vault-변수-사용">6.2 Vault 변수 사용</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create a user with vaulted data</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">vars_files</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">vars/secrets.yml</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the vaulted user exists</span>
+      <span class="na">ansible.builtin.user</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">vault_user_name</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">password</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">vault_user_password_hash</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+      <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">no_log</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>실행할 때 같은 Vault ID와 Password를 제공한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  create-vault-user.yml
+</code></pre></div></div>
+
+<p>Vault Password File을 사용할 수도 있지만 그 File 자체가 복호화 Key이다. Repository나 일반 공유 Directory에 두지 않고 최소 Permission과 별도 Secret Manager를 사용한다.</p>
+
+<h2 id="7--facts">7 ) Facts</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Facts</strong>는 Ansible이 Managed Node에서 자동으로 수집한 Hostname, OS, Kernel, CPU, Memory, Network와 Storage 정보이다.</p>
+</blockquote>
+
+<p>Play의 <code class="language-plaintext highlighter-rouge">gather_facts</code> 기본값은 <code class="language-plaintext highlighter-rouge">true</code>이다. Facts가 필요 없는 단순 작업은 <code class="language-plaintext highlighter-rouge">false</code>로 설정해 시작 시간을 줄일 수 있다.</p>
+
+<p>Ad-hoc 명령으로 전체 Facts를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible lab <span class="nt">-m</span> ansible.builtin.setup
+</code></pre></div></div>
+
+<p>Playbook에서 필요한 일부 값만 출력한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print selected facts</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print host and network facts</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">{{ inventory_hostname }} runs</span>
+          <span class="s">{{ ansible_facts['distribution'] }}</span>
+          <span class="s">{{ ansible_facts['distribution_version'] }} and its default IPv4</span>
+          <span class="s">address is {{ ansible_facts['default_ipv4']['address'] }}.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">inventory_hostname</code>은 Inventory에서 정한 이름이고 <code class="language-plaintext highlighter-rouge">ansible_facts['hostname']</code>은 Managed Node OS가 보고한 Hostname이다. 두 값은 같지 않을 수 있다.</p>
+
+<p>Facts 수집에 실패하면 SSH 연결뿐 아니라 Managed Node의 Python과 <code class="language-plaintext highlighter-rouge">setup</code> Module 실행 조건을 확인한다.</p>
+
+<h3 id="사용자-지정-local-facts">사용자 지정 Local Facts</h3>
+
+<p>Managed Node의 <code class="language-plaintext highlighter-rouge">/etc/ansible/facts.d</code>에 <code class="language-plaintext highlighter-rouge">.fact</code> File을 두면 <code class="language-plaintext highlighter-rouge">ansible_local</code> Namespace에서 읽을 수 있다. 다음 작업은 Managed Node에 INI 형식의 Local Fact를 배포한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install a local fact</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create the local facts directory</span>
+      <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+        <span class="na">path</span><span class="pi">:</span> <span class="s">/etc/ansible/facts.d</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">directory</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0755"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Write package local facts</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/ansible/facts.d/packages.fact</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+        <span class="na">content</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">[packages]</span>
+          <span class="s">web_package=nginx</span>
+          <span class="s">db_package=mariadb-server</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Gather facts again</span>
+      <span class="na">ansible.builtin.setup</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>다시 수집한 값은 <code class="language-plaintext highlighter-rouge">ansible_local['packages']['packages']['web_package']</code>와 같은 구조로 접근한다. Local Fact의 File 이름과 INI Section이 각각 중첩 Key가 된다.</p>
+
+<h2 id="8--반복문">8 ) 반복문</h2>
+
+<hr />
+
+<p>같은 Module을 여러 값에 적용할 때 <code class="language-plaintext highlighter-rouge">loop</code>를 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure required services are running</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="na">required_services</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">ssh</span>
+      <span class="pi">-</span> <span class="s">rsyslog</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Start required services</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+      <span class="na">loop</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">required_services</span><span class="nv"> </span><span class="s">}}"</span>
+</code></pre></div></div>
+
+<p>여러 속성을 함께 반복하려면 Dictionary 목록을 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create log files</span>
+  <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item.path</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">touch</span>
+    <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item.mode</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">loop</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/var/log/test1.log</span>
+      <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+    <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/var/log/test2.log</span>
+      <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0600"</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>반복 Task에 <code class="language-plaintext highlighter-rouge">register</code>를 사용하면 각 반복 결과가 <code class="language-plaintext highlighter-rouge">results</code> 목록에 저장된다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check service states</span>
+  <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s2">"</span><span class="s">systemctl</span><span class="nv"> </span><span class="s">is-active</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">item</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">loop</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ssh</span>
+    <span class="pi">-</span> <span class="s">rsyslog</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s">service_checks</span>
+  <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">failed_when</span><span class="pi">:</span> <span class="no">false</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print each service result</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item.item</span><span class="nv"> </span><span class="s">}}:</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">item.stdout</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">loop</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">service_checks.results</span><span class="nv"> </span><span class="s">}}"</span>
+</code></pre></div></div>
+
+<h2 id="9--조건문">9 ) 조건문</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">when</code>은 Boolean, Facts, 등록 변수와 반복 항목을 평가해 Task 실행 여부를 결정한다. 조건식 자체에는 Jinja2 이중 중괄호를 사용하지 않는다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the package manager family</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Use</span><span class="nv"> </span><span class="s">apt</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">inventory_hostname</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">when</span><span class="pi">:</span> <span class="s">ansible_facts['os_family'] == 'Debian'</span>
+</code></pre></div></div>
+
+<p>목록으로 작성한 여러 조건은 모두 참이어야 한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print supported Ubuntu version</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s">This host uses a supported Ubuntu release.</span>
+  <span class="na">when</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ansible_facts['distribution'] == 'Ubuntu'</span>
+    <span class="pi">-</span> <span class="s">ansible_facts['distribution_major_version'] | int &gt;= </span><span class="m">22</span>
+</code></pre></div></div>
+
+<p>반복문과 조건문을 함께 사용해 Root Mount만 선택할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print root filesystem free space</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Root</span><span class="nv"> </span><span class="s">free</span><span class="nv"> </span><span class="s">space</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">item.size_available</span><span class="nv"> </span><span class="s">}}</span><span class="nv"> </span><span class="s">bytes"</span>
+  <span class="na">loop</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">ansible_facts['mounts']</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">when</span><span class="pi">:</span> <span class="s">item.mount == '/'</span>
+</code></pre></div></div>
+
+<p>Facts를 조건에 사용할 때 <code class="language-plaintext highlighter-rouge">gather_facts: false</code>를 설정하면 값이 존재하지 않을 수 있다. Facts Cache를 별도로 구성하지 않았다면 해당 Play에서 Facts를 수집한다.</p>
+
+<h2 id="10--handler와-변경-알림">10 ) Handler와 변경 알림</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Handler</strong>는 Task가 실제 변경을 만들고 <code class="language-plaintext highlighter-rouge">notify</code>한 경우에만 실행되는 특수 Task이다.</p>
+</blockquote>
+
+<p>여러 Task가 같은 Handler를 알리더라도 기본적으로 Play의 해당 실행 지점에서 한 번만 처리한다. 설정 File이 변경되지 않으면 Service를 불필요하게 재시작하지 않는다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Manage rsyslog configuration</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy rsyslog configuration</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">src</span><span class="pi">:</span> <span class="s">files/50-lab.conf</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/rsyslog.d/50-lab.conf</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+      <span class="na">notify</span><span class="pi">:</span> <span class="s">Restart rsyslog</span>
+
+  <span class="na">handlers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Restart rsyslog</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">rsyslog</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">restarted</span>
+</code></pre></div></div>
+
+<p>Handler 이름은 Play 범위에서 고유하게 작성한다. 중간에 즉시 실행해야 하는 특별한 이유가 없다면 기본 실행 시점을 유지한다.</p>
+
+<h2 id="11--실패-처리">11 ) 실패 처리</h2>
+
+<hr />
+
+<p>Task가 실패하면 Ansible은 기본적으로 해당 Host의 뒤 Task를 중단하고 다른 Host는 계속 처리한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ignore_errors: true</code>는 실행된 Task가 <code class="language-plaintext highlighter-rouge">failed</code> 결과를 반환해도 다음 Task로 진행한다. Undefined Variable, 문법 오류와 <code class="language-plaintext highlighter-rouge">unreachable</code> 상태까지 무시하는 기능은 아니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run an optional validation command</span>
+  <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s">/usr/local/bin/optional-check</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s">optional_check</span>
+  <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">failed_when</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
+
+<p>예상 가능한 Non-zero Exit Code라면 모든 오류를 무시하기보다 <code class="language-plaintext highlighter-rouge">failed_when</code>으로 성공과 실패의 의미를 정의한다.</p>
+
+<p>설정 File을 변경해 Handler가 알림을 받은 뒤 후속 Task가 실패하면 기본적으로 그 Host의 Handler가 실행되지 않을 수 있다. 실패한 Host에서도 이미 알림을 받은 Handler를 실행해야 한다면 Play에 <code class="language-plaintext highlighter-rouge">force_handlers: true</code>를 설정하거나 <code class="language-plaintext highlighter-rouge">--force-handlers</code>를 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Apply configuration with forced handlers</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">force_handlers</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Explain force handler policy</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s">Notified handlers run even if a later task fails.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">force_handlers</code>도 Host가 <code class="language-plaintext highlighter-rouge">unreachable</code> 상태가 되는 문제까지 해결하지는 않는다.</p>
+
+<h2 id="12--검사와-실행">12 ) 검사와 실행</h2>
+
+<hr />
+
+<p>변수와 조건을 추가한 뒤에는 선택되는 Host와 문법을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-inventory <span class="nt">--graph</span>
+ansible-playbook <span class="nt">--syntax-check</span> playbook.yml
+ansible-playbook <span class="nt">--check</span> <span class="nt">--diff</span> playbook.yml
+ansible-playbook playbook.yml
+</code></pre></div></div>
+
+<p>Check Mode는 외부 명령과 일부 Module의 실제 결과를 완전히 재현하지 않는다. 실제 실행 후 Play Recap의 <code class="language-plaintext highlighter-rouge">ok</code>, <code class="language-plaintext highlighter-rouge">changed</code>, <code class="language-plaintext highlighter-rouge">failed</code>, <code class="language-plaintext highlighter-rouge">unreachable</code>, <code class="language-plaintext highlighter-rouge">skipped</code>, <code class="language-plaintext highlighter-rouge">rescued</code>, <code class="language-plaintext highlighter-rouge">ignored</code>를 Host별로 확인한다.</p>
+
+<p>공식 문서는 <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_variables.html">변수</a>, <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_vars_facts.html">Facts</a>, <a href="https://docs.ansible.com/projects/ansible/latest/vault_guide/vault.html">Vault</a>, <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_handlers.html">Handler</a>와 <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_error_handling.html">실패 처리</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Group·Host·Play·외부·추가 변수는 적용 범위와 우선순위가 다르며 Extra vars는 기존 변수를 강제로 덮어쓴다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">register</code>는 현재 실행의 Host별 Task 결과를 저장하고 Facts는 Managed Node에서 수집한 System 정보를 제공한다.</p>
+    </li>
+    <li>
+      <p>Vault는 저장 Data를 암호화하지만 실행 중 출력까지 보호하지 않으므로 Secret Task의 Log도 통제해야 한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">loop</code>는 같은 작업을 여러 값에 적용하고 <code class="language-plaintext highlighter-rouge">when</code>은 Facts와 이전 결과에 따라 Task를 선택한다.</p>
+    </li>
+    <li>
+      <p>Handler는 실제 변경 알림이 있을 때만 실행하며 실패를 무시하기보다 <code class="language-plaintext highlighter-rouge">failed_when</code>으로 기대하는 결과를 정의한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-61-ansible-roles-collections-docker/">Ansible Role·Collection과 Docker 자동화</a>에서는 관련 Task, File, 변수와 Handler를 Role로 묶고 Collection Module로 Docker Container를 관리한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible 변수의 범위와 우선순위를 구분하고 Vault, Facts, 반복문, 조건문, Handler와 실패 처리를 이용해 재사용 가능한 Playbook을 작성한다]]></summary></entry><entry><title type="html">Ansible Role·Collection과 Docker 자동화</title><link href="https://hyn128.site/cloud-native-61-ansible-roles-collections-docker/" rel="alternate" type="text/html" title="Ansible Role·Collection과 Docker 자동화" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-61-ansible-roles-collections-docker</id><content type="html" xml:base="https://hyn128.site/cloud-native-61-ansible-roles-collections-docker/"><![CDATA[<p><a href="/cloud-native-60-ansible-variables-vault-facts-control-flow/">Ansible 변수와 Vault·Facts·제어문</a>에서는 변수, Facts, 반복문과 조건문으로 Host별 실행을 제어했다. 이번에는 길어진 Playbook의 Task, 변수, File과 Handler를 표준 Directory 구조의 Role로 분리한다. 외부 Role과 Collection을 관리하는 <code class="language-plaintext highlighter-rouge">ansible-galaxy</code>를 살펴본 뒤 <code class="language-plaintext highlighter-rouge">community.docker</code> Collection으로 Docker Container를 배포한다.</p>
+
+<h2 id="1--role이-필요한-이유">1 ) Role이 필요한 이유</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Role</strong>은 Task, Handler, 변수, 정적 File과 Template을 정해진 Directory 구조로 묶어 재사용하는 단위이다.</p>
+</blockquote>
+
+<p>하나의 Playbook에 모든 내용을 넣으면 다른 Project에서 일부 기능만 재사용하기 어렵고 여러 사람이 같은 File을 동시에 수정하게 된다. Role은 Web Server, Database 또는 공통 OS 설정처럼 독립된 책임으로 자동화 내용을 나눈다.</p>
+
+<p>Role을 사용하면 다음과 같은 이점이 있다.</p>
+
+<ul>
+  <li>
+    <p>관련 Task, Handler와 File을 한 Directory에서 관리한다.</p>
+  </li>
+  <li>
+    <p>기본값과 환경별 Override 값을 분리한다.</p>
+  </li>
+  <li>
+    <p>여러 Playbook에서 같은 구성을 재사용한다.</p>
+  </li>
+  <li>
+    <p>Role 단위로 Test, Version과 의존성을 관리한다.</p>
+  </li>
+  <li>
+    <p>Ansible Galaxy 또는 내부 Repository를 통해 공유한다.</p>
+  </li>
+</ul>
+
+<h2 id="2--role-생성과-directory-구조">2 ) Role 생성과 Directory 구조</h2>
+
+<hr />
+
+<p>Control Node의 Project Root에서 <code class="language-plaintext highlighter-rouge">webserver</code> Role 골격을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> roles
+ansible-galaxy role init roles/webserver
+tree roles/webserver
+</code></pre></div></div>
+
+<p>주요 Directory의 역할은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>경로</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tasks/main.yml</code></td>
+      <td>Role이 수행할 기본 Task</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">handlers/main.yml</code></td>
+      <td>Role Task가 <code class="language-plaintext highlighter-rouge">notify</code>하는 Handler</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">defaults/main.yml</code></td>
+      <td>다른 변수로 쉽게 Override할 수 있는 낮은 우선순위 기본값</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">vars/main.yml</code></td>
+      <td>Role 내부에서 강하게 유지할 높은 우선순위 변수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">files/</code></td>
+      <td><code class="language-plaintext highlighter-rouge">copy</code> 등에서 사용하는 정적 File</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">templates/</code></td>
+      <td>Jinja2 Template File</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">meta/main.yml</code></td>
+      <td>Role Metadata와 의존 Role</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tests/</code></td>
+      <td>Role 동작 확인용 Inventory와 Playbook</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>사용하지 않는 Directory는 반드시 유지할 필요가 없다. Role의 <code class="language-plaintext highlighter-rouge">files/</code>와 <code class="language-plaintext highlighter-rouge">templates/</code> Resource는 Role Root를 기준으로 찾으므로 <code class="language-plaintext highlighter-rouge">../files/index.html</code> 같은 상대 경로를 만들 필요가 없다.</p>
+
+<h2 id="3--apache-web-server-role-작성">3 ) Apache Web Server Role 작성</h2>
+
+<hr />
+
+<p>이번 Role은 Ubuntu와 Debian 계열 Managed Node에 Apache를 설치하고 정적 Page를 배포한다.</p>
+
+<h3 id="31-override-가능한-기본값">3.1 Override 가능한 기본값</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/defaults/main.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">webserver_title</span><span class="pi">:</span> <span class="s">Apache Web Server</span>
+<span class="na">webserver_package</span><span class="pi">:</span> <span class="s">apache2</span>
+<span class="na">webserver_service</span><span class="pi">:</span> <span class="s">apache2</span>
+<span class="na">webserver_document_root</span><span class="pi">:</span> <span class="s">/var/www/html</span>
+<span class="na">webserver_security_config</span><span class="pi">:</span> <span class="s">/etc/apache2/conf-available/security.conf</span>
+<span class="na">webserver_index_mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+<span class="na">webserver_supported_os_families</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">Debian</span>
+</code></pre></div></div>
+
+<p>사용자가 환경별로 바꿀 가능성이 있는 값은 <code class="language-plaintext highlighter-rouge">defaults</code>에 둔다. <code class="language-plaintext highlighter-rouge">vars/main.yml</code>은 우선순위가 높아 Inventory 값으로 바꾸기 어려우므로 반드시 고정해야 하는 값에만 사용한다.</p>
+
+<h3 id="32-정적-page">3.2 정적 Page</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/files/index.html</code>을 작성한다.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!doctype html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Hello from Ansible<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;h1&gt;</span>Hello! Ansible Role<span class="nt">&lt;/h1&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div></div>
+
+<p>Host별 값이 들어가야 한다면 정적 <code class="language-plaintext highlighter-rouge">files</code> 대신 <code class="language-plaintext highlighter-rouge">templates/index.html.j2</code>와 <code class="language-plaintext highlighter-rouge">ansible.builtin.template</code> Module을 사용한다.</p>
+
+<h3 id="33-task">3.3 Task</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/tasks/main.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Verify the managed operating system family</span>
+  <span class="na">ansible.builtin.assert</span><span class="pi">:</span>
+    <span class="na">that</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">ansible_facts['os_family'] in webserver_supported_os_families</span>
+    <span class="na">fail_msg</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+      <span class="s">{{ ansible_facts['os_family'] }} is not supported by this role.</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install the web server package</span>
+  <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_package</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+    <span class="na">update_cache</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Copy the web server index page</span>
+  <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+    <span class="na">src</span><span class="pi">:</span> <span class="s">index.html</span>
+    <span class="na">dest</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_document_root</span><span class="nv"> </span><span class="s">}}/index.html"</span>
+    <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+    <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+    <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_index_mode</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Limit the Apache server signature</span>
+  <span class="na">ansible.builtin.lineinfile</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_security_config</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">regexp</span><span class="pi">:</span> <span class="s1">'</span><span class="s">^ServerTokens</span><span class="nv"> </span><span class="s">'</span>
+    <span class="na">line</span><span class="pi">:</span> <span class="s">ServerTokens Prod</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">notify</span><span class="pi">:</span> <span class="s">Restart web server</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the web server is enabled and running</span>
+  <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_service</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">state: latest</code>는 Repository의 새 Version이 공개될 때마다 Package를 변경할 수 있다. 재현 가능한 기본 구성에는 <code class="language-plaintext highlighter-rouge">present</code>를 사용하고 Upgrade는 별도 절차로 관리한다.</p>
+
+<h3 id="34-handler">3.4 Handler</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/handlers/main.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Restart web server</span>
+  <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_service</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">restarted</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<h3 id="35-role-호출">3.5 Role 호출</h3>
+
+<p><code class="language-plaintext highlighter-rouge">role-example.yml</code>에서 <code class="language-plaintext highlighter-rouge">import_role</code>로 정적으로 불러온다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Configure web servers with a role</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the start of the role play</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s">Start the webserver role.</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Import the webserver role</span>
+      <span class="na">ansible.builtin.import_role</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">webserver</span>
+</code></pre></div></div>
+
+<p>문법과 예상 변경을 확인한 뒤 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> role-example.yml
+ansible-playbook <span class="nt">--check</span> <span class="nt">--diff</span> role-example.yml
+ansible-playbook role-example.yml
+</code></pre></div></div>
+
+<p>Role을 찾지 못하면 Project의 <code class="language-plaintext highlighter-rouge">ansible.cfg</code>에 Search Path를 지정한다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[defaults]</span>
+<span class="py">inventory</span> <span class="p">=</span> <span class="s">./inventory.ini</span>
+<span class="py">roles_path</span> <span class="p">=</span> <span class="s">./roles</span>
+</code></pre></div></div>
+
+<h2 id="4--ansible-galaxy의-role-관리">4 ) Ansible Galaxy의 Role 관리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Ansible Galaxy</strong>는 Role과 Collection을 검색하고 배포하는 공개 Service이다.</p>
+</blockquote>
+
+<p>Role 관련 명령을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role <span class="nt">--help</span>
+</code></pre></div></div>
+
+<p>PostgreSQL Role을 검색하고 선택한 Role의 Metadata를 확인하는 기본 흐름은 다음과 같다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role search postgresql <span class="nt">--platforms</span> Ubuntu
+ansible-galaxy role info &lt;namespace.role_name&gt;
+ansible-galaxy role <span class="nb">install</span> <span class="nt">-p</span> roles &lt;namespace.role_name&gt;
+ansible-galaxy role list <span class="nt">-p</span> roles
+</code></pre></div></div>
+
+<p>자료에서 사용한 <code class="language-plaintext highlighter-rouge">buluma.postgres</code>는 Galaxy 명령 흐름을 확인하기 위한 특정 시점의 예시이다. Role의 존재 여부, 최신 Release, 지원 OS와 유지보수 상태는 바뀔 수 있으므로 설치 전에 다시 검색한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role info buluma.postgres
+</code></pre></div></div>
+
+<p>더 이상 사용하지 않는 Role을 Project Directory에서 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role remove &lt;namespace.role_name&gt;
+</code></pre></div></div>
+
+<p>Galaxy에 공개됐다는 사실만으로 Code의 보안과 품질이 검증됐다고 판단할 수 없다. 설치 전에 Source Repository, License, Release 이력, 지원 Platform, 의존 Role과 Task가 수행하는 Privileged 작업을 확인한다.</p>
+
+<h2 id="5--content-collection">5 ) Content Collection</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Collection</strong>은 Module, Plugin, Role, Playbook과 문서를 Namespace 단위로 묶어 Ansible Core와 독립적으로 배포하는 형식이다.</p>
+</blockquote>
+
+<p>초기의 Ansible은 많은 Module을 Core Package와 함께 배포했다. Collection은 Core Release와 Module·Plugin Release를 분리하고 필요한 Version을 Project별로 선택할 수 있게 한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ansible.builtin.copy</code>는 Builtin Collection의 FQCN이고 <code class="language-plaintext highlighter-rouge">community.docker.docker_container</code>는 <code class="language-plaintext highlighter-rouge">community.docker</code> Collection의 Module이다.</p>
+
+<p>설치된 Collection을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy collection list
+ansible-doc community.docker.docker_container
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">community.docker</code>가 없다면 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy collection <span class="nb">install </span>community.docker
+</code></pre></div></div>
+
+<p>Project에서 의존성을 재현하려면 검증한 Version을 <code class="language-plaintext highlighter-rouge">requirements.yml</code>에 기록한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">collections</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">community.docker</span>
+    <span class="na">version</span><span class="pi">:</span> <span class="s2">"</span><span class="s">&lt;VERIFIED-VERSION&gt;"</span>
+</code></pre></div></div>
+
+<p>Placeholder를 설치 시점에 검증한 실제 Version으로 바꾼 뒤 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy collection <span class="nb">install</span> <span class="nt">-r</span> requirements.yml
+ansible-galaxy collection list community.docker
+</code></pre></div></div>
+
+<p>Collection을 Offline 환경으로 전달해야 한다면 의존성을 포함한 Artifact와 생성된 <code class="language-plaintext highlighter-rouge">requirements.yml</code>을 Download할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> collection-bundle
+ansible-galaxy collection download <span class="se">\</span>
+  <span class="nt">-p</span> collection-bundle <span class="se">\</span>
+  community.docker
+</code></pre></div></div>
+
+<h2 id="6--docker-설치-자동화-준비">6 ) Docker 설치 자동화 준비</h2>
+
+<hr />
+
+<p>Docker 설치는 <code class="language-plaintext highlighter-rouge">docker_hosts</code> Inventory Group에만 적용한다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[docker_hosts]</span>
+<span class="err">master</span>
+<span class="err">worker1</span>
+<span class="err">worker2</span>
+</code></pre></div></div>
+
+<p>Docker의 현재 Ubuntu 설치 문서는 One-line <code class="language-plaintext highlighter-rouge">docker.list</code>보다 DEB822 형식의 <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/docker.sources</code>를 안내한다. 배포판 Codename과 Architecture를 고정 문자열로 넣지 않고 Managed Node에서 확인한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">install-docker.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install Docker Engine from the official repository</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">docker_hosts</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install repository prerequisites</span>
+      <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">ca-certificates</span>
+          <span class="pi">-</span> <span class="s">curl</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+        <span class="na">update_cache</span><span class="pi">:</span> <span class="no">true</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create the APT keyring directory</span>
+      <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+        <span class="na">path</span><span class="pi">:</span> <span class="s">/etc/apt/keyrings</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">directory</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0755"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Download the Docker repository signing key</span>
+      <span class="na">ansible.builtin.get_url</span><span class="pi">:</span>
+        <span class="na">url</span><span class="pi">:</span> <span class="s">https://download.docker.com/linux/ubuntu/gpg</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/apt/keyrings/docker.asc</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Read the Debian package architecture</span>
+      <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s">dpkg --print-architecture</span>
+      <span class="na">register</span><span class="pi">:</span> <span class="s">docker_dpkg_architecture</span>
+      <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Configure the Docker DEB822 repository</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/apt/sources.list.d/docker.sources</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+        <span class="na">content</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">Types: deb</span>
+          <span class="s">URIs: https://download.docker.com/linux/ubuntu</span>
+          <span class="s">Suites: {{ ansible_facts['distribution_release'] }}</span>
+          <span class="s">Components: stable</span>
+          <span class="s">Architectures: {{ docker_dpkg_architecture.stdout }}</span>
+          <span class="s">Signed-By: /etc/apt/keyrings/docker.asc</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install Docker Engine packages</span>
+      <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">docker-ce</span>
+          <span class="pi">-</span> <span class="s">docker-ce-cli</span>
+          <span class="pi">-</span> <span class="s">containerd.io</span>
+          <span class="pi">-</span> <span class="s">docker-buildx-plugin</span>
+          <span class="pi">-</span> <span class="s">docker-compose-plugin</span>
+          <span class="pi">-</span> <span class="s">python3-requests</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+        <span class="na">update_cache</span><span class="pi">:</span> <span class="no">true</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure Docker is enabled and running</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">docker</span>
+        <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+</code></pre></div></div>
+
+<p>자료의 <code class="language-plaintext highlighter-rouge">docker-ce-li</code>는 <code class="language-plaintext highlighter-rouge">docker-ce-cli</code>의 오탈자이다. 또한 Ubuntu <code class="language-plaintext highlighter-rouge">noble</code>, <code class="language-plaintext highlighter-rouge">amd64</code>를 고정하면 다른 Ubuntu Release와 ARM64 Host에서 실패하므로 Facts와 <code class="language-plaintext highlighter-rouge">dpkg</code> 결과를 사용했다.</p>
+
+<p>자료의 Container 예제는 <code class="language-plaintext highlighter-rouge">python3-docker</code>를 설치했지만 현재 <code class="language-plaintext highlighter-rouge">community.docker</code>의 해당 Module은 Docker SDK for Python을 직접 사용하지 않고 <code class="language-plaintext highlighter-rouge">requests</code>를 요구한다. 설치한 Collection Version의 공식 Requirements를 확인하고 이 예제에서는 Managed Node에 <code class="language-plaintext highlighter-rouge">python3-requests</code>를 설치한다.</p>
+
+<p>문법을 검사하고 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> install-docker.yml
+ansible-playbook <span class="nt">--check</span> <span class="nt">--diff</span> install-docker.yml
+ansible-playbook install-docker.yml <span class="nt">-K</span>
+</code></pre></div></div>
+
+<p>Check Mode에서는 APT Repository가 아직 생성되지 않아 뒤의 Package 설치 결과를 완전히 예측하지 못할 수 있다.</p>
+
+<p>설치 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible docker_hosts <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"docker --version"</span>
+
+ansible docker_hosts <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"systemctl is-active docker"</span>
+</code></pre></div></div>
+
+<p>현재 Docker Ubuntu Repository 형식과 Package 목록은 <a href="https://docs.docker.com/engine/install/ubuntu/">Docker Engine Ubuntu 설치 문서</a>에서 확인한다.</p>
+
+<h2 id="7--nginx-container-배포">7 ) Nginx Container 배포</h2>
+
+<hr />
+
+<p>자료의 <code class="language-plaintext highlighter-rouge">community.gerneral</code>은 존재하지 않는 오탈자이다. Docker Resource는 <code class="language-plaintext highlighter-rouge">community.docker</code> Collection의 FQCN을 사용한다. <code class="language-plaintext highlighter-rouge">nginx-latest</code>도 Docker Hub의 일반적인 Tag 표기인 <code class="language-plaintext highlighter-rouge">nginx:latest</code>로 수정한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">deploy-docker.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy an Nginx container</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">docker_hosts</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">my-web-server</span>
+    <span class="na">image_name</span><span class="pi">:</span> <span class="s">nginx:latest</span>
+    <span class="na">host_port</span><span class="pi">:</span> <span class="m">8080</span>
+    <span class="na">container_port</span><span class="pi">:</span> <span class="m">80</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Pull the Nginx image</span>
+      <span class="na">community.docker.docker_image_pull</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">image_name</span><span class="nv"> </span><span class="s">}}"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create and start the Nginx container</span>
+      <span class="na">community.docker.docker_container</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">container_name</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">image_name</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+        <span class="na">restart_policy</span><span class="pi">:</span> <span class="s">always</span>
+        <span class="na">published_ports</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">host_port</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">container_port</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">MY_ENV_VAR</span><span class="pi">:</span> <span class="s">hello-ansible</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the published endpoint</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">{{ inventory_hostname }} exposes {{ container_name }}</span>
+          <span class="s">on TCP {{ host_port }}.</span>
+</code></pre></div></div>
+
+<p>과거 예제에서 <code class="language-plaintext highlighter-rouge">community.docker.docker_image</code>로 Image를 Pull할 수 있었고 현재도 지원되지만, 현재 Collection 문서는 Pull 전용 작업에 <code class="language-plaintext highlighter-rouge">community.docker.docker_image_pull</code> 사용을 권장한다. 설치한 Collection Version의 요구 Package와 Parameter는 <code class="language-plaintext highlighter-rouge">ansible-doc</code>으로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-doc community.docker.docker_image_pull
+ansible-doc community.docker.docker_container
+ansible-playbook <span class="nt">--syntax-check</span> deploy-docker.yml
+ansible-playbook deploy-docker.yml <span class="nt">-K</span>
+</code></pre></div></div>
+
+<p>Container와 HTTP 응답을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible docker_hosts <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"docker ps --filter name=my-web-server"</span>
+
+curl http://192.0.2.11:8080
+curl http://192.0.2.12:8080
+curl http://192.0.2.13:8080
+</code></pre></div></div>
+
+<p>다른 Computer에서 접속한다면 Managed Node의 Firewall과 Network에서 TCP 8080 접근이 허용되어 있어야 한다.</p>
+
+<h2 id="8--문제-해결">8 ) 문제 해결</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>증상</th>
+      <th>확인할 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Role을 찾지 못함</td>
+      <td><code class="language-plaintext highlighter-rouge">roles/</code> 위치와 <code class="language-plaintext highlighter-rouge">roles_path</code></td>
+    </tr>
+    <tr>
+      <td>Role 변수 Override가 적용되지 않음</td>
+      <td>값이 <code class="language-plaintext highlighter-rouge">defaults</code>가 아니라 우선순위가 높은 <code class="language-plaintext highlighter-rouge">vars</code>에 있는지 확인</td>
+    </tr>
+    <tr>
+      <td>Collection Module을 찾지 못함</td>
+      <td><code class="language-plaintext highlighter-rouge">ansible-galaxy collection list</code>, <code class="language-plaintext highlighter-rouge">requirements.yml</code> 설치 여부</td>
+    </tr>
+    <tr>
+      <td>Docker APT 서명 오류</td>
+      <td><code class="language-plaintext highlighter-rouge">docker.asc</code> Permission과 <code class="language-plaintext highlighter-rouge">Signed-By</code> 경로</td>
+    </tr>
+    <tr>
+      <td>Docker Package를 찾지 못함</td>
+      <td>Ubuntu Codename, Architecture와 <code class="language-plaintext highlighter-rouge">apt update</code> 결과</td>
+    </tr>
+    <tr>
+      <td>Docker Socket 권한 오류</td>
+      <td><code class="language-plaintext highlighter-rouge">become</code> 사용 여부와 <code class="language-plaintext highlighter-rouge">/var/run/docker.sock</code> Permission</td>
+    </tr>
+    <tr>
+      <td>Container Module Parameter 오류</td>
+      <td>설치된 Collection Version의 <code class="language-plaintext highlighter-rouge">ansible-doc</code> 결과</td>
+    </tr>
+    <tr>
+      <td>TCP 8080 접속 실패</td>
+      <td>Container Port Mapping, Host Firewall과 Network 경로</td>
+    </tr>
+    <tr>
+      <td>모든 Host에서 Container가 생성됨</td>
+      <td><code class="language-plaintext highlighter-rouge">hosts: docker_hosts</code> Group과 <code class="language-plaintext highlighter-rouge">--list-hosts</code> 결과</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Role 구조는 <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Ansible Roles</a>, Collection Module은 <a href="https://docs.ansible.com/projects/ansible/latest/collections/community/docker/index.html">Community.Docker</a>과 <a href="https://docs.ansible.com/projects/ansible/latest/collections/community/docker/docker_container_module.html">docker_container Module</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Role은 Task, Handler, 변수와 File을 표준 Directory 구조로 묶어 Playbook을 재사용한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">defaults</code>는 쉽게 Override할 값, <code class="language-plaintext highlighter-rouge">vars</code>는 높은 우선순위가 필요한 내부 값에 제한해 사용한다.</p>
+    </li>
+    <li>
+      <p>Galaxy의 공개 Role은 설치 전에 Source, 지원 Platform, Version과 Privileged 작업을 검토한다.</p>
+    </li>
+    <li>
+      <p>Collection은 Module과 Plugin을 Core와 독립적으로 배포하며 Playbook에서는 FQCN을 사용한다.</p>
+    </li>
+    <li>
+      <p>Docker 설치는 현재 DEB822 Repository 형식과 실제 Architecture를 사용하고 Container는 <code class="language-plaintext highlighter-rouge">community.docker</code> Module로 원하는 상태를 관리한다.</p>
+    </li>
+    <li>
+      <p>Container 제거, Docker Package 제거와 전체 Data 삭제는 영향 범위가 다르므로 별도 절차로 분리한다.</p>
+    </li>
+  </ul>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다]]></summary></entry><entry><title type="html">Ansible Architecture와 Inventory 구성</title><link href="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/" rel="alternate" type="text/html" title="Ansible Architecture와 Inventory 구성" /><published>2026-09-22T00:00:00+09:00</published><updated>2026-09-22T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-58-ansible-architecture-inventory</id><content type="html" xml:base="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/"><![CDATA[<p><a href="/cloud-native-57-argocd-git-repository-manual-sync/">Argo CD Git Repository 연동과 수동 Sync</a>에서는 Git의 Desired State를 Kubernetes Cluster에 반영하는 GitOps 흐름을 구성했다. 이번에는 Ansible이 Control Node에서 여러 Managed Node의 Package, File과 Service 상태를 일관되게 관리하는 구조를 살펴보고 실제 연결 환경을 준비한다.</p>
 
 <h2 id="1--iac와-ansible의-역할">1 ) IaC와 Ansible의 역할</h2>
 
@@ -1655,7 +2814,9 @@ ansible-playbook remove-nginx.yml
       <p>같은 Playbook을 다시 실행했을 때 불필요한 변경이 없는지 확인하면 Module의 멱등성과 Task 설계를 검증할 수 있다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다]]></summary></entry><entry><title type="html">Argo CD Git Repository 연동과 수동 Sync</title><link href="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/" rel="alternate" type="text/html" title="Argo CD Git Repository 연동과 수동 Sync" /><published>2026-09-18T00:00:00+09:00</published><updated>2026-09-18T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync</id><content type="html" xml:base="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/"><![CDATA[<p><a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 Helm Chart를 Source로 사용하는 Application과 자동 Sync를 구성했다. 이번에는 Namespace, Deployment와 Service Manifest를 GitHub Repository에 저장하고 <code class="language-plaintext highlighter-rouge">syncPolicy.automated</code>를 설정하지 않은 Application으로 등록한다. Git의 Desired State가 <code class="language-plaintext highlighter-rouge">OutOfSync</code>로 감지된 뒤 사용자가 수동 Sync를 요청했을 때 Control Plane과 Worker에서 어떤 동작이 이어지는지 확인한다.</p>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-60-ansible-variables-vault-facts-control-flow/">Ansible 변수와 Vault·Facts·제어문</a>에서는 같은 Playbook을 여러 Host와 환경에서 재사용하기 위한 변수, 암호화 Data, Facts, 반복문과 조건문을 구성한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다]]></summary></entry><entry><title type="html">Argo CD Git Repository 연동과 수동 Sync</title><link href="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/" rel="alternate" type="text/html" title="Argo CD Git Repository 연동과 수동 Sync" /><published>2026-09-18T00:00:00+09:00</published><updated>2026-09-18T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync</id><content type="html" xml:base="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/"><![CDATA[<p><a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 Helm Chart를 Source로 사용하는 Application과 자동 Sync를 구성했다. 이번에는 Namespace, Deployment와 Service Manifest를 GitHub Repository에 저장하고 <code class="language-plaintext highlighter-rouge">syncPolicy.automated</code>를 설정하지 않은 Application으로 등록한다. Git의 Desired State가 <code class="language-plaintext highlighter-rouge">OutOfSync</code>로 감지된 뒤 사용자가 수동 Sync를 요청했을 때 Control Plane과 Worker에서 어떤 동작이 이어지는지 확인한다.</p>
 
 <h2 id="1--실습-구조와-준비-사항">1 ) 실습 구조와 준비 사항</h2>
 
@@ -3588,771 +4749,4 @@ git commit <span class="nt">-m</span> <span class="s2">"chore: make Gradle wrapp
   </ul>
 </blockquote>
 
-<p>다음 글인 <a href="/cloud-native-53-jenkins-sonarqube-analysis/">Jenkins SonarQube 정적 분석과 Quality Gate</a>에서는 Test를 실행하지 않고 Code의 Bug, Vulnerability와 Code Smell을 분석하고 Jenkins Pipeline에 결과를 연결한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다]]></summary></entry><entry><title type="html">Jenkins SonarQube 정적 분석과 Quality Gate</title><link href="https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis/" rel="alternate" type="text/html" title="Jenkins SonarQube 정적 분석과 Quality Gate" /><published>2026-09-16T00:00:00+09:00</published><updated>2026-09-16T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis</id><content type="html" xml:base="https://hyn128.site/cloud-native-53-jenkins-sonarqube-analysis/"><![CDATA[<p><a href="/cloud-native-52-jenkins-unit-test-jacoco/">Jenkins 단위 테스트와 JaCoCo Code Coverage</a>에서는 실행 결과와 Coverage로 Application 동작을 검증했다. 정적 분석은 Code를 실행하지 않고 잠재적인 Bug, Vulnerability, 중복과 유지보수 문제를 찾는다. 이 글에서는 SonarQube 분석을 Gradle과 Jenkins Pipeline에 연결한다.</p>
-
-<h2 id="1--정적-분석의-역할">1 ) 정적 분석의 역할</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>정적 Code 분석</strong>은 Program을 실행하지 않고 Source Code와 Bytecode를 검사해 규칙 위반과 잠재적인 결함을 찾는 과정이다.</p>
-</blockquote>
-
-<ul>
-  <li>
-    <p><strong>Code 품질 개선</strong>: 복잡한 Code, 중복, 읽기 어려운 구조와 Coding Convention 위반을 찾는다.</p>
-  </li>
-  <li>
-    <p><strong>Bug 사전 탐지</strong>: Null 처리와 Resource 누수처럼 Runtime 장애로 이어질 수 있는 Pattern을 확인한다.</p>
-  </li>
-  <li>
-    <p><strong>보안 강화</strong>: Injection, 취약한 암호화와 입력값 검증 누락 같은 보안 문제를 탐지한다.</p>
-  </li>
-  <li>
-    <p><strong>일관성 유지</strong>: Team이 정한 Rule을 같은 기준으로 반복 적용한다.</p>
-  </li>
-</ul>
-
-<p>대표적인 Java 정적 분석 도구에는 SonarQube, Checkstyle, SpotBugs, PMD와 FindSecBugs가 있다. 각 도구의 Rule과 탐지 범위가 다르므로 한 도구의 통과가 모든 결함의 부재를 의미하지는 않는다.</p>
-
-<h2 id="2--sonarqube와-quality-gate">2 ) SonarQube와 Quality Gate</h2>
-
-<hr />
-
-<p>SonarQube는 분석 결과를 Server에 저장하고 Project별 Issue와 변화 추이를 제공한다. 지원 언어와 Rule은 SonarQube Edition과 Version, 설치한 Analyzer에 따라 달라진다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Bugs</td>
-      <td>오동작으로 이어질 가능성이 있는 Code</td>
-    </tr>
-    <tr>
-      <td>Vulnerabilities</td>
-      <td>공격자가 악용할 수 있는 보안 취약점</td>
-    </tr>
-    <tr>
-      <td>Security Hotspots</td>
-      <td>보안 관점의 Review가 필요한 민감한 Code</td>
-    </tr>
-    <tr>
-      <td>Code Smells</td>
-      <td>유지보수성과 이해도를 낮추는 Code</td>
-    </tr>
-    <tr>
-      <td>Coverage</td>
-      <td>Test Report를 통해 계산한 Coverage</td>
-    </tr>
-    <tr>
-      <td>Duplications</td>
-      <td>중복된 Code 비율과 Block</td>
-    </tr>
-    <tr>
-      <td>Lines</td>
-      <td>분석한 Source Line 규모</td>
-    </tr>
-  </tbody>
-</table>
-
-<blockquote>
-  <p><strong>Quality Gate</strong>는 Coverage, 신규 Bug와 중복률 같은 조건을 묶은 통과 기준이다. 분석 결과가 기준을 만족하면 통과하고, 만족하지 못하면 실패 상태가 된다.</p>
-</blockquote>
-
-<p>Quality Gate는 정적 분석 결과에 대한 자동 판정 기준이다. Application의 기능 Test와 Runtime 검증을 대체하지 않는다.</p>
-
-<h2 id="3--docker로-학습용-sonarqube-실행">3 ) Docker로 학습용 SonarQube 실행</h2>
-
-<hr />
-
-<p>Jenkins와 SonarQube Container가 이름으로 통신하도록 사용자 정의 Network를 먼저 만든다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network create ci-network
-</code></pre></div></div>
-
-<p><a href="https://docs.sonarsource.com/sonarqube-server/latest/server-installation/from-docker-image/starting-sonarqube-container/">SonarQube Docker 설치 문서</a>와 Image Registry에서 사용할 Community Build Tag를 확인한 뒤 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">SONARQUBE_IMAGE</span><span class="o">=</span><span class="s1">'sonarqube:&lt;verified-community-tag&gt;'</span>
-
-docker run <span class="nt">-d</span> <span class="se">\</span>
-  <span class="nt">--name</span> sonarqube <span class="se">\</span>
-  <span class="nt">--network</span> ci-network <span class="se">\</span>
-  <span class="nt">-p</span> 9000:9000 <span class="se">\</span>
-  <span class="s2">"</span><span class="nv">$SONARQUBE_IMAGE</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">http://localhost:9000</code>에 접속한다. 초기 계정은 <code class="language-plaintext highlighter-rouge">admin</code>, 비밀번호도 <code class="language-plaintext highlighter-rouge">admin</code>이며 첫 Login 직후 변경해야 한다.</p>
-
-<p>이 구성은 구조를 익히는 학습용이다. <code class="language-plaintext highlighter-rouge">--rm</code>을 사용하거나 Volume 없이 Container를 제거하면 분석 이력과 설정을 잃을 수 있다. 운영 환경에서는 외부 Database와 Persistent Volume을 구성해야 하며, 내장 H2 Database는 Test와 Trial 용도로만 사용한다. 지원 Database와 Version은 <a href="https://docs.sonarsource.com/sonarqube-server/server-installation/installing-the-database">Database 설치 문서</a>에서 확인한다.</p>
-
-<h2 id="4--분석-token-생성과-보관">4 ) 분석 Token 생성과 보관</h2>
-
-<hr />
-
-<p>SonarQube에서 계정 Menu의 <strong>My Account → Security</strong>로 이동해 Token 이름, 종류와 만료일을 지정하고 생성한다. Token 값은 생성 직후 한 번만 확인할 수 있으므로 Password Manager 또는 Jenkins Credential에 저장한다.</p>
-
-<p>다음 위치에는 실제 Token을 기록하지 않는다.</p>
-
-<ul>
-  <li>
-    <p>Git으로 관리하는 <code class="language-plaintext highlighter-rouge">build.gradle</code>과 <code class="language-plaintext highlighter-rouge">Jenkinsfile</code></p>
-  </li>
-  <li>
-    <p>Blog, Screenshot과 공유 문서</p>
-  </li>
-  <li>
-    <p>Shell History에 남는 명령행 Argument</p>
-  </li>
-</ul>
-
-<p>이미 노출된 Token은 문자열을 가리는 것만으로 안전해지지 않는다. SonarQube에서 폐기한 뒤 새 Token을 발급해야 한다.</p>
-
-<h2 id="5--gradle-project에-sonarqube-적용">5 ) Gradle Project에 SonarQube 적용</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">plugins</code> Block에 SonarQube Plugin을 추가한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="o">{</span>
-    <span class="n">id</span> <span class="s1">'java'</span>
-    <span class="n">id</span> <span class="s1">'org.sonarqube'</span> <span class="n">version</span> <span class="s1">'7.2.3.7755'</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">7.2.3.7755</code>는 이 Project에서 사용하는 예시 Version이다. 새 Project에서는 <a href="https://plugins.gradle.org/plugin/org.sonarqube">Gradle Plugin Portal</a>에서 현재 Version과 Gradle·JDK 호환성을 확인한다.</p>
-
-<p>Application Build와 Test를 먼저 수행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew clean build
-</code></pre></div></div>
-
-<p>Token은 <code class="language-plaintext highlighter-rouge">SONAR_TOKEN</code> 환경 변수로 전달하고, Server URL만 System Property로 지정한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">SONAR_TOKEN</span><span class="o">=</span><span class="s1">'&lt;SONARQUBE_TOKEN&gt;'</span>
-./gradlew sonar <span class="nt">-Dsonar</span>.host.url<span class="o">=</span>http://localhost:9000
-<span class="nb">unset </span>SONAR_TOKEN
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">sonar.login</code>과 <code class="language-plaintext highlighter-rouge">sonar.password</code>는 Deprecated되었으며 <code class="language-plaintext highlighter-rouge">sonar.token</code> 또는 <code class="language-plaintext highlighter-rouge">SONAR_TOKEN</code>으로 대체되었다. Token을 명령행이나 Project File에 직접 기록하지 않는 방법은 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/analysis-parameters/parameters-not-settable-in-ui">SonarScanner 분석 Parameter 문서</a>에서 확인할 수 있다.</p>
-
-<p>분석이 완료되면 SonarQube Project 화면에서 Issue, Coverage, 중복과 Quality Gate 결과를 확인한다. Scanner 요구 사항과 분석 Task는 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scanners/sonarscanner-for-gradle">SonarScanner for Gradle 문서</a>에서 Version별로 확인한다.</p>
-
-<h2 id="6--jenkins와-sonarqube-통신-구조">6 ) Jenkins와 SonarQube 통신 구조</h2>
-
-<hr />
-
-<p>Jenkins와 SonarQube가 각각 Container에서 실행되면 Jenkins Container의 <code class="language-plaintext highlighter-rouge">localhost</code>는 Jenkins 자신을 가리킨다. 두 Container를 같은 사용자 정의 Network에 연결하고 SonarQube Container 이름을 DNS 주소로 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker network connect ci-network jenkins
-</code></pre></div></div>
-
-<p>앞 절의 명령으로 SonarQube를 실행했다면 <code class="language-plaintext highlighter-rouge">sonarqube</code>는 이미 <code class="language-plaintext highlighter-rouge">ci-network</code>에 연결되어 있다. 기존 Jenkins Container만 같은 Network에 추가한다.</p>
-
-<p>Jenkins에서 사용할 URL은 다음과 같다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://sonarqube:9000
-</code></pre></div></div>
-
-<p>기본 <code class="language-plaintext highlighter-rouge">bridge</code> Network에서 조회한 Container IP는 재생성할 때 바뀔 수 있다. Pipeline에 고정 IP를 넣지 않고 사용자 정의 Network의 Container 이름을 사용한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>통신 주체</th>
-      <th>사용 주소</th>
-      <th>이유</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Host Browser</td>
-      <td><code class="language-plaintext highlighter-rouge">http://localhost:9000</code></td>
-      <td>Host에 공개한 Port로 접근</td>
-    </tr>
-    <tr>
-      <td>Jenkins Container</td>
-      <td><code class="language-plaintext highlighter-rouge">http://sonarqube:9000</code></td>
-      <td>같은 Docker Network의 DNS 이름으로 접근</td>
-    </tr>
-    <tr>
-      <td>SonarQube Container 자신</td>
-      <td><code class="language-plaintext highlighter-rouge">http://localhost:9000</code></td>
-      <td>자기 Network Namespace 안의 Process에 접근</td>
-    </tr>
-  </tbody>
-</table>
-
-<h2 id="7--jenkins-sonarqube-설정">7 ) Jenkins SonarQube 설정</h2>
-
-<hr />
-
-<p>Jenkins에서 다음 순서로 설정한다.</p>
-
-<ol>
-  <li>
-    <p><strong>Manage Jenkins → Plugins</strong>에서 <strong>SonarQube Scanner for Jenkins</strong> Plugin을 설치한다.</p>
-  </li>
-  <li>
-    <p><strong>Manage Jenkins → Credentials</strong>에서 SonarQube Token을 <strong>Secret text</strong>로 저장한다. 예시 Credential ID는 <code class="language-plaintext highlighter-rouge">sonarqube-token</code>이다.</p>
-  </li>
-  <li>
-    <p><strong>Manage Jenkins → System → SonarQube servers</strong>에 Server를 추가한다.</p>
-  </li>
-  <li>
-    <p>Name을 <code class="language-plaintext highlighter-rouge">SonarQube-Server</code>, Server URL을 <code class="language-plaintext highlighter-rouge">http://sonarqube:9000</code>, Authentication Token을 <code class="language-plaintext highlighter-rouge">sonarqube-token</code>으로 설정한다.</p>
-  </li>
-</ol>
-
-<p>Plugin과 Server 설정 절차는 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/ci-integration/jenkins-integration/global-setup">Jenkins용 SonarQube 설정 문서</a>에서 확인할 수 있다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">withSonarQubeEnv('SonarQube-Server')</code>는 Jenkins에 등록한 Server URL과 Token을 분석 Step의 환경에 주입한다. Token을 Pipeline 전역 <code class="language-plaintext highlighter-rouge">environment</code>에 두지 않으므로 노출 범위를 분석 Stage로 제한할 수 있다.</p>
-
-<h2 id="8--test와-sonarqube-분석-pipeline">8 ) Test와 SonarQube 분석 Pipeline</h2>
-
-<hr />
-
-<p>다음 Jenkinsfile은 Test를 통과한 Source만 SonarQube로 분석한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
-    <span class="n">agent</span> <span class="n">any</span>
-
-    <span class="n">stages</span> <span class="o">{</span>
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">checkout</span> <span class="n">scm</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Unit Test'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">sh</span> <span class="s1">'./gradlew clean test jacocoTestReport'</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'SonarQube Analysis'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">withSonarQubeEnv</span><span class="o">(</span><span class="s1">'SonarQube-Server'</span><span class="o">)</span> <span class="o">{</span>
-                    <span class="n">sh</span> <span class="s1">'./gradlew sonar'</span>
-                <span class="o">}</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-
-    <span class="n">post</span> <span class="o">{</span>
-        <span class="n">always</span> <span class="o">{</span>
-            <span class="n">junit</span> <span class="nl">testResults:</span> <span class="s1">'build/test-results/test/*.xml'</span><span class="o">,</span>
-                  <span class="nl">allowEmptyResults:</span> <span class="kc">false</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Stage</th>
-      <th>Jenkins Agent에서 수행하는 작업</th>
-      <th>외부 연결</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Checkout</td>
-      <td>Repository Source와 Jenkinsfile 확보</td>
-      <td>Git Server</td>
-    </tr>
-    <tr>
-      <td>Unit Test</td>
-      <td>JUnit 실행과 JaCoCo XML·HTML 생성</td>
-      <td>Gradle Dependency Repository</td>
-    </tr>
-    <tr>
-      <td>SonarQube Analysis</td>
-      <td>Source와 Coverage Report 분석 요청</td>
-      <td><code class="language-plaintext highlighter-rouge">SonarQube-Server</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">compileJava</code>는 <code class="language-plaintext highlighter-rouge">test</code> Task가 필요에 따라 실행하므로 별도 Stage로 중복하지 않는다. <code class="language-plaintext highlighter-rouge">withSonarQubeEnv</code>를 사용할 때는 Jenkins System 설정의 이름과 문자열이 정확히 일치해야 한다.</p>
-
-<h2 id="9--quality-gate로-pipeline-중단">9 ) Quality Gate로 Pipeline 중단</h2>
-
-<hr />
-
-<p>SonarQube가 Jenkins에 분석 완료 결과를 돌려주도록 Webhook을 구성하면 Pipeline에서 Quality Gate를 기다릴 수 있다.</p>
-
-<p>SonarQube의 Project 또는 Global Webhook URL을 다음 형식으로 설정한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>http://&lt;jenkins-host&gt;/sonarqube-webhook/
-</code></pre></div></div>
-
-<p>마지막 <code class="language-plaintext highlighter-rouge">/</code>도 URL에 포함한다. Analysis Stage 뒤에 다음 Stage를 추가한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stage</span><span class="o">(</span><span class="s1">'Quality Gate'</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">steps</span> <span class="o">{</span>
-        <span class="n">timeout</span><span class="o">(</span><span class="nl">time:</span> <span class="mi">10</span><span class="o">,</span> <span class="nl">unit:</span> <span class="s1">'MINUTES'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">waitForQualityGate</span> <span class="nl">abortPipeline:</span> <span class="kc">true</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">waitForQualityGate</code>는 Webhook 결과를 기다리고, <code class="language-plaintext highlighter-rouge">abortPipeline: true</code>는 Gate 실패 시 Pipeline을 중단한다. 무기한 대기를 막기 위해 <code class="language-plaintext highlighter-rouge">timeout</code>을 함께 둔다. Jenkins Extension의 Pipeline 사용 방법은 <a href="https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/scanners/jenkins-extension-sonarqube">SonarQube Jenkins Extension 문서</a>에서 확인할 수 있다.</p>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-  <ul>
-    <li>
-      <p>정적 분석은 Test 실행 여부와 별개로 Bug, Vulnerability와 유지보수 문제를 찾는다.</p>
-    </li>
-    <li>
-      <p>학습용 Container와 운영용 SonarQube의 Database·Volume 구성을 구분한다.</p>
-    </li>
-    <li>
-      <p>Token은 Jenkins Secret Text로 저장하고 분석 Stage에서만 주입한다.</p>
-    </li>
-    <li>
-      <p>Container 간 통신에는 바뀔 수 있는 고정 IP 대신 사용자 정의 Network의 DNS 이름을 사용한다.</p>
-    </li>
-    <li>
-      <p>SonarQube Analysis와 Quality Gate를 연결하면 기준을 만족하지 못한 Code의 후속 배포를 중단할 수 있다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[SonarQube를 Docker로 구성하고 Gradle 분석, Token Credential과 Jenkins Pipeline Quality Gate를 안전하게 연결한다]]></summary></entry><entry><title type="html">Jenkins Freestyle Trigger와 SSH·Docker 배포</title><link href="https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment/" rel="alternate" type="text/html" title="Jenkins Freestyle Trigger와 SSH·Docker 배포" /><published>2026-09-15T00:00:00+09:00</published><updated>2026-09-15T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment</id><content type="html" xml:base="https://hyn128.site/cloud-native-50-jenkins-freestyle-deployment/"><![CDATA[<p><a href="/cloud-native-49-jenkins-maven-gradle-build/">Jenkins Maven·Gradle Build와 Email 알림</a>에서 Java Application을 Test하고 JAR로 Package하는 과정을 구성했다. 이번에는 Build를 시작하는 Trigger와 생성된 Artifact를 SSH Server에 전송하는 방법, Docker Image로 만들어 Registry와 배포 Server에 전달하는 방법을 정리한다.</p>
-
-<h2 id="1--build-trigger-선택">1 ) Build Trigger 선택</h2>
-
-<hr />
-
-<p>Jenkins Freestyle Job은 정해진 시각, SCM 변경 감지 또는 GitHub Webhook으로 시작할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Trigger</th>
-      <th>Build 시작 조건</th>
-      <th>적합한 환경</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Build periodically</td>
-      <td>Schedule 시간이 되면 변경 여부와 관계없이 실행</td>
-      <td>정기 점검, Nightly Build</td>
-    </tr>
-    <tr>
-      <td>Poll SCM</td>
-      <td>Schedule마다 SCM을 확인하고 Revision이 바뀌면 실행</td>
-      <td>Jenkins가 외부 Webhook을 받을 수 없는 환경</td>
-    </tr>
-    <tr>
-      <td>GitHub hook trigger for GITScm polling</td>
-      <td>GitHub가 Push Event를 Jenkins에 전달하면 SCM 변경을 확인하고 실행</td>
-      <td>GitHub에서 Jenkins로 접근할 수 있는 환경</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Jenkins Schedule은 공백으로 구분한 다섯 Field를 사용한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MINUTE HOUR DAY_OF_MONTH MONTH DAY_OF_WEEK
-</code></pre></div></div>
-
-<p>5분마다 정기 Build를 실행하려면 <strong>Build periodically</strong>에 다음 값을 입력한다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>H/5 * * * *
-</code></pre></div></div>
-
-<p>같은 값을 <strong>Poll SCM</strong>에 입력하면 약 5분마다 Repository를 확인하되 Revision이 변경됐을 때만 Build한다. <code class="language-plaintext highlighter-rouge">H</code>는 여러 Job이 같은 분에 몰리지 않도록 Jenkins가 시작 시각을 분산하는 값이다.</p>
-
-<h2 id="2--github-webhook으로-build-시작">2 ) GitHub Webhook으로 Build 시작</h2>
-
-<hr />
-
-<p>Webhook 방식에서는 GitHub가 Event 발생 사실을 Jenkins에 HTTP Request로 전달한다. 따라서 Jenkins Base URL은 GitHub에서 접근할 수 있어야 하며, 운영 환경에서는 HTTPS와 접근 제어를 적용한다.</p>
-
-<h3 id="jenkins-job-설정">Jenkins Job 설정</h3>
-
-<p>Freestyle Job의 <strong>Build Triggers</strong>에서 <strong>GitHub hook trigger for GITScm polling</strong>을 선택한다. <strong>Source Code Management → Git</strong>의 Repository URL과 Credential도 Webhook을 등록할 Repository와 일치해야 한다.</p>
-
-<h3 id="github-repository-설정">GitHub Repository 설정</h3>
-
-<p>Repository의 <strong>Settings → Webhooks → Add webhook</strong>에서 다음 값을 구성한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>값 또는 역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Payload URL</td>
-      <td><code class="language-plaintext highlighter-rouge">https://&lt;jenkins-base-url&gt;/github-webhook/</code></td>
-    </tr>
-    <tr>
-      <td>Content type</td>
-      <td><code class="language-plaintext highlighter-rouge">application/json</code></td>
-    </tr>
-    <tr>
-      <td>Secret</td>
-      <td>충분히 긴 무작위 Secret</td>
-    </tr>
-    <tr>
-      <td>Events</td>
-      <td>필요한 Event만 선택하며 Push Build는 Push Event 선택</td>
-    </tr>
-    <tr>
-      <td>Active</td>
-      <td>Webhook 활성화</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Payload URL은 Job 이름 경로가 아니라 Jenkins GitHub Plugin의 공통 Endpoint인 <code class="language-plaintext highlighter-rouge">/github-webhook/</code>로 끝난다. 저장 후 GitHub Webhook의 <strong>Recent Deliveries</strong>에서 응답 Status를 확인하고, Jenkins의 Build History와 Console Output에서 같은 Commit이 Checkout됐는지 확인한다.</p>
-
-<p>수동으로 Webhook을 등록하는 경우 GitHub가 Jenkins Endpoint를 호출하므로 Jenkins에 GitHub Personal Access Token을 저장할 필요가 없다. Jenkins가 GitHub API를 이용해 Webhook을 자동 생성·관리하도록 구성할 때만 해당 Repository Hook을 관리할 수 있는 Credential이 필요하다. Push Webhook 수신만을 위해 <code class="language-plaintext highlighter-rouge">workflow</code> 권한을 추가하지 않는다.</p>
-
-<blockquote>
-  <p><strong>주의</strong></p>
-  <ul>
-    <li>
-      <p>GitHub Personal Access Token, Docker Hub Access Token, SSH Private Key와 Webhook Secret은 문서, Shell Script와 Repository에 직접 기록하지 않는다.</p>
-    </li>
-    <li>
-      <p>이미 노출된 Token은 값을 지우는 것만으로 끝내지 않고 발급한 서비스에서 즉시 폐기한 뒤 새 Token을 발급한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<p>자세한 설정 항목은 <a href="https://plugins.jenkins.io/github/">Jenkins GitHub Plugin</a>과 <a href="https://docs.github.com/en/webhooks/using-webhooks/creating-webhooks">GitHub Webhook 생성 문서</a>를 참고한다.</p>
-
-<h2 id="3--ssh-배포-server-준비">3 ) SSH 배포 Server 준비</h2>
-
-<hr />
-
-<p>Jenkins가 JAR를 원격 Server로 배포하려면 Build 결과를 전송할 계정, Application을 실행할 Java Runtime과 배포 Directory가 필요하다.</p>
-
-<h3 id="배포-server에서-실행">배포 Server에서 실행</h3>
-
-<p>Ubuntu Server에 Application이 요구하는 Java Version을 설치한다. 다음 예시는 Java 21 Application을 실행하는 환경이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
-<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> openjdk-21-jre-headless
-java <span class="nt">--version</span>
-<span class="nb">mkdir</span> <span class="nt">-p</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/deploy"</span>
-</code></pre></div></div>
-
-<p>Compile에 사용한 JDK와 실행 Server의 Java Major Version이 호환되어야 한다. <code class="language-plaintext highlighter-rouge">UnsupportedClassVersionError</code>가 발생하면 Jenkins Build의 Toolchain Version과 배포 Server의 <code class="language-plaintext highlighter-rouge">java --version</code>을 비교한다.</p>
-
-<h3 id="jenkins-실행-계정에서-ssh-key-생성">Jenkins 실행 계정에서 SSH Key 생성</h3>
-
-<p>Jenkins가 Container에서 실행 중이라면 Key는 임시 Shell 사용자가 아니라 Jenkins Home을 소유한 <code class="language-plaintext highlighter-rouge">jenkins</code> 계정에 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker <span class="nb">exec</span> <span class="nt">-it</span> <span class="nt">-u</span> jenkins jenkins bash
-<span class="nb">mkdir</span> <span class="nt">-p</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh"</span>
-<span class="nb">chmod </span>700 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh"</span>
-ssh-keygen <span class="nt">-t</span> ed25519 <span class="nt">-C</span> <span class="s2">"jenkins-deploy"</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519"</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ssh-keygen</code>의 Passphrase를 설정하면 Private Key가 유출되더라도 바로 사용하기 어렵다. Jenkins Credential에서 Passphrase를 함께 관리할 수 있다. 대상 환경이 Ed25519를 지원하지 않을 때는 RSA 4096 Bit Key를 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh-keygen <span class="nt">-t</span> rsa <span class="nt">-b</span> 4096 <span class="nt">-C</span> <span class="s2">"jenkins-deploy"</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_rsa"</span>
-</code></pre></div></div>
-
-<p>생성되는 File의 역할은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>File</th>
-      <th>역할</th>
-      <th>배치 위치</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">id_ed25519</code></td>
-      <td>Jenkins가 신원을 증명하는 Private Key</td>
-      <td>Jenkins Credential 또는 제한된 Jenkins Home</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">id_ed25519.pub</code></td>
-      <td>배포 Server가 허용할 Public Key</td>
-      <td>배포 계정의 <code class="language-plaintext highlighter-rouge">~/.ssh/authorized_keys</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Private Key는 Jenkins 밖으로 복사하거나 Console에 출력하지 않는다. Public Key만 확인해 배포 Server 계정에 등록한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/id_ed25519.pub"</span>
-</code></pre></div></div>
-
-<h3 id="배포-server에서-public-key-등록">배포 Server에서 Public Key 등록</h3>
-
-<p>Jenkins가 접속할 배포 계정으로 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh"</span>
-<span class="nb">chmod </span>700 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh"</span>
-nano <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/authorized_keys"</span>
-<span class="nb">chmod </span>600 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/authorized_keys"</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">authorized_keys</code>에 Jenkins Public Key 한 줄을 추가한다. 배포 Server에서 SSH Password 인증을 끄기 전에 별도 Terminal에서 Key 인증이 성공하는지 먼저 확인한다.</p>
-
-<p>Jenkins 실행 환경에서 최초 접속 전에 Server Host Key를 검증해 <code class="language-plaintext highlighter-rouge">known_hosts</code>에 등록한다. 아래 출력의 Fingerprint가 배포 Server의 실제 Fingerprint와 일치하는지 별도 경로로 확인한 뒤 저장한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ssh-keyscan <span class="nt">-H</span> &lt;deploy-server-host&gt; <span class="o">&gt;&gt;</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/known_hosts"</span>
-<span class="nb">chmod </span>600 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/.ssh/known_hosts"</span>
-ssh &lt;deploy-user&gt;@&lt;deploy-server-host&gt;
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">StrictHostKeyChecking=no</code>는 접속 대상의 신원을 검사하지 않으므로 자동 배포 Script에 사용하지 않는다.</p>
-
-<h2 id="4--publish-over-ssh로-jar-전송">4 ) Publish Over SSH로 JAR 전송</h2>
-
-<hr />
-
-<p><strong>Manage Jenkins → Plugins</strong>에서 Publish Over SSH Plugin을 설치한 뒤 <strong>Manage Jenkins → System → Publish over SSH → SSH Servers</strong>에 배포 Server를 등록한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>예시</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Name</td>
-      <td><code class="language-plaintext highlighter-rouge">deploy-server</code></td>
-      <td>Job에서 선택할 연결 이름</td>
-    </tr>
-    <tr>
-      <td>Hostname</td>
-      <td>배포 Server IP 또는 DNS</td>
-      <td>SSH 접속 대상</td>
-    </tr>
-    <tr>
-      <td>Username</td>
-      <td>배포 전용 계정</td>
-      <td>File 전송과 실행 주체</td>
-    </tr>
-    <tr>
-      <td>Remote Directory</td>
-      <td><code class="language-plaintext highlighter-rouge">/home/&lt;deploy-user&gt;</code></td>
-      <td>상대 경로의 기준 Directory</td>
-    </tr>
-    <tr>
-      <td>Key 또는 Path to key</td>
-      <td>Jenkins 실행 계정의 Private Key</td>
-      <td>Public Key와 짝을 이루는 인증 정보</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Plugin의 Global Key를 모든 Server에 공유할지, Server별 <strong>Use a different key</strong> 설정을 사용할지는 배포 계정 분리 기준에 따라 결정한다. 가능하면 Server와 환경별 Key를 분리하고 Jenkins Home의 Key File 권한을 제한한다. 자세한 항목은 <a href="https://plugins.jenkins.io/publish-over-ssh/">Publish Over SSH Plugin</a>에서 확인한다.</p>
-
-<p><strong>Test Configuration</strong>으로 연결을 확인한다. Test가 실패하면 Network와 SSH Port, Username, <code class="language-plaintext highlighter-rouge">authorized_keys</code> 권한, Host Key와 Private Key 짝을 순서대로 점검한다.</p>
-
-<p>Freestyle Job의 <strong>Post-build Actions → Send build artifacts over SSH</strong>에서 다음 값을 구성한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>예시</th>
-      <th>결과</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Source files</td>
-      <td><code class="language-plaintext highlighter-rouge">build/libs/*.jar</code></td>
-      <td>Workspace에서 전송할 JAR 선택</td>
-    </tr>
-    <tr>
-      <td>Remove prefix</td>
-      <td><code class="language-plaintext highlighter-rouge">build/libs</code></td>
-      <td>원격 경로에서 Build Directory 제거</td>
-    </tr>
-    <tr>
-      <td>Remote directory</td>
-      <td><code class="language-plaintext highlighter-rouge">deploy</code></td>
-      <td><code class="language-plaintext highlighter-rouge">&lt;Remote Directory&gt;/deploy</code>로 전송</td>
-    </tr>
-    <tr>
-      <td>Exec command</td>
-      <td><code class="language-plaintext highlighter-rouge">bash start_server.sh</code></td>
-      <td>전송 후 원격 실행 Script 시작</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Spring Boot가 일반 JAR와 <code class="language-plaintext highlighter-rouge">-plain.jar</code>를 함께 만들면 실행 가능한 <code class="language-plaintext highlighter-rouge">bootJar</code>만 전송하도록 Pattern 또는 Artifact 이름을 고정한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">tasks</span><span class="o">.</span><span class="na">named</span><span class="o">(</span><span class="s1">'bootJar'</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">archiveFileName</span> <span class="o">=</span> <span class="s1">'calculator.jar'</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p>배포 Server의 <code class="language-plaintext highlighter-rouge">~/deploy/start_server.sh</code>를 다음과 같이 작성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/usr/bin/env bash</span>
-<span class="nb">set</span> <span class="nt">-euo</span> pipefail
-
-<span class="nv">DEPLOY_DIR</span><span class="o">=</span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/deploy"</span>
-<span class="nv">APP_JAR</span><span class="o">=</span><span class="s2">"</span><span class="nv">$DEPLOY_DIR</span><span class="s2">/calculator.jar"</span>
-<span class="nv">PID_FILE</span><span class="o">=</span><span class="s2">"</span><span class="nv">$DEPLOY_DIR</span><span class="s2">/calculator.pid"</span>
-<span class="nv">LOG_FILE</span><span class="o">=</span><span class="s2">"</span><span class="nv">$DEPLOY_DIR</span><span class="s2">/calculator.log"</span>
-
-java <span class="nt">--version</span>
-<span class="nb">test</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$APP_JAR</span><span class="s2">"</span>
-
-<span class="k">if</span> <span class="o">[[</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$PID_FILE</span><span class="s2">"</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
-    </span><span class="nv">CURRENT_PID</span><span class="o">=</span><span class="s2">"</span><span class="si">$(</span><span class="nb">cat</span> <span class="s2">"</span><span class="nv">$PID_FILE</span><span class="s2">"</span><span class="si">)</span><span class="s2">"</span>
-    <span class="k">if </span><span class="nb">kill</span> <span class="nt">-0</span> <span class="s2">"</span><span class="nv">$CURRENT_PID</span><span class="s2">"</span> 2&gt;/dev/null<span class="p">;</span> <span class="k">then
-        </span><span class="nb">kill</span> <span class="nt">-15</span> <span class="s2">"</span><span class="nv">$CURRENT_PID</span><span class="s2">"</span>
-        <span class="k">for </span>_ <span class="k">in</span> <span class="o">{</span>1..30<span class="o">}</span><span class="p">;</span> <span class="k">do
-            </span><span class="nb">kill</span> <span class="nt">-0</span> <span class="s2">"</span><span class="nv">$CURRENT_PID</span><span class="s2">"</span> 2&gt;/dev/null <span class="o">||</span> <span class="nb">break
-            sleep </span>1
-        <span class="k">done
-    fi
-    </span><span class="nb">rm</span> <span class="nt">-f</span> <span class="s2">"</span><span class="nv">$PID_FILE</span><span class="s2">"</span>
-<span class="k">fi
-
-</span><span class="nb">nohup </span>java <span class="nt">-jar</span> <span class="s2">"</span><span class="nv">$APP_JAR</span><span class="s2">"</span> <span class="o">&gt;</span> <span class="s2">"</span><span class="nv">$LOG_FILE</span><span class="s2">"</span> 2&gt;&amp;1 &amp;
-<span class="nb">echo</span> <span class="nv">$!</span> <span class="o">&gt;</span> <span class="s2">"</span><span class="nv">$PID_FILE</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<p>실행 권한을 부여하고 Script 문법을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod </span>750 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/deploy/start_server.sh"</span>
-bash <span class="nt">-n</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/deploy/start_server.sh"</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">ps | grep</code> 결과를 잘라 PID를 찾는 방식은 <code class="language-plaintext highlighter-rouge">grep</code> Process나 다른 Application을 잘못 선택할 수 있다. PID File과 <code class="language-plaintext highlighter-rouge">kill -0</code>을 사용하면 이 Job이 시작한 Process인지 더 명확하게 추적할 수 있다. <code class="language-plaintext highlighter-rouge">nohup</code>에는 표준 출력·오류 Redirection과 Background 실행을 나타내는 <code class="language-plaintext highlighter-rouge">&amp;</code>가 함께 필요하다.</p>
-
-<p>배포 후 다음을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cat</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/deploy/calculator.pid"</span>
-ps <span class="nt">-p</span> <span class="s2">"</span><span class="si">$(</span><span class="nb">cat</span> <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/deploy/calculator.pid"</span><span class="si">)</span><span class="s2">"</span> <span class="nt">-o</span> pid,cmd
-<span class="nb">tail</span> <span class="nt">-n</span> 100 <span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/deploy/calculator.log"</span>
-curl <span class="nt">--fail</span> <span class="s2">"http://localhost:9000/"</span>
-</code></pre></div></div>
-
-<h2 id="5--docker-image-build와-registry-push">5 ) Docker Image Build와 Registry Push</h2>
-
-<hr />
-
-<p>JAR를 직접 전송하는 대신 Jenkins가 Docker Image를 만들고 Registry에 Push할 수 있다. 다음 Dockerfile은 Gradle Build가 이미 생성한 JAR를 Runtime Image에 넣는다.</p>
-
-<div class="language-dockerfile highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">FROM</span><span class="s"> amazoncorretto:21-alpine</span>
-
-<span class="k">WORKDIR</span><span class="s"> /app</span>
-<span class="k">COPY</span><span class="s"> build/libs/calculator.jar app.jar</span>
-
-<span class="k">EXPOSE</span><span class="s"> 9000</span>
-<span class="k">ENTRYPOINT</span><span class="s"> ["java", "-jar", "/app/app.jar"]</span>
-</code></pre></div></div>
-
-<p>Dockerfile 안에서 <code class="language-plaintext highlighter-rouge">./mvnw</code>를 <code class="language-plaintext highlighter-rouge">CMD</code>로 실행하면 Image Build 시점이 아니라 Container 시작 시점에 Build가 실행된다. Source와 Wrapper를 Image에 복사하지 않았다면 명령 자체도 실행할 수 없다. 이 구성에서는 Jenkins가 먼저 <code class="language-plaintext highlighter-rouge">./gradlew clean build</code>를 실행하고 Dockerfile은 완성된 JAR만 복사한다.</p>
-
-<p>Docker Hub Username과 Access Token을 Jenkins의 <strong>Username with password</strong> Credential로 저장한다. Freestyle Job에서는 Credentials Binding을 통해 환경 변수로 주입한 뒤 Shell에서 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">set</span> <span class="nt">-eu</span>
-
-./gradlew clean build
-
-<span class="nv">IMAGE_NAME</span><span class="o">=</span><span class="s2">"&lt;dockerhub-username&gt;/calculator"</span>
-<span class="nv">IMAGE_TAG</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">BUILD_NUMBER</span><span class="k">}</span><span class="s2">"</span>
-
-<span class="nb">printf</span> <span class="s1">'%s'</span> <span class="s2">"</span><span class="nv">$DOCKERHUB_TOKEN</span><span class="s2">"</span> | docker login <span class="se">\</span>
-  <span class="nt">--username</span> <span class="s2">"</span><span class="nv">$DOCKERHUB_USERNAME</span><span class="s2">"</span> <span class="se">\</span>
-  <span class="nt">--password-stdin</span>
-
-docker build <span class="nt">--tag</span> <span class="s2">"</span><span class="nv">$IMAGE_NAME</span><span class="s2">:</span><span class="nv">$IMAGE_TAG</span><span class="s2">"</span> <span class="nb">.</span>
-docker push <span class="s2">"</span><span class="nv">$IMAGE_NAME</span><span class="s2">:</span><span class="nv">$IMAGE_TAG</span><span class="s2">"</span>
-docker <span class="nb">logout</span>
-</code></pre></div></div>
-
-<p>Credential Binding에서 Username Variable은 <code class="language-plaintext highlighter-rouge">DOCKERHUB_USERNAME</code>, Password Variable은 <code class="language-plaintext highlighter-rouge">DOCKERHUB_TOKEN</code>으로 지정한다. Token 값을 Shell에 직접 쓰거나 <code class="language-plaintext highlighter-rouge">docker login -p &lt;token&gt;</code>처럼 Command Argument로 전달하지 않는다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">latest</code> Tag만 사용하면 어떤 Build가 배포됐는지 추적하기 어렵다. Jenkins <code class="language-plaintext highlighter-rouge">BUILD_NUMBER</code>나 Commit SHA처럼 변경되지 않는 Tag를 Push하고, 필요할 때 같은 Image에 <code class="language-plaintext highlighter-rouge">latest</code>를 추가한다.</p>
-
-<h2 id="6--jenkins에서-docker를-실행하는-환경">6 ) Jenkins에서 Docker를 실행하는 환경</h2>
-
-<hr />
-
-<p>Jenkins Container에서 Docker 명령을 실행하려면 Docker CLI만이 아니라 명령을 처리할 Docker Daemon Endpoint가 필요하다. 이 권한은 Build Script가 Host의 Container와 File System에 영향을 줄 수 있으므로 Controller에 직접 부여하지 않고 별도 Docker Build Agent를 사용하는 것이 기본 방향이다.</p>
-
-<p>선택 가능한 구성은 다음과 같다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구성</th>
-      <th>특징</th>
-      <th>주의 사항</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>전용 Docker Agent</td>
-      <td>Build Node에 Docker Engine과 제한된 Job을 배치</td>
-      <td>Agent 접근 권한과 격리 필요</td>
-    </tr>
-    <tr>
-      <td>Docker-in-Docker Agent</td>
-      <td>별도 Daemon을 Build 환경 안에서 실행</td>
-      <td>TLS, Storage와 Container 권한 설정 필요</td>
-    </tr>
-    <tr>
-      <td>Remote BuildKit 또는 Image Builder</td>
-      <td>Docker Socket 없이 원격 Builder 사용</td>
-      <td>Builder 인증과 Cache 관리 필요</td>
-    </tr>
-    <tr>
-      <td>Host Docker Socket Mount</td>
-      <td>구성이 단순함</td>
-      <td>Socket 접근이 사실상 Host Root 수준 권한을 제공</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>실행 중인 Jenkins Controller Container 안에 Docker Engine을 임시 설치하면 Container 재생성 시 설정이 사라지고 Controller와 Build 환경도 결합된다. <code class="language-plaintext highlighter-rouge">/var/run/docker.sock</code>에 <code class="language-plaintext highlighter-rouge">chmod 666</code>을 적용하면 모든 Local 사용자가 Docker Daemon을 제어할 수 있으므로 사용하지 않는다. Socket을 Mount해야 하는 제한된 실습 환경이라도 전용 Agent와 Group 권한을 사용하고, 신뢰할 수 없는 Pull Request Job을 같은 Agent에서 실행하지 않는다.</p>
-
-<p>Docker Daemon 권한의 영향은 <a href="https://docs.docker.com/engine/security/">Docker Engine Security</a>와 <a href="https://docs.docker.com/engine/install/linux-postinstall/">Linux Post-installation steps</a>를 참고한다.</p>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-  <ul>
-    <li>
-      <p>Build periodically는 변경 여부와 관계없이 실행하고, Poll SCM은 Revision 변경 시 실행하며, GitHub Webhook은 Event를 Jenkins에 즉시 전달한다.</p>
-    </li>
-    <li>
-      <p>GitHub Webhook의 Jenkins Endpoint는 <code class="language-plaintext highlighter-rouge">/github-webhook/</code>이며 Secret과 필요한 Event만 설정한다.</p>
-    </li>
-    <li>
-      <p>SSH 배포에서는 Jenkins Private Key, 배포 Server의 <code class="language-plaintext highlighter-rouge">authorized_keys</code>와 검증된 <code class="language-plaintext highlighter-rouge">known_hosts</code>가 연결된다.</p>
-    </li>
-    <li>
-      <p>Publish Over SSH는 Build Artifact 전송과 원격 Script 실행을 연결하며, PID File로 이전 Application Process를 안전하게 종료한다.</p>
-    </li>
-    <li>
-      <p>Docker Credential은 Jenkins에서 주입하고 변경되지 않는 Image Tag를 Push한다.</p>
-    </li>
-    <li>
-      <p>Docker Socket은 높은 권한을 제공하므로 Controller가 아니라 격리된 Build Agent에서 다룬다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Jenkins Freestyle Job에서 주기 실행과 GitHub Webhook을 구성하고 Build Artifact를 SSH Server 또는 Docker Registry를 거쳐 배포한다]]></summary></entry></feed>
+<p>다음 글인 <a href="/cloud-native-53-jenkins-sonarqube-analysis/">Jenkins SonarQube 정적 분석과 Quality Gate</a>에서는 Test를 실행하지 않고 Code의 Bug, Vulnerability와 Code Smell을 분석하고 Jenkins Pipeline에 결과를 연결한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다]]></summary></entry></feed>

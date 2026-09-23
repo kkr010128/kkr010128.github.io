@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Ansible Role·Collection과 Docker 자동화 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-61-ansible-roles-collections-docker/">
+<meta property="og:title" content="Ansible Role·Collection과 Docker 자동화 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-61-ansible-roles-collections-docker/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ansible Role·Collection과 Docker 자동화 | renamed.log">
+<meta name="twitter:description" content="Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다">
+
+  <meta property="article:published_time" content="2026-09-23T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.svg?v=1790179098" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1790179098" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1790179098">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1790179098" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1790179098">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Ansible Role·Collection과 Docker 자동화 | renamed.log",
+    "description": "Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다",
+    "url": "https://hyn128.site/cloud-native-61-ansible-roles-collections-docker/",
+    "datePublished": "2026-09-23T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Ansible Role·Collection과 Docker 자동화</h1>
+    
+      <p class="post-head__description">Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 23일 · 7분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Ansible">Ansible</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-60-ansible-variables-vault-facts-control-flow/">Ansible 변수와 Vault·Facts·제어문</a>에서는 변수, Facts, 반복문과 조건문으로 Host별 실행을 제어했다. 이번에는 길어진 Playbook의 Task, 변수, File과 Handler를 표준 Directory 구조의 Role로 분리한다. 외부 Role과 Collection을 관리하는 <code class="language-plaintext highlighter-rouge">ansible-galaxy</code>를 살펴본 뒤 <code class="language-plaintext highlighter-rouge">community.docker</code> Collection으로 Docker Container를 배포한다.</p>
+
+<h2 id="1--role이-필요한-이유">1 ) Role이 필요한 이유</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Role</strong>은 Task, Handler, 변수, 정적 File과 Template을 정해진 Directory 구조로 묶어 재사용하는 단위이다.</p>
+</blockquote>
+
+<p>하나의 Playbook에 모든 내용을 넣으면 다른 Project에서 일부 기능만 재사용하기 어렵고 여러 사람이 같은 File을 동시에 수정하게 된다. Role은 Web Server, Database 또는 공통 OS 설정처럼 독립된 책임으로 자동화 내용을 나눈다.</p>
+
+<p>Role을 사용하면 다음과 같은 이점이 있다.</p>
+
+<ul>
+  <li>
+    <p>관련 Task, Handler와 File을 한 Directory에서 관리한다.</p>
+  </li>
+  <li>
+    <p>기본값과 환경별 Override 값을 분리한다.</p>
+  </li>
+  <li>
+    <p>여러 Playbook에서 같은 구성을 재사용한다.</p>
+  </li>
+  <li>
+    <p>Role 단위로 Test, Version과 의존성을 관리한다.</p>
+  </li>
+  <li>
+    <p>Ansible Galaxy 또는 내부 Repository를 통해 공유한다.</p>
+  </li>
+</ul>
+
+<h2 id="2--role-생성과-directory-구조">2 ) Role 생성과 Directory 구조</h2>
+
+<hr />
+
+<p>Control Node의 Project Root에서 <code class="language-plaintext highlighter-rouge">webserver</code> Role 골격을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> roles
+ansible-galaxy role init roles/webserver
+tree roles/webserver
+</code></pre></div></div>
+
+<p>주요 Directory의 역할은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>경로</th>
+      <th>역할</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tasks/main.yml</code></td>
+      <td>Role이 수행할 기본 Task</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">handlers/main.yml</code></td>
+      <td>Role Task가 <code class="language-plaintext highlighter-rouge">notify</code>하는 Handler</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">defaults/main.yml</code></td>
+      <td>다른 변수로 쉽게 Override할 수 있는 낮은 우선순위 기본값</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">vars/main.yml</code></td>
+      <td>Role 내부에서 강하게 유지할 높은 우선순위 변수</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">files/</code></td>
+      <td><code class="language-plaintext highlighter-rouge">copy</code> 등에서 사용하는 정적 File</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">templates/</code></td>
+      <td>Jinja2 Template File</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">meta/main.yml</code></td>
+      <td>Role Metadata와 의존 Role</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">tests/</code></td>
+      <td>Role 동작 확인용 Inventory와 Playbook</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>사용하지 않는 Directory는 반드시 유지할 필요가 없다. Role의 <code class="language-plaintext highlighter-rouge">files/</code>와 <code class="language-plaintext highlighter-rouge">templates/</code> Resource는 Role Root를 기준으로 찾으므로 <code class="language-plaintext highlighter-rouge">../files/index.html</code> 같은 상대 경로를 만들 필요가 없다.</p>
+
+<h2 id="3--apache-web-server-role-작성">3 ) Apache Web Server Role 작성</h2>
+
+<hr />
+
+<p>이번 Role은 Ubuntu와 Debian 계열 Managed Node에 Apache를 설치하고 정적 Page를 배포한다.</p>
+
+<h3 id="31-override-가능한-기본값">3.1 Override 가능한 기본값</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/defaults/main.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">webserver_title</span><span class="pi">:</span> <span class="s">Apache Web Server</span>
+<span class="na">webserver_package</span><span class="pi">:</span> <span class="s">apache2</span>
+<span class="na">webserver_service</span><span class="pi">:</span> <span class="s">apache2</span>
+<span class="na">webserver_document_root</span><span class="pi">:</span> <span class="s">/var/www/html</span>
+<span class="na">webserver_security_config</span><span class="pi">:</span> <span class="s">/etc/apache2/conf-available/security.conf</span>
+<span class="na">webserver_index_mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+<span class="na">webserver_supported_os_families</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="s">Debian</span>
+</code></pre></div></div>
+
+<p>사용자가 환경별로 바꿀 가능성이 있는 값은 <code class="language-plaintext highlighter-rouge">defaults</code>에 둔다. <code class="language-plaintext highlighter-rouge">vars/main.yml</code>은 우선순위가 높아 Inventory 값으로 바꾸기 어려우므로 반드시 고정해야 하는 값에만 사용한다.</p>
+
+<h3 id="32-정적-page">3.2 정적 Page</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/files/index.html</code>을 작성한다.</p>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;!doctype html&gt;</span>
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;title&gt;</span>Hello from Ansible<span class="nt">&lt;/title&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;h1&gt;</span>Hello! Ansible Role<span class="nt">&lt;/h1&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre></div></div>
+
+<p>Host별 값이 들어가야 한다면 정적 <code class="language-plaintext highlighter-rouge">files</code> 대신 <code class="language-plaintext highlighter-rouge">templates/index.html.j2</code>와 <code class="language-plaintext highlighter-rouge">ansible.builtin.template</code> Module을 사용한다.</p>
+
+<h3 id="33-task">3.3 Task</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/tasks/main.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Verify the managed operating system family</span>
+  <span class="na">ansible.builtin.assert</span><span class="pi">:</span>
+    <span class="na">that</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">ansible_facts['os_family'] in webserver_supported_os_families</span>
+    <span class="na">fail_msg</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+      <span class="s">{{ ansible_facts['os_family'] }} is not supported by this role.</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install the web server package</span>
+  <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_package</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+    <span class="na">update_cache</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Copy the web server index page</span>
+  <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+    <span class="na">src</span><span class="pi">:</span> <span class="s">index.html</span>
+    <span class="na">dest</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_document_root</span><span class="nv"> </span><span class="s">}}/index.html"</span>
+    <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+    <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+    <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_index_mode</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Limit the Apache server signature</span>
+  <span class="na">ansible.builtin.lineinfile</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_security_config</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">regexp</span><span class="pi">:</span> <span class="s1">'</span><span class="s">^ServerTokens</span><span class="nv"> </span><span class="s">'</span>
+    <span class="na">line</span><span class="pi">:</span> <span class="s">ServerTokens Prod</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">notify</span><span class="pi">:</span> <span class="s">Restart web server</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the web server is enabled and running</span>
+  <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_service</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">state: latest</code>는 Repository의 새 Version이 공개될 때마다 Package를 변경할 수 있다. 재현 가능한 기본 구성에는 <code class="language-plaintext highlighter-rouge">present</code>를 사용하고 Upgrade는 별도 절차로 관리한다.</p>
+
+<h3 id="34-handler">3.4 Handler</h3>
+
+<p><code class="language-plaintext highlighter-rouge">roles/webserver/handlers/main.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Restart web server</span>
+  <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">webserver_service</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">restarted</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<h3 id="35-role-호출">3.5 Role 호출</h3>
+
+<p><code class="language-plaintext highlighter-rouge">role-example.yml</code>에서 <code class="language-plaintext highlighter-rouge">import_role</code>로 정적으로 불러온다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Configure web servers with a role</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the start of the role play</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s">Start the webserver role.</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Import the webserver role</span>
+      <span class="na">ansible.builtin.import_role</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">webserver</span>
+</code></pre></div></div>
+
+<p>문법과 예상 변경을 확인한 뒤 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> role-example.yml
+ansible-playbook <span class="nt">--check</span> <span class="nt">--diff</span> role-example.yml
+ansible-playbook role-example.yml
+</code></pre></div></div>
+
+<p>Role을 찾지 못하면 Project의 <code class="language-plaintext highlighter-rouge">ansible.cfg</code>에 Search Path를 지정한다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[defaults]</span>
+<span class="py">inventory</span> <span class="p">=</span> <span class="s">./inventory.ini</span>
+<span class="py">roles_path</span> <span class="p">=</span> <span class="s">./roles</span>
+</code></pre></div></div>
+
+<h2 id="4--ansible-galaxy의-role-관리">4 ) Ansible Galaxy의 Role 관리</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Ansible Galaxy</strong>는 Role과 Collection을 검색하고 배포하는 공개 Service이다.</p>
+</blockquote>
+
+<p>Role 관련 명령을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role <span class="nt">--help</span>
+</code></pre></div></div>
+
+<p>PostgreSQL Role을 검색하고 선택한 Role의 Metadata를 확인하는 기본 흐름은 다음과 같다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role search postgresql <span class="nt">--platforms</span> Ubuntu
+ansible-galaxy role info &lt;namespace.role_name&gt;
+ansible-galaxy role <span class="nb">install</span> <span class="nt">-p</span> roles &lt;namespace.role_name&gt;
+ansible-galaxy role list <span class="nt">-p</span> roles
+</code></pre></div></div>
+
+<p>자료에서 사용한 <code class="language-plaintext highlighter-rouge">buluma.postgres</code>는 Galaxy 명령 흐름을 확인하기 위한 특정 시점의 예시이다. Role의 존재 여부, 최신 Release, 지원 OS와 유지보수 상태는 바뀔 수 있으므로 설치 전에 다시 검색한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role info buluma.postgres
+</code></pre></div></div>
+
+<p>더 이상 사용하지 않는 Role을 Project Directory에서 제거한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy role remove &lt;namespace.role_name&gt;
+</code></pre></div></div>
+
+<p>Galaxy에 공개됐다는 사실만으로 Code의 보안과 품질이 검증됐다고 판단할 수 없다. 설치 전에 Source Repository, License, Release 이력, 지원 Platform, 의존 Role과 Task가 수행하는 Privileged 작업을 확인한다.</p>
+
+<h2 id="5--content-collection">5 ) Content Collection</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Collection</strong>은 Module, Plugin, Role, Playbook과 문서를 Namespace 단위로 묶어 Ansible Core와 독립적으로 배포하는 형식이다.</p>
+</blockquote>
+
+<p>초기의 Ansible은 많은 Module을 Core Package와 함께 배포했다. Collection은 Core Release와 Module·Plugin Release를 분리하고 필요한 Version을 Project별로 선택할 수 있게 한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ansible.builtin.copy</code>는 Builtin Collection의 FQCN이고 <code class="language-plaintext highlighter-rouge">community.docker.docker_container</code>는 <code class="language-plaintext highlighter-rouge">community.docker</code> Collection의 Module이다.</p>
+
+<p>설치된 Collection을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy collection list
+ansible-doc community.docker.docker_container
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">community.docker</code>가 없다면 설치한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy collection <span class="nb">install </span>community.docker
+</code></pre></div></div>
+
+<p>Project에서 의존성을 재현하려면 검증한 Version을 <code class="language-plaintext highlighter-rouge">requirements.yml</code>에 기록한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">collections</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">community.docker</span>
+    <span class="na">version</span><span class="pi">:</span> <span class="s2">"</span><span class="s">&lt;VERIFIED-VERSION&gt;"</span>
+</code></pre></div></div>
+
+<p>Placeholder를 설치 시점에 검증한 실제 Version으로 바꾼 뒤 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-galaxy collection <span class="nb">install</span> <span class="nt">-r</span> requirements.yml
+ansible-galaxy collection list community.docker
+</code></pre></div></div>
+
+<p>Collection을 Offline 환경으로 전달해야 한다면 의존성을 포함한 Artifact와 생성된 <code class="language-plaintext highlighter-rouge">requirements.yml</code>을 Download할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> collection-bundle
+ansible-galaxy collection download <span class="se">\</span>
+  <span class="nt">-p</span> collection-bundle <span class="se">\</span>
+  community.docker
+</code></pre></div></div>
+
+<h2 id="6--docker-설치-자동화-준비">6 ) Docker 설치 자동화 준비</h2>
+
+<hr />
+
+<p>Docker 설치는 <code class="language-plaintext highlighter-rouge">docker_hosts</code> Inventory Group에만 적용한다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[docker_hosts]</span>
+<span class="err">master</span>
+<span class="err">worker1</span>
+<span class="err">worker2</span>
+</code></pre></div></div>
+
+<p>Docker의 현재 Ubuntu 설치 문서는 One-line <code class="language-plaintext highlighter-rouge">docker.list</code>보다 DEB822 형식의 <code class="language-plaintext highlighter-rouge">/etc/apt/sources.list.d/docker.sources</code>를 안내한다. 배포판 Codename과 Architecture를 고정 문자열로 넣지 않고 Managed Node에서 확인한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">install-docker.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install Docker Engine from the official repository</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">docker_hosts</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install repository prerequisites</span>
+      <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">ca-certificates</span>
+          <span class="pi">-</span> <span class="s">curl</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+        <span class="na">update_cache</span><span class="pi">:</span> <span class="no">true</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create the APT keyring directory</span>
+      <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+        <span class="na">path</span><span class="pi">:</span> <span class="s">/etc/apt/keyrings</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">directory</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0755"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Download the Docker repository signing key</span>
+      <span class="na">ansible.builtin.get_url</span><span class="pi">:</span>
+        <span class="na">url</span><span class="pi">:</span> <span class="s">https://download.docker.com/linux/ubuntu/gpg</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/apt/keyrings/docker.asc</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Read the Debian package architecture</span>
+      <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s">dpkg --print-architecture</span>
+      <span class="na">register</span><span class="pi">:</span> <span class="s">docker_dpkg_architecture</span>
+      <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Configure the Docker DEB822 repository</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/apt/sources.list.d/docker.sources</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+        <span class="na">content</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">Types: deb</span>
+          <span class="s">URIs: https://download.docker.com/linux/ubuntu</span>
+          <span class="s">Suites: {{ ansible_facts['distribution_release'] }}</span>
+          <span class="s">Components: stable</span>
+          <span class="s">Architectures: {{ docker_dpkg_architecture.stdout }}</span>
+          <span class="s">Signed-By: /etc/apt/keyrings/docker.asc</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install Docker Engine packages</span>
+      <span class="na">ansible.builtin.apt</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s">docker-ce</span>
+          <span class="pi">-</span> <span class="s">docker-ce-cli</span>
+          <span class="pi">-</span> <span class="s">containerd.io</span>
+          <span class="pi">-</span> <span class="s">docker-buildx-plugin</span>
+          <span class="pi">-</span> <span class="s">docker-compose-plugin</span>
+          <span class="pi">-</span> <span class="s">python3-requests</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+        <span class="na">update_cache</span><span class="pi">:</span> <span class="no">true</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure Docker is enabled and running</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">docker</span>
+        <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+</code></pre></div></div>
+
+<p>자료의 <code class="language-plaintext highlighter-rouge">docker-ce-li</code>는 <code class="language-plaintext highlighter-rouge">docker-ce-cli</code>의 오탈자이다. 또한 Ubuntu <code class="language-plaintext highlighter-rouge">noble</code>, <code class="language-plaintext highlighter-rouge">amd64</code>를 고정하면 다른 Ubuntu Release와 ARM64 Host에서 실패하므로 Facts와 <code class="language-plaintext highlighter-rouge">dpkg</code> 결과를 사용했다.</p>
+
+<p>자료의 Container 예제는 <code class="language-plaintext highlighter-rouge">python3-docker</code>를 설치했지만 현재 <code class="language-plaintext highlighter-rouge">community.docker</code>의 해당 Module은 Docker SDK for Python을 직접 사용하지 않고 <code class="language-plaintext highlighter-rouge">requests</code>를 요구한다. 설치한 Collection Version의 공식 Requirements를 확인하고 이 예제에서는 Managed Node에 <code class="language-plaintext highlighter-rouge">python3-requests</code>를 설치한다.</p>
+
+<p>문법을 검사하고 실행한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="nt">--syntax-check</span> install-docker.yml
+ansible-playbook <span class="nt">--check</span> <span class="nt">--diff</span> install-docker.yml
+ansible-playbook install-docker.yml <span class="nt">-K</span>
+</code></pre></div></div>
+
+<p>Check Mode에서는 APT Repository가 아직 생성되지 않아 뒤의 Package 설치 결과를 완전히 예측하지 못할 수 있다.</p>
+
+<p>설치 결과를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible docker_hosts <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"docker --version"</span>
+
+ansible docker_hosts <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"systemctl is-active docker"</span>
+</code></pre></div></div>
+
+<p>현재 Docker Ubuntu Repository 형식과 Package 목록은 <a href="https://docs.docker.com/engine/install/ubuntu/">Docker Engine Ubuntu 설치 문서</a>에서 확인한다.</p>
+
+<h2 id="7--nginx-container-배포">7 ) Nginx Container 배포</h2>
+
+<hr />
+
+<p>자료의 <code class="language-plaintext highlighter-rouge">community.gerneral</code>은 존재하지 않는 오탈자이다. Docker Resource는 <code class="language-plaintext highlighter-rouge">community.docker</code> Collection의 FQCN을 사용한다. <code class="language-plaintext highlighter-rouge">nginx-latest</code>도 Docker Hub의 일반적인 Tag 표기인 <code class="language-plaintext highlighter-rouge">nginx:latest</code>로 수정한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">deploy-docker.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy an Nginx container</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">docker_hosts</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">my-web-server</span>
+    <span class="na">image_name</span><span class="pi">:</span> <span class="s">nginx:latest</span>
+    <span class="na">host_port</span><span class="pi">:</span> <span class="m">8080</span>
+    <span class="na">container_port</span><span class="pi">:</span> <span class="m">80</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Pull the Nginx image</span>
+      <span class="na">community.docker.docker_image_pull</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">image_name</span><span class="nv"> </span><span class="s">}}"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create and start the Nginx container</span>
+      <span class="na">community.docker.docker_container</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">container_name</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">image</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">image_name</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+        <span class="na">restart_policy</span><span class="pi">:</span> <span class="s">always</span>
+        <span class="na">published_ports</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">host_port</span><span class="nv"> </span><span class="s">}}:{{</span><span class="nv"> </span><span class="s">container_port</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">env</span><span class="pi">:</span>
+          <span class="na">MY_ENV_VAR</span><span class="pi">:</span> <span class="s">hello-ansible</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the published endpoint</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">{{ inventory_hostname }} exposes {{ container_name }}</span>
+          <span class="s">on TCP {{ host_port }}.</span>
+</code></pre></div></div>
+
+<p>과거 예제에서 <code class="language-plaintext highlighter-rouge">community.docker.docker_image</code>로 Image를 Pull할 수 있었고 현재도 지원되지만, 현재 Collection 문서는 Pull 전용 작업에 <code class="language-plaintext highlighter-rouge">community.docker.docker_image_pull</code> 사용을 권장한다. 설치한 Collection Version의 요구 Package와 Parameter는 <code class="language-plaintext highlighter-rouge">ansible-doc</code>으로 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-doc community.docker.docker_image_pull
+ansible-doc community.docker.docker_container
+ansible-playbook <span class="nt">--syntax-check</span> deploy-docker.yml
+ansible-playbook deploy-docker.yml <span class="nt">-K</span>
+</code></pre></div></div>
+
+<p>Container와 HTTP 응답을 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible docker_hosts <span class="se">\</span>
+  <span class="nt">-m</span> ansible.builtin.command <span class="se">\</span>
+  <span class="nt">-a</span> <span class="s2">"docker ps --filter name=my-web-server"</span>
+
+curl http://192.0.2.11:8080
+curl http://192.0.2.12:8080
+curl http://192.0.2.13:8080
+</code></pre></div></div>
+
+<p>다른 Computer에서 접속한다면 Managed Node의 Firewall과 Network에서 TCP 8080 접근이 허용되어 있어야 한다.</p>
+
+<h2 id="8--문제-해결">8 ) 문제 해결</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>증상</th>
+      <th>확인할 내용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Role을 찾지 못함</td>
+      <td><code class="language-plaintext highlighter-rouge">roles/</code> 위치와 <code class="language-plaintext highlighter-rouge">roles_path</code></td>
+    </tr>
+    <tr>
+      <td>Role 변수 Override가 적용되지 않음</td>
+      <td>값이 <code class="language-plaintext highlighter-rouge">defaults</code>가 아니라 우선순위가 높은 <code class="language-plaintext highlighter-rouge">vars</code>에 있는지 확인</td>
+    </tr>
+    <tr>
+      <td>Collection Module을 찾지 못함</td>
+      <td><code class="language-plaintext highlighter-rouge">ansible-galaxy collection list</code>, <code class="language-plaintext highlighter-rouge">requirements.yml</code> 설치 여부</td>
+    </tr>
+    <tr>
+      <td>Docker APT 서명 오류</td>
+      <td><code class="language-plaintext highlighter-rouge">docker.asc</code> Permission과 <code class="language-plaintext highlighter-rouge">Signed-By</code> 경로</td>
+    </tr>
+    <tr>
+      <td>Docker Package를 찾지 못함</td>
+      <td>Ubuntu Codename, Architecture와 <code class="language-plaintext highlighter-rouge">apt update</code> 결과</td>
+    </tr>
+    <tr>
+      <td>Docker Socket 권한 오류</td>
+      <td><code class="language-plaintext highlighter-rouge">become</code> 사용 여부와 <code class="language-plaintext highlighter-rouge">/var/run/docker.sock</code> Permission</td>
+    </tr>
+    <tr>
+      <td>Container Module Parameter 오류</td>
+      <td>설치된 Collection Version의 <code class="language-plaintext highlighter-rouge">ansible-doc</code> 결과</td>
+    </tr>
+    <tr>
+      <td>TCP 8080 접속 실패</td>
+      <td>Container Port Mapping, Host Firewall과 Network 경로</td>
+    </tr>
+    <tr>
+      <td>모든 Host에서 Container가 생성됨</td>
+      <td><code class="language-plaintext highlighter-rouge">hosts: docker_hosts</code> Group과 <code class="language-plaintext highlighter-rouge">--list-hosts</code> 결과</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Role 구조는 <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Ansible Roles</a>, Collection Module은 <a href="https://docs.ansible.com/projects/ansible/latest/collections/community/docker/index.html">Community.Docker</a>과 <a href="https://docs.ansible.com/projects/ansible/latest/collections/community/docker/docker_container_module.html">docker_container Module</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Role은 Task, Handler, 변수와 File을 표준 Directory 구조로 묶어 Playbook을 재사용한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">defaults</code>는 쉽게 Override할 값, <code class="language-plaintext highlighter-rouge">vars</code>는 높은 우선순위가 필요한 내부 값에 제한해 사용한다.</p>
+    </li>
+    <li>
+      <p>Galaxy의 공개 Role은 설치 전에 Source, 지원 Platform, Version과 Privileged 작업을 검토한다.</p>
+    </li>
+    <li>
+      <p>Collection은 Module과 Plugin을 Core와 독립적으로 배포하며 Playbook에서는 FQCN을 사용한다.</p>
+    </li>
+    <li>
+      <p>Docker 설치는 현재 DEB822 Repository 형식과 실제 Architecture를 사용하고 Container는 <code class="language-plaintext highlighter-rouge">community.docker</code> Module로 원하는 상태를 관리한다.</p>
+    </li>
+    <li>
+      <p>Container 제거, Docker Package 제거와 전체 Data 삭제는 영향 범위가 다르므로 별도 절차로 분리한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-60-ansible-variables-vault-facts-control-flow/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Ansible 변수와 Vault·Facts·제어문</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1790179098"></script>
+    <script src="/assets/js/code-enhancements.js?v=1790179098"></script>
+  </body>
+</html>

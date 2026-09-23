@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Ansible 변수와 Vault·Facts·제어문 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Ansible 변수의 범위와 우선순위를 구분하고 Vault, Facts, 반복문, 조건문, Handler와 실패 처리를 이용해 재사용 가능한 Playbook을 작성한다">
+<link rel="canonical" href="https://hyn128.site/cloud-native-60-ansible-variables-vault-facts-control-flow/">
+<meta property="og:title" content="Ansible 변수와 Vault·Facts·제어문 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Ansible 변수의 범위와 우선순위를 구분하고 Vault, Facts, 반복문, 조건문, Handler와 실패 처리를 이용해 재사용 가능한 Playbook을 작성한다">
+<meta property="og:url" content="https://hyn128.site/cloud-native-60-ansible-variables-vault-facts-control-flow/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ansible 변수와 Vault·Facts·제어문 | renamed.log">
+<meta name="twitter:description" content="Ansible 변수의 범위와 우선순위를 구분하고 Vault, Facts, 반복문, 조건문, Handler와 실패 처리를 이용해 재사용 가능한 Playbook을 작성한다">
+
+  <meta property="article:published_time" content="2026-09-23T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.svg?v=1790179098" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1790179098" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1790179098">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1790179098" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1790179098">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Ansible 변수와 Vault·Facts·제어문 | renamed.log",
+    "description": "Ansible 변수의 범위와 우선순위를 구분하고 Vault, Facts, 반복문, 조건문, Handler와 실패 처리를 이용해 재사용 가능한 Playbook을 작성한다",
+    "url": "https://hyn128.site/cloud-native-60-ansible-variables-vault-facts-control-flow/",
+    "datePublished": "2026-09-23T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">CloudNative</p>
+    
+    <h1 class="post-head__title">Ansible 변수와 Vault·Facts·제어문</h1>
+    
+      <p class="post-head__description">Ansible 변수의 범위와 우선순위를 구분하고 Vault, Facts, 반복문, 조건문, Handler와 실패 처리를 이용해 재사용 가능한 Playbook을 작성한다</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 23일 · 8분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=CloudNative">CloudNative</a>
+        
+          <a class="tag-chip" href="/?tag=AutoEverSW">AutoEverSW</a>
+        
+          <a class="tag-chip" href="/?tag=Ansible">Ansible</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <p><a href="/cloud-native-59-ansible-adhoc-playbook-nginx/">Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화</a>에서는 반복 가능한 Nginx 배포 절차를 Playbook으로 작성했다. 이번에는 Host와 환경마다 달라지는 값을 변수로 분리하고, Managed Node에서 수집한 Facts와 이전 Task의 결과를 이용해 실행 대상을 판단한다. 비밀 값은 Ansible Vault로 암호화하고 상태 변경이 발생했을 때만 Handler를 호출한다.</p>
+
+<h2 id="1--변수의-역할과-이름">1 ) 변수의 역할과 이름</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>변수</strong>는 사용자, Package, Service, File 경로처럼 Host나 환경에 따라 달라지는 값을 이름으로 저장한 것이다.</p>
+</blockquote>
+
+<p>같은 값을 Task마다 직접 적으면 환경이 바뀔 때 여러 위치를 수정해야 한다. 변수를 사용하면 Playbook의 작업 구조는 유지하면서 입력 값만 바꿀 수 있다.</p>
+
+<p>변수 이름은 문자, 숫자와 밑줄로 구성하며 숫자로 시작할 수 없다. Python이나 Ansible이 내부에서 사용하는 이름은 피한다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>이름</th>
+      <th>판단</th>
+      <th>이유</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">web_package</code></td>
+      <td>사용 가능</td>
+      <td>의미가 분명하고 영문자와 밑줄만 사용한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">web-package</code></td>
+      <td>사용하지 않음</td>
+      <td>하이픈은 식별자에서 빼기 연산자로 해석될 수 있다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">1st_user</code></td>
+      <td>사용 불가</td>
+      <td>숫자로 시작한다.</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">environment</code></td>
+      <td>사용하지 않음</td>
+      <td>Ansible에서 특별한 의미를 가지는 예약 이름이다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>변수는 Jinja2 표현식으로 참조한다. 값 전체가 변수라면 YAML 문자열로 감싸는 것이 안전하다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">ansible.builtin.user</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">managed_user</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+</code></pre></div></div>
+
+<h2 id="2--변수의-정의-위치와-범위">2 ) 변수의 정의 위치와 범위</h2>
+
+<hr />
+
+<p>변수는 Inventory, Playbook, 외부 File, Role과 실행 명령에서 정의할 수 있다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>종류</th>
+      <th>정의 위치</th>
+      <th>적용 범위</th>
+      <th>일반적인 용도</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Group 변수</td>
+      <td>Inventory의 Group 또는 <code class="language-plaintext highlighter-rouge">group_vars/</code></td>
+      <td>Group에 속한 Host</td>
+      <td>공통 Package, Port와 계정</td>
+    </tr>
+    <tr>
+      <td>Host 변수</td>
+      <td>Inventory의 Host 또는 <code class="language-plaintext highlighter-rouge">host_vars/</code></td>
+      <td>특정 Host</td>
+      <td>Host별 IP, 장치명과 예외 값</td>
+    </tr>
+    <tr>
+      <td>Play 변수</td>
+      <td>Play의 <code class="language-plaintext highlighter-rouge">vars</code></td>
+      <td>해당 Play</td>
+      <td>Play 안에서만 사용하는 값</td>
+    </tr>
+    <tr>
+      <td>외부 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">vars_files</code></td>
+      <td>불러온 Play</td>
+      <td>환경별 변수 File 분리</td>
+    </tr>
+    <tr>
+      <td>추가 변수</td>
+      <td><code class="language-plaintext highlighter-rouge">--extra-vars</code>, <code class="language-plaintext highlighter-rouge">-e</code></td>
+      <td>실행 시 전달</td>
+      <td>일회성 Override</td>
+    </tr>
+    <tr>
+      <td>등록 변수</td>
+      <td>Task의 <code class="language-plaintext highlighter-rouge">register</code></td>
+      <td>해당 Host의 현재 실행</td>
+      <td>이전 Task 결과를 후속 Task에서 사용</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>같은 이름이 여러 위치에 있으면 우선순위가 높은 값이 낮은 값을 덮어쓴다. 전체 우선순위에는 많은 단계가 있지만 이번 범위에서는 다음 관계를 먼저 기억한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Role defaults
+  &lt; Inventory Group 변수
+  &lt; Inventory Host 변수
+  &lt; Play vars·vars_files
+  &lt; Role vars
+  &lt; Task·등록 변수
+  &lt; Extra vars
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">-e</code>로 전달한 Extra vars는 변수 중 가장 높은 우선순위를 가진다. 우선순위에 의존해 같은 이름을 여러 위치에서 반복 정의하기보다 값의 성격에 맞는 한 위치를 정하는 것이 좋다.</p>
+
+<h2 id="3--group-변수와-host-변수">3 ) Group 변수와 Host 변수</h2>
+
+<hr />
+
+<p>간단한 실습에서는 <code class="language-plaintext highlighter-rouge">inventory.ini</code> 안에 변수를 함께 작성할 수 있다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[lab]</span>
+<span class="err">master</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.11 managed_user=ansible-master</span>
+<span class="err">worker1</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.12</span>
+<span class="err">worker2</span> <span class="py">ansible_host</span><span class="p">=</span><span class="s">192.0.2.13</span>
+
+<span class="nn">[lab:vars]</span>
+<span class="py">managed_user</span><span class="p">=</span><span class="s">ansible</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">master</code>는 Host 변수의 <code class="language-plaintext highlighter-rouge">managed_user=ansible-master</code>가 Group 변수보다 우선한다. <code class="language-plaintext highlighter-rouge">worker1</code>과 <code class="language-plaintext highlighter-rouge">worker2</code>는 Group 값인 <code class="language-plaintext highlighter-rouge">ansible</code>을 사용한다.</p>
+
+<p>Project가 커지면 Inventory의 연결 정보와 일반 변수를 분리한다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-lab/
+├── ansible.cfg
+├── inventory.ini
+├── group_vars/
+│   └── lab.yml
+└── host_vars/
+    └── master.yml
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">group_vars/lab.yml</code>을 작성한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">host_vars/master.yml</code>에서 <code class="language-plaintext highlighter-rouge">master</code>만 Override한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible-master</span>
+</code></pre></div></div>
+
+<p>변수가 Host별로 어떻게 해석되는지 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-inventory <span class="nt">--host</span> master
+ansible-inventory <span class="nt">--host</span> worker1
+</code></pre></div></div>
+
+<h2 id="4--play-변수와-외부-변수-file">4 ) Play 변수와 외부 변수 File</h2>
+
+<hr />
+
+<p>Play 안에서만 사용할 값은 <code class="language-plaintext highlighter-rouge">vars</code>에 정의한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create a managed user</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible2</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the managed user exists</span>
+      <span class="na">ansible.builtin.user</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">managed_user</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+      <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>여러 Playbook이 같은 값을 사용하면 <code class="language-plaintext highlighter-rouge">vars/users.yml</code>로 분리한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">managed_user</span><span class="pi">:</span> <span class="s">ansible4</span>
+</code></pre></div></div>
+
+<p>Play에서 <code class="language-plaintext highlighter-rouge">vars_files</code>로 불러온다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create a user from an external variable file</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">vars_files</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">vars/users.yml</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the managed user exists</span>
+      <span class="na">ansible.builtin.user</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">managed_user</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+      <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>실행할 때만 값을 바꾸려면 Extra vars를 전달한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="se">\</span>
+  <span class="nt">-e</span> <span class="s2">"managed_user=ansible5"</span> <span class="se">\</span>
+  create-user.yml
+</code></pre></div></div>
+
+<p>Extra vars는 기존 값을 강제로 덮어쓰므로 자동화 Script에서 무분별하게 사용하면 실제 값의 출처를 추적하기 어렵다.</p>
+
+<h2 id="5--task-결과를-등록-변수로-사용">5 ) Task 결과를 등록 변수로 사용</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">register</code>는 Task의 Return Data를 Host별 변수에 저장한다. 등록 변수는 현재 Playbook 실행 중 후속 Task에서 사용할 수 있으며 다음 실행까지 영구 보존되지 않는다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Inspect a service result</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">gather_facts</span><span class="pi">:</span> <span class="no">false</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check whether rsyslog is active</span>
+      <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s">systemctl is-active rsyslog</span>
+      <span class="na">register</span><span class="pi">:</span> <span class="s">rsyslog_status</span>
+      <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+      <span class="na">failed_when</span><span class="pi">:</span> <span class="no">false</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the registered result</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">var</span><span class="pi">:</span> <span class="s">rsyslog_status</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print active status only</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Rsyslog</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">active</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">inventory_hostname</span><span class="nv"> </span><span class="s">}}"</span>
+      <span class="na">when</span><span class="pi">:</span> <span class="s">rsyslog_status.rc == </span><span class="m">0</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">command</code> Module은 조회 명령도 기본적으로 변경으로 판단할 수 있으므로 <code class="language-plaintext highlighter-rouge">changed_when: false</code>를 지정했다. <code class="language-plaintext highlighter-rouge">systemctl is-active</code>의 Non-zero Exit Code도 결과로 비교하기 위해 <code class="language-plaintext highlighter-rouge">failed_when: false</code>를 사용했다.</p>
+
+<p>주요 Return 값은 다음과 같다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>값</th>
+      <th>의미</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">rc</code></td>
+      <td>명령의 Exit Code</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">stdout</code></td>
+      <td>표준 출력</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">stderr</code></td>
+      <td>표준 오류</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">changed</code></td>
+      <td>상태 변경 여부</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">failed</code></td>
+      <td>Task 실패 여부</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="6--ansible-vault">6 ) Ansible Vault</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Ansible Vault</strong>는 Password, API Key와 같은 변수를 File 또는 문자열 단위로 암호화하여 평문 노출을 줄이는 기능이다.</p>
+</blockquote>
+
+<p>Vault는 저장된 Data만 보호한다. Playbook 실행 중 복호화된 값이 Module 출력이나 Log에 표시되는 문제까지 자동으로 막지는 않는다. Secret을 사용하는 Task에는 필요에 따라 <code class="language-plaintext highlighter-rouge">no_log: true</code>를 설정한다.</p>
+
+<h3 id="61-암호화-변수-file-생성">6.1 암호화 변수 File 생성</h3>
+
+<p>Control Node에서 <code class="language-plaintext highlighter-rouge">vars/secrets.yml</code>을 생성한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> vars
+ansible-vault create <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  vars/secrets.yml
+</code></pre></div></div>
+
+<p>Editor에 다음 구조로 입력한다. 실제 Password를 문서나 Repository에 작성하지 않는다. Linux <code class="language-plaintext highlighter-rouge">user</code> Module의 <code class="language-plaintext highlighter-rouge">password</code>에는 평문 Password가 아니라 대상 OS가 이해하는 Password Hash가 필요하다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="na">vault_user_name</span><span class="pi">:</span> <span class="s">itstudy</span>
+<span class="na">vault_user_password_hash</span><span class="pi">:</span> <span class="s2">"</span><span class="s">&lt;PASSWORD-HASH&gt;"</span>
+</code></pre></div></div>
+
+<p>암호화된 File은 <code class="language-plaintext highlighter-rouge">$ANSIBLE_VAULT</code> Header와 Ciphertext로 보인다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">head</span> <span class="nt">-n</span> 1 vars/secrets.yml
+ansible-vault view <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  vars/secrets.yml
+</code></pre></div></div>
+
+<p>내용을 수정할 때는 평문 File로 복호화해 방치하지 않고 <code class="language-plaintext highlighter-rouge">edit</code>을 사용한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-vault edit <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  vars/secrets.yml
+</code></pre></div></div>
+
+<p>기존 File은 <code class="language-plaintext highlighter-rouge">encrypt</code>, 암호가 노출되었거나 교체 주기가 되면 <code class="language-plaintext highlighter-rouge">rekey</code>로 다시 암호화할 수 있다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-vault encrypt <span class="nt">--vault-id</span> lab@prompt vars/existing-secret.yml
+ansible-vault rekey vars/secrets.yml
+</code></pre></div></div>
+
+<h3 id="62-vault-변수-사용">6.2 Vault 변수 사용</h3>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create a user with vaulted data</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">vars_files</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">vars/secrets.yml</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure the vaulted user exists</span>
+      <span class="na">ansible.builtin.user</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">vault_user_name</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">password</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">vault_user_password_hash</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">present</span>
+      <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">no_log</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>실행할 때 같은 Vault ID와 Password를 제공한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-playbook <span class="se">\</span>
+  <span class="nt">--vault-id</span> lab@prompt <span class="se">\</span>
+  create-vault-user.yml
+</code></pre></div></div>
+
+<p>Vault Password File을 사용할 수도 있지만 그 File 자체가 복호화 Key이다. Repository나 일반 공유 Directory에 두지 않고 최소 Permission과 별도 Secret Manager를 사용한다.</p>
+
+<h2 id="7--facts">7 ) Facts</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Facts</strong>는 Ansible이 Managed Node에서 자동으로 수집한 Hostname, OS, Kernel, CPU, Memory, Network와 Storage 정보이다.</p>
+</blockquote>
+
+<p>Play의 <code class="language-plaintext highlighter-rouge">gather_facts</code> 기본값은 <code class="language-plaintext highlighter-rouge">true</code>이다. Facts가 필요 없는 단순 작업은 <code class="language-plaintext highlighter-rouge">false</code>로 설정해 시작 시간을 줄일 수 있다.</p>
+
+<p>Ad-hoc 명령으로 전체 Facts를 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible lab <span class="nt">-m</span> ansible.builtin.setup
+</code></pre></div></div>
+
+<p>Playbook에서 필요한 일부 값만 출력한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print selected facts</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print host and network facts</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+          <span class="s">{{ inventory_hostname }} runs</span>
+          <span class="s">{{ ansible_facts['distribution'] }}</span>
+          <span class="s">{{ ansible_facts['distribution_version'] }} and its default IPv4</span>
+          <span class="s">address is {{ ansible_facts['default_ipv4']['address'] }}.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">inventory_hostname</code>은 Inventory에서 정한 이름이고 <code class="language-plaintext highlighter-rouge">ansible_facts['hostname']</code>은 Managed Node OS가 보고한 Hostname이다. 두 값은 같지 않을 수 있다.</p>
+
+<p>Facts 수집에 실패하면 SSH 연결뿐 아니라 Managed Node의 Python과 <code class="language-plaintext highlighter-rouge">setup</code> Module 실행 조건을 확인한다.</p>
+
+<h3 id="사용자-지정-local-facts">사용자 지정 Local Facts</h3>
+
+<p>Managed Node의 <code class="language-plaintext highlighter-rouge">/etc/ansible/facts.d</code>에 <code class="language-plaintext highlighter-rouge">.fact</code> File을 두면 <code class="language-plaintext highlighter-rouge">ansible_local</code> Namespace에서 읽을 수 있다. 다음 작업은 Managed Node에 INI 형식의 Local Fact를 배포한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Install a local fact</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create the local facts directory</span>
+      <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+        <span class="na">path</span><span class="pi">:</span> <span class="s">/etc/ansible/facts.d</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">directory</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0755"</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Write package local facts</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/ansible/facts.d/packages.fact</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+        <span class="na">content</span><span class="pi">:</span> <span class="pi">|</span>
+          <span class="s">[packages]</span>
+          <span class="s">web_package=nginx</span>
+          <span class="s">db_package=mariadb-server</span>
+
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Gather facts again</span>
+      <span class="na">ansible.builtin.setup</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>다시 수집한 값은 <code class="language-plaintext highlighter-rouge">ansible_local['packages']['packages']['web_package']</code>와 같은 구조로 접근한다. Local Fact의 File 이름과 INI Section이 각각 중첩 Key가 된다.</p>
+
+<h2 id="8--반복문">8 ) 반복문</h2>
+
+<hr />
+
+<p>같은 Module을 여러 값에 적용할 때 <code class="language-plaintext highlighter-rouge">loop</code>를 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Ensure required services are running</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+  <span class="na">vars</span><span class="pi">:</span>
+    <span class="na">required_services</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">ssh</span>
+      <span class="pi">-</span> <span class="s">rsyslog</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Start required services</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item</span><span class="nv"> </span><span class="s">}}"</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">started</span>
+      <span class="na">loop</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">required_services</span><span class="nv"> </span><span class="s">}}"</span>
+</code></pre></div></div>
+
+<p>여러 속성을 함께 반복하려면 Dictionary 목록을 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Create log files</span>
+  <span class="na">ansible.builtin.file</span><span class="pi">:</span>
+    <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item.path</span><span class="nv"> </span><span class="s">}}"</span>
+    <span class="na">state</span><span class="pi">:</span> <span class="s">touch</span>
+    <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item.mode</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">loop</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/var/log/test1.log</span>
+      <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+    <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/var/log/test2.log</span>
+      <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0600"</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>반복 Task에 <code class="language-plaintext highlighter-rouge">register</code>를 사용하면 각 반복 결과가 <code class="language-plaintext highlighter-rouge">results</code> 목록에 저장된다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Check service states</span>
+  <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s2">"</span><span class="s">systemctl</span><span class="nv"> </span><span class="s">is-active</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">item</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">loop</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ssh</span>
+    <span class="pi">-</span> <span class="s">rsyslog</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s">service_checks</span>
+  <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">failed_when</span><span class="pi">:</span> <span class="no">false</span>
+
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print each service result</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">item.item</span><span class="nv"> </span><span class="s">}}:</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">item.stdout</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">loop</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">service_checks.results</span><span class="nv"> </span><span class="s">}}"</span>
+</code></pre></div></div>
+
+<h2 id="9--조건문">9 ) 조건문</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">when</code>은 Boolean, Facts, 등록 변수와 반복 항목을 평가해 Task 실행 여부를 결정한다. 조건식 자체에는 Jinja2 이중 중괄호를 사용하지 않는다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print the package manager family</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Use</span><span class="nv"> </span><span class="s">apt</span><span class="nv"> </span><span class="s">on</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">inventory_hostname</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">when</span><span class="pi">:</span> <span class="s">ansible_facts['os_family'] == 'Debian'</span>
+</code></pre></div></div>
+
+<p>목록으로 작성한 여러 조건은 모두 참이어야 한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print supported Ubuntu version</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s">This host uses a supported Ubuntu release.</span>
+  <span class="na">when</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="s">ansible_facts['distribution'] == 'Ubuntu'</span>
+    <span class="pi">-</span> <span class="s">ansible_facts['distribution_major_version'] | int &gt;= </span><span class="m">22</span>
+</code></pre></div></div>
+
+<p>반복문과 조건문을 함께 사용해 Root Mount만 선택할 수 있다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Print root filesystem free space</span>
+  <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+    <span class="na">msg</span><span class="pi">:</span> <span class="s2">"</span><span class="s">Root</span><span class="nv"> </span><span class="s">free</span><span class="nv"> </span><span class="s">space</span><span class="nv"> </span><span class="s">is</span><span class="nv"> </span><span class="s">{{</span><span class="nv"> </span><span class="s">item.size_available</span><span class="nv"> </span><span class="s">}}</span><span class="nv"> </span><span class="s">bytes"</span>
+  <span class="na">loop</span><span class="pi">:</span> <span class="s2">"</span><span class="s">{{</span><span class="nv"> </span><span class="s">ansible_facts['mounts']</span><span class="nv"> </span><span class="s">}}"</span>
+  <span class="na">when</span><span class="pi">:</span> <span class="s">item.mount == '/'</span>
+</code></pre></div></div>
+
+<p>Facts를 조건에 사용할 때 <code class="language-plaintext highlighter-rouge">gather_facts: false</code>를 설정하면 값이 존재하지 않을 수 있다. Facts Cache를 별도로 구성하지 않았다면 해당 Play에서 Facts를 수집한다.</p>
+
+<h2 id="10--handler와-변경-알림">10 ) Handler와 변경 알림</h2>
+
+<hr />
+
+<blockquote>
+  <p><strong>Handler</strong>는 Task가 실제 변경을 만들고 <code class="language-plaintext highlighter-rouge">notify</code>한 경우에만 실행되는 특수 Task이다.</p>
+</blockquote>
+
+<p>여러 Task가 같은 Handler를 알리더라도 기본적으로 Play의 해당 실행 지점에서 한 번만 처리한다. 설정 File이 변경되지 않으면 Service를 불필요하게 재시작하지 않는다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Manage rsyslog configuration</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">become</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Deploy rsyslog configuration</span>
+      <span class="na">ansible.builtin.copy</span><span class="pi">:</span>
+        <span class="na">src</span><span class="pi">:</span> <span class="s">files/50-lab.conf</span>
+        <span class="na">dest</span><span class="pi">:</span> <span class="s">/etc/rsyslog.d/50-lab.conf</span>
+        <span class="na">owner</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">group</span><span class="pi">:</span> <span class="s">root</span>
+        <span class="na">mode</span><span class="pi">:</span> <span class="s2">"</span><span class="s">0644"</span>
+      <span class="na">notify</span><span class="pi">:</span> <span class="s">Restart rsyslog</span>
+
+  <span class="na">handlers</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Restart rsyslog</span>
+      <span class="na">ansible.builtin.service</span><span class="pi">:</span>
+        <span class="na">name</span><span class="pi">:</span> <span class="s">rsyslog</span>
+        <span class="na">state</span><span class="pi">:</span> <span class="s">restarted</span>
+</code></pre></div></div>
+
+<p>Handler 이름은 Play 범위에서 고유하게 작성한다. 중간에 즉시 실행해야 하는 특별한 이유가 없다면 기본 실행 시점을 유지한다.</p>
+
+<h2 id="11--실패-처리">11 ) 실패 처리</h2>
+
+<hr />
+
+<p>Task가 실패하면 Ansible은 기본적으로 해당 Host의 뒤 Task를 중단하고 다른 Host는 계속 처리한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ignore_errors: true</code>는 실행된 Task가 <code class="language-plaintext highlighter-rouge">failed</code> 결과를 반환해도 다음 Task로 진행한다. Undefined Variable, 문법 오류와 <code class="language-plaintext highlighter-rouge">unreachable</code> 상태까지 무시하는 기능은 아니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Run an optional validation command</span>
+  <span class="na">ansible.builtin.command</span><span class="pi">:</span> <span class="s">/usr/local/bin/optional-check</span>
+  <span class="na">register</span><span class="pi">:</span> <span class="s">optional_check</span>
+  <span class="na">changed_when</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">failed_when</span><span class="pi">:</span> <span class="no">false</span>
+</code></pre></div></div>
+
+<p>예상 가능한 Non-zero Exit Code라면 모든 오류를 무시하기보다 <code class="language-plaintext highlighter-rouge">failed_when</code>으로 성공과 실패의 의미를 정의한다.</p>
+
+<p>설정 File을 변경해 Handler가 알림을 받은 뒤 후속 Task가 실패하면 기본적으로 그 Host의 Handler가 실행되지 않을 수 있다. 실패한 Host에서도 이미 알림을 받은 Handler를 실행해야 한다면 Play에 <code class="language-plaintext highlighter-rouge">force_handlers: true</code>를 설정하거나 <code class="language-plaintext highlighter-rouge">--force-handlers</code>를 사용한다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">---</span>
+<span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Apply configuration with forced handlers</span>
+  <span class="na">hosts</span><span class="pi">:</span> <span class="s">lab</span>
+  <span class="na">force_handlers</span><span class="pi">:</span> <span class="no">true</span>
+
+  <span class="na">tasks</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">Explain force handler policy</span>
+      <span class="na">ansible.builtin.debug</span><span class="pi">:</span>
+        <span class="na">msg</span><span class="pi">:</span> <span class="s">Notified handlers run even if a later task fails.</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">force_handlers</code>도 Host가 <code class="language-plaintext highlighter-rouge">unreachable</code> 상태가 되는 문제까지 해결하지는 않는다.</p>
+
+<h2 id="12--검사와-실행">12 ) 검사와 실행</h2>
+
+<hr />
+
+<p>변수와 조건을 추가한 뒤에는 선택되는 Host와 문법을 먼저 확인한다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ansible-inventory <span class="nt">--graph</span>
+ansible-playbook <span class="nt">--syntax-check</span> playbook.yml
+ansible-playbook <span class="nt">--check</span> <span class="nt">--diff</span> playbook.yml
+ansible-playbook playbook.yml
+</code></pre></div></div>
+
+<p>Check Mode는 외부 명령과 일부 Module의 실제 결과를 완전히 재현하지 않는다. 실제 실행 후 Play Recap의 <code class="language-plaintext highlighter-rouge">ok</code>, <code class="language-plaintext highlighter-rouge">changed</code>, <code class="language-plaintext highlighter-rouge">failed</code>, <code class="language-plaintext highlighter-rouge">unreachable</code>, <code class="language-plaintext highlighter-rouge">skipped</code>, <code class="language-plaintext highlighter-rouge">rescued</code>, <code class="language-plaintext highlighter-rouge">ignored</code>를 Host별로 확인한다.</p>
+
+<p>공식 문서는 <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_variables.html">변수</a>, <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_vars_facts.html">Facts</a>, <a href="https://docs.ansible.com/projects/ansible/latest/vault_guide/vault.html">Vault</a>, <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_handlers.html">Handler</a>와 <a href="https://docs.ansible.com/projects/ansible/latest/playbook_guide/playbooks_error_handling.html">실패 처리</a>에서 확인할 수 있다.</p>
+
+<blockquote>
+  <p><strong>최종 정리</strong></p>
+  <ul>
+    <li>
+      <p>Group·Host·Play·외부·추가 변수는 적용 범위와 우선순위가 다르며 Extra vars는 기존 변수를 강제로 덮어쓴다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">register</code>는 현재 실행의 Host별 Task 결과를 저장하고 Facts는 Managed Node에서 수집한 System 정보를 제공한다.</p>
+    </li>
+    <li>
+      <p>Vault는 저장 Data를 암호화하지만 실행 중 출력까지 보호하지 않으므로 Secret Task의 Log도 통제해야 한다.</p>
+    </li>
+    <li>
+      <p><code class="language-plaintext highlighter-rouge">loop</code>는 같은 작업을 여러 값에 적용하고 <code class="language-plaintext highlighter-rouge">when</code>은 Facts와 이전 결과에 따라 Task를 선택한다.</p>
+    </li>
+    <li>
+      <p>Handler는 실제 변경 알림이 있을 때만 실행하며 실패를 무시하기보다 <code class="language-plaintext highlighter-rouge">failed_when</code>으로 기대하는 결과를 정의한다.</p>
+    </li>
+  </ul>
+</blockquote>
+
+<p>다음 글인 <a href="/cloud-native-61-ansible-roles-collections-docker/">Ansible Role·Collection과 Docker 자동화</a>에서는 관련 Task, File, 변수와 Handler를 Role로 묶고 Collection Module로 Docker Container를 관리한다.</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/notes-11-troubleshooting-client-isolation/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Client Isolation으로 인한 단말 간 통신 실패</strong>
+          </span>
+        </a>
+      
+      
+        <a class="post-navigation__item post-navigation__item--next" href="/cloud-native-61-ansible-roles-collections-docker/">
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">다음 포스트</span>
+            <strong class="post-navigation__title">Ansible Role·Collection과 Docker 자동화</strong>
+          </span>
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 11h12.17l-5.58-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z" fill="currentColor"></path>
+            </svg>
+          </span>
+        </a>
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1790179098"></script>
+    <script src="/assets/js/code-enhancements.js?v=1790179098"></script>
+  </body>
+</html>
