@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Client Isolation으로 인한 단말 간 통신 실패",
+        "url": "/notes-11-troubleshooting-client-isolation/",
+        "description": "서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안",
+        "thumbnail": null,
+        "tags": ["TroubleShooting","TechBites"],
+        "series_key": "technotes",
+        "series_title": "TechNotes",
+        "date_label": "2026년 9월 23일",
+        "reading_time_label": "6분 읽기",
+        "search": "client isolation으로 인한 단말 간 통신 실패 서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안 troubleshooting techbites technotes"
+      },
+    
+      
+      
+      {
         "title": "Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화",
         "url": "/cloud-native-59-ansible-adhoc-playbook-nginx/",
         "description": "Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다",

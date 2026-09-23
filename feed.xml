@@ -1,4 +1,290 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-22T23:35:54+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Ansible Architecture와 Inventory 구성</title><link href="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/" rel="alternate" type="text/html" title="Ansible Architecture와 Inventory 구성" /><published>2026-09-22T00:00:00+09:00</published><updated>2026-09-22T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-58-ansible-architecture-inventory</id><content type="html" xml:base="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/"><![CDATA[<p><a href="/cloud-native-57-argocd-git-repository-manual-sync/">Argo CD Git Repository 연동과 수동 Sync</a>에서는 Git의 Desired State를 Kubernetes Cluster에 반영하는 GitOps 흐름을 구성했다. 이번에는 Ansible이 Control Node에서 여러 Managed Node의 Package, File과 Service 상태를 일관되게 관리하는 구조를 살펴보고 실제 연결 환경을 준비한다.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-23T15:53:55+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Client Isolation으로 인한 단말 간 통신 실패</title><link href="https://hyn128.site/notes-11-troubleshooting-client-isolation/" rel="alternate" type="text/html" title="Client Isolation으로 인한 단말 간 통신 실패" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/notes-11-troubleshooting-client-isolation</id><content type="html" xml:base="https://hyn128.site/notes-11-troubleshooting-client-isolation/"><![CDATA[<hr />
+
+<h2 id="요약">요약</h2>
+<blockquote>
+  <p>Ubuntu Server 구축 후 동일한 Wi-Fi에 연결된 MacBook에서 서버로 SSH 접속 및 Ping이 되지 않는 문제가 발생했다.</p>
+
+  <p>서버에서 외부 네트워크 연결은 정상적으로 이루어졌지만, 동일한 Wi-Fi에 연결된 MacBook에서 Ubuntu서버로, 심지어 반대로도 SSH 접속 및 Ping이 불가능했다.</p>
+
+  <p>처음에는 이전 기수에서 사용하던 고정 IP 설정을 그대로 참고하면서 네트워크 설정 문제라고 판단했다. 확인 결과 기존 환경과 현재 환경의 네트워크 구성 및 서브넷이 달랐으며, 이를 현재 환경에 맞게 수정했다.</p>
+
+  <p>하지만 네트워크 설정을 정상화한 이후에도 단말 간 통신은 불가능했다. 추가 확인 결과 강의실 Wi-Fi에 적용된 <strong>Client Isolation</strong>으로 인해 동일 Wi-Fi에 연결된 클라이언트 간 직접 통신이 차단되고 있음을 확인했다.</p>
+  <h4 id="더-짧은-요약">더 짧은 요약</h4>
+  <p><strong>SSH 접속 실패</strong><br />
+→ 네트워크 설정 문제를 의심<br />
+→ 이전 기수에서 사용하던 네트워크 환경과 다른 것을 인지<br />
+→ 서브넷 설정을 현재 환경에 맞게 수정 → 여전히 실패<br />
+→ 조사 결과 WiFi Client Isolation이 원인임을 확인<br />
+→ 우리의 권한으로는 해결 불가능 → 우회를 해보자</p>
+</blockquote>
+
+<h4 id="해결-방법">해결 방법</h4>
+
+<p>찾아보니 우회의 방법이 존재함 → TailScale 등의 VPN 활용(이미 다른 팀의 서버에 이전 기수가 설치한 내용이 발견됨)</p>
+
+<p>AP에 대한 관리 권한이 없어 Client Isolation 자체를 해제할 수는 없으므로, 현재 환경에서는 필요한 내부 포트를 모두 강사님을 통해 개방시키거나, 최소한의 포트를 유지한 채로 <strong>Tailscale과 같은 VPN/Overlay Network를 통한 우회가 필요하다.</strong></p>
+
+<h2 id="1-문제-상황">1. 문제 상황</h2>
+
+<blockquote>
+  <p>기존 Ubuntu Desktop 서버를 Ubuntu Server로 재설치한 뒤 Wi-Fi 네트워크를 설정했다.<br />
+서버에서 외부 네트워크 연결은 정상적으로 이루어졌지만, 동일한 Wi-Fi에 연결된 MacBook에서 서버로 SSH 접속 및 Ping이 불가능했다.</p>
+</blockquote>
+
+<p>AutoEver Cloud Scool의 지난 기수에서 사용하던 서버를 받게 되었는데, 포맷이 되지 않은 상태였다.</p>
+
+<p>Ubuntu Desktop이 설치된 서버에 Ubuntu Server를 설치하기 전, 기존의 <code class="language-plaintext highlighter-rouge">netplan.yaml</code> 에 DHCP가 아닌 고정 IP로 할당이 되어있는 것으로 보아 추후 할당 가능한 IP를 확인하고 네트워크 설정하는 과정이 줄어들 것이라 판단해 백업했다.</p>
+
+<p><img src="../../assets/post/2026-09-22-notes-11-troubleshooting-client-isolation/02.webp" alt="" /></p>
+
+<p>이후 Ubuntu Server 를 설치했고, 해당 설정을 참고하여 네트워크를 구성했지만, 다른 노트북에서 서버로 SSH 접속이 되지 않았다.</p>
+
+<p>또한 SSH뿐만 아니라 서버 IP를 대상으로 한 Ping에도 응답이 없었다.</p>
+
+<p>반면 서버 자체에서는 외부 네트워크 연결이 가능했다.</p>
+
+<p>즉 문제 상황은 다음과 같았다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server → Internet     정상
+MacBook → Internet    정상
+
+MacBook → Server Ping 실패
+MacBook → Server SSH  실패
+</code></pre></div></div>
+
+<p>단순한 인터넷 연결 문제가 아니라 <strong>동일 네트워크에 연결된 단말 간 통신에서 문제가 발생하고 있는 상황</strong>이었다.</p>
+
+<hr />
+
+<h2 id="2-기존-환경과-현재-환경-비교"><strong>2. 기존 환경과 현재 환경 비교</strong></h2>
+
+<p>문제를 확인하는 과정에서 이전 기수의 네트워크 환경과 현재 환경에 차이가 있다는 것을 확인했다.</p>
+
+<p>기존 설정에서는 서버가 <strong>유선 LAN</strong>을 사용하고 있었지만, 현재 서버는 <strong>Wi-Fi</strong>를 통해 네트워크에 연결하고 있었다.</p>
+
+<p>현재 서버의 유선 LAN 카드 상태가 확실하지 않았고 강의실 바닥의 LAN 포트가 Wi-Fi AP와 동일한 네트워크를 사용하는지도 확인되지 않았기 때문에, 우선 Wi-Fi를 기준으로 문제를 분석하기로 했다.</p>
+
+<p>현재 Netplan 파일을 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> /etc/netplan
+<span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>확인된 파일:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>00-installer-config.yaml
+</code></pre></div></div>
+
+<p>설정을 변경하기 전 기존 파일을 백업했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cp </span>00-installer-config.yaml ~/.backup-netplan.yaml
+</code></pre></div></div>
+
+<h2><img src="../../assets/post/2026-09-22-notes-11-troubleshooting-client-isolation/06.webp" alt="" /></h2>
+
+<h2 id="3-네트워크-설정-확인"><strong>3. 네트워크 설정 확인</strong></h2>
+
+<p>현재 서버의 IP를 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">hostname</span> <span class="nt">-I</span>
+</code></pre></div></div>
+
+<p>Netplan 설정도 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/netplan/00-installer-config.yaml
+</code></pre></div></div>
+
+<p>처음에는 이전 설정을 참고하여 서버에 다음과 같이 Static IP를 설정했다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server
+192.168.200.3/24
+</code></pre></div></div>
+
+<p>하지만 MacBook의 네트워크 설정을 확인한 결과 다음과 같은 주소를 사용하고 있었다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MacBook
+192.168.201.x/22
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">/24</code>와 <code class="language-plaintext highlighter-rouge">/22</code>는 서로 다른 서브넷 범위를 의미한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">192.168.200.3/24</code>의 네트워크 범위는:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.200.0 ~ 192.168.200.255
+</code></pre></div></div>
+
+<p>반면 <code class="language-plaintext highlighter-rouge">192.168.201.x/22</code>가 포함되는 네트워크는 아래와 같았다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.200.0/22
+
+192.168.200.x
+192.168.201.x
+192.168.202.x
+192.168.203.x
+</code></pre></div></div>
+
+<p>이 내용을 확인하고 나니, 지난 기수가 사용하던 강의실과 현재 사용중인 강의실이 다르다는 것이 떠올랐다. 교육장에는 강의실마다 AP를 나눠서 사용하고 있었고, 이로인해 이전 기수와 서브넷이 달랐던 것이다.
+따라서 이전 기수에서 사용하던 <code class="language-plaintext highlighter-rouge">/24</code> 설정을 현재 네트워크에 그대로 적용하는 것은 적절하지 않았다.</p>
+
+<hr />
+
+<h2 id="4-dhcp를-통한-실제-네트워크-설정-확인"><strong>4. DHCP를 통한 실제 네트워크 설정 확인</strong></h2>
+
+<p>Static IP를 임의로 지정하기보다 현재 강의실 네트워크의 DHCP 서버가 어떤 설정을 제공하는지 먼저 확인하기로 했다.</p>
+
+<p>Netplan을 DHCP 기반으로 변경했다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">network</span><span class="pi">:</span>
+  <span class="na">version</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">wifis</span><span class="pi">:</span>
+    <span class="na">wlo1</span><span class="pi">:</span>
+      <span class="na">access-points</span><span class="pi">:</span>
+        <span class="s2">"</span><span class="s">RAPA_Classroom-5"</span><span class="err">:</span>
+          <span class="na">password</span><span class="pi">:</span> <span class="s2">"</span><span class="s">********"</span>
+      <span class="na">dhcp4</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>기존에 직접 지정했던 다음 설정은 제거했다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">addresses</span><span class="pi">:</span>
+<span class="na">routes</span><span class="pi">:</span>
+<span class="na">nameservers</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>설정을 검증하고 적용했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan generate
+<span class="nb">sudo </span>netplan try
+</code></pre></div></div>
+
+<p>이후 실제 할당된 IP와 라우팅 정보를 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip <span class="nt">-4</span> addr show wlo1
+ip route
+</code></pre></div></div>
+
+<p>이를 통해 현재 강의실 네트워크에서 사용하는 IP 대역과 서브넷 정보를 확인할 수 있었다.</p>
+
+<p>하지만 네트워크 설정을 현재 환경에 맞게 수정한 이후에도 MacBook에서 서버로 Ping과 SSH가 되지 않았다.</p>
+
+<p>따라서 <strong>서브넷 설정만의 문제는 아니라고 판단했다.</strong></p>
+
+<hr />
+
+<h2 id="5-ssh-및-방화벽-확인"><strong>5. SSH 및 방화벽 확인</strong></h2>
+
+<p>SSH 서비스 및 방화벽 문제도 확인했다.</p>
+
+<p>UFW 상태를 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>ufw status
+</code></pre></div></div>
+
+<p>SSH에 사용되는 TCP 22번 포트가 허용되어 있었다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>22/tcp    ALLOW
+</code></pre></div></div>
+
+<p>따라서 SSH 접속 실패의 직접적인 원인이 UFW에서 TCP 22번 포트를 차단했기 때문은 아니었다.</p>
+
+<p>또한 SSH뿐만 아니라 Ping을 통한 단말 간 기본 통신 자체가 실패하고 있었기 때문에 문제 범위를 SSH 애플리케이션 계층보다 아래의 네트워크 계층으로 좁힐 수 있었다.</p>
+
+<hr />
+
+<h2 id="6-동일-wi-fi-단말-간-통신-확인"><strong>6. 동일 Wi-Fi 단말 간 통신 확인</strong></h2>
+
+<p>서버와 MacBook은 모두 동일한 Wi-Fi에 연결되어 있었으며 각각 인터넷 연결도 정상적이었다.</p>
+
+<p>구조상 다음과 같은 상태였다.</p>
+
+<p><img src="../../assets/post/2026-09-22-notes-11-troubleshooting-client-isolation/04.webp" alt="" /></p>
+
+<p>각 장비에서 AP 및 외부 네트워크로의 통신은 가능하지만 두 클라이언트 사이의 직접 통신은 불가능했다.</p>
+
+<p>즉 다음과 같은 특징을 보였다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server  → Gateway    정상
+MacBook → Gateway    정상
+
+Server  → Internet   정상
+MacBook → Internet   정상
+
+MacBook → Server     실패
+Server  → MacBook    실패
+</code></pre></div></div>
+
+<p>이 시점에서 개별 서버의 IP, SSH 또는 방화벽 설정보다는 <strong>AP에서 클라이언트 간 통신을 제한하고 있을 가능성</strong>을 의심했다.</p>
+
+<hr />
+
+<h2 id="7-원인--client-isolation"><strong>7. 원인 — Client Isolation</strong></h2>
+
+<p>조사 결과 현재 Wi-Fi 환경에서 <strong>Client Isolation(AP Isolation)</strong>으로 인해 무선 클라이언트 간 직접 통신이 제한되고 있는 것으로 판단했다.</p>
+
+<p>Client Isolation은 동일한 AP에 연결된 클라이언트가 서로 직접 통신하지 못하도록 격리하는 기능이다.</p>
+
+<p>따라서 동일한 SSID를 사용하고 동일한 IP 서브넷에 속하더라도 다음과 같은 통신이 제한될 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MacBook ──X── Ubuntu Server
+</code></pre></div></div>
+
+<p>반면 AP를 통해 외부로 나가는 트래픽은 정상적으로 처리될 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MacBook ──→ AP ──→ Internet
+Server  ──→ AP ──→ Internet
+</code></pre></div></div>
+
+<p>이 때문에 서버와 MacBook 모두 인터넷 연결에는 문제가 없었지만, MacBook에서 서버로 직접 접근하는 Ping과 SSH는 실패했다.</p>
+
+<hr />
+
+<h2 id="8-해결-여부-및-우회-방법"><strong>8. 해결 여부 및 우회 방법</strong></h2>
+
+<p>이번 문제는 서버 자체의 설정을 변경하여 해결할 수 있는 문제가 아니었다.</p>
+
+<p>Client Isolation은 AP 측에서 적용되는 정책이므로 이를 직접 해제하려면 해당 네트워크 장비에 대한 관리 권한이 필요하다.</p>
+
+<p>현재는 AP에 대한 관리 권한이 없기 때문에 <strong>Client Isolation 자체는 해결할 수 없는 상태</strong>다.</p>
+
+<p>다만 네트워크를 우회하는 방법은 존재한다.</p>
+
+<p>서버를 확인하는 과정에서 다른 팀의 서버에 이전 기수가 설치한 <strong>Tailscale</strong> 관련 구성이 발견되었다. 이는 이전 환경에서도 동일하거나 유사한 네트워크 제약을 우회하기 위해 사용했을 가능성이 있다.</p>
+
+<p>Tailscale과 같은 Overlay Network를 사용하면 각 장비에 별도의 가상 네트워크 인터페이스와 IP를 구성하여 물리적인 로컬 네트워크의 직접 통신에 의존하지 않고 장비 간 연결을 구성할 수 있다.</p>
+
+<p>구조는 다음과 같다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ubuntu Server
+     │
+     │ Tailscale Network
+     │
+  MacBook
+</code></pre></div></div>
+
+<p>따라서 현재 환경에서는 다음과 같은 방법을 고려할 수 있다.</p>
+
+<ul>
+  <li>Tailscale 등의 Overlay Network 사용</li>
+  <li>Client Isolation이 적용되지 않은 별도 네트워크 사용</li>
+  <li>유선 LAN을 통한 별도 네트워크 구성</li>
+  <li>관리 가능한 별도의 AP/공유기 구성</li>
+</ul>
+
+<hr />
+
+<h2 id="9-결론"><strong>9. 결론</strong></h2>
+
+<p>초기에는 SSH 접속 실패를 서버의 SSH, UFW 또는 Static IP 설정 문제로 판단했다.</p>
+
+<p>네트워크 설정을 확인하는 과정에서 이전 기수의 <code class="language-plaintext highlighter-rouge">/24</code> 기반 설정과 현재 강의실의 <code class="language-plaintext highlighter-rouge">/22</code> 기반 네트워크 환경이 다르다는 것을 확인했고, DHCP를 사용하여 현재 환경에 맞는 네트워크 설정을 다시 구성했다.</p>
+
+<p>그러나 설정 정상화 이후에도 동일 Wi-Fi에 연결된 단말 간 Ping 및 SSH가 실패했다.</p>
+
+<p>각 단말에서 게이트웨이와 외부 네트워크로의 통신은 정상인 반면 클라이언트 간 직접 통신만 실패한다는 점을 통해 문제 범위를 AP 정책으로 좁혔으며, 최종적으로 <strong>Wi-Fi Client Isolation에 의한 단말 간 통신 제한이 원인인 것으로 판단했다.</strong></p>
+
+<h2 id="10-해야-할-것">10. 해야 할 것</h2>
+
+<p>TailScale이 조직으로도 사용이 가능한지, 다른 Overlay Network 또는 VPN으로 구축이 가능한지 찾아보기</p>]]></content><author><name></name></author><category term="TroubleShooting" /><category term="TechBites" /><summary type="html"><![CDATA[서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안]]></summary></entry><entry><title type="html">Ansible Architecture와 Inventory 구성</title><link href="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/" rel="alternate" type="text/html" title="Ansible Architecture와 Inventory 구성" /><published>2026-09-22T00:00:00+09:00</published><updated>2026-09-22T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-58-ansible-architecture-inventory</id><content type="html" xml:base="https://hyn128.site/cloud-native-58-ansible-architecture-inventory/"><![CDATA[<p><a href="/cloud-native-57-argocd-git-repository-manual-sync/">Argo CD Git Repository 연동과 수동 Sync</a>에서는 Git의 Desired State를 Kubernetes Cluster에 반영하는 GitOps 흐름을 구성했다. 이번에는 Ansible이 Control Node에서 여러 Managed Node의 Package, File과 Service 상태를 일관되게 관리하는 구조를 살펴보고 실제 연결 환경을 준비한다.</p>
 
 <h2 id="1--iac와-ansible의-역할">1 ) IaC와 Ansible의 역할</h2>
 
@@ -4069,660 +4355,4 @@ docker <span class="nb">logout</span>
       <p>Docker Socket은 높은 권한을 제공하므로 Controller가 아니라 격리된 Build Agent에서 다룬다.</p>
     </li>
   </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Jenkins Freestyle Job에서 주기 실행과 GitHub Webhook을 구성하고 Build Artifact를 SSH Server 또는 Docker Registry를 거쳐 배포한다]]></summary></entry><entry><title type="html">Jenkins Pipeline과 Jenkinsfile 기반 배포</title><link href="https://hyn128.site/cloud-native-51-jenkins-pipeline-jenkinsfile/" rel="alternate" type="text/html" title="Jenkins Pipeline과 Jenkinsfile 기반 배포" /><published>2026-09-15T00:00:00+09:00</published><updated>2026-09-15T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-51-jenkins-pipeline-jenkinsfile</id><content type="html" xml:base="https://hyn128.site/cloud-native-51-jenkins-pipeline-jenkinsfile/"><![CDATA[<p><a href="/cloud-native-50-jenkins-freestyle-deployment/">Jenkins Freestyle Trigger와 SSH·Docker 배포</a>에서는 UI에 Build Step과 Post-build Action을 구성했다. Pipeline은 같은 흐름을 Code로 정의해 Source와 함께 Version 관리한다. 이 글에서는 Pipeline 문법을 구분하고 Checkout, Build, Image Push와 SSH 배포가 어느 실행 환경에서 이어지는지 정리한다.</p>
-
-<h2 id="1--freestyle-job-연결과-pipeline">1 ) Freestyle Job 연결과 Pipeline</h2>
-
-<hr />
-
-<p>Freestyle Job도 <strong>Build other projects</strong>와 <strong>Build after other projects are built</strong>를 사용해 여러 Job을 연결할 수 있다. 예를 들어 <code class="language-plaintext highlighter-rouge">Ready → Build → Deploy</code>로 구성하면 각 Job의 책임과 권한을 분리할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>Job</th>
-      <th>주요 작업</th>
-      <th>다음 Job 실행 조건</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Ready</td>
-      <td>Source와 실행 환경 준비</td>
-      <td>성공 시 Build 시작</td>
-    </tr>
-    <tr>
-      <td>Build</td>
-      <td>Compile, Test와 Package</td>
-      <td>성공 시 Deploy 시작</td>
-    </tr>
-    <tr>
-      <td>Deploy</td>
-      <td>Artifact 또는 Image 배포</td>
-      <td>Pipeline 종료</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Delivery Pipeline Plugin을 설치하면 <strong>Dashboard → New View → Delivery Pipeline View</strong>에서 Upstream과 Downstream Job의 실행 상태를 한 흐름으로 볼 수 있다. 다만 Job 설정이 Jenkins UI 여러 곳에 분산되므로 변경 이력과 Review가 어렵다.</p>
-
-<p>Pipeline은 Stage와 Step을 <code class="language-plaintext highlighter-rouge">Jenkinsfile</code>에 정의한다.</p>
-
-<ul>
-  <li>
-    <p><strong>Stage</strong>는 Checkout, Build, Test와 Deploy처럼 사용자가 구분해서 볼 실행 구간이다.</p>
-  </li>
-  <li>
-    <p><strong>Step</strong>은 <code class="language-plaintext highlighter-rouge">sh</code>, <code class="language-plaintext highlighter-rouge">git</code>, <code class="language-plaintext highlighter-rouge">echo</code>와 같이 Stage 안에서 실제로 실행하는 작업이다.</p>
-  </li>
-  <li>
-    <p><strong>Agent</strong>는 Pipeline 전체 또는 특정 Stage를 실행할 Jenkins Node와 Executor를 선택한다.</p>
-  </li>
-  <li>
-    <p><strong>Post</strong>는 성공, 실패 또는 결과와 관계없이 수행할 후처리를 정의한다.</p>
-  </li>
-</ul>
-
-<p>Pipeline은 Job 구성을 Source와 함께 Review하고, 같은 정의로 다시 실행하며, Stage별 결과와 Log를 추적할 수 있다는 장점이 있다.</p>
-
-<h2 id="2--declarative와-scripted-pipeline-구분">2 ) Declarative와 Scripted Pipeline 구분</h2>
-
-<hr />
-
-<p>Jenkins Pipeline은 Declarative와 Scripted 두 방식으로 작성할 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>구분</th>
-      <th>최상위 구조</th>
-      <th>특징</th>
-      <th>적합한 경우</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Declarative Pipeline</td>
-      <td><code class="language-plaintext highlighter-rouge">pipeline {}</code></td>
-      <td>정해진 Section과 검증 가능한 구조</td>
-      <td>일반적인 CI/CD Pipeline</td>
-    </tr>
-    <tr>
-      <td>Scripted Pipeline</td>
-      <td><code class="language-plaintext highlighter-rouge">node {}</code></td>
-      <td>Groovy Flow Control을 직접 사용</td>
-      <td>동적 제어가 많은 복잡한 흐름</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">pipeline {}</code>이 Declarative이고 <code class="language-plaintext highlighter-rouge">node {}</code>가 Scripted이다. 두 방식 모두 처리하지 않은 Step 실패가 발생하면 해당 실행 흐름이 실패하며 이후 Stage는 기본적으로 실행되지 않는다. 실패 후에도 특정 Step을 계속하려면 Declarative의 <code class="language-plaintext highlighter-rouge">post</code>, <code class="language-plaintext highlighter-rouge">catchError</code> 또는 Scripted의 <code class="language-plaintext highlighter-rouge">try-catch-finally</code>처럼 실패 처리 방식을 명시해야 한다.</p>
-
-<p>Jenkins가 지원하는 Directive와 조건은 <a href="https://www.jenkins.io/doc/book/pipeline/syntax/">Pipeline Syntax</a>에서 확인할 수 있다.</p>
-
-<h2 id="3--scripted-pipeline-기본-구조">3 ) Scripted Pipeline 기본 구조</h2>
-
-<hr />
-
-<p>Scripted Pipeline은 <code class="language-plaintext highlighter-rouge">node</code> Block 안에서 Groovy 기반 Step을 순서대로 실행한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">node</span> <span class="o">{</span>
-    <span class="n">stage</span><span class="o">(</span><span class="s1">'Ready'</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">echo</span> <span class="s1">'Prepare workspace'</span>
-    <span class="o">}</span>
-
-    <span class="n">stage</span><span class="o">(</span><span class="s1">'Build'</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">echo</span> <span class="s1">'Build application'</span>
-    <span class="o">}</span>
-
-    <span class="n">stage</span><span class="o">(</span><span class="s1">'Deploy'</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">echo</span> <span class="s1">'Deploy application'</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">node</code>는 사용 가능한 Executor 하나를 점유하고 Workspace를 할당한다. Label이 있는 Agent에서 실행하려면 다음처럼 지정한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">node</span><span class="o">(</span><span class="s1">'docker-builder'</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">stage</span><span class="o">(</span><span class="s1">'Build Image'</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">sh</span> <span class="s1">'docker version'</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p>동적 반복과 조건이 필요하면 Groovy 문법을 사용할 수 있다. 오류를 처리하지 않으면 Pipeline이 실패하므로, 계속 실행해야 하는 범위만 명확히 감싼다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">node</span> <span class="o">{</span>
-    <span class="k">try</span> <span class="o">{</span>
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Build'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">sh</span> <span class="s1">'./gradlew clean build'</span>
-        <span class="o">}</span>
-    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">error</span><span class="o">)</span> <span class="o">{</span>
-        <span class="n">currentBuild</span><span class="o">.</span><span class="na">result</span> <span class="o">=</span> <span class="s1">'FAILURE'</span>
-        <span class="k">throw</span> <span class="n">error</span>
-    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
-        <span class="n">echo</span> <span class="s2">"Result: ${currentBuild.currentResult}"</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<h2 id="4--declarative-pipeline-기본-구조">4 ) Declarative Pipeline 기본 구조</h2>
-
-<hr />
-
-<p>Declarative Pipeline은 <code class="language-plaintext highlighter-rouge">pipeline</code>, <code class="language-plaintext highlighter-rouge">agent</code>, <code class="language-plaintext highlighter-rouge">stages</code>, <code class="language-plaintext highlighter-rouge">stage</code>와 <code class="language-plaintext highlighter-rouge">steps</code> 구조를 사용한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
-    <span class="n">agent</span> <span class="n">any</span>
-
-    <span class="n">stages</span> <span class="o">{</span>
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Compile'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">echo</span> <span class="s1">'Compile source'</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Test'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">echo</span> <span class="s1">'Run tests'</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Deploy'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">echo</span> <span class="s1">'Deploy application'</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-
-    <span class="n">post</span> <span class="o">{</span>
-        <span class="n">success</span> <span class="o">{</span>
-            <span class="n">echo</span> <span class="s1">'Pipeline succeeded'</span>
-        <span class="o">}</span>
-
-        <span class="n">failure</span> <span class="o">{</span>
-            <span class="n">echo</span> <span class="s1">'Pipeline failed'</span>
-        <span class="o">}</span>
-
-        <span class="n">always</span> <span class="o">{</span>
-            <span class="n">echo</span> <span class="s2">"Final result: ${currentBuild.currentResult}"</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th><code class="language-plaintext highlighter-rouge">post</code> 조건</th>
-      <th>실행 시점</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">always</code></td>
-      <td>결과와 관계없이 실행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">success</code></td>
-      <td>Pipeline 또는 Stage 성공</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">failure</code></td>
-      <td>이전 결과보다 실패 상태가 된 경우</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">unstable</code></td>
-      <td>Test 실패 등으로 Unstable 상태가 된 경우</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">changed</code></td>
-      <td>이전 Build와 결과가 달라진 경우</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">post</code>는 알림, Test Report 게시, Artifact 보관과 임시 Resource 정리에 사용한다. 실패를 숨기는 용도가 아니라 실패 후에도 반드시 필요한 작업을 실행하는 구간이다.</p>
-
-<h2 id="5--source-checkout">5 ) Source Checkout</h2>
-
-<hr />
-
-<p>Pipeline Script에 Repository를 직접 지정하려면 <code class="language-plaintext highlighter-rouge">git</code> Step을 사용할 수 있다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">steps</span> <span class="o">{</span>
-        <span class="n">git</span> <span class="nl">branch:</span> <span class="s1">'main'</span><span class="o">,</span>
-            <span class="nl">credentialsId:</span> <span class="s1">'github-read-credential'</span><span class="o">,</span>
-            <span class="nl">url:</span> <span class="s1">'https://github.com/&lt;owner&gt;/&lt;repository&gt;.git'</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>Parameter</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">branch</code></td>
-      <td>Checkout할 Branch</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">credentialsId</code></td>
-      <td>Private Repository 읽기에 사용할 Jenkins Credential ID</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">url</code></td>
-      <td>Git Repository URL</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Job이 <strong>Pipeline script from SCM</strong> 방식으로 <code class="language-plaintext highlighter-rouge">Jenkinsfile</code>을 읽었다면 Jenkins가 이미 같은 Repository를 Checkout할 정보를 알고 있다. 이 경우 <code class="language-plaintext highlighter-rouge">checkout scm</code>을 사용하면 Job의 SCM 설정과 Branch 정보를 재사용할 수 있다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">steps</span> <span class="o">{</span>
-        <span class="n">checkout</span> <span class="n">scm</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<h2 id="6--jenkinsfile을-repository에서-관리">6 ) Jenkinsfile을 Repository에서 관리</h2>
-
-<hr />
-
-<p>Repository Root에 <code class="language-plaintext highlighter-rouge">Jenkinsfile</code>을 Commit하면 Pipeline 변경도 Application Code와 함께 Review할 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>calculator/
-├── Jenkinsfile
-├── Dockerfile
-├── build.gradle
-├── gradlew
-├── gradle/
-└── src/
-</code></pre></div></div>
-
-<p>Jenkins에서 새 Pipeline Job을 만들고 <strong>Pipeline → Definition → Pipeline script from SCM</strong>을 선택한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>설정</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>SCM</td>
-      <td>Git</td>
-    </tr>
-    <tr>
-      <td>Repository URL</td>
-      <td>Application Repository URL</td>
-    </tr>
-    <tr>
-      <td>Credentials</td>
-      <td>Private Repository 읽기 Credential</td>
-    </tr>
-    <tr>
-      <td>Branch Specifier</td>
-      <td>Build할 Branch</td>
-    </tr>
-    <tr>
-      <td>Script Path</td>
-      <td>기본값 <code class="language-plaintext highlighter-rouge">Jenkinsfile</code> 또는 실제 상대 경로</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Script Path는 Workspace 기준 상대 경로이며 File명은 대소문자를 구분한다. 저장 후 <strong>Build Now</strong>를 실행하고 Console Output에서 Jenkinsfile Checkout과 Stage 진입 순서를 확인한다.</p>
-
-<figure class="post-visual pipeline-flow" aria-labelledby="jenkins-pipeline-flow-caption">
-  <figcaption class="post-visual__caption" id="jenkins-pipeline-flow-caption">
-    Git Push 이후 Jenkins Controller, Build Agent, Registry와 배포 Server가 연결되는 Pipeline 실행 흐름
-  </figcaption>
-  <div class="post-visual__frame pipeline-flow__frame">
-    <ol class="pipeline-flow__phases" aria-label="Jenkins Pipeline 배포 흐름">
-      <li class="pipeline-flow__phase pipeline-flow__phase--source">
-        <div class="pipeline-flow__heading">
-          <span class="pipeline-flow__role">SOURCE</span>
-          <strong>GitHub</strong>
-        </div>
-        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
-          <li>
-            <strong>Push Event</strong>
-            <span>Webhook으로 Jenkins에 변경 사실을 전달한다.</span>
-          </li>
-          <li>
-            <strong>Jenkinsfile</strong>
-            <span>Repository에서 Pipeline 정의를 관리한다.</span>
-          </li>
-        </ul>
-      </li>
-
-      <li class="pipeline-flow__phase pipeline-flow__phase--controller">
-        <div class="pipeline-flow__heading">
-          <span class="pipeline-flow__role">CONTROL</span>
-          <strong>Jenkins Controller</strong>
-        </div>
-        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
-          <li>
-            <strong>Build Queue</strong>
-            <span>Webhook으로 들어온 Pipeline 실행 요청을 Queue에 등록한다.</span>
-          </li>
-          <li>
-            <strong>Schedule</strong>
-            <span>Label과 사용 가능한 Executor를 기준으로 Agent를 선택한다.</span>
-          </li>
-        </ul>
-      </li>
-
-      <li class="pipeline-flow__phase pipeline-flow__phase--agent">
-        <div class="pipeline-flow__heading">
-          <span class="pipeline-flow__role">EXECUTION</span>
-          <strong>Docker Build Agent</strong>
-        </div>
-        <ol class="pipeline-flow__steps pipeline-flow__steps--four">
-          <li>
-            <strong>1. Checkout</strong>
-            <span>대상 Commit SHA를 확정한다.</span>
-          </li>
-          <li>
-            <strong>2. Gradle</strong>
-            <span>Test를 실행하고 bootJar를 생성한다.</span>
-          </li>
-          <li>
-            <strong>3. Image</strong>
-            <span>Build Number와 Commit Tag로 Image를 만든다.</span>
-          </li>
-          <li>
-            <strong>4. Push</strong>
-            <span>완성된 Image를 Registry로 전송한다.</span>
-          </li>
-        </ol>
-        <div class="pipeline-flow__credentials" aria-label="Build Agent 인증 정보">
-          <span>Docker Credential</span>
-          <span>SSH Credential</span>
-          <span>known_hosts</span>
-        </div>
-      </li>
-
-      <li class="pipeline-flow__phase pipeline-flow__phase--registry">
-        <div class="pipeline-flow__heading">
-          <span class="pipeline-flow__role">ARTIFACT</span>
-          <strong>Docker Registry</strong>
-        </div>
-        <ul class="pipeline-flow__steps pipeline-flow__steps--two">
-          <li>
-            <strong>Immutable Tag</strong>
-            <span>Build Number와 Commit SHA로 배포 Version을 식별한다.</span>
-          </li>
-          <li>
-            <strong>Image 보관</strong>
-            <span>배포 Server가 Pull할 Image를 보관한다.</span>
-          </li>
-        </ul>
-      </li>
-
-      <li class="pipeline-flow__phase pipeline-flow__phase--server">
-        <div class="pipeline-flow__heading">
-          <span class="pipeline-flow__role">RUNTIME</span>
-          <strong>Deploy Server</strong>
-        </div>
-        <ol class="pipeline-flow__steps pipeline-flow__steps--four">
-          <li>
-            <strong>1. SSH</strong>
-            <span>등록된 Host Key로 접속 대상을 검증한다.</span>
-          </li>
-          <li>
-            <strong>2. Pull</strong>
-            <span>Pipeline이 전달한 고정 Tag를 내려받는다.</span>
-          </li>
-          <li>
-            <strong>3. Replace</strong>
-            <span>대상 Application Container만 교체한다.</span>
-          </li>
-          <li>
-            <strong>4. Verify</strong>
-            <span>Container 상태, Log와 HTTP 응답을 확인한다.</span>
-          </li>
-        </ol>
-      </li>
-    </ol>
-
-    <div class="pipeline-flow__notes" aria-label="실행 영역 설명">
-      <div>
-        <strong>Controller</strong>
-        <p>요청과 Stage 상태를 관리하고 실제 Build는 Agent에 할당한다.</p>
-      </div>
-      <div>
-        <strong>Build Agent</strong>
-        <p>Source, JDK, Gradle과 Docker 권한이 존재하는 실행 경계이다.</p>
-      </div>
-      <div>
-        <strong>Deploy Server</strong>
-        <p>Registry에서 지정 Tag를 받아 Runtime Container를 교체한다.</p>
-      </div>
-    </div>
-  </div>
-</figure>
-
-<h2 id="7--gradle-build와-docker-image-push-pipeline">7 ) Gradle Build와 Docker Image Push Pipeline</h2>
-
-<hr />
-
-<p>다음 Declarative Pipeline은 Docker 명령을 실행할 수 있는 <code class="language-plaintext highlighter-rouge">docker-builder</code> Label의 Agent에서 동작한다. Jenkins Controller가 아니라 Build 전용 Agent를 선택하는 이유는 Source Build와 Docker Daemon 권한을 제어 영역에서 분리하기 위해서이다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
-    <span class="n">agent</span> <span class="o">{</span> <span class="n">label</span> <span class="s1">'docker-builder'</span> <span class="o">}</span>
-
-    <span class="n">environment</span> <span class="o">{</span>
-        <span class="n">IMAGE_NAME</span> <span class="o">=</span> <span class="s1">'&lt;dockerhub-username&gt;/calculator'</span>
-    <span class="o">}</span>
-
-    <span class="n">stages</span> <span class="o">{</span>
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">checkout</span> <span class="n">scm</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Build'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">sh</span> <span class="s1">'''
-                    test -x ./gradlew
-                    ./gradlew clean build
-                '''</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Set Image Tag'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">script</span> <span class="o">{</span>
-                    <span class="n">env</span><span class="o">.</span><span class="na">IMAGE_TAG</span> <span class="o">=</span> <span class="s2">"${env.BUILD_NUMBER}-${env.GIT_COMMIT.take(12)}"</span>
-                <span class="o">}</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Build Image'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">sh</span> <span class="s1">'docker build --tag "$IMAGE_NAME:$IMAGE_TAG" .'</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Push Image'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">withCredentials</span><span class="o">([</span>
-                    <span class="n">usernamePassword</span><span class="o">(</span>
-                        <span class="nl">credentialsId:</span> <span class="s1">'dockerhub-credential'</span><span class="o">,</span>
-                        <span class="nl">usernameVariable:</span> <span class="s1">'DOCKERHUB_USERNAME'</span><span class="o">,</span>
-                        <span class="nl">passwordVariable:</span> <span class="s1">'DOCKERHUB_TOKEN'</span>
-                    <span class="o">)</span>
-                <span class="o">])</span> <span class="o">{</span>
-                    <span class="n">sh</span> <span class="s1">'''
-                        printf '%s' "$DOCKERHUB_TOKEN" | docker login \
-                          --username "$DOCKERHUB_USERNAME" \
-                          --password-stdin
-                        docker push "$IMAGE_NAME:$IMAGE_TAG"
-                        docker logout
-                    '''</span>
-                <span class="o">}</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-
-    <span class="n">post</span> <span class="o">{</span>
-        <span class="n">success</span> <span class="o">{</span>
-            <span class="n">archiveArtifacts</span> <span class="nl">artifacts:</span> <span class="s1">'build/libs/*.jar'</span><span class="o">,</span> <span class="nl">fingerprint:</span> <span class="kc">true</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">gradlew</code>의 실행 Bit는 Repository에 Commit해 두는 것이 좋다. Pipeline에서 매번 <code class="language-plaintext highlighter-rouge">chmod 777 gradlew</code>를 실행하면 불필요한 사용자에게 쓰기 권한까지 부여한다. 실행 Bit가 누락됐다면 개발 환경에서 <code class="language-plaintext highlighter-rouge">git update-index --chmod=+x gradlew</code>로 수정해 Commit한다.</p>
-
-<p>Image Tag에는 Build Number와 Commit SHA를 함께 넣었다. 동일한 Source Build를 식별할 수 있고 이전 Version으로 되돌릴 때도 정확한 Image를 선택할 수 있다.</p>
-
-<h2 id="8--ssh-agent를-이용한-원격-배포">8 ) SSH Agent를 이용한 원격 배포</h2>
-
-<hr />
-
-<p>SSH Agent Plugin은 Jenkins Credential에 저장한 Private Key를 Build 실행 중 임시 SSH Agent에 연결한다. Pipeline Script에 Private Key 내용을 직접 기록하지 않고 <code class="language-plaintext highlighter-rouge">ssh</code>와 <code class="language-plaintext highlighter-rouge">scp</code>가 인증에 사용하도록 한다.</p>
-
-<p><strong>Manage Jenkins → Credentials</strong>에서 <strong>SSH Username with private key</strong> 유형을 추가한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>항목</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>ID</td>
-      <td>Pipeline에서 참조할 <code class="language-plaintext highlighter-rouge">deploy-server-ssh</code></td>
-    </tr>
-    <tr>
-      <td>Username</td>
-      <td>배포 Server의 전용 계정</td>
-    </tr>
-    <tr>
-      <td>Private Key</td>
-      <td>Server의 <code class="language-plaintext highlighter-rouge">authorized_keys</code>에 등록한 Public Key와 짝을 이루는 Key</td>
-    </tr>
-    <tr>
-      <td>Passphrase</td>
-      <td>Private Key 생성 시 설정한 암호</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Build Agent의 <code class="language-plaintext highlighter-rouge">known_hosts</code>에는 검증한 배포 Server Host Key가 미리 등록되어 있어야 한다. <code class="language-plaintext highlighter-rouge">StrictHostKeyChecking=no</code>로 검증을 건너뛰지 않는다.</p>
-
-<p>Image Push 뒤에 다음 Stage를 추가한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">stage</span><span class="o">(</span><span class="s1">'Deploy'</span><span class="o">)</span> <span class="o">{</span>
-    <span class="n">steps</span> <span class="o">{</span>
-        <span class="n">sshagent</span><span class="o">(</span><span class="nl">credentials:</span> <span class="o">[</span><span class="s1">'deploy-server-ssh'</span><span class="o">])</span> <span class="o">{</span>
-            <span class="n">sh</span> <span class="s1">'''
-                ssh -o BatchMode=yes \
-                  "$DEPLOY_USER@$DEPLOY_HOST" \
-                  "IMAGE_NAME='$IMAGE_NAME' IMAGE_TAG='$IMAGE_TAG' bash ~/deploy/deploy.sh"
-            '''</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">DEPLOY_USER</code>와 <code class="language-plaintext highlighter-rouge">DEPLOY_HOST</code>는 Agent 환경 또는 Jenkins의 관리되는 설정에 둔다. IP와 Username 자체가 Secret은 아니더라도 환경별 값이므로 Pipeline Code와 분리하면 같은 Jenkinsfile을 개발·검증·운영 환경에서 재사용하기 쉽다.</p>
-
-<p>배포 Server의 <code class="language-plaintext highlighter-rouge">~/deploy/deploy.sh</code>는 전달받은 Image Tag를 사용한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/usr/bin/env bash</span>
-<span class="nb">set</span> <span class="nt">-euo</span> pipefail
-
-: <span class="s2">"</span><span class="k">${</span><span class="nv">IMAGE_NAME</span>:?IMAGE_NAME<span class="p"> is required</span><span class="k">}</span><span class="s2">"</span>
-: <span class="s2">"</span><span class="k">${</span><span class="nv">IMAGE_TAG</span>:?IMAGE_TAG<span class="p"> is required</span><span class="k">}</span><span class="s2">"</span>
-
-<span class="nv">CONTAINER_NAME</span><span class="o">=</span><span class="s2">"calculator"</span>
-
-docker pull <span class="s2">"</span><span class="nv">$IMAGE_NAME</span><span class="s2">:</span><span class="nv">$IMAGE_TAG</span><span class="s2">"</span>
-
-<span class="k">if </span>docker container inspect <span class="s2">"</span><span class="nv">$CONTAINER_NAME</span><span class="s2">"</span> <span class="o">&gt;</span>/dev/null 2&gt;&amp;1<span class="p">;</span> <span class="k">then
-    </span>docker stop <span class="nt">--time</span> 30 <span class="s2">"</span><span class="nv">$CONTAINER_NAME</span><span class="s2">"</span> <span class="o">||</span> <span class="nb">true
-    </span>docker <span class="nb">rm</span> <span class="s2">"</span><span class="nv">$CONTAINER_NAME</span><span class="s2">"</span> <span class="o">||</span> <span class="nb">true
-</span><span class="k">fi
-
-</span>docker run <span class="nt">--detach</span> <span class="se">\</span>
-  <span class="nt">--name</span> <span class="s2">"</span><span class="nv">$CONTAINER_NAME</span><span class="s2">"</span> <span class="se">\</span>
-  <span class="nt">--restart</span> unless-stopped <span class="se">\</span>
-  <span class="nt">--publish</span> 9000:9000 <span class="se">\</span>
-  <span class="s2">"</span><span class="nv">$IMAGE_NAME</span><span class="s2">:</span><span class="nv">$IMAGE_TAG</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<p>이 Script는 <code class="language-plaintext highlighter-rouge">latest</code> 대신 Pipeline이 Push한 고정 Tag를 Pull한다. 같은 이름의 Container만 중지하고 다시 생성하므로 다른 Application Container에 영향을 주지 않는다. <code class="language-plaintext highlighter-rouge">docker system prune -a -f</code>는 Host의 다른 Image와 Build Cache까지 제거할 수 있으므로 공용 Server의 자동 배포 Script에 넣지 않는다.</p>
-
-<p>배포 계정을 Docker Group에 추가하면 Password 없이 Docker Daemon을 제어할 수 있지만 사실상 Root 수준 권한이 생긴다. 배포 전용 Server와 계정을 사용하고 SSH Key, Jenkins Credential과 Job 실행 권한을 제한한다.</p>
-
-<h2 id="9--pipeline-실행-흐름-확인">9 ) Pipeline 실행 흐름 확인</h2>
-
-<hr />
-
-<p>Pipeline을 실행한 뒤 Stage별로 다음을 확인한다.</p>
-
-<ol>
-  <li>
-    <p><strong>Checkout</strong>: Console Output의 Commit SHA가 Webhook 또는 수동 실행 대상과 일치하는가</p>
-  </li>
-  <li>
-    <p><strong>Build</strong>: Gradle Test가 성공하고 <code class="language-plaintext highlighter-rouge">build/libs/calculator.jar</code>가 생성됐는가</p>
-  </li>
-  <li>
-    <p><strong>Build Image</strong>: Image에 Build Number와 Commit SHA Tag가 붙었는가</p>
-  </li>
-  <li>
-    <p><strong>Push Image</strong>: Registry에 같은 Tag가 존재하며 Credential이 Log에 노출되지 않았는가</p>
-  </li>
-  <li>
-    <p><strong>Deploy</strong>: SSH Host Key 검증이 성공하고 지정한 Container만 교체됐는가</p>
-  </li>
-  <li>
-    <p><strong>Application</strong>: 배포 Server에서 Container 상태, Log와 HTTP Endpoint가 정상인가</p>
-  </li>
-</ol>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>docker ps <span class="nt">--filter</span> <span class="nv">name</span><span class="o">=</span>calculator
-docker logs <span class="nt">--tail</span> 100 calculator
-curl <span class="nt">--fail</span> <span class="s2">"http://localhost:9000/"</span>
-</code></pre></div></div>
-
-<p>Pipeline 설정과 Jenkinsfile 운영 방법은 <a href="https://www.jenkins.io/doc/book/pipeline/jenkinsfile/">Using a Jenkinsfile</a>, SSH Credential 사용법은 <a href="https://plugins.jenkins.io/ssh-agent/">SSH Agent Plugin</a>을 참고한다.</p>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-  <ul>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">pipeline {}</code>은 Declarative Pipeline이고 <code class="language-plaintext highlighter-rouge">node {}</code>는 Scripted Pipeline이다.</p>
-    </li>
-    <li>
-      <p>처리하지 않은 Step 실패는 두 방식 모두 실행 흐름을 중단하며, 계속할 작업은 <code class="language-plaintext highlighter-rouge">post</code>, <code class="language-plaintext highlighter-rouge">catchError</code> 또는 예외 처리로 명시한다.</p>
-    </li>
-    <li>
-      <p>Jenkinsfile을 SCM에서 읽으면 <code class="language-plaintext highlighter-rouge">checkout scm</code>으로 Job의 Repository와 Branch 정보를 재사용할 수 있다.</p>
-    </li>
-    <li>
-      <p>Docker Build는 Controller가 아닌 전용 Agent에서 실행하고 Credential은 <code class="language-plaintext highlighter-rouge">withCredentials</code>로 필요한 Stage에만 주입한다.</p>
-    </li>
-    <li>
-      <p>SSH Agent는 Jenkins Private Key를 실행 중에만 연결하며, 배포 대상은 검증된 <code class="language-plaintext highlighter-rouge">known_hosts</code>로 확인한다.</p>
-    </li>
-    <li>
-      <p>Build Number와 Commit SHA로 고정한 Image Tag를 배포하면 실행 Version과 Rollback 대상을 추적할 수 있다.</p>
-    </li>
-  </ul>
-</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Jenkins Pipeline의 Declarative·Scripted 문법을 구분하고 Jenkinsfile로 Checkout, Gradle Build, Docker Image Push와 SSH 배포를 연결한다]]></summary></entry></feed>
+</blockquote>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Jenkins Freestyle Job에서 주기 실행과 GitHub Webhook을 구성하고 Build Artifact를 SSH Server 또는 Docker Registry를 거쳐 배포한다]]></summary></entry></feed>

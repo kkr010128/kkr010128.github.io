@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Client Isolation으로 인한 단말 간 통신 실패 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안">
+<link rel="canonical" href="https://hyn128.site/notes-11-troubleshooting-client-isolation/">
+<meta property="og:title" content="Client Isolation으로 인한 단말 간 통신 실패 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안">
+<meta property="og:url" content="https://hyn128.site/notes-11-troubleshooting-client-isolation/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Client Isolation으로 인한 단말 간 통신 실패 | renamed.log">
+<meta name="twitter:description" content="서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안">
+
+  <meta property="article:published_time" content="2026-09-23T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.svg?v=1790146435" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1790146435" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1790146435">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1790146435" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1790146435">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Client Isolation으로 인한 단말 간 통신 실패 | renamed.log",
+    "description": "서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안",
+    "url": "https://hyn128.site/notes-11-troubleshooting-client-isolation/",
+    "datePublished": "2026-09-23T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+      <p class="post-head__series">TechNotes</p>
+    
+    <h1 class="post-head__title">Client Isolation으로 인한 단말 간 통신 실패</h1>
+    
+      <p class="post-head__description">서버 네트워크 환경 구축 과정에서 맞이한 통신 실패의 원인 추척과 해결 방안</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 23일 · 6분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=TroubleShooting">TroubleShooting</a>
+        
+          <a class="tag-chip" href="/?tag=TechBites">TechBites</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <hr />
+
+<h2 id="요약">요약</h2>
+<blockquote>
+  <p>Ubuntu Server 구축 후 동일한 Wi-Fi에 연결된 MacBook에서 서버로 SSH 접속 및 Ping이 되지 않는 문제가 발생했다.</p>
+
+  <p>서버에서 외부 네트워크 연결은 정상적으로 이루어졌지만, 동일한 Wi-Fi에 연결된 MacBook에서 Ubuntu서버로, 심지어 반대로도 SSH 접속 및 Ping이 불가능했다.</p>
+
+  <p>처음에는 이전 기수에서 사용하던 고정 IP 설정을 그대로 참고하면서 네트워크 설정 문제라고 판단했다. 확인 결과 기존 환경과 현재 환경의 네트워크 구성 및 서브넷이 달랐으며, 이를 현재 환경에 맞게 수정했다.</p>
+
+  <p>하지만 네트워크 설정을 정상화한 이후에도 단말 간 통신은 불가능했다. 추가 확인 결과 강의실 Wi-Fi에 적용된 <strong>Client Isolation</strong>으로 인해 동일 Wi-Fi에 연결된 클라이언트 간 직접 통신이 차단되고 있음을 확인했다.</p>
+  <h4 id="더-짧은-요약">더 짧은 요약</h4>
+  <p><strong>SSH 접속 실패</strong><br />
+→ 네트워크 설정 문제를 의심<br />
+→ 이전 기수에서 사용하던 네트워크 환경과 다른 것을 인지<br />
+→ 서브넷 설정을 현재 환경에 맞게 수정 → 여전히 실패<br />
+→ 조사 결과 WiFi Client Isolation이 원인임을 확인<br />
+→ 우리의 권한으로는 해결 불가능 → 우회를 해보자</p>
+</blockquote>
+
+<h4 id="해결-방법">해결 방법</h4>
+
+<p>찾아보니 우회의 방법이 존재함 → TailScale 등의 VPN 활용(이미 다른 팀의 서버에 이전 기수가 설치한 내용이 발견됨)</p>
+
+<p>AP에 대한 관리 권한이 없어 Client Isolation 자체를 해제할 수는 없으므로, 현재 환경에서는 필요한 내부 포트를 모두 강사님을 통해 개방시키거나, 최소한의 포트를 유지한 채로 <strong>Tailscale과 같은 VPN/Overlay Network를 통한 우회가 필요하다.</strong></p>
+
+<h2 id="1-문제-상황">1. 문제 상황</h2>
+
+<blockquote>
+  <p>기존 Ubuntu Desktop 서버를 Ubuntu Server로 재설치한 뒤 Wi-Fi 네트워크를 설정했다.<br />
+서버에서 외부 네트워크 연결은 정상적으로 이루어졌지만, 동일한 Wi-Fi에 연결된 MacBook에서 서버로 SSH 접속 및 Ping이 불가능했다.</p>
+</blockquote>
+
+<p>AutoEver Cloud Scool의 지난 기수에서 사용하던 서버를 받게 되었는데, 포맷이 되지 않은 상태였다.</p>
+
+<p>Ubuntu Desktop이 설치된 서버에 Ubuntu Server를 설치하기 전, 기존의 <code class="language-plaintext highlighter-rouge">netplan.yaml</code> 에 DHCP가 아닌 고정 IP로 할당이 되어있는 것으로 보아 추후 할당 가능한 IP를 확인하고 네트워크 설정하는 과정이 줄어들 것이라 판단해 백업했다.</p>
+
+<p><img src="../../assets/post/2026-09-22-notes-11-troubleshooting-client-isolation/02.webp" alt="" /></p>
+
+<p>이후 Ubuntu Server 를 설치했고, 해당 설정을 참고하여 네트워크를 구성했지만, 다른 노트북에서 서버로 SSH 접속이 되지 않았다.</p>
+
+<p>또한 SSH뿐만 아니라 서버 IP를 대상으로 한 Ping에도 응답이 없었다.</p>
+
+<p>반면 서버 자체에서는 외부 네트워크 연결이 가능했다.</p>
+
+<p>즉 문제 상황은 다음과 같았다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server → Internet     정상
+MacBook → Internet    정상
+
+MacBook → Server Ping 실패
+MacBook → Server SSH  실패
+</code></pre></div></div>
+
+<p>단순한 인터넷 연결 문제가 아니라 <strong>동일 네트워크에 연결된 단말 간 통신에서 문제가 발생하고 있는 상황</strong>이었다.</p>
+
+<hr />
+
+<h2 id="2-기존-환경과-현재-환경-비교"><strong>2. 기존 환경과 현재 환경 비교</strong></h2>
+
+<p>문제를 확인하는 과정에서 이전 기수의 네트워크 환경과 현재 환경에 차이가 있다는 것을 확인했다.</p>
+
+<p>기존 설정에서는 서버가 <strong>유선 LAN</strong>을 사용하고 있었지만, 현재 서버는 <strong>Wi-Fi</strong>를 통해 네트워크에 연결하고 있었다.</p>
+
+<p>현재 서버의 유선 LAN 카드 상태가 확실하지 않았고 강의실 바닥의 LAN 포트가 Wi-Fi AP와 동일한 네트워크를 사용하는지도 확인되지 않았기 때문에, 우선 Wi-Fi를 기준으로 문제를 분석하기로 했다.</p>
+
+<p>현재 Netplan 파일을 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> /etc/netplan
+<span class="nb">ls</span>
+</code></pre></div></div>
+
+<p>확인된 파일:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>00-installer-config.yaml
+</code></pre></div></div>
+
+<p>설정을 변경하기 전 기존 파일을 백업했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cp </span>00-installer-config.yaml ~/.backup-netplan.yaml
+</code></pre></div></div>
+
+<h2><img src="../../assets/post/2026-09-22-notes-11-troubleshooting-client-isolation/06.webp" alt="" /></h2>
+
+<h2 id="3-네트워크-설정-확인"><strong>3. 네트워크 설정 확인</strong></h2>
+
+<p>현재 서버의 IP를 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">hostname</span> <span class="nt">-I</span>
+</code></pre></div></div>
+
+<p>Netplan 설정도 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/netplan/00-installer-config.yaml
+</code></pre></div></div>
+
+<p>처음에는 이전 설정을 참고하여 서버에 다음과 같이 Static IP를 설정했다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server
+192.168.200.3/24
+</code></pre></div></div>
+
+<p>하지만 MacBook의 네트워크 설정을 확인한 결과 다음과 같은 주소를 사용하고 있었다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MacBook
+192.168.201.x/22
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">/24</code>와 <code class="language-plaintext highlighter-rouge">/22</code>는 서로 다른 서브넷 범위를 의미한다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">192.168.200.3/24</code>의 네트워크 범위는:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.200.0 ~ 192.168.200.255
+</code></pre></div></div>
+
+<p>반면 <code class="language-plaintext highlighter-rouge">192.168.201.x/22</code>가 포함되는 네트워크는 아래와 같았다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>192.168.200.0/22
+
+192.168.200.x
+192.168.201.x
+192.168.202.x
+192.168.203.x
+</code></pre></div></div>
+
+<p>이 내용을 확인하고 나니, 지난 기수가 사용하던 강의실과 현재 사용중인 강의실이 다르다는 것이 떠올랐다. 교육장에는 강의실마다 AP를 나눠서 사용하고 있었고, 이로인해 이전 기수와 서브넷이 달랐던 것이다.
+따라서 이전 기수에서 사용하던 <code class="language-plaintext highlighter-rouge">/24</code> 설정을 현재 네트워크에 그대로 적용하는 것은 적절하지 않았다.</p>
+
+<hr />
+
+<h2 id="4-dhcp를-통한-실제-네트워크-설정-확인"><strong>4. DHCP를 통한 실제 네트워크 설정 확인</strong></h2>
+
+<p>Static IP를 임의로 지정하기보다 현재 강의실 네트워크의 DHCP 서버가 어떤 설정을 제공하는지 먼저 확인하기로 했다.</p>
+
+<p>Netplan을 DHCP 기반으로 변경했다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">network</span><span class="pi">:</span>
+  <span class="na">version</span><span class="pi">:</span> <span class="m">2</span>
+  <span class="na">wifis</span><span class="pi">:</span>
+    <span class="na">wlo1</span><span class="pi">:</span>
+      <span class="na">access-points</span><span class="pi">:</span>
+        <span class="s2">"</span><span class="s">RAPA_Classroom-5"</span><span class="err">:</span>
+          <span class="na">password</span><span class="pi">:</span> <span class="s2">"</span><span class="s">********"</span>
+      <span class="na">dhcp4</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<p>기존에 직접 지정했던 다음 설정은 제거했다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">addresses</span><span class="pi">:</span>
+<span class="na">routes</span><span class="pi">:</span>
+<span class="na">nameservers</span><span class="pi">:</span>
+</code></pre></div></div>
+
+<p>설정을 검증하고 적용했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>netplan generate
+<span class="nb">sudo </span>netplan try
+</code></pre></div></div>
+
+<p>이후 실제 할당된 IP와 라우팅 정보를 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ip <span class="nt">-4</span> addr show wlo1
+ip route
+</code></pre></div></div>
+
+<p>이를 통해 현재 강의실 네트워크에서 사용하는 IP 대역과 서브넷 정보를 확인할 수 있었다.</p>
+
+<p>하지만 네트워크 설정을 현재 환경에 맞게 수정한 이후에도 MacBook에서 서버로 Ping과 SSH가 되지 않았다.</p>
+
+<p>따라서 <strong>서브넷 설정만의 문제는 아니라고 판단했다.</strong></p>
+
+<hr />
+
+<h2 id="5-ssh-및-방화벽-확인"><strong>5. SSH 및 방화벽 확인</strong></h2>
+
+<p>SSH 서비스 및 방화벽 문제도 확인했다.</p>
+
+<p>UFW 상태를 확인했다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>ufw status
+</code></pre></div></div>
+
+<p>SSH에 사용되는 TCP 22번 포트가 허용되어 있었다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>22/tcp    ALLOW
+</code></pre></div></div>
+
+<p>따라서 SSH 접속 실패의 직접적인 원인이 UFW에서 TCP 22번 포트를 차단했기 때문은 아니었다.</p>
+
+<p>또한 SSH뿐만 아니라 Ping을 통한 단말 간 기본 통신 자체가 실패하고 있었기 때문에 문제 범위를 SSH 애플리케이션 계층보다 아래의 네트워크 계층으로 좁힐 수 있었다.</p>
+
+<hr />
+
+<h2 id="6-동일-wi-fi-단말-간-통신-확인"><strong>6. 동일 Wi-Fi 단말 간 통신 확인</strong></h2>
+
+<p>서버와 MacBook은 모두 동일한 Wi-Fi에 연결되어 있었으며 각각 인터넷 연결도 정상적이었다.</p>
+
+<p>구조상 다음과 같은 상태였다.</p>
+
+<p><img src="../../assets/post/2026-09-22-notes-11-troubleshooting-client-isolation/04.webp" alt="" /></p>
+
+<p>각 장비에서 AP 및 외부 네트워크로의 통신은 가능하지만 두 클라이언트 사이의 직접 통신은 불가능했다.</p>
+
+<p>즉 다음과 같은 특징을 보였다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Server  → Gateway    정상
+MacBook → Gateway    정상
+
+Server  → Internet   정상
+MacBook → Internet   정상
+
+MacBook → Server     실패
+Server  → MacBook    실패
+</code></pre></div></div>
+
+<p>이 시점에서 개별 서버의 IP, SSH 또는 방화벽 설정보다는 <strong>AP에서 클라이언트 간 통신을 제한하고 있을 가능성</strong>을 의심했다.</p>
+
+<hr />
+
+<h2 id="7-원인--client-isolation"><strong>7. 원인 — Client Isolation</strong></h2>
+
+<p>조사 결과 현재 Wi-Fi 환경에서 <strong>Client Isolation(AP Isolation)</strong>으로 인해 무선 클라이언트 간 직접 통신이 제한되고 있는 것으로 판단했다.</p>
+
+<p>Client Isolation은 동일한 AP에 연결된 클라이언트가 서로 직접 통신하지 못하도록 격리하는 기능이다.</p>
+
+<p>따라서 동일한 SSID를 사용하고 동일한 IP 서브넷에 속하더라도 다음과 같은 통신이 제한될 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MacBook ──X── Ubuntu Server
+</code></pre></div></div>
+
+<p>반면 AP를 통해 외부로 나가는 트래픽은 정상적으로 처리될 수 있다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>MacBook ──→ AP ──→ Internet
+Server  ──→ AP ──→ Internet
+</code></pre></div></div>
+
+<p>이 때문에 서버와 MacBook 모두 인터넷 연결에는 문제가 없었지만, MacBook에서 서버로 직접 접근하는 Ping과 SSH는 실패했다.</p>
+
+<hr />
+
+<h2 id="8-해결-여부-및-우회-방법"><strong>8. 해결 여부 및 우회 방법</strong></h2>
+
+<p>이번 문제는 서버 자체의 설정을 변경하여 해결할 수 있는 문제가 아니었다.</p>
+
+<p>Client Isolation은 AP 측에서 적용되는 정책이므로 이를 직접 해제하려면 해당 네트워크 장비에 대한 관리 권한이 필요하다.</p>
+
+<p>현재는 AP에 대한 관리 권한이 없기 때문에 <strong>Client Isolation 자체는 해결할 수 없는 상태</strong>다.</p>
+
+<p>다만 네트워크를 우회하는 방법은 존재한다.</p>
+
+<p>서버를 확인하는 과정에서 다른 팀의 서버에 이전 기수가 설치한 <strong>Tailscale</strong> 관련 구성이 발견되었다. 이는 이전 환경에서도 동일하거나 유사한 네트워크 제약을 우회하기 위해 사용했을 가능성이 있다.</p>
+
+<p>Tailscale과 같은 Overlay Network를 사용하면 각 장비에 별도의 가상 네트워크 인터페이스와 IP를 구성하여 물리적인 로컬 네트워크의 직접 통신에 의존하지 않고 장비 간 연결을 구성할 수 있다.</p>
+
+<p>구조는 다음과 같다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ubuntu Server
+     │
+     │ Tailscale Network
+     │
+  MacBook
+</code></pre></div></div>
+
+<p>따라서 현재 환경에서는 다음과 같은 방법을 고려할 수 있다.</p>
+
+<ul>
+  <li>Tailscale 등의 Overlay Network 사용</li>
+  <li>Client Isolation이 적용되지 않은 별도 네트워크 사용</li>
+  <li>유선 LAN을 통한 별도 네트워크 구성</li>
+  <li>관리 가능한 별도의 AP/공유기 구성</li>
+</ul>
+
+<hr />
+
+<h2 id="9-결론"><strong>9. 결론</strong></h2>
+
+<p>초기에는 SSH 접속 실패를 서버의 SSH, UFW 또는 Static IP 설정 문제로 판단했다.</p>
+
+<p>네트워크 설정을 확인하는 과정에서 이전 기수의 <code class="language-plaintext highlighter-rouge">/24</code> 기반 설정과 현재 강의실의 <code class="language-plaintext highlighter-rouge">/22</code> 기반 네트워크 환경이 다르다는 것을 확인했고, DHCP를 사용하여 현재 환경에 맞는 네트워크 설정을 다시 구성했다.</p>
+
+<p>그러나 설정 정상화 이후에도 동일 Wi-Fi에 연결된 단말 간 Ping 및 SSH가 실패했다.</p>
+
+<p>각 단말에서 게이트웨이와 외부 네트워크로의 통신은 정상인 반면 클라이언트 간 직접 통신만 실패한다는 점을 통해 문제 범위를 AP 정책으로 좁혔으며, 최종적으로 <strong>Wi-Fi Client Isolation에 의한 단말 간 통신 제한이 원인인 것으로 판단했다.</strong></p>
+
+<h2 id="10-해야-할-것">10. 해야 할 것</h2>
+
+<p>TailScale이 조직으로도 사용이 가능한지, 다른 Overlay Network 또는 VPN으로 구축이 가능한지 찾아보기</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-59-ansible-adhoc-playbook-nginx/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Ansible Ad-hoc 명령과 Playbook으로 Nginx 자동화</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1790146435"></script>
+    <script src="/assets/js/code-enhancements.js?v=1790146435"></script>
+  </body>
+</html>
