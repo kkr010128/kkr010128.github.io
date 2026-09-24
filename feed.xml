@@ -1,4 +1,668 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-24T17:29:53+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Client Isolation으로 인한 단말 간 통신 실패</title><link href="https://hyn128.site/notes-11-troubleshooting-client-isolation/" rel="alternate" type="text/html" title="Client Isolation으로 인한 단말 간 통신 실패" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/notes-11-troubleshooting-client-isolation</id><content type="html" xml:base="https://hyn128.site/notes-11-troubleshooting-client-isolation/"><![CDATA[<hr />
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-24T23:06:13+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기</title><link href="https://hyn128.site/project-1-orbit-command-logging/" rel="alternate" type="text/html" title="Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기" /><published>2026-09-24T00:00:00+09:00</published><updated>2026-09-24T00:00:00+09:00</updated><id>https://hyn128.site/project-1-orbit-command-logging</id><content type="html" xml:base="https://hyn128.site/project-1-orbit-command-logging/"><![CDATA[<h2 id="요약">요약</h2>
+<blockquote>
+  <p>여러 사용자가 함께 사용하는 Production·Development Ubuntu 서버의 작업 이력을 추적하기 위해 <code class="language-plaintext highlighter-rouge">auditd</code>와 Slack Webhook을 연동한 명령 로깅 시스템을 구축했습니다. 일반 사용자의 프로그램 실행과 <code class="language-plaintext highlighter-rouge">sudo</code> 사용 내역을 수집해 서버별, 사용자와 권한별 Slack 채널로 전송하고, Webhook 보호와 <code class="language-plaintext highlighter-rouge">systemd</code>를 이용한 상시 실행 과정까지 정리합니다.</p>
+</blockquote>
+
+<hr />
+<h2 id="1-아이디어">1. 아이디어</h2>
+
+<blockquote>
+  <p>교육장에서 받은 서버와 홈서버를 각각 Production, Development 서버로 두기로 했습니다.
+이 과정에서 팀원은 모두 개인의 계정을 갖고, <code class="language-plaintext highlighter-rouge">sudo</code> 를 포함한 명령을 사용하게 되는데 추후 트러블 슈팅 또는 본인의 작업 내역을 확인하기 위한 기록이 필요하다고 느껴 로깅 시스템 구축의 필요성을 느꼈습니다.</p>
+</blockquote>
+
+<p>먼저 저희가 협업 과정에서 활용할 구조는 다음과 같습니다.</p>
+<ol>
+  <li>Slack - 팀원별 소통 및 웹훅 애플리케이션 관리</li>
+  <li>Jira/Github - 프로젝트 및 이슈 관리</li>
+  <li>DevServer - Ubuntu Server에서 가용 최대 리소스로 개발 및 테스트를 위한 서버로 활용
+    <ul>
+      <li>libvirt와 KVM으로 Orbit 호스트 VM 생성해 사용</li>
+      <li>VM 내에서는 각 사용자별 디렉토리 내에서 작업 및 테스트</li>
+    </ul>
+  </li>
+</ol>
+
+<p>이 구조에서 각 팀원들의 명령이 <code class="language-plaintext highlighter-rouge">sudo</code>로 사용될 수 있어야하고, 다른 사용자 환경에도 영향을 미칠 수 있다고 생각했습니다.</p>
+
+<p>또한 개발 및 테스트 과정에서 문제를 해결한 과정 또는 공유할 내용을 그때마다 기록하기에는 어려울 수 있으므로, 대신 명령 시퀀스를 타임라인으로 볼 수 있는 기록이 필요하다고 생각했습니다.</p>
+
+<h2 id="2-slack에-log-수집-채널-및-log-애플리케이션-생성">2. Slack에 Log 수집 채널 및 Log 애플리케이션 생성</h2>
+
+<p>먼저 Slack에 각 서버별, 명령 권한(사용자) 별 로그 수집 채널을 생성해주었습니다.</p>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/25.webp" alt="" /></p>
+
+<p>이후 <a href="https://api.slack.com/apps">Slack API</a> 에서 Application을 생성하고 아래와 같이 진행했습니다.</p>
+<ol>
+  <li>Create New App → Blank App → Continue</li>
+  <li>App Name: Orbit Log</li>
+  <li>사용할 워크스페이스 선택</li>
+  <li>Create APP</li>
+</ol>
+
+<h2 id="3-webhook-생성">3. Webhook 생성</h2>
+
+<p>앱이 생성되고 앱 설정 화면으로 넘어가면 왼쪽 메뉴에서 <code class="language-plaintext highlighter-rouge">Features → Incomming Webhooks</code>로 진입합니다.</p>
+
+<p>이후 같은 페이지에서 <code class="language-plaintext highlighter-rouge">Add New Webhook to Workspace</code>를 선택해 훅을 수신할 채널을 전부 생성해줍니다.</p>
+
+<p>저희 환경에서는 최종적으로 아래와 같은 구조가 구성됐습니다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Orbit Log (Slack App)
+│
+├─ webhook → #prod-orbit
+├─ webhook → #prod-sudo
+├─ webhook → #prod-hyn128
+├─ webhook → #prod-jyvnee
+├─ webhook → #prod-sungahbak
+├─ webhook → #prod-xoruddl
+│
+├─ webhook → #dev-orbit
+├─ webhook → #dev-sudo
+├─ webhook → #dev-hyn128
+├─ webhook → #dev-jyvnee
+├─ webhook → #dev-sungahbak
+├─ webhook → #dev-xoruddl
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/07.webp" alt="" /></p>
+
+<blockquote>
+  <p>생성된 Webhook은 공개 될 경우 URL 만으로도 아주 쉽게 해당 채널로 데이터를 보낼 수 있으므로 공개에 주의합니다.</p>
+</blockquote>
+
+<p>생성된 Webhook은 <code class="language-plaintext highlighter-rouge">curl</code>을 이용해 아래처럼 테스트 해볼 수 있습니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s1">'Content-type: application/json'</span> <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"text":"[DEV] Ubuntu sudo log test"}'</span> <span class="se">\</span>
+  <span class="s1">'여기에_WEBHOOK_URL'</span>
+</code></pre></div></div>
+
+<h2 id="4-ubuntu에-webhook-설정-파일-구축-및-패키지-설치">4. Ubuntu에 Webhook 설정 파일 구축 및 패키지 설치</h2>
+
+<p>Production 서버와 Development 서버 모두 과정은 비슷하므로, Dev 서버를 기준으로 작성합니다.</p>
+
+<p>개발 서버 기준으로 다시 정리하면 목표는 아래와 같습니다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>orbit 명령      → #dev-1-orbit (관리용 계정)
+sudo 전체       → #dev-2-sudo
+hyn128 명령     → #dev-hyn128
+jyvnee 명령     → #dev-jyvnee
+sungahbak 명령  → #dev-sungahbak
+xoruddl 명령    → #dev-xoruddl
+</code></pre></div></div>
+
+<h3 id="1-디렉토리-구성">1) 디렉토리 구성</h3>
+
+<p>먼저 스크립트를 담을 디렉토리를 <code class="language-plaintext highlighter-rouge">-p</code> 옵션으로 일괄 생성하고, 해당 디렉토리로 이동합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> ~/slack-log/scripts
+<span class="nb">cd</span> ~/slack-log
+</code></pre></div></div>
+
+<p>사용하게 될 구조는 다음과 같습니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/home/orbit/slack-log/       <span class="c"># Slack 명령 모니터링 관련 파일 관리</span>
+├── webhook.env              <span class="c"># 사용자별 Slack Webhook URL 및 환경변수 저장</span>
+└── scripts/
+    └── command-monitor.sh   <span class="c"># Audit 로그 감시, 사용자별 명령 분기 및 Slack 전송</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>root가 아닌 사용자 디렉토리에 구성하는 이유</strong></p>
+
+  <p>/root에 스크립트를 두면 수정과 실행 시마다 root 권한이 필요하고, 일반 사용자의 접근도 제한됩니다. 따라서 현재 협업 환경에서는 root 권한이 반드시 필요한 파일이 아니었고, 사용자의 홈 디렉토리에서 관리하여 필요한 작업에만 <code class="language-plaintext highlighter-rouge">sudo</code>를 사용하는 방식이 권한 관리와 유지보수 측면에서 적절하다고 판단했습니다.</p>
+</blockquote>
+
+<h3 id="2-webhook-설정">2) Webhook 설정</h3>
+
+<p>각 채널별 웹훅을 담을 환경변수 파일을 먼저 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nano webhook.env
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/11.webp" alt="" /></p>
+
+<p>이후 다음처럼 권한을 설정합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod </span>600 ~/slack-log/webhook.env
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">webhook.env</code>는 <code class="language-plaintext highlighter-rouge">Slack Webhook URL</code> 같은 비밀 값이 들어가므로 <code class="language-plaintext highlighter-rouge">600</code>으로 설정했습니다.</p>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/13.webp" alt="" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">600</code>의 상세 권한은 아래와 같습니다.</p>
+<ul>
+  <li>소유자(owner) : 6 = 읽기(r) + 쓰기(w)</li>
+  <li>그룹(group)   : 0 = 권한 없음</li>
+  <li>기타(others) : 0 = 권한 없음</li>
+</ul>
+
+<blockquote>
+  <p>orbit       → 읽기/수정 가능
+다른 사용자 → 읽기 불가능</p>
+</blockquote>
+
+<h3 id="3-auditd-설치">3) auditd 설치</h3>
+
+<p>다음으로 사용자별 명령 실행 내역을 수집하기 Linux의 감사 패키지인 <code class="language-plaintext highlighter-rouge">auditd</code>를 설치합니다.</p>
+
+<p>먼저 패키지 목록을 갱신한 후 필요한 패키지를 설치합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> auditd audispd-plugins curl
+</code></pre></div></div>
+
+<p>각 패키지의 역할은 다음과 같습니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">auditd</code> : Linux Audit 데몬으로, 명령 실행 등의 시스템 이벤트를 감사 로그로 기록</li>
+  <li><code class="language-plaintext highlighter-rouge">audispd-plugins</code> : Audit 이벤트를 다른 프로그램이나 외부 시스템과 연동하기 위한 플러그인 제공</li>
+  <li><code class="language-plaintext highlighter-rouge">curl</code> : 수집한 로그를 Slack Webhook으로 전송하기 위한 HTTP 요청 도구</li>
+</ul>
+
+<p>설치가 완료되면 <code class="language-plaintext highlighter-rouge">auditd</code>를 활성화하고 바로 실행합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> auditd
+</code></pre></div></div>
+
+<p>여기서 <code class="language-plaintext highlighter-rouge">enable</code>은 서버가 재부팅된 이후에도 <code class="language-plaintext highlighter-rouge">auditd</code>가 자동으로 실행되도록 설정하며, <code class="language-plaintext highlighter-rouge">--now</code>는 서비스 활성화와 동시에 현재 세션에서도 바로 실행하도록 합니다.</p>
+
+<p>마지막으로 정상적으로 실행되고 있는지 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl status auditd
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/15.webp" alt="" />
+사진과 같이 <code class="language-plaintext highlighter-rouge">active (running)</code> 로 정상적으로 동작하고 있는 것을 확인할 수 있습니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Active: active (running)
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Shell History 대신 auditd를 사용하는 이유</strong></p>
+
+  <p><code class="language-plaintext highlighter-rouge">history</code>는 각 사용자의 Shell 환경에 종속되며 사용자가 직접 기록을 수정하거나 삭제할 수 있습니다. 반면 <code class="language-plaintext highlighter-rouge">auditd</code>는 Linux Audit 시스템을 통해 시스템 이벤트를 수집하므로, 여러 사용자가 함께 사용하는 서버에서 명령 실행 내역을 감사하기 위한 용도로 더 적합하다고 판단했습니다.</p>
+</blockquote>
+
+<h2 id="5-sudo-명령-audit-규칙-설정">5. sudo 명령 Audit 규칙 설정</h2>
+
+<p><code class="language-plaintext highlighter-rouge">auditd</code> 설치가 완료되었으므로 이제 <code class="language-plaintext highlighter-rouge">sudo</code> 명령 실행을 감지할 수 있도록 Audit 규칙을 설정합니다.</p>
+
+<h3 id="1-audit-규칙-파일-생성"><strong>1) Audit 규칙 파일 생성</strong></h3>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/audit/rules.d/</code> 디렉토리에 사용자 명령 실행을 감시하기 위한 Audit 규칙 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/audit/rules.d/command-monitor.rules
+</code></pre></div></div>
+
+<p>파일에 다음 내용을 추가합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">-a</span> always,exit <span class="nt">-F</span> <span class="nb">arch</span><span class="o">=</span>b64 <span class="nt">-S</span> execve <span class="nt">-F</span> auid&gt;<span class="o">=</span>1000 <span class="nt">-F</span> auid!<span class="o">=</span><span class="nb">unset</span> <span class="nt">-k</span> user_command
+<span class="nt">-a</span> always,exit <span class="nt">-F</span> <span class="nb">arch</span><span class="o">=</span>b32 <span class="nt">-S</span> execve <span class="nt">-F</span> auid&gt;<span class="o">=</span>1000 <span class="nt">-F</span> auid!<span class="o">=</span><span class="nb">unset</span> <span class="nt">-k</span> user_command
+</code></pre></div></div>
+
+<p>각 옵션의 의미는 다음과 같습니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">-a always,exit</code> : 시스템 콜이 종료될 때 항상 Audit 이벤트를 기록</li>
+  <li><code class="language-plaintext highlighter-rouge">-F arch=b64</code>, <code class="language-plaintext highlighter-rouge">-F arch=b32</code> : 각각 64비트와 32비트 시스템 콜을 감시</li>
+  <li><code class="language-plaintext highlighter-rouge">-S execve</code> : 프로그램 실행에 사용되는 <code class="language-plaintext highlighter-rouge">execve</code> 시스템 콜을 감시</li>
+  <li><code class="language-plaintext highlighter-rouge">-F auid&gt;=1000</code> : 일반 사용자 계정에서 발생한 이벤트만 대상으로 지정</li>
+  <li><code class="language-plaintext highlighter-rouge">-F auid!=unset</code> : 로그인 사용자를 식별할 수 없는 이벤트를 제외</li>
+  <li><code class="language-plaintext highlighter-rouge">-k user_command</code> : 기록된 이벤트에 <code class="language-plaintext highlighter-rouge">user_command</code>라는 검색용 키를 부여</li>
+</ul>
+
+<p>즉, 일반 사용자가 실행한 프로그램의 <code class="language-plaintext highlighter-rouge">execve</code> 이벤트를 Audit 로그에 기록하고, 이후 <code class="language-plaintext highlighter-rouge">user_command</code> 키를 이용해 해당 로그를 조회할 수 있도록 설정합니다.
+<img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/31.webp" alt="" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/audit/rules.d/</code>는 <code class="language-plaintext highlighter-rouge">auditd</code>의 영구 Audit 규칙을 관리하는 디렉토리입니다. 이곳에 규칙 파일을 작성하면 재부팅 이후에도 규칙을 다시 적용할 수 있습니다.</p>
+
+<h3 id="2-audit-규칙-적용"><strong>2) Audit 규칙 적용</strong></h3>
+
+<p>작성한 규칙을 현재 시스템에 적용합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>augenrules <span class="nt">--load</span>
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/19.webp" alt="" />
+<code class="language-plaintext highlighter-rouge">augenrules</code>는 <code class="language-plaintext highlighter-rouge">/etc/audit/rules.d/</code>에 작성된 규칙들을 읽어 Audit 시스템에 적용합니다.</p>
+
+<p>적용된 규칙은 다음 명령으로 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>auditctl <span class="nt">-l</span> | <span class="nb">grep </span>user_command
+</code></pre></div></div>
+
+<p>앞에서 작성한 <code class="language-plaintext highlighter-rouge">user_command</code> 규칙이 출력된다면 정상적으로 적용된 것입니다.</p>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/33.webp" alt="" /></p>
+
+<h3 id="3-sudo-실행-및-audit-로그-확인"><strong>3) sudo 실행 및 Audit 로그 확인</strong></h3>
+
+<p>실제로 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 실행하여 Audit 이벤트가 기록되는지 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo whoami</span>
+</code></pre></div></div>
+
+<p>정상적으로 실행되면 다음과 같이 출력됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root
+</code></pre></div></div>
+
+<p>이후 <code class="language-plaintext highlighter-rouge">sudo_command</code> 키를 기준으로 최근 Audit 로그를 조회합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>ausearch <span class="nt">-k</span> user_command <span class="nt">-i</span> <span class="nt">--start</span> recent
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/23.webp" alt="" /></p>
+
+<p>여기서 <code class="language-plaintext highlighter-rouge">-k user_command</code>는 앞에서 설정한 키를 가진 이벤트만 조회하고, <code class="language-plaintext highlighter-rouge">-i</code>는 UID 등의 값을 사람이 읽기 쉬운 형태로 변환하여 출력합니다.</p>
+
+<p>현재 단계에서는 Audit 로그가 정상적으로 수집되는지 확인하는 것이 목적입니다. 이후 수집된 원본 로그에서 필요한 정보를 추출하여 Slack으로 전송하도록 구성합니다.</p>
+
+<p>최종적으로 Slack에 전달할 정보는 다음 5개로 정했습니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User    : 명령을 실행한 사용자
+Time    : 명령 실행 시간
+Command : 실행한 명령
+PWD     : 명령을 실행한 디렉토리
+Run as  : sudo를 통해 명령을 실행한 대상 사용자
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">TTY</code>, PID, UID/GID 등의 정보도 Audit 로그에 포함될 수 있지만, Slack에서는 명령 실행 내역과 트러블 슈팅에 필요한 정보만 추출하여 전달하도록 구성합니다.</p>
+
+<h2 id="6-사용자별-명령-slack-전송-스크립트-작성">6. 사용자별 명령 Slack 전송 스크립트 작성</h2>
+
+<p>앞에서 설정한 <code class="language-plaintext highlighter-rouge">user_command</code> Audit 로그를 실시간으로 감시하고, 실행한 사용자에 따라 각 Slack 채널로 로그를 전송하도록 스크립트를 작성합니다.</p>
+
+<p>로그는 다음과 같이 분기하도록 구성했습니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>일반 명령
+└─ 해당 사용자 채널
+
+sudo 명령
+├─ 해당 사용자 채널
+└─ sudo 전용 채널
+</code></pre></div></div>
+
+<p>또한 Slack에서 로그를 쉽게 구분할 수 있도록 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령의 Attachment 색상을 다르게 설정하고, 주요 항목은 굵게 표시하도록 구성했습니다.</p>
+
+<p>스크립트 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nano ~/slack-log/scripts/command-monitor.sh
+</code></pre></div></div>
+
+<p>다음 내용을 작성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nb">set</span> <span class="nt">-u</span>
+
+<span class="nb">source</span> /home/orbit/slack-log/webhook.env
+
+<span class="nv">AUDIT_LOG</span><span class="o">=</span><span class="s2">"/var/log/audit/audit.log"</span>
+
+send_slack<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">local </span><span class="nv">webhook</span><span class="o">=</span><span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span>
+    <span class="nb">local type</span><span class="o">=</span><span class="s2">"</span><span class="nv">$2</span><span class="s2">"</span>
+    <span class="nb">local </span><span class="nv">user</span><span class="o">=</span><span class="s2">"</span><span class="nv">$3</span><span class="s2">"</span>
+    <span class="nb">local time</span><span class="o">=</span><span class="s2">"</span><span class="nv">$4</span><span class="s2">"</span>
+    <span class="nb">local command</span><span class="o">=</span><span class="s2">"</span><span class="nv">$5</span><span class="s2">"</span>
+    <span class="nb">local </span><span class="nv">pwd_value</span><span class="o">=</span><span class="s2">"</span><span class="nv">$6</span><span class="s2">"</span>
+    <span class="nb">local </span><span class="nv">run_as</span><span class="o">=</span><span class="s2">"</span><span class="nv">$7</span><span class="s2">"</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$webhook</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">return
+
+    </span><span class="nb">local </span>payload
+
+    <span class="nv">payload</span><span class="o">=</span><span class="si">$(</span>python3 - <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$type</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$user</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$time</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$command</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$pwd_value</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$run_as</span><span class="s2">"</span> <span class="o">&lt;&lt;</span><span class="sh">'</span><span class="no">PY</span><span class="sh">'
+import json
+import sys
+
+type_, user, time, command, pwd, run_as = sys.argv[1:]
+
+if type_ == "SUDO":
+    color = "#E01E5A"
+    title = "SUDO Command"
+else:
+    color = "#2EB67D"
+    title = "Command"
+
+payload = {
+    "attachments": [
+        {
+            "color": color,
+            "mrkdwn_in": ["text"],
+            "text": (
+                f"*{title}*</span><span class="se">\n\n</span><span class="sh">"
+                f"*User*</span><span class="se">\n</span><span class="sh">`{user}`</span><span class="se">\n\n</span><span class="sh">"
+                f"*Run as*</span><span class="se">\n</span><span class="sh">`{run_as}`</span><span class="se">\n\n</span><span class="sh">"
+                f"*Time*</span><span class="se">\n</span><span class="sh">{time}</span><span class="se">\n\n</span><span class="sh">"
+                f"*PWD*</span><span class="se">\n</span><span class="sh">`{pwd}`</span><span class="se">\n\n</span><span class="sh">"
+                f"*Command*</span><span class="se">\n</span><span class="sh">```{command}```"
+            )
+        }
+    ]
+}
+
+print(json.dumps(payload))
+</span><span class="no">PY
+</span><span class="si">)</span>
+
+    curl <span class="nt">-fsS</span> <span class="se">\</span>
+        <span class="nt">-H</span> <span class="s1">'Content-Type: application/json'</span> <span class="se">\</span>
+        <span class="nt">--data</span> <span class="s2">"</span><span class="nv">$payload</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$webhook</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="o">&gt;</span>/dev/null 2&gt;&amp;1
+<span class="o">}</span>
+
+get_user_webhook<span class="o">()</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span> <span class="k">in
+        </span>orbit<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_ORBIT_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        hyn128<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_HYN128_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        jyvnee<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_JYVNEE_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        sungahbak<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_SUNGAHBAK_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        xoruddl<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_XORUDDL_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        <span class="k">*</span><span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">""</span>
+            <span class="p">;;</span>
+    <span class="k">esac</span>
+<span class="o">}</span>
+
+<span class="nb">tail</span> <span class="nt">-Fn0</span> <span class="s2">"</span><span class="nv">$AUDIT_LOG</span><span class="s2">"</span> | <span class="k">while </span><span class="nv">IFS</span><span class="o">=</span> <span class="nb">read</span> <span class="nt">-r</span> line<span class="p">;</span> <span class="k">do</span>
+
+    <span class="c"># user_command SYSCALL 이벤트만 처리</span>
+    <span class="o">[[</span> <span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span> <span class="o">!=</span> <span class="nb">type</span><span class="o">=</span>SYSCALL<span class="k">*</span> <span class="o">]]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+    <span class="o">[[</span> <span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span> <span class="o">!=</span> <span class="k">*</span><span class="s1">'key="user_command"'</span><span class="k">*</span> <span class="o">]]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># Audit Event ID 추출</span>
+    <span class="nv">EVENT_ID</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*msg=audit([^:]*:\([0-9]\+\)).*/\1/p'</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$EVENT_ID</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># 현재 읽은 SYSCALL 로그 사용</span>
+    <span class="nv">SYSCALL_LINE</span><span class="o">=</span><span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span>
+
+    <span class="c"># 실제 로그인 사용자</span>
+    <span class="nv">USER_NAME</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SYSCALL_LINE</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*AUID="\([^"]*\)".*/\1/p'</span><span class="si">)</span>
+
+    <span class="c"># 실행 파일</span>
+    <span class="nv">EXE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SYSCALL_LINE</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*exe="\([^"]*\)".*/\1/p'</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># 사용자별 Webhook 선택</span>
+    <span class="nv">USER_WEBHOOK</span><span class="o">=</span><span class="si">$(</span>get_user_webhook <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$USER_WEBHOOK</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># EXECVE와 CWD 이벤트가 기록될 시간 확보</span>
+    <span class="nb">sleep </span>0.2
+
+    <span class="nv">EVENT</span><span class="o">=</span><span class="si">$(</span>ausearch <span class="nt">-a</span> <span class="s2">"</span><span class="nv">$EVENT_ID</span><span class="s2">"</span> <span class="nt">-i</span> <span class="nt">--just-one</span> 2&gt;/dev/null<span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$EVENT</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue
+
+    </span><span class="nv">EXECVE_LINE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$EVENT</span><span class="s2">"</span> |
+        <span class="nb">grep</span> <span class="s1">'^type=EXECVE'</span> |
+        <span class="nb">head</span> <span class="nt">-1</span><span class="si">)</span>
+
+    <span class="nv">CWD_LINE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$EVENT</span><span class="s2">"</span> |
+        <span class="nb">grep</span> <span class="s1">'^type=CWD'</span> |
+        <span class="nb">head</span> <span class="nt">-1</span><span class="si">)</span>
+
+    <span class="c"># 명령 실행 위치</span>
+    <span class="nv">PWD_VALUE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$CWD_LINE</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*cwd=\([^ ]*\).*/\1/p'</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nv">PWD_VALUE</span><span class="o">=</span><span class="s2">"unknown"</span>
+
+    <span class="c"># EXECVE 인자를 하나의 명령으로 조합</span>
+    <span class="nv">COMMAND</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$EXECVE_LINE</span><span class="s2">"</span> |
+        <span class="nb">grep</span> <span class="nt">-oE</span> <span class="s1">'a[0-9]+=[^ ]+'</span> |
+        <span class="nb">sed</span> <span class="nt">-E</span> <span class="s1">'s/^a[0-9]+=//'</span> |
+        <span class="nb">paste</span> <span class="nt">-sd</span> <span class="s1">' '</span> -<span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$COMMAND</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue
+
+    </span><span class="nv">TIME</span><span class="o">=</span><span class="si">$(</span><span class="nb">date</span> <span class="s1">'+%Y-%m-%d %H:%M:%S'</span><span class="si">)</span>
+
+    <span class="c"># sudo 명령 처리</span>
+    <span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$EXE</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"/usr/bin/sudo"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+
+        </span><span class="nv">SUDO_COMMAND</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">COMMAND</span><span class="p">#sudo</span><span class="k">}</span><span class="s2">"</span>
+        <span class="nv">SUDO_COMMAND</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">SUDO_COMMAND</span><span class="p"># </span><span class="k">}</span><span class="s2">"</span>
+
+        <span class="nv">RUN_AS</span><span class="o">=</span><span class="s2">"root"</span>
+
+        <span class="c"># sudo -u user command 처리</span>
+        <span class="k">if</span> <span class="o">[[</span> <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> <span class="o">==</span> <span class="s2">"-u "</span><span class="k">*</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+
+            </span><span class="nv">RUN_AS</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> |
+                <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="si">)</span>
+
+            <span class="nv">SUDO_COMMAND</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> |
+                <span class="nb">cut</span> <span class="nt">-d</span><span class="s1">' '</span> <span class="nt">-f3-</span><span class="si">)</span>
+        <span class="k">fi</span>
+
+        <span class="c"># 사용자 개인 채널</span>
+        send_slack <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_WEBHOOK</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"SUDO"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$TIME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$RUN_AS</span><span class="s2">"</span>
+
+        <span class="c"># sudo 공통 채널</span>
+        send_slack <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$DEV_ALL_SUDO_WEBHOOK</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"SUDO"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$TIME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$RUN_AS</span><span class="s2">"</span>
+
+    <span class="k">else</span>
+
+        <span class="c"># sudo 내부에서 실행된 root 명령의 중복 전송 방지</span>
+        <span class="nv">EUID_NAME</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SYSCALL_LINE</span><span class="s2">"</span> |
+            <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*EUID="\([^"]*\)".*/\1/p'</span><span class="si">)</span>
+
+        <span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$EUID_NAME</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"root"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+            continue
+        fi
+
+        </span>send_slack <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_WEBHOOK</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"COMMAND"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$TIME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$COMMAND</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span>
+
+    <span class="k">fi
+
+done</span>
+</code></pre></div></div>
+
+<p>스크립트에서는 Audit 로그의 <code class="language-plaintext highlighter-rouge">SYSCALL</code>, <code class="language-plaintext highlighter-rouge">EXECVE</code>, <code class="language-plaintext highlighter-rouge">CWD</code> 이벤트를 이용해 다음 정보를 추출합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User    : 명령을 실행한 로그인 사용자
+Run as  : 실제 명령을 실행하는 사용자
+Time    : 명령 실행 시간
+PWD     : 명령을 실행한 디렉토리
+Command : 실행한 명령과 인자
+</code></pre></div></div>
+
+<p>Slack 메시지는 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 쉽게 구분할 수 있도록 다음과 같이 표시합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>일반 명령 → 초록색 Attachment
+sudo 명령 → 빨간색 Attachment
+</code></pre></div></div>
+
+<p>일반 명령은 해당 사용자의 개인 채널에만 전송됩니다.</p>
+
+<p>예를 들어 <code class="language-plaintext highlighter-rouge">hyn128</code> 사용자가 다음 명령을 실행하면,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> <span class="nt">-al</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">#dev-hyn128</code> 채널에 다음 정보가 표시됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Command
+
+User
+hyn128
+
+Run as
+hyn128
+
+Time
+2026-09-24 22:10:00
+
+PWD
+/home/hyn128
+
+Command
+ls --color=auto -al
+</code></pre></div></div>
+
+<p>반면 다음과 같이 <code class="language-plaintext highlighter-rouge">sudo</code>를 사용하면,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo whoami</span>
+</code></pre></div></div>
+
+<p>동일한 로그가 <code class="language-plaintext highlighter-rouge">#dev-hyn128</code>과 <code class="language-plaintext highlighter-rouge">#dev-all-sudo</code>에 전송됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SUDO Command
+
+User
+hyn128
+
+Run as
+root
+
+Time
+2026-09-24 22:11:00
+
+PWD
+/home/hyn128
+
+Command
+whoami
+</code></pre></div></div>
+
+<h3 id="1-실행-권한-설정"><strong>1) 실행 권한 설정</strong></h3>
+
+<p>작성한 스크립트에 실행 권한을 추가합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x ~/slack-log/scripts/command-monitor.sh
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/35.webp" alt="" /></p>
+
+<h2 id="7-모니터링-스크립트-systemd-서비스-등록">7. 모니터링 스크립트 systemd 서비스 등록</h2>
+
+<p><code class="language-plaintext highlighter-rouge">command-monitor.sh</code>를 터미널에서 직접 실행하면 해당 터미널을 계속 점유하며, SSH 연결이 종료되거나 서버가 재부팅되었을 때 모니터링도 중단됩니다.</p>
+
+<p>따라서 스크립트를 <code class="language-plaintext highlighter-rouge">systemd</code> 서비스로 등록하여 백그라운드에서 계속 실행되도록 구성합니다.</p>
+
+<p>서비스 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/systemd/system/command-monitor.service
+</code></pre></div></div>
+
+<p>다음 내용을 작성합니다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[Unit]</span>
+<span class="py">Description</span><span class="p">=</span><span class="s">Orbit Slack Command Monitor</span>
+<span class="py">After</span><span class="p">=</span><span class="s">auditd.service network-online.target</span>
+
+<span class="nn">[Service]</span>
+<span class="py">Type</span><span class="p">=</span><span class="s">simple</span>
+<span class="py">User</span><span class="p">=</span><span class="s">root</span>
+<span class="py">ExecStart</span><span class="p">=</span><span class="s">/home/orbit/slack-log/scripts/command-monitor.sh</span>
+<span class="py">Restart</span><span class="p">=</span><span class="s">always</span>
+<span class="py">RestartSec</span><span class="p">=</span><span class="s">3</span>
+
+<span class="nn">[Install]</span>
+<span class="py">WantedBy</span><span class="p">=</span><span class="s">multi-user.target</span>
+</code></pre></div></div>
+
+<p>서비스 설정을 적용합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl daemon-reload
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> command-monitor.service
+</code></pre></div></div>
+
+<p>서비스 상태를 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl status command-monitor.service
+</code></pre></div></div>
+
+<p>정상적으로 실행되고 있다면 다음과 같이 표시됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Active: active (running)
+</code></pre></div></div>
+
+<p>스크립트를 수정한 이후에는 서비스를 다시 시작하여 변경 사항을 적용합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl restart command-monitor.service
+</code></pre></div></div>
+
+<h2 id="8-동작-테스트">8. 동작 테스트</h2>
+
+<p>다른 사용자 계정으로 접속하여 일반 명령을 실행합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> <span class="nt">-al</span>
+</code></pre></div></div>
+
+<p>해당 사용자의 개인 Slack 채널에 일반 명령 로그가 전송되는지 확인합니다.</p>
+
+<p>이후 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 실행합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo whoami</span>
+</code></pre></div></div>
+
+<p>정상적으로 동작한다면 다음과 같이 분기됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ls -al
+└─ #dev-hyn128
+
+sudo whoami
+├─ #dev-hyn128
+└─ #dev-all-sudo
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/37.webp" alt="" /></p>
+
+<p>이를 통해 사용자별 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 Slack에서 실시간으로 확인할 수 있으며, 서버 재부팅 이후에도 <code class="language-plaintext highlighter-rouge">command-monitor.service</code>가 자동으로 실행되어 모니터링을 계속 수행합니다.</p>]]></content><author><name></name></author><category term="Project" /><category term="Orbit" /><category term="Auditd" /><category term="Webhook" /><summary type="html"><![CDATA[Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법]]></summary></entry><entry><title type="html">Client Isolation으로 인한 단말 간 통신 실패</title><link href="https://hyn128.site/notes-11-troubleshooting-client-isolation/" rel="alternate" type="text/html" title="Client Isolation으로 인한 단말 간 통신 실패" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/notes-11-troubleshooting-client-isolation</id><content type="html" xml:base="https://hyn128.site/notes-11-troubleshooting-client-isolation/"><![CDATA[<hr />
 
 <h2 id="요약">요약</h2>
 <blockquote>
@@ -2816,7 +3480,436 @@ ansible-playbook remove-nginx.yml
   </ul>
 </blockquote>
 
-<p>다음 글인 <a href="/cloud-native-60-ansible-variables-vault-facts-control-flow/">Ansible 변수와 Vault·Facts·제어문</a>에서는 같은 Playbook을 여러 Host와 환경에서 재사용하기 위한 변수, 암호화 Data, Facts, 반복문과 조건문을 구성한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다]]></summary></entry><entry><title type="html">Argo CD Git Repository 연동과 수동 Sync</title><link href="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/" rel="alternate" type="text/html" title="Argo CD Git Repository 연동과 수동 Sync" /><published>2026-09-18T00:00:00+09:00</published><updated>2026-09-18T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync</id><content type="html" xml:base="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/"><![CDATA[<p><a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 Helm Chart를 Source로 사용하는 Application과 자동 Sync를 구성했다. 이번에는 Namespace, Deployment와 Service Manifest를 GitHub Repository에 저장하고 <code class="language-plaintext highlighter-rouge">syncPolicy.automated</code>를 설정하지 않은 Application으로 등록한다. Git의 Desired State가 <code class="language-plaintext highlighter-rouge">OutOfSync</code>로 감지된 뒤 사용자가 수동 Sync를 요청했을 때 Control Plane과 Worker에서 어떤 동작이 이어지는지 확인한다.</p>
+<p>다음 글인 <a href="/cloud-native-60-ansible-variables-vault-facts-control-flow/">Ansible 변수와 Vault·Facts·제어문</a>에서는 같은 Playbook을 여러 Host와 환경에서 재사용하기 위한 변수, 암호화 Data, Facts, 반복문과 조건문을 구성한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Ansible" /><summary type="html"><![CDATA[Ansible Ad-hoc 명령의 Option과 Module을 익히고 반복 가능한 Playbook으로 Nginx 설치, 설정 배포와 검증을 자동화한다]]></summary></entry><entry><title type="html">Kubernetes Gateway API</title><link href="https://hyn128.site/notes-10-techbites-gateway-api/" rel="alternate" type="text/html" title="Kubernetes Gateway API" /><published>2026-09-21T00:00:00+09:00</published><updated>2026-09-21T00:00:00+09:00</updated><id>https://hyn128.site/notes-10-techbites-gateway-api</id><content type="html" xml:base="https://hyn128.site/notes-10-techbites-gateway-api/"><![CDATA[<h2 id="요약">요약</h2>
+
+<hr />
+
+<blockquote>
+  <p>Kubernetes의 <code class="language-plaintext highlighter-rouge">Ingress</code>는 HTTP와 HTTPS 요청을 클러스터 내부의 <code class="language-plaintext highlighter-rouge">Service</code>로 전달합니다. 사용하기 단순하지만, 기능을 확장할수록 컨트롤러별 <code class="language-plaintext highlighter-rouge">Annotation</code>에 의존하고 인프라 설정과 애플리케이션 라우팅 설정이 한 리소스에 섞이기 쉽습니다. <code class="language-plaintext highlighter-rouge">Gateway API</code>는 <code class="language-plaintext highlighter-rouge">GatewayClass</code>, <code class="language-plaintext highlighter-rouge">Gateway</code>, <code class="language-plaintext highlighter-rouge">Route</code>로 책임을 나누고 프로토콜별 라우팅 규칙을 별도의 리소스로 표현합니다.</p>
+</blockquote>
+
+<h2 id="1-ingress가-담당하는-역할">1. Ingress가 담당하는 역할</h2>
+
+<hr />
+
+<p><code class="language-plaintext highlighter-rouge">Ingress</code>는 외부에서 들어온 HTTP와 HTTPS 요청을 <code class="language-plaintext highlighter-rouge">Host</code>와 <code class="language-plaintext highlighter-rouge">Path</code> 조건에 따라 클러스터 내부의 <code class="language-plaintext highlighter-rouge">Service</code>로 전달합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[설정 반영]
+Ingress → Ingress Controller → Load Balancer 또는 Proxy 설정
+
+[요청 전달]
+Client → Load Balancer 또는 Proxy → Service → Pod
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">Ingress</code> 리소스만 생성해서는 트래픽이 처리되지 않습니다. 리소스를 감시하고 실제 Load Balancer나 Proxy 설정으로 변환하는 <code class="language-plaintext highlighter-rouge">Ingress Controller</code>가 함께 필요합니다. 실제 요청은 Controller의 조정 과정에서 만들어진 Data Plane을 통과합니다.</p>
+
+<p>다음 설정은 <code class="language-plaintext highlighter-rouge">shop.example.com</code>으로 들어온 요청을 경로에 따라 두 <code class="language-plaintext highlighter-rouge">Service</code>로 전달합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">networking.k8s.io/v1</span>
+<span class="na">kind</span><span class="pi">:</span> <span class="s">Ingress</span>
+<span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">name</span><span class="pi">:</span> <span class="s">shop-ingress</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">tls</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">hosts</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="s">shop.example.com</span>
+      <span class="na">secretName</span><span class="pi">:</span> <span class="s">tls-secret</span>
+  <span class="na">rules</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">host</span><span class="pi">:</span> <span class="s">shop.example.com</span>
+      <span class="na">http</span><span class="pi">:</span>
+        <span class="na">paths</span><span class="pi">:</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/app</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">app-service</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">80</span>
+          <span class="pi">-</span> <span class="na">path</span><span class="pi">:</span> <span class="s">/admin</span>
+            <span class="na">pathType</span><span class="pi">:</span> <span class="s">Prefix</span>
+            <span class="na">backend</span><span class="pi">:</span>
+              <span class="na">service</span><span class="pi">:</span>
+                <span class="na">name</span><span class="pi">:</span> <span class="s">admin-service</span>
+                <span class="na">port</span><span class="pi">:</span>
+                  <span class="na">number</span><span class="pi">:</span> <span class="m">8080</span>
+</code></pre></div></div>
+
+<p>이 예제는 클러스터에 기본 <code class="language-plaintext highlighter-rouge">IngressClass</code>가 지정되어 있다고 가정합니다. 기본 Class가 없다면 <code class="language-plaintext highlighter-rouge">spec.ingressClassName</code>으로 이 리소스를 처리할 Ingress Class를 명시해야 합니다.</p>
+
+<p>이 설정에는 외부 진입점의 TLS 정보와 애플리케이션의 경로별 라우팅 정보가 함께 들어 있습니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>설정</th>
+      <th>역할</th>
+      <th>주로 관리하는 영역</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.tls</code></td>
+      <td>HTTPS 연결에 사용할 Host와 TLS Secret을 지정합니다.</td>
+      <td>클러스터 운영 또는 보안</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.rules.host</code></td>
+      <td>요청의 Host 조건을 지정합니다.</td>
+      <td>클러스터 운영과 애플리케이션의 공통 영역</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">spec.rules.http.paths</code></td>
+      <td>URL Path에 연결할 <code class="language-plaintext highlighter-rouge">Service</code>와 Port를 지정합니다.</td>
+      <td>애플리케이션</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>작은 환경에서는 한 리소스로 관리해도 문제가 적습니다. 여러 팀이 하나의 진입점을 공유하면 TLS, Listener, 라우팅 규칙의 변경 주체가 달라지므로 관리 경계가 불분명해질 수 있습니다.</p>
+
+<h2 id="2-ingress의-한계">2. Ingress의 한계</h2>
+
+<hr />
+
+<h3 id="21-controller별-annotation에-의존합니다">2.1 Controller별 Annotation에 의존합니다</h3>
+
+<p><code class="language-plaintext highlighter-rouge">Ingress</code>의 기본 스펙에 없는 기능은 <code class="language-plaintext highlighter-rouge">Ingress Controller</code>가 제공하는 <code class="language-plaintext highlighter-rouge">Annotation</code>으로 설정하는 경우가 많습니다. NGINX Ingress Controller의 Rewrite 기능은 다음과 같이 지정할 수 있습니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">metadata</span><span class="pi">:</span>
+  <span class="na">annotations</span><span class="pi">:</span>
+    <span class="na">nginx.ingress.kubernetes.io/rewrite-target</span><span class="pi">:</span> <span class="s">/</span>
+</code></pre></div></div>
+
+<p>이 Key는 Kubernetes 공통 스펙이 아니라 NGINX Ingress Controller의 설정입니다. AWS Load Balancer Controller와 같은 다른 구현체는 서로 다른 Key와 값을 사용합니다. Controller를 교체할 때 기존 설정을 그대로 옮길 수 없는 이유입니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ingress 표준 필드
+        +
+Controller별 Annotation
+        ↓
+구현체에 종속된 설정
+</code></pre></div></div>
+
+<h3 id="22-http와-https를-중심으로-설계되었습니다">2.2 HTTP와 HTTPS를 중심으로 설계되었습니다</h3>
+
+<p>Kubernetes의 표준 <code class="language-plaintext highlighter-rouge">Ingress</code> 규칙은 HTTP와 HTTPS 트래픽만 처리합니다. TCP와 UDP처럼 다른 프로토콜을 노출하려면 <code class="language-plaintext highlighter-rouge">NodePort</code> 또는 <code class="language-plaintext highlighter-rouge">LoadBalancer</code> 유형의 <code class="language-plaintext highlighter-rouge">Service</code>를 사용하거나 Controller가 제공하는 별도 기능을 사용해야 합니다.</p>
+
+<p>Gateway API는 프로토콜별 라우팅 규칙을 Route 리소스로 분리합니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>트래픽</th>
+      <th>Gateway API 리소스</th>
+      <th>현재 채널</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>HTTP, TLS가 종료된 HTTPS</td>
+      <td><code class="language-plaintext highlighter-rouge">HTTPRoute</code></td>
+      <td>Standard</td>
+    </tr>
+    <tr>
+      <td>gRPC</td>
+      <td><code class="language-plaintext highlighter-rouge">GRPCRoute</code></td>
+      <td>Standard</td>
+    </tr>
+    <tr>
+      <td>TLS Passthrough 또는 TLS Metadata 기반 라우팅</td>
+      <td><code class="language-plaintext highlighter-rouge">TLSRoute</code></td>
+      <td>Standard</td>
+    </tr>
+    <tr>
+      <td>TCP</td>
+      <td><code class="language-plaintext highlighter-rouge">TCPRoute</code></td>
+      <td>Experimental</td>
+    </tr>
+    <tr>
+      <td>UDP</td>
+      <td><code class="language-plaintext highlighter-rouge">UDPRoute</code></td>
+      <td>Experimental</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>HTTPS 전용 <code class="language-plaintext highlighter-rouge">HTTPSRoute</code>가 따로 존재하는 것은 아닙니다. <code class="language-plaintext highlighter-rouge">Gateway</code>의 HTTPS Listener가 인증서와 TLS 종료를 담당하고, 복호화된 HTTP 요청은 연결된 <code class="language-plaintext highlighter-rouge">HTTPRoute</code>가 처리합니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">TLSRoute</code>는 Gateway API v1.5.0부터 Standard Channel에 포함되었습니다. <code class="language-plaintext highlighter-rouge">TCPRoute</code>와 <code class="language-plaintext highlighter-rouge">UDPRoute</code>는 Experimental Channel에 포함되므로 향후 호환성이 보장되지 않습니다. 실제 사용 전에는 설치한 CRD와 Gateway Controller가 해당 Route를 지원하는지 확인해야 합니다.</p>
+
+<h3 id="23-관리-역할을-분리하기-어렵습니다">2.3 관리 역할을 분리하기 어렵습니다</h3>
+
+<p><code class="language-plaintext highlighter-rouge">Ingress</code>에는 Host, Path, TLS, Backend와 Controller별 설정이 함께 들어갑니다. 다음과 같이 운영자와 개발자가 같은 리소스를 수정하게 될 수 있습니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ingress
+├── Host
+├── Path
+├── TLS
+├── Backend Service
+└── Controller별 Annotation
+</code></pre></div></div>
+
+<p>클러스터 운영자는 외부 Listener와 TLS를 관리하고, 애플리케이션 개발자는 <code class="language-plaintext highlighter-rouge">/app</code>과 <code class="language-plaintext highlighter-rouge">/admin</code> 같은 라우팅 규칙을 관리해야 합니다. 설정이 하나의 리소스에 모이면 변경 권한과 검토 범위를 분리하기 어렵습니다.</p>
+
+<h3 id="24-고급-라우팅의-표현-범위가-좁습니다">2.4 고급 라우팅의 표현 범위가 좁습니다</h3>
+
+<p><code class="language-plaintext highlighter-rouge">Ingress</code>의 기본 라우팅 조건은 Host와 Path입니다. 다음 기능은 Controller별 <code class="language-plaintext highlighter-rouge">Annotation</code>이나 확장 설정을 사용해야 하는 경우가 많습니다.</p>
+
+<ul>
+  <li>
+    <p>특정 Header가 있는 요청만 전달합니다.</p>
+  </li>
+  <li>
+    <p>여러 Backend에 가중치를 주어 트래픽을 분할합니다.</p>
+  </li>
+  <li>
+    <p>다른 URL로 Redirect합니다.</p>
+  </li>
+  <li>
+    <p>요청을 다른 Backend로 복제해 Mirror합니다.</p>
+  </li>
+</ul>
+
+<p>Gateway API는 이러한 조건과 동작을 <code class="language-plaintext highlighter-rouge">HTTPRoute</code>의 Match, Filter, <code class="language-plaintext highlighter-rouge">backendRefs</code> 같은 필드로 표현합니다. 각 필드의 지원 수준은 Core, Extended 또는 구현체별 기능으로 나뉠 수 있으므로 Controller의 Conformance 문서를 함께 확인해야 합니다.</p>
+
+<h2 id="3-gateway-api의-리소스-구조">3. Gateway API의 리소스 구조</h2>
+
+<hr />
+
+<p>Gateway API는 클러스터의 진입점과 애플리케이션 라우팅을 여러 리소스로 나눕니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GatewayClass
+     ↓
+Gateway
+     ↓
+HTTPRoute / GRPCRoute / TCPRoute / UDPRoute / TLSRoute
+     ↓
+Service
+     ↓
+Pod
+</code></pre></div></div>
+
+<p>각 리소스의 책임은 다음과 같습니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>역할</th>
+      <th>관리 리소스</th>
+      <th>책임</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>인프라 제공자</td>
+      <td><code class="language-plaintext highlighter-rouge">GatewayClass</code></td>
+      <td>어떤 Gateway Controller가 Gateway를 구현할지 정의합니다.</td>
+    </tr>
+    <tr>
+      <td>클러스터 운영자</td>
+      <td><code class="language-plaintext highlighter-rouge">Gateway</code></td>
+      <td>Listener, Port, Protocol, TLS와 Route 연결 범위를 정의합니다.</td>
+    </tr>
+    <tr>
+      <td>애플리케이션 개발자</td>
+      <td><code class="language-plaintext highlighter-rouge">HTTPRoute</code>, <code class="language-plaintext highlighter-rouge">GRPCRoute</code> 등의 Route</td>
+      <td>요청 조건과 Backend <code class="language-plaintext highlighter-rouge">Service</code>를 정의합니다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>한 사람이 모든 역할을 담당할 수도 있습니다. 리소스가 분리되어 있으므로 조직 규모가 커졌을 때 RBAC와 Namespace 경계를 이용해 책임과 변경 권한을 나눌 수 있습니다.</p>
+
+<h3 id="31-gatewayclass">3.1 GatewayClass</h3>
+
+<p><code class="language-plaintext highlighter-rouge">GatewayClass</code>는 Gateway 구현체의 종류를 정의하는 Cluster Scope 리소스입니다. <code class="language-plaintext highlighter-rouge">StorageClass</code>가 Storage Provisioner를 가리키는 것처럼 <code class="language-plaintext highlighter-rouge">GatewayClass</code>는 Gateway Controller를 가리킵니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>GatewayClass
+└── controllerName: 이 Class를 처리할 Gateway Controller
+</code></pre></div></div>
+
+<h3 id="32-gateway">3.2 Gateway</h3>
+
+<p><code class="language-plaintext highlighter-rouge">Gateway</code>는 실제 트래픽을 받을 지점을 정의합니다. 어떤 <code class="language-plaintext highlighter-rouge">GatewayClass</code>를 사용할지 선택하고, Listener의 Hostname, Port, Protocol, TLS와 연결 가능한 Route 범위를 설정합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Gateway
+├── gatewayClassName
+└── listeners
+    ├── hostname
+    ├── port
+    ├── protocol
+    ├── tls
+    └── allowedRoutes
+</code></pre></div></div>
+
+<p>기본 설정에서는 같은 Namespace의 Route만 Gateway에 연결할 수 있습니다. 다른 Namespace의 Route를 연결하려면 <code class="language-plaintext highlighter-rouge">allowedRoutes</code>로 허용 범위를 지정해야 합니다.</p>
+
+<h3 id="33-route">3.3 Route</h3>
+
+<p>Route는 Gateway가 받은 요청을 어느 <code class="language-plaintext highlighter-rouge">Service</code>로 전달할지 정의합니다. HTTP 요청은 <code class="language-plaintext highlighter-rouge">HTTPRoute</code>, gRPC 요청은 <code class="language-plaintext highlighter-rouge">GRPCRoute</code>처럼 프로토콜에 맞는 리소스를 사용합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HTTPRoute
+├── parentRefs: 연결할 Gateway
+├── hostnames: 요청 Host 조건
+└── rules
+    ├── matches: Path, Header 등의 조건
+    ├── filters: Redirect, Rewrite, Mirror 등의 동작
+    └── backendRefs: 전달할 Service와 가중치
+</code></pre></div></div>
+
+<p>Gateway와 Route는 서로의 연결을 모두 허용해야 합니다. Gateway의 <code class="language-plaintext highlighter-rouge">allowedRoutes</code> 범위에 Route가 포함되어야 하고, Route의 <code class="language-plaintext highlighter-rouge">parentRefs</code>도 대상 Gateway를 가리켜야 합니다.</p>
+
+<h2 id="4-요청이-전달되는-흐름">4. 요청이 전달되는 흐름</h2>
+
+<hr />
+
+<p>Ingress Controller는 <code class="language-plaintext highlighter-rouge">Ingress</code>를 감시해 Load Balancer 또는 Proxy 설정을 만듭니다. 실제 요청은 구성된 Data Plane을 통과합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[Control Plane]
+Ingress → Ingress Controller → Data Plane 설정
+
+[Data Plane]
+Client → Load Balancer 또는 Proxy → Service → Pod
+</code></pre></div></div>
+
+<p>Gateway Controller도 <code class="language-plaintext highlighter-rouge">GatewayClass</code>, <code class="language-plaintext highlighter-rouge">Gateway</code>, Route를 함께 해석해 Data Plane을 구성합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[Control Plane]
+GatewayClass + Gateway + Route
+              ↓
+      Gateway Controller
+              ↓
+       Data Plane 설정
+
+[Data Plane]
+Client
+  ↓
+Gateway Listener
+  ↓
+Route 조건과 일치하는 Backend Service
+  ↓
+Pod
+</code></pre></div></div>
+
+<p>HTTP 요청은 다음 순서로 처리됩니다.</p>
+
+<ol>
+  <li>
+    <p>Client가 DNS로 Gateway의 주소를 확인한 뒤 요청을 전송합니다.</p>
+  </li>
+  <li>
+    <p>Gateway Controller가 구성한 Data Plane이 Listener에서 요청을 받습니다.</p>
+  </li>
+  <li>
+    <p>Listener에 연결된 <code class="language-plaintext highlighter-rouge">HTTPRoute</code> 중 Host, Path, Header 등의 조건이 일치하는 규칙을 찾습니다.</p>
+  </li>
+  <li>
+    <p>필요한 Filter를 적용한 뒤 <code class="language-plaintext highlighter-rouge">backendRefs</code>에 지정된 <code class="language-plaintext highlighter-rouge">Service</code>로 요청을 전달합니다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">Service</code>가 선택한 Pod에서 요청을 처리합니다.</p>
+  </li>
+</ol>
+
+<h2 id="5-ingress와-gateway-api-비교">5. Ingress와 Gateway API 비교</h2>
+
+<hr />
+
+<table>
+  <thead>
+    <tr>
+      <th>구분</th>
+      <th>Ingress</th>
+      <th>Gateway API</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>기본 목적</td>
+      <td>외부 HTTP와 HTTPS 요청을 내부 <code class="language-plaintext highlighter-rouge">Service</code>로 전달합니다.</td>
+      <td>프로토콜을 인식하는 진입점과 고급 라우팅을 구성합니다.</td>
+    </tr>
+    <tr>
+      <td>API 제공 방식</td>
+      <td>Kubernetes에 포함된 기본 API입니다.</td>
+      <td>CRD와 이를 구현하는 Gateway Controller를 추가해야 합니다.</td>
+    </tr>
+    <tr>
+      <td>리소스 구조</td>
+      <td><code class="language-plaintext highlighter-rouge">Ingress</code>를 중심으로 구성합니다.</td>
+      <td><code class="language-plaintext highlighter-rouge">GatewayClass</code> → <code class="language-plaintext highlighter-rouge">Gateway</code> → Route로 구성합니다.</td>
+    </tr>
+    <tr>
+      <td>프로토콜</td>
+      <td>HTTP와 HTTPS를 처리합니다.</td>
+      <td>Standard Route로 HTTP, HTTPS, gRPC, TLS를 처리하며 Experimental Route로 TCP와 UDP를 표현할 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td>고급 기능</td>
+      <td>Controller별 <code class="language-plaintext highlighter-rouge">Annotation</code>에 의존하는 경우가 많습니다.</td>
+      <td>Match, Filter, <code class="language-plaintext highlighter-rouge">backendRefs</code> 등의 필드로 표현합니다.</td>
+    </tr>
+    <tr>
+      <td>역할 분리</td>
+      <td>진입점과 애플리케이션 라우팅 설정이 섞이기 쉽습니다.</td>
+      <td>인프라 제공자, 클러스터 운영자, 애플리케이션 개발자의 리소스를 분리합니다.</td>
+    </tr>
+    <tr>
+      <td>이식성</td>
+      <td>Controller별 Annotation과 확장 설정의 차이가 큽니다.</td>
+      <td>공통 API로 이식성을 높이지만 구현체별 지원 범위는 확인해야 합니다.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Gateway API가 공통 스펙을 제공해도 모든 Controller가 모든 Route와 기능을 같은 수준으로 구현하지는 않습니다. Controller를 선택할 때는 지원하는 Gateway API 버전, Release Channel, Conformance Profile과 기능별 지원 수준을 확인해야 합니다.</p>
+
+<h2 id="6-현재-상태와-적용-전-확인-사항">6. 현재 상태와 적용 전 확인 사항</h2>
+
+<hr />
+
+<p>Kubernetes는 <code class="language-plaintext highlighter-rouge">Ingress</code> API를 제거할 계획이 없으며 기존 리소스도 계속 사용할 수 있습니다. 다만 <code class="language-plaintext highlighter-rouge">Ingress</code> API의 신규 개발은 동결되었고, Kubernetes 프로젝트는 새로운 구성을 위해 Gateway API 사용을 권장합니다.</p>
+
+<p>Gateway API를 적용하기 전에는 다음 항목을 확인합니다.</p>
+
+<ul>
+  <li>
+    <p>Gateway API CRD와 Gateway Controller가 설치되어 있는지 확인합니다.</p>
+  </li>
+  <li>
+    <p>Controller가 사용할 <code class="language-plaintext highlighter-rouge">GatewayClass</code>를 제공하는지 확인합니다.</p>
+  </li>
+  <li>
+    <p>필요한 Route가 Standard Channel인지 Experimental Channel인지 확인합니다.</p>
+  </li>
+  <li>
+    <p>Header Match, Redirect, Rewrite, Mirror, Traffic Split 등 필요한 기능의 지원 수준을 확인합니다.</p>
+  </li>
+  <li>
+    <p>Gateway와 Route를 다른 Namespace에 둘 경우 <code class="language-plaintext highlighter-rouge">allowedRoutes</code>와 권한 경계를 확인합니다.</p>
+  </li>
+  <li>
+    <p>기존 Ingress를 전환할 때 Controller별 Annotation을 어떤 Gateway API 필드나 구현체별 정책으로 옮길지 확인합니다.</p>
+  </li>
+</ul>
+
+<h2 id="참고-자료">참고 자료</h2>
+
+<hr />
+
+<ul>
+  <li>
+    <p><a href="https://kubernetes.io/docs/concepts/services-networking/ingress/">Kubernetes Ingress</a></p>
+  </li>
+  <li>
+    <p><a href="https://kubernetes.io/docs/concepts/services-networking/gateway/">Kubernetes Gateway API</a></p>
+  </li>
+  <li>
+    <p><a href="https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/">Gateway API 개요</a></p>
+  </li>
+  <li>
+    <p><a href="https://gateway-api.sigs.k8s.io/docs/implementations/list/">Gateway API 구현체 목록</a></p>
+  </li>
+</ul>]]></content><author><name></name></author><category term="TechBites" /><category term="Kubernetes" /><category term="GatewayAPI" /><summary type="html"><![CDATA[Ingress의 한계와 Gateway API의 역할별 리소스 구조를 비교합니다]]></summary></entry><entry><title type="html">Argo CD Git Repository 연동과 수동 Sync</title><link href="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/" rel="alternate" type="text/html" title="Argo CD Git Repository 연동과 수동 Sync" /><published>2026-09-18T00:00:00+09:00</published><updated>2026-09-18T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync</id><content type="html" xml:base="https://hyn128.site/cloud-native-57-argocd-git-repository-manual-sync/"><![CDATA[<p><a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 Helm Chart를 Source로 사용하는 Application과 자동 Sync를 구성했다. 이번에는 Namespace, Deployment와 Service Manifest를 GitHub Repository에 저장하고 <code class="language-plaintext highlighter-rouge">syncPolicy.automated</code>를 설정하지 않은 Application으로 등록한다. Git의 Desired State가 <code class="language-plaintext highlighter-rouge">OutOfSync</code>로 감지된 뒤 사용자가 수동 Sync를 요청했을 때 Control Plane과 Worker에서 어떤 동작이 이어지는지 확인한다.</p>
 
 <h2 id="1--실습-구조와-준비-사항">1 ) 실습 구조와 준비 사항</h2>
 
@@ -3929,824 +5022,4 @@ kubectl get service argocd-server <span class="nt">-n</span> argocd
   </ul>
 </blockquote>
 
-<p>다음 글인 <a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 실제 <code class="language-plaintext highlighter-rouge">Application</code> Resource를 생성하고 Sync 결과를 확인한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="ArgoCD" /><summary type="html"><![CDATA[GitOps의 선언적 Desired State와 지속적 조정을 이해하고 Argo CD 구성 요소를 Kubernetes에 Helm으로 설치한다]]></summary></entry><entry><title type="html">Argo CD Application 배포와 CLI·Autopilot</title><link href="https://hyn128.site/cloud-native-56-argocd-application-cli-autopilot/" rel="alternate" type="text/html" title="Argo CD Application 배포와 CLI·Autopilot" /><published>2026-09-17T00:00:00+09:00</published><updated>2026-09-17T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-56-argocd-application-cli-autopilot</id><content type="html" xml:base="https://hyn128.site/cloud-native-56-argocd-application-cli-autopilot/"><![CDATA[<p><a href="/cloud-native-55-gitops-argocd-architecture-installation/">GitOps와 Argo CD Architecture·설치</a>에서는 Git의 Desired State와 Kubernetes Live State를 비교하는 구성 요소를 정리했다. 이 글에서는 <code class="language-plaintext highlighter-rouge">Application</code> Resource로 Helm Chart를 배포하고 UI, <code class="language-plaintext highlighter-rouge">kubectl</code>과 Argo CD CLI에서 Sync 결과를 확인한 뒤 Autopilot의 Bootstrap 방식을 살펴본다.</p>
-
-<h2 id="1--application-crd">1 ) Application CRD</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Application</strong>은 Argo CD가 어디에서 어떤 Manifest를 가져와 어느 Cluster와 Namespace에 배포할지 선언하는 Custom Resource이다.</p>
-</blockquote>
-
-<table>
-  <thead>
-    <tr>
-      <th>Field</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.project</code></td>
-      <td>Application이 속한 Argo CD Project</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.source</code></td>
-      <td>Git, Helm 또는 OCI Source와 Revision</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.destination</code></td>
-      <td>대상 Cluster API와 Namespace</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">spec.syncPolicy</code></td>
-      <td>자동 Sync, Prune, Self Heal과 Sync Option</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">Application</code> Resource 자체는 일반적으로 Argo CD가 설치된 <code class="language-plaintext highlighter-rouge">argocd</code> Namespace에 생성한다. 실제 Workload는 <code class="language-plaintext highlighter-rouge">spec.destination.namespace</code>에 배포된다.</p>
-
-<h2 id="2--helm-chart-version-확인">2 ) Helm Chart Version 확인</h2>
-
-<hr />
-
-<p>예제는 Bitnami NGINX Chart를 사용한다. Application File에 Version을 기록하기 전에 Repository에서 존재하는 Version을 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo update
-helm search repo bitnami/nginx <span class="nt">--versions</span> | <span class="nb">head</span>
-</code></pre></div></div>
-
-<p>Chart Version과 Container Image Version은 같은 값이 아니다. <code class="language-plaintext highlighter-rouge">targetRevision</code>에는 <code class="language-plaintext highlighter-rouge">helm search</code> 결과의 Chart Version을 사용한다.</p>
-
-<h2 id="3--nginx-application-선언">3 ) NGINX Application 선언</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">application.yaml</code>을 작성한다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">apiVersion</span><span class="pi">:</span> <span class="s">argoproj.io/v1alpha1</span>
-<span class="na">kind</span><span class="pi">:</span> <span class="s">Application</span>
-<span class="na">metadata</span><span class="pi">:</span>
-  <span class="na">name</span><span class="pi">:</span> <span class="s">nginx-app</span>
-  <span class="na">namespace</span><span class="pi">:</span> <span class="s">argocd</span>
-<span class="na">spec</span><span class="pi">:</span>
-  <span class="na">project</span><span class="pi">:</span> <span class="s">default</span>
-
-  <span class="na">source</span><span class="pi">:</span>
-    <span class="na">repoURL</span><span class="pi">:</span> <span class="s">https://charts.bitnami.com/bitnami</span>
-    <span class="na">chart</span><span class="pi">:</span> <span class="s">nginx</span>
-    <span class="na">targetRevision</span><span class="pi">:</span> <span class="s">&lt;verified-chart-version&gt;</span>
-    <span class="na">helm</span><span class="pi">:</span>
-      <span class="na">parameters</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">service.type</span>
-          <span class="na">value</span><span class="pi">:</span> <span class="s">NodePort</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">replicaCount</span>
-          <span class="na">value</span><span class="pi">:</span> <span class="s2">"</span><span class="s">2"</span>
-
-  <span class="na">destination</span><span class="pi">:</span>
-    <span class="na">server</span><span class="pi">:</span> <span class="s">https://kubernetes.default.svc</span>
-    <span class="na">namespace</span><span class="pi">:</span> <span class="s">nginx-deploy</span>
-
-  <span class="na">syncPolicy</span><span class="pi">:</span>
-    <span class="na">automated</span><span class="pi">:</span>
-      <span class="na">prune</span><span class="pi">:</span> <span class="no">true</span>
-      <span class="na">selfHeal</span><span class="pi">:</span> <span class="no">true</span>
-    <span class="na">syncOptions</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s">CreateNamespace=true</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>설정</th>
-      <th>동작</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">server: https://kubernetes.default.svc</code></td>
-      <td>Argo CD가 실행 중인 Cluster에 배포</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">replicaCount: "2"</code></td>
-      <td>Helm Value를 통해 NGINX Replica 두 개 요청</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">automated</code></td>
-      <td>OutOfSync 감지 후 자동 Sync</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">prune: true</code></td>
-      <td>Git·Chart에서 제거된 Resource를 Cluster에서도 제거</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">selfHeal: true</code></td>
-      <td>사람이 Cluster Resource를 직접 바꾼 Drift를 Desired State로 복원</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">CreateNamespace=true</code></td>
-      <td>대상 Namespace가 없으면 생성</td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">prune</code>과 <code class="language-plaintext highlighter-rouge">selfHeal</code>은 편리하지만 삭제와 되돌림도 자동화한다. 운영 환경에서는 Project 권한, Sync Window, 보호할 Resource와 변경 Review 절차를 함께 구성한다.</p>
-
-<h2 id="4--application-생성과-상태-확인">4 ) Application 생성과 상태 확인</h2>
-
-<hr />
-
-<p>Application을 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="nt">-f</span> application.yaml
-</code></pre></div></div>
-
-<p>Argo CD Application 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get applications <span class="nt">-n</span> argocd
-kubectl describe application nginx-app <span class="nt">-n</span> argocd
-</code></pre></div></div>
-
-<p>대상 Namespace와 Workload도 함께 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get all <span class="nt">-n</span> nginx-deploy
-kubectl get pods <span class="nt">-n</span> nginx-deploy <span class="nt">-o</span> wide
-kubectl get service <span class="nt">-n</span> nginx-deploy
-</code></pre></div></div>
-
-<p>Application이 <code class="language-plaintext highlighter-rouge">Synced</code>여도 Pod가 <code class="language-plaintext highlighter-rouge">Pending</code>이나 <code class="language-plaintext highlighter-rouge">CrashLoopBackOff</code>일 수 있다. Argo CD의 Sync·Health와 Kubernetes Pod 상태를 함께 확인한다.</p>
-
-<p>NodePort가 할당됐다면 실제 값을 조회한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get service <span class="nt">-n</span> nginx-deploy <span class="se">\</span>
-  <span class="nt">-o</span> custom-columns<span class="o">=</span><span class="s1">'NAME:.metadata.name,TYPE:.spec.type,NODE_PORT:.spec.ports[*].nodePort'</span>
-</code></pre></div></div>
-
-<p>고정된 <code class="language-plaintext highlighter-rouge">30555</code> 같은 값을 가정하지 않고 조회한 NodePort와 접근 가능한 Node IP를 조합한다.</p>
-
-<h2 id="5--자동-sync와-self-heal-관찰">5 ) 자동 Sync와 Self Heal 관찰</h2>
-
-<hr />
-
-<p>Replica 수를 직접 바꿔 Drift를 만들 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl scale deployment <span class="se">\</span>
-  <span class="nt">--namespace</span> nginx-deploy <span class="se">\</span>
-  <span class="nt">--replicas</span> 1 <span class="se">\</span>
-  nginx-app
-</code></pre></div></div>
-
-<p>실제 Deployment 이름은 Chart Version에 따라 달라질 수 있으므로 먼저 <code class="language-plaintext highlighter-rouge">kubectl get deployments -n nginx-deploy</code>로 확인한다. <code class="language-plaintext highlighter-rouge">selfHeal: true</code>라면 Argo CD가 Helm Parameter의 Replica 두 개로 다시 맞춘다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get deployment <span class="nt">-n</span> nginx-deploy <span class="nt">--watch</span>
-</code></pre></div></div>
-
-<p>이 실습은 Drift 복원 동작을 확인하기 위한 것이다. 운영 환경에서 <code class="language-plaintext highlighter-rouge">kubectl edit</code>나 <code class="language-plaintext highlighter-rouge">kubectl scale</code>로 영구 변경하지 않고 Deployment Repository의 선언을 수정한다.</p>
-
-<h2 id="6--argo-cd-cli-설치">6 ) Argo CD CLI 설치</h2>
-
-<hr />
-
-<p>Linux <code class="language-plaintext highlighter-rouge">amd64</code> 환경에서는 Release Version을 확인해 Binary를 설치할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">ARGOCD_VERSION</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">--silent</span> <span class="se">\</span>
-  https://api.github.com/repos/argoproj/argo-cd/releases/latest <span class="se">\</span>
-  | <span class="nb">grep</span> <span class="s1">'"tag_name"'</span> <span class="se">\</span>
-  | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">'"'</span> <span class="nt">-f</span> 4<span class="si">)</span>
-
-curl <span class="nt">--fail</span> <span class="nt">--location</span> <span class="se">\</span>
-  <span class="nt">--output</span> argocd-linux-amd64 <span class="se">\</span>
-  <span class="s2">"https://github.com/argoproj/argo-cd/releases/download/</span><span class="nv">$ARGOCD_VERSION</span><span class="s2">/argocd-linux-amd64"</span>
-
-<span class="nb">chmod</span> +x argocd-linux-amd64
-<span class="nb">sudo mv </span>argocd-linux-amd64 /usr/local/bin/argocd
-argocd version <span class="nt">--client</span>
-</code></pre></div></div>
-
-<p>ARM64 Machine은 <code class="language-plaintext highlighter-rouge">argocd-linux-arm64</code>, macOS는 OS와 Architecture에 맞는 Binary 또는 Homebrew Package를 사용한다. Download URL을 바꾸기 전에 <code class="language-plaintext highlighter-rouge">uname -s</code>와 <code class="language-plaintext highlighter-rouge">uname -m</code>으로 환경을 확인한다.</p>
-
-<h2 id="7--cli-login과-application-조작">7 ) CLI Login과 Application 조작</h2>
-
-<hr />
-
-<p>Port Forward가 <code class="language-plaintext highlighter-rouge">localhost:8080</code>에서 실행 중인 상태에서 Login한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd login localhost:8080 <span class="se">\</span>
-  <span class="nt">--username</span> admin <span class="se">\</span>
-  <span class="nt">--insecure</span>
-</code></pre></div></div>
-
-<p>Password는 대화형 Prompt에 입력한다. <code class="language-plaintext highlighter-rouge">--insecure</code>는 자체 서명 인증서를 사용하는 격리된 학습 환경의 Port Forward에서만 사용한다. 운영 Endpoint에서는 신뢰할 수 있는 TLS 인증서를 구성한다.</p>
-
-<p>Application 목록과 상세 상태를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app list
-argocd app get nginx-app
-argocd app <span class="nb">history </span>nginx-app
-</code></pre></div></div>
-
-<p>수동 Sync가 필요한 Application은 다음처럼 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app <span class="nb">sync </span>nginx-app
-argocd app <span class="nb">wait </span>nginx-app <span class="nt">--health</span> <span class="nt">--timeout</span> 300
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">sync</code> 성공은 API 요청이 수락됐다는 의미와 구분해야 한다. <code class="language-plaintext highlighter-rouge">app wait --health</code>로 Workload가 정상 상태에 도달했는지 확인한다.</p>
-
-<h2 id="8--cli로-application-생성">8 ) CLI로 Application 생성</h2>
-
-<hr />
-
-<p>Manifest 대신 CLI로 같은 종류의 Application을 만들 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app create nginx-cli <span class="se">\</span>
-  <span class="nt">--repo</span> https://charts.bitnami.com/bitnami <span class="se">\</span>
-  <span class="nt">--helm-chart</span> nginx <span class="se">\</span>
-  <span class="nt">--revision</span> &lt;verified-chart-version&gt; <span class="se">\</span>
-  <span class="nt">--dest-server</span> https://kubernetes.default.svc <span class="se">\</span>
-  <span class="nt">--dest-namespace</span> nginx-cli <span class="se">\</span>
-  <span class="nt">--sync-option</span> <span class="nv">CreateNamespace</span><span class="o">=</span><span class="nb">true
-
-</span>argocd app <span class="nb">sync </span>nginx-cli
-argocd app <span class="nb">wait </span>nginx-cli <span class="nt">--health</span> <span class="nt">--timeout</span> 300
-</code></pre></div></div>
-
-<p>CLI는 빠른 실습에 유용하지만 Command만 실행하고 기록하지 않으면 Application 생성 과정이 Git Review에 남지 않는다. 운영 구성은 <code class="language-plaintext highlighter-rouge">Application</code> YAML이나 ApplicationSet을 Deployment Repository에서 관리한다.</p>
-
-<h2 id="9--argo-cd-autopilot">9 ) Argo CD Autopilot</h2>
-
-<hr />
-
-<p>Argo CD Autopilot은 Argo CD 설치와 GitOps Repository 구조를 정해진 방식으로 Bootstrap하는 선택 도구이다.</p>
-
-<ul>
-  <li>
-    <p>GitOps Repository Directory 구조 생성</p>
-  </li>
-  <li>
-    <p>Argo CD와 ApplicationSet 설치</p>
-  </li>
-  <li>
-    <p>Project와 Application Manifest Commit</p>
-  </li>
-  <li>
-    <p>기존 또는 새 Repository를 이용한 Bootstrap</p>
-  </li>
-  <li>
-    <p>새 Cluster에서 Repository를 기준으로 복구할 구조 제공</p>
-  </li>
-</ul>
-
-<p>Autopilot은 Bootstrap 단계에서 Kubernetes Cluster에 직접 접근해 Argo CD를 설치한다. 이후 일반적인 Project와 Application 작업은 GitOps Repository에 Manifest를 Commit하고 Argo CD가 이를 조정하는 방식으로 이어진다.</p>
-
-<p>Autopilot Repository는 Archived 상태는 아니지만 독립적인 Version과 Release 주기를 가진다. 사용 전 <a href="https://github.com/argoproj-labs/argocd-autopilot">공식 Repository</a>에서 최신 Release, Issue와 지원 상태를 확인한다. Argo CD 핵심 기능과 Autopilot 사용 여부를 분리해 결정한다.</p>
-
-<h2 id="10--autopilot-설치">10 ) Autopilot 설치</h2>
-
-<hr />
-
-<p>Linux <code class="language-plaintext highlighter-rouge">amd64</code> 예제이다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">AUTOPILOT_VERSION</span><span class="o">=</span><span class="si">$(</span>curl <span class="nt">--silent</span> <span class="se">\</span>
-  https://api.github.com/repos/argoproj-labs/argocd-autopilot/releases/latest <span class="se">\</span>
-  | <span class="nb">grep</span> <span class="s1">'"tag_name"'</span> <span class="se">\</span>
-  | <span class="nb">cut</span> <span class="nt">-d</span> <span class="s1">'"'</span> <span class="nt">-f</span> 4<span class="si">)</span>
-
-curl <span class="nt">--fail</span> <span class="nt">--location</span> <span class="nt">--output</span> - <span class="se">\</span>
-  <span class="s2">"https://github.com/argoproj-labs/argocd-autopilot/releases/download/</span><span class="nv">$AUTOPILOT_VERSION</span><span class="s2">/argocd-autopilot-linux-amd64.tar.gz"</span> <span class="se">\</span>
-  | <span class="nb">tar </span>xz
-
-<span class="nb">sudo mv </span>argocd-autopilot-<span class="k">*</span> /usr/local/bin/argocd-autopilot
-argocd-autopilot version
-</code></pre></div></div>
-
-<p>Pipeline에서 매번 Latest Release를 자동 설치하기보다 검증한 Version을 고정한다. 다른 OS와 Architecture에서는 Release Asset 이름을 확인해 변경한다.</p>
-
-<h2 id="11--gitops-repository-bootstrap">11 ) GitOps Repository Bootstrap</h2>
-
-<hr />
-
-<p>Autopilot이 사용할 Git Repository와 Token을 준비한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">GIT_REPO</span><span class="o">=</span><span class="s1">'https://github.com/&lt;github-owner&gt;/autopilot-nginx.git'</span>
-<span class="nb">read</span> <span class="nt">-s</span> <span class="nt">-p</span> <span class="s1">'Git token: '</span> GIT_TOKEN
-<span class="nb">export </span>GIT_TOKEN
-<span class="nb">echo</span>
-</code></pre></div></div>
-
-<p>Token에는 Repository 생성 또는 Push에 실제로 필요한 최소 권한과 만료 기간만 부여한다. Token을 Shell Script, Blog, Screenshot과 Shell History에 기록하지 않는다.</p>
-
-<p>현재 <code class="language-plaintext highlighter-rouge">kubectl</code> Context가 설치 대상 Cluster를 가리키는지 확인한 뒤 Bootstrap한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config current-context
-argocd-autopilot repo bootstrap
-</code></pre></div></div>
-
-<p>Project와 Application을 생성한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd-autopilot project create testing
-
-argocd-autopilot app create nginx <span class="se">\</span>
-  <span class="nt">--app</span> github.com/&lt;github-owner&gt;/autopilot-nginx/apps/nginx <span class="se">\</span>
-  <span class="nt">--project</span> testing
-</code></pre></div></div>
-
-<p>명령 실행 후 GitOps Repository의 Commit과 Directory 구조를 먼저 확인한다. Cluster Resource만 확인하면 어떤 선언이 배포를 만들었는지 놓칠 수 있다.</p>
-
-<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gitops-repo/
-├── bootstrap/
-├── projects/
-└── apps/
-</code></pre></div></div>
-
-<p>실제 Directory는 Autopilot Version과 Option에 따라 달라질 수 있으므로 생성 결과를 기준으로 설명한다. Autopilot 소개 문서에 남아 있는 일부 예정 기능은 구현된 기능으로 단정하지 않고 Release와 공식 문서를 확인한다.</p>
-
-<h2 id="12--실습-resource-정리">12 ) 실습 Resource 정리</h2>
-
-<hr />
-
-<p>CLI로 만든 Application을 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>argocd app delete nginx-cli
-</code></pre></div></div>
-
-<p>Manifest로 만든 Application과 Workload를 정리한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete <span class="nt">-f</span> application.yaml
-kubectl get all <span class="nt">-n</span> nginx-deploy
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">prune</code>과 Application 삭제 정책에 따라 대상 Resource가 함께 삭제되는지 확인한다. Namespace가 남아 있고 더 이상 사용하지 않으면 별도로 삭제한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl delete namespace nginx-deploy nginx-cli
-</code></pre></div></div>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-  <ul>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">Application</code>은 Source, Destination과 Sync Policy를 선언하는 Argo CD CRD이다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">Synced</code>와 <code class="language-plaintext highlighter-rouge">Healthy</code>를 함께 확인해 선언 일치와 Runtime 상태를 구분한다.</p>
-    </li>
-    <li>
-      <p><code class="language-plaintext highlighter-rouge">selfHeal</code>은 직접 수정한 Drift를 되돌리고 <code class="language-plaintext highlighter-rouge">prune</code>은 선언에서 사라진 Resource를 삭제한다.</p>
-    </li>
-    <li>
-      <p>CLI는 조회와 실습에 유용하지만 운영 선언은 Git Repository에서 관리한다.</p>
-    </li>
-    <li>
-      <p>Autopilot은 Argo CD 핵심 기능과 별개인 선택 도구이며 Version과 유지보수 상태를 확인한 뒤 도입한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<p>다음 글인 <a href="/cloud-native-57-argocd-git-repository-manual-sync/">Argo CD Git Repository 연동과 수동 Sync</a>에서는 GitHub Repository의 일반 Kubernetes Manifest를 <code class="language-plaintext highlighter-rouge">Application</code> Source로 등록하고, <code class="language-plaintext highlighter-rouge">OutOfSync</code> 상태를 수동으로 동기화한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="ArgoCD" /><summary type="html"><![CDATA[Argo CD Application CRD로 Helm Chart를 배포하고 Sync·Health, CLI 조작과 Autopilot Bootstrap 구조를 확인한다]]></summary></entry><entry><title type="html">Jenkins 단위 테스트와 JaCoCo Code Coverage</title><link href="https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco/" rel="alternate" type="text/html" title="Jenkins 단위 테스트와 JaCoCo Code Coverage" /><published>2026-09-16T00:00:00+09:00</published><updated>2026-09-16T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco</id><content type="html" xml:base="https://hyn128.site/cloud-native-52-jenkins-unit-test-jacoco/"><![CDATA[<p><a href="/cloud-native-51-jenkins-pipeline-jenkinsfile/">Jenkins Pipeline과 Jenkinsfile 기반 배포</a>에서는 Checkout부터 Build와 배포까지의 실행 흐름을 Code로 정의했다. 이 글에서는 배포 전에 Application 동작을 검증하는 단위 Test와 Web 계층 Test를 작성하고, Jenkins에서 Test 결과와 JaCoCo Code Coverage를 확인한다.</p>
-
-<h2 id="1--단위-test의-목적">1 ) 단위 Test의 목적</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>단위 Test(Unit Test)</strong>는 Method나 Class처럼 독립적으로 검증할 수 있는 작은 단위가 의도한 결과를 반환하는지 확인하는 Test이다.</p>
-</blockquote>
-
-<p>단위 Test는 변경으로 발생한 문제를 빠르게 찾고, Refactoring 이후 기존 동작이 유지되는지 반복해서 검증한다. 각 Test Case는 실행 순서나 다른 Test의 상태에 의존하지 않아야 한다. Database, 외부 API처럼 독립시키기 어려운 협력 객체는 Mock Object로 대체할 수 있다.</p>
-
-<ul>
-  <li>
-    <p><strong>문제 위치 확인</strong>: 작은 단위마다 실패 여부를 확인하므로 결함이 발생한 범위를 좁히기 쉽다.</p>
-  </li>
-  <li>
-    <p><strong>회귀 방지</strong>: 기존 Test를 다시 실행해 수정한 Code가 이전 기능을 깨뜨리지 않았는지 확인한다.</p>
-  </li>
-  <li>
-    <p><strong>통합 위험 감소</strong>: 단위별 불확실성을 줄인 뒤 Component를 연결하므로 통합 Test의 원인을 구분하기 쉽다.</p>
-  </li>
-  <li>
-    <p><strong>변경 비용 감소</strong>: 자동화된 검증 결과를 바탕으로 Refactoring과 기능 변경을 반복할 수 있다.</p>
-  </li>
-</ul>
-
-<p>Test Code가 존재한다는 사실만으로 정확성이 보장되지는 않는다. 경계값, 예외 조건과 실제 요구 사항을 검증하는 Assertion이 있어야 한다.</p>
-
-<h2 id="2--spring-boot-test-범위-구분">2 ) Spring Boot Test 범위 구분</h2>
-
-<hr />
-
-<p>Spring Boot Application에서는 검증할 범위에 따라 Test Context를 다르게 구성한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>범위</th>
-      <th>대표 구성</th>
-      <th>검증 대상</th>
-      <th>외부 의존성 처리</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>순수 단위 Test</td>
-      <td>JUnit으로 객체 직접 생성</td>
-      <td>Method의 입력과 반환값</td>
-      <td>필요하면 Mock 사용</td>
-    </tr>
-    <tr>
-      <td>Web 계층 Test</td>
-      <td><code class="language-plaintext highlighter-rouge">MockMvc</code>, <code class="language-plaintext highlighter-rouge">@WebMvcTest</code> 또는 <code class="language-plaintext highlighter-rouge">@SpringBootTest</code></td>
-      <td>HTTP Method, URL, Status와 Body</td>
-      <td>Service를 Mock하거나 Test Context 사용</td>
-    </tr>
-    <tr>
-      <td>Repository 계층 Test</td>
-      <td><code class="language-plaintext highlighter-rouge">@DataJpaTest</code></td>
-      <td>Entity Mapping과 Query</td>
-      <td>H2 같은 Test Database 또는 Test Container 사용</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>한 Test가 많은 계층을 동시에 기동할수록 실제 구성에 가까워지지만 실행 시간이 늘고 실패 원인도 넓어진다. 계산처럼 외부 의존성이 없는 Logic은 순수 단위 Test로, HTTP Mapping은 Web 계층 Test로 분리한다.</p>
-
-<p>Repository Test가 필요한 Project는 Spring Data JPA와 운영 Database Driver 외에 H2를 Test Runtime Dependency로 둘 수 있다. <code class="language-plaintext highlighter-rouge">@DataJpaTest</code>는 JPA Component에 필요한 범위만 기동하고 Test가 끝날 때 Transaction을 Rollback한다. H2를 사용하면 외부 Database 없이 빠르게 Mapping과 Query를 확인할 수 있지만, 운영 Database와 SQL Dialect·Constraint 동작이 다를 수 있으므로 실제 Database를 사용한 통합 Test를 별도로 구성한다.</p>
-
-<h2 id="3--calculator-service와-controller">3 ) Calculator Service와 Controller</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">Calculator</code>는 두 정수의 합을 반환한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.stereotype.Service</span><span class="o">;</span>
-
-<span class="nd">@Service</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Calculator</span> <span class="o">{</span>
-    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">sum</span><span class="o">(</span><span class="kt">int</span> <span class="n">a</span><span class="o">,</span> <span class="kt">int</span> <span class="n">b</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">CalculatorController</code>는 Root와 상태 확인 Endpoint를 제공한다. HTTP Method를 명확히 하기 위해 <code class="language-plaintext highlighter-rouge">@GetMapping</code>을 사용한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.GetMapping</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.web.bind.annotation.RestController</span><span class="o">;</span>
-
-<span class="nd">@RestController</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">CalculatorController</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">;</span>
-
-    <span class="kd">public</span> <span class="nf">CalculatorController</span><span class="o">(</span><span class="nc">Calculator</span> <span class="n">calculator</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">this</span><span class="o">.</span><span class="na">calculator</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">index</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="s">"OK"</span><span class="o">;</span>
-    <span class="o">}</span>
-
-    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/health"</span><span class="o">)</span>
-    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">health</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="s">"OK"</span><span class="o">;</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p>생성자 주입을 사용하면 운영 Code와 Test Code에서 필요한 의존성을 명시적으로 전달할 수 있다.</p>
-
-<h2 id="4--calculator-단위-test">4 ) Calculator 단위 Test</h2>
-
-<hr />
-
-<p>외부 의존성이 없는 <code class="language-plaintext highlighter-rouge">Calculator</code>는 Spring Context를 기동하지 않고 직접 생성한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Test</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">junit</span><span class="o">.</span><span class="na">jupiter</span><span class="o">.</span><span class="na">api</span><span class="o">.</span><span class="na">Assertions</span><span class="o">.</span><span class="na">assertEquals</span><span class="o">;</span>
-
-<span class="kd">class</span> <span class="nc">CalculatorTest</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Calculator</span> <span class="n">calculator</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Calculator</span><span class="o">();</span>
-
-    <span class="nd">@Test</span>
-    <span class="kt">void</span> <span class="nf">sumReturnsAdditionResult</span><span class="o">()</span> <span class="o">{</span>
-        <span class="n">assertEquals</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="n">calculator</span><span class="o">.</span><span class="na">sum</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">));</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">assertEquals(expected, actual)</code>은 기대값 <code class="language-plaintext highlighter-rouge">5</code>와 실제 반환값을 비교한다. Test 이름은 검증하는 동작과 기대 결과가 드러나도록 작성한다.</p>
-
-<h2 id="5--mockmvc로-health-endpoint-검증">5 ) MockMvc로 Health Endpoint 검증</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">MockMvc</code>는 실제 Network Port를 열지 않고 Spring MVC 요청과 응답을 검증한다. 다음 Test는 Application Context를 기동한 뒤 <code class="language-plaintext highlighter-rouge">GET /health</code>의 Status와 Body를 확인한다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.junit.jupiter.api.Test</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.beans.factory.annotation.Autowired</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.boot.test.context.SpringBootTest</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">org.springframework.test.web.servlet.MockMvc</span><span class="o">;</span>
-
-<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">request</span><span class="o">.</span><span class="na">MockMvcRequestBuilders</span><span class="o">.</span><span class="na">get</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultHandlers</span><span class="o">.</span><span class="na">print</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultMatchers</span><span class="o">.</span><span class="na">content</span><span class="o">;</span>
-<span class="kn">import</span> <span class="nn">static</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">test</span><span class="o">.</span><span class="na">web</span><span class="o">.</span><span class="na">servlet</span><span class="o">.</span><span class="na">result</span><span class="o">.</span><span class="na">MockMvcResultMatchers</span><span class="o">.</span><span class="na">status</span><span class="o">;</span>
-
-<span class="nd">@SpringBootTest</span><span class="o">(</span><span class="n">webEnvironment</span> <span class="o">=</span> <span class="nc">SpringBootTest</span><span class="o">.</span><span class="na">WebEnvironment</span><span class="o">.</span><span class="na">MOCK</span><span class="o">)</span>
-<span class="nd">@AutoConfigureMockMvc</span>
-<span class="kd">class</span> <span class="nc">ControllerTest</span> <span class="o">{</span>
-    <span class="nd">@Autowired</span>
-    <span class="kd">private</span> <span class="nc">MockMvc</span> <span class="n">mockMvc</span><span class="o">;</span>
-
-    <span class="nd">@Test</span>
-    <span class="kt">void</span> <span class="nf">healthReturnsOk</span><span class="o">()</span> <span class="kd">throws</span> <span class="nc">Exception</span> <span class="o">{</span>
-        <span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="s">"/health"</span><span class="o">))</span>
-                <span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isOk</span><span class="o">())</span>
-                <span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">content</span><span class="o">().</span><span class="na">string</span><span class="o">(</span><span class="s">"OK"</span><span class="o">))</span>
-                <span class="o">.</span><span class="na">andDo</span><span class="o">(</span><span class="n">print</span><span class="o">());</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>검증</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">get("/health")</code></td>
-      <td>Controller의 <code class="language-plaintext highlighter-rouge">@GetMapping("/health")</code>와 같은 HTTP Method와 경로로 요청</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">status().isOk()</code></td>
-      <td>HTTP Status가 <code class="language-plaintext highlighter-rouge">200 OK</code>인지 확인</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">content().string("OK")</code></td>
-      <td>응답 Body가 <code class="language-plaintext highlighter-rouge">OK</code>인지 확인</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">andDo(print())</code></td>
-      <td>요청과 응답을 Test Log에 출력</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>위 Import 경로는 Spring Boot 3.x 기준이다. Spring Boot 4에서는 <code class="language-plaintext highlighter-rouge">AutoConfigureMockMvc</code>가 <code class="language-plaintext highlighter-rouge">org.springframework.boot.webmvc.test.autoconfigure</code> Package로 이동했다. Project의 Spring Boot Version에 맞는 <a href="https://docs.spring.io/spring-boot/4.0/api/java/org/springframework/boot/webmvc/test/autoconfigure/package-summary.html">API 문서</a>를 확인해야 한다.</p>
-
-<h2 id="6--gradle-test-실행과-결과-확인">6 ) Gradle Test 실행과 결과 확인</h2>
-
-<hr />
-
-<p>Project Root에서 Gradle Wrapper로 Test를 실행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew <span class="nb">test</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">test</code> Task는 필요한 Main·Test Source Compile을 Task Graph에 포함하므로 <code class="language-plaintext highlighter-rouge">compileJava</code>를 먼저 실행할 필요가 없다. 실패한 Test가 있으면 Gradle Process가 0이 아닌 종료 Code를 반환하고 Jenkins Stage도 실패한다.</p>
-
-<p>주요 결과는 다음 위치에 생성된다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>결과</th>
-      <th>기본 경로</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>HTML Test Report</td>
-      <td><code class="language-plaintext highlighter-rouge">build/reports/tests/test/index.html</code></td>
-    </tr>
-    <tr>
-      <td>JUnit XML</td>
-      <td><code class="language-plaintext highlighter-rouge">build/test-results/test/*.xml</code></td>
-    </tr>
-  </tbody>
-</table>
-
-<p><code class="language-plaintext highlighter-rouge">gradlew</code>의 실행 권한은 Repository에 한 번 반영한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x gradlew
-git add gradlew
-git commit <span class="nt">-m</span> <span class="s2">"chore: make Gradle wrapper executable"</span>
-</code></pre></div></div>
-
-<p>Pipeline을 실행할 때마다 <code class="language-plaintext highlighter-rouge">chmod</code>로 작업 환경을 변경하는 것보다 실행 권한을 Version 관리하는 편이 재현 가능하다.</p>
-
-<h2 id="7--jenkins-pipeline에서-test-실행">7 ) Jenkins Pipeline에서 Test 실행</h2>
-
-<hr />
-
-<p>다음 Pipeline은 Source를 Checkout하고 Test를 실행한 뒤 Jenkins에 JUnit 결과를 게시한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">pipeline</span> <span class="o">{</span>
-    <span class="n">agent</span> <span class="n">any</span>
-
-    <span class="n">stages</span> <span class="o">{</span>
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Checkout'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">checkout</span> <span class="n">scm</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-
-        <span class="n">stage</span><span class="o">(</span><span class="s1">'Unit Test'</span><span class="o">)</span> <span class="o">{</span>
-            <span class="n">steps</span> <span class="o">{</span>
-                <span class="n">sh</span> <span class="s1">'./gradlew clean test'</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-
-    <span class="n">post</span> <span class="o">{</span>
-        <span class="n">always</span> <span class="o">{</span>
-            <span class="n">junit</span> <span class="nl">testResults:</span> <span class="s1">'build/test-results/test/*.xml'</span><span class="o">,</span>
-                  <span class="nl">allowEmptyResults:</span> <span class="kc">false</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">post { always { ... } }</code>에 Report 게시를 두면 Test Stage가 실패해도 생성된 XML을 Jenkins가 읽는다. Jenkins Build 화면에서는 전체 Test 수, 실패한 Test와 이전 Build 대비 추이를 확인할 수 있다.</p>
-
-<h2 id="8--code-coverage의-의미">8 ) Code Coverage의 의미</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>Code Coverage</strong>는 Test를 실행했을 때 Program의 Code 요소가 실제로 실행된 비율을 나타내는 지표이다.</p>
-</blockquote>
-
-<p>Coverage는 Test가 닿지 않은 Code를 찾는 데 사용한다. Coverage가 높아도 Assertion이 부정확하거나 요구 사항이 누락되면 결함은 남을 수 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>지표</th>
-      <th>확인 내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Line Coverage</td>
-      <td>실행된 Source Line의 비율</td>
-    </tr>
-    <tr>
-      <td>Branch Coverage</td>
-      <td>조건문과 분기에서 실행된 경로의 비율</td>
-    </tr>
-    <tr>
-      <td>Method Coverage</td>
-      <td>한 번 이상 실행된 Method의 비율</td>
-    </tr>
-    <tr>
-      <td>Class Coverage</td>
-      <td>한 번 이상 실행된 Class의 비율</td>
-    </tr>
-    <tr>
-      <td>Instruction Coverage</td>
-      <td>Java Bytecode Instruction 중 실행된 비율</td>
-    </tr>
-    <tr>
-      <td>Complexity</td>
-      <td>분기 구조를 바탕으로 계산한 순환 복잡도와 누락된 Test Case의 규모</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Branch Coverage가 높으려면 <code class="language-plaintext highlighter-rouge">if</code>의 참과 거짓처럼 가능한 분기 결과를 각각 실행해야 한다. Line Coverage가 100%여도 한 줄에 포함된 모든 조건 조합을 검증했다고 단정할 수 없다.</p>
-
-<h2 id="9--jacoco-report와-coverage-기준-구성">9 ) JaCoCo Report와 Coverage 기준 구성</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">build.gradle</code>의 <code class="language-plaintext highlighter-rouge">plugins</code> Block에 JaCoCo Plugin을 추가한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plugins</span> <span class="o">{</span>
-    <span class="n">id</span> <span class="s1">'java'</span>
-    <span class="n">id</span> <span class="s1">'jacoco'</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<p>Report 생성과 Coverage 기준 검증을 다음처럼 연결한다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">test</span> <span class="o">{</span>
-    <span class="n">finalizedBy</span> <span class="n">jacocoTestReport</span>
-<span class="o">}</span>
-
-<span class="n">jacocoTestReport</span> <span class="o">{</span>
-    <span class="n">dependsOn</span> <span class="n">test</span>
-
-    <span class="n">reports</span> <span class="o">{</span>
-        <span class="n">html</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">true</span>
-        <span class="n">xml</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">true</span>
-        <span class="n">csv</span><span class="o">.</span><span class="na">required</span> <span class="o">=</span> <span class="kc">false</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-
-<span class="n">jacocoTestCoverageVerification</span> <span class="o">{</span>
-    <span class="n">dependsOn</span> <span class="n">test</span>
-
-    <span class="n">violationRules</span> <span class="o">{</span>
-        <span class="n">rule</span> <span class="o">{</span>
-            <span class="n">limit</span> <span class="o">{</span>
-                <span class="n">minimum</span> <span class="o">=</span> <span class="mf">0.20</span>
-            <span class="o">}</span>
-        <span class="o">}</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-
-<span class="n">check</span><span class="o">.</span><span class="na">dependsOn</span> <span class="n">jacocoTestCoverageVerification</span>
-</code></pre></div></div>
-
-<table>
-  <thead>
-    <tr>
-      <th>설정</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">test.finalizedBy</code></td>
-      <td>Test 종료 후 HTML·XML Report 생성</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">jacocoTestReport.dependsOn test</code></td>
-      <td>Report를 직접 실행해도 먼저 Test 수행</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">minimum = 0.20</code></td>
-      <td>선택한 Counter의 최소 Coverage를 20%로 설정한 학습용 예시</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">check.dependsOn</code></td>
-      <td><code class="language-plaintext highlighter-rouge">check</code> Lifecycle에 Coverage 기준 검증 포함</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Gradle의 JaCoCo Plugin은 기본적으로 <code class="language-plaintext highlighter-rouge">jacocoTestReport</code>와 <code class="language-plaintext highlighter-rouge">test</code>를 자동 연결하지 않으며, Coverage Verification도 <code class="language-plaintext highlighter-rouge">check</code>에 자동 포함하지 않는다. 필요한 Task 관계를 명시해야 한다. 자세한 설정은 <a href="https://docs.gradle.org/current/userguide/jacoco_plugin.html">Gradle JaCoCo Plugin 문서</a>에서 확인할 수 있다.</p>
-
-<p>다음 명령은 Test, Report 생성과 기준 검증을 한 번에 수행한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>./gradlew clean <span class="nb">test </span>jacocoTestReport jacocoTestCoverageVerification
-</code></pre></div></div>
-
-<p>HTML Report는 <code class="language-plaintext highlighter-rouge">build/reports/jacoco/test/html/index.html</code>에서 확인한다. Coverage가 설정한 최소값보다 낮으면 <code class="language-plaintext highlighter-rouge">jacocoTestCoverageVerification</code>이 실패하고 Jenkins Pipeline도 중단된다.</p>
-
-<h2 id="10--coverage-목표-설정">10 ) Coverage 목표 설정</h2>
-
-<hr />
-
-<p>Coverage 100%는 요구 사항을 모두 구현했거나 결함이 없다는 뜻이 아니다. 잘못된 구현을 그대로 기대값으로 사용하거나 중요한 예외 Case를 누락해도 실행 비율은 높게 나올 수 있다.</p>
-
-<p><a href="https://testing.googleblog.com/2020/08/code-coverage-best-practices.html">Google Testing Blog의 Coverage 지침</a>은 60%를 수용 가능한 수준, 75%를 권장할 만한 수준, 90%를 모범적인 수준으로 제시하지만 보편적인 합격 기준은 아니다. Code의 Business 영향, 변경 빈도, 복잡도와 유지 기간에 따라 Team이 기준을 정해야 한다.</p>
-
-<p>Coverage를 운영할 때는 다음 순서로 접근한다.</p>
-
-<ol>
-  <li>
-    <p>핵심 Method가 Test에서 한 번 이상 실행되는지 확인한다.</p>
-  </li>
-  <li>
-    <p>변경된 Code와 장애 영향이 큰 Code의 Line Coverage를 우선 높인다.</p>
-  </li>
-  <li>
-    <p>조건문과 예외 처리의 Branch Coverage를 확인한다.</p>
-  </li>
-  <li>
-    <p>수치만 높이는 Test 대신 요구 사항과 실패 조건을 검증하는 Assertion을 추가한다.</p>
-  </li>
-</ol>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-  <ul>
-    <li>
-      <p>순수 Logic은 Spring Context 없이 빠른 단위 Test로 검증한다.</p>
-    </li>
-    <li>
-      <p>Controller Test는 실제 Mapping과 같은 HTTP Method, URL, Status와 Body를 검증한다.</p>
-    </li>
-    <li>
-      <p>Gradle <code class="language-plaintext highlighter-rouge">test</code> Task가 Compile을 포함하므로 Pipeline에 중복 Compile Stage를 둘 필요가 없다.</p>
-    </li>
-    <li>
-      <p>JaCoCo Task 관계와 합격 기준은 Project에서 명시적으로 구성한다.</p>
-    </li>
-    <li>
-      <p>Coverage는 미검증 영역을 찾는 지표이며 Software 정확성 자체를 증명하지 않는다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<p>다음 글인 <a href="/cloud-native-53-jenkins-sonarqube-analysis/">Jenkins SonarQube 정적 분석과 Quality Gate</a>에서는 Test를 실행하지 않고 Code의 Bug, Vulnerability와 Code Smell을 분석하고 Jenkins Pipeline에 결과를 연결한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="Jenkins" /><summary type="html"><![CDATA[Spring Boot 단위·Web 계층 Test를 구성하고 Jenkins Pipeline에서 JUnit 결과와 JaCoCo Coverage 기준을 검증한다]]></summary></entry></feed>
+<p>다음 글인 <a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 실제 <code class="language-plaintext highlighter-rouge">Application</code> Resource를 생성하고 Sync 결과를 확인한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="ArgoCD" /><summary type="html"><![CDATA[GitOps의 선언적 Desired State와 지속적 조정을 이해하고 Argo CD 구성 요소를 Kubernetes에 Helm으로 설치한다]]></summary></entry></feed>

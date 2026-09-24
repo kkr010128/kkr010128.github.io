@@ -4,6 +4,21 @@
       
       
       {
+        "title": "Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기",
+        "url": "/project-1-orbit-command-logging/",
+        "description": "Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법",
+        "thumbnail": null,
+        "tags": ["Project","Orbit","Auditd","Webhook"],
+        "series_key": "project",
+        "series_title": null,
+        "date_label": "2026년 9월 24일",
+        "reading_time_label": "9분 읽기",
+        "search": "ubuntu에서 계정별 명령 로그를 slack webhook으로 기록하기 develop 서버와 production서버에서 sudo와 사용자별 로그를 slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법 project orbit auditd webhook"
+      },
+    
+      
+      
+      {
         "title": "Ansible Role·Collection과 Docker 자동화",
         "url": "/cloud-native-61-ansible-roles-collections-docker/",
         "description": "Ansible Role의 표준 구조와 Galaxy·Collection의 관계를 이해하고 현재 Docker APT Repository와 community.docker Module로 Container 배포를 자동화한다",
@@ -74,6 +89,21 @@
         "date_label": "2026년 9월 22일",
         "reading_time_label": "8분 읽기",
         "search": "ansible architecture와 inventory 구성 ansible control node와 managed node의 역할을 이해하고 ubuntu 설치, ssh 공개키 인증과 inventory를 구성하여 연결을 검증한다 cloudnative autoeversw ansible cloudnative"
+      },
+    
+      
+      
+      {
+        "title": "Kubernetes Gateway API",
+        "url": "/notes-10-techbites-gateway-api/",
+        "description": "Ingress의 한계와 Gateway API의 역할별 리소스 구조를 비교합니다",
+        "thumbnail": null,
+        "tags": ["TechBites","Kubernetes","GatewayAPI"],
+        "series_key": "technotes",
+        "series_title": "TechNotes",
+        "date_label": "2026년 9월 21일",
+        "reading_time_label": "6분 읽기",
+        "search": "kubernetes gateway api ingress의 한계와 gateway api의 역할별 리소스 구조를 비교합니다 techbites kubernetes gatewayapi technotes"
       },
     
       

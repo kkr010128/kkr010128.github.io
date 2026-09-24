@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법">
+<link rel="canonical" href="https://hyn128.site/project-1-orbit-command-logging/">
+<meta property="og:title" content="Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법">
+<meta property="og:url" content="https://hyn128.site/project-1-orbit-command-logging/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기 | renamed.log">
+<meta name="twitter:description" content="Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법">
+
+  <meta property="article:published_time" content="2026-09-24T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.svg?v=1790258773" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1790258773" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1790258773">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1790258773" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1790258773">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기 | renamed.log",
+    "description": "Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법",
+    "url": "https://hyn128.site/project-1-orbit-command-logging/",
+    "datePublished": "2026-09-24T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기</h1>
+    
+      <p class="post-head__description">Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 24일 · 9분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Project">Project</a>
+        
+          <a class="tag-chip" href="/?tag=Orbit">Orbit</a>
+        
+          <a class="tag-chip" href="/?tag=Auditd">Auditd</a>
+        
+          <a class="tag-chip" href="/?tag=Webhook">Webhook</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="요약">요약</h2>
+<blockquote>
+  <p>여러 사용자가 함께 사용하는 Production·Development Ubuntu 서버의 작업 이력을 추적하기 위해 <code class="language-plaintext highlighter-rouge">auditd</code>와 Slack Webhook을 연동한 명령 로깅 시스템을 구축했습니다. 일반 사용자의 프로그램 실행과 <code class="language-plaintext highlighter-rouge">sudo</code> 사용 내역을 수집해 서버별, 사용자와 권한별 Slack 채널로 전송하고, Webhook 보호와 <code class="language-plaintext highlighter-rouge">systemd</code>를 이용한 상시 실행 과정까지 정리합니다.</p>
+</blockquote>
+
+<hr />
+<h2 id="1-아이디어">1. 아이디어</h2>
+
+<blockquote>
+  <p>교육장에서 받은 서버와 홈서버를 각각 Production, Development 서버로 두기로 했습니다.
+이 과정에서 팀원은 모두 개인의 계정을 갖고, <code class="language-plaintext highlighter-rouge">sudo</code> 를 포함한 명령을 사용하게 되는데 추후 트러블 슈팅 또는 본인의 작업 내역을 확인하기 위한 기록이 필요하다고 느껴 로깅 시스템 구축의 필요성을 느꼈습니다.</p>
+</blockquote>
+
+<p>먼저 저희가 협업 과정에서 활용할 구조는 다음과 같습니다.</p>
+<ol>
+  <li>Slack - 팀원별 소통 및 웹훅 애플리케이션 관리</li>
+  <li>Jira/Github - 프로젝트 및 이슈 관리</li>
+  <li>DevServer - Ubuntu Server에서 가용 최대 리소스로 개발 및 테스트를 위한 서버로 활용
+    <ul>
+      <li>libvirt와 KVM으로 Orbit 호스트 VM 생성해 사용</li>
+      <li>VM 내에서는 각 사용자별 디렉토리 내에서 작업 및 테스트</li>
+    </ul>
+  </li>
+</ol>
+
+<p>이 구조에서 각 팀원들의 명령이 <code class="language-plaintext highlighter-rouge">sudo</code>로 사용될 수 있어야하고, 다른 사용자 환경에도 영향을 미칠 수 있다고 생각했습니다.</p>
+
+<p>또한 개발 및 테스트 과정에서 문제를 해결한 과정 또는 공유할 내용을 그때마다 기록하기에는 어려울 수 있으므로, 대신 명령 시퀀스를 타임라인으로 볼 수 있는 기록이 필요하다고 생각했습니다.</p>
+
+<h2 id="2-slack에-log-수집-채널-및-log-애플리케이션-생성">2. Slack에 Log 수집 채널 및 Log 애플리케이션 생성</h2>
+
+<p>먼저 Slack에 각 서버별, 명령 권한(사용자) 별 로그 수집 채널을 생성해주었습니다.</p>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/25.webp" alt="" /></p>
+
+<p>이후 <a href="https://api.slack.com/apps">Slack API</a> 에서 Application을 생성하고 아래와 같이 진행했습니다.</p>
+<ol>
+  <li>Create New App → Blank App → Continue</li>
+  <li>App Name: Orbit Log</li>
+  <li>사용할 워크스페이스 선택</li>
+  <li>Create APP</li>
+</ol>
+
+<h2 id="3-webhook-생성">3. Webhook 생성</h2>
+
+<p>앱이 생성되고 앱 설정 화면으로 넘어가면 왼쪽 메뉴에서 <code class="language-plaintext highlighter-rouge">Features → Incomming Webhooks</code>로 진입합니다.</p>
+
+<p>이후 같은 페이지에서 <code class="language-plaintext highlighter-rouge">Add New Webhook to Workspace</code>를 선택해 훅을 수신할 채널을 전부 생성해줍니다.</p>
+
+<p>저희 환경에서는 최종적으로 아래와 같은 구조가 구성됐습니다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Orbit Log (Slack App)
+│
+├─ webhook → #prod-orbit
+├─ webhook → #prod-sudo
+├─ webhook → #prod-hyn128
+├─ webhook → #prod-jyvnee
+├─ webhook → #prod-sungahbak
+├─ webhook → #prod-xoruddl
+│
+├─ webhook → #dev-orbit
+├─ webhook → #dev-sudo
+├─ webhook → #dev-hyn128
+├─ webhook → #dev-jyvnee
+├─ webhook → #dev-sungahbak
+├─ webhook → #dev-xoruddl
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/07.webp" alt="" /></p>
+
+<blockquote>
+  <p>생성된 Webhook은 공개 될 경우 URL 만으로도 아주 쉽게 해당 채널로 데이터를 보낼 수 있으므로 공개에 주의합니다.</p>
+</blockquote>
+
+<p>생성된 Webhook은 <code class="language-plaintext highlighter-rouge">curl</code>을 이용해 아래처럼 테스트 해볼 수 있습니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s1">'Content-type: application/json'</span> <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"text":"[DEV] Ubuntu sudo log test"}'</span> <span class="se">\</span>
+  <span class="s1">'여기에_WEBHOOK_URL'</span>
+</code></pre></div></div>
+
+<h2 id="4-ubuntu에-webhook-설정-파일-구축-및-패키지-설치">4. Ubuntu에 Webhook 설정 파일 구축 및 패키지 설치</h2>
+
+<p>Production 서버와 Development 서버 모두 과정은 비슷하므로, Dev 서버를 기준으로 작성합니다.</p>
+
+<p>개발 서버 기준으로 다시 정리하면 목표는 아래와 같습니다.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>orbit 명령      → #dev-1-orbit (관리용 계정)
+sudo 전체       → #dev-2-sudo
+hyn128 명령     → #dev-hyn128
+jyvnee 명령     → #dev-jyvnee
+sungahbak 명령  → #dev-sungahbak
+xoruddl 명령    → #dev-xoruddl
+</code></pre></div></div>
+
+<h3 id="1-디렉토리-구성">1) 디렉토리 구성</h3>
+
+<p>먼저 스크립트를 담을 디렉토리를 <code class="language-plaintext highlighter-rouge">-p</code> 옵션으로 일괄 생성하고, 해당 디렉토리로 이동합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir</span> <span class="nt">-p</span> ~/slack-log/scripts
+<span class="nb">cd</span> ~/slack-log
+</code></pre></div></div>
+
+<p>사용하게 될 구조는 다음과 같습니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/home/orbit/slack-log/       <span class="c"># Slack 명령 모니터링 관련 파일 관리</span>
+├── webhook.env              <span class="c"># 사용자별 Slack Webhook URL 및 환경변수 저장</span>
+└── scripts/
+    └── command-monitor.sh   <span class="c"># Audit 로그 감시, 사용자별 명령 분기 및 Slack 전송</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>root가 아닌 사용자 디렉토리에 구성하는 이유</strong></p>
+
+  <p>/root에 스크립트를 두면 수정과 실행 시마다 root 권한이 필요하고, 일반 사용자의 접근도 제한됩니다. 따라서 현재 협업 환경에서는 root 권한이 반드시 필요한 파일이 아니었고, 사용자의 홈 디렉토리에서 관리하여 필요한 작업에만 <code class="language-plaintext highlighter-rouge">sudo</code>를 사용하는 방식이 권한 관리와 유지보수 측면에서 적절하다고 판단했습니다.</p>
+</blockquote>
+
+<h3 id="2-webhook-설정">2) Webhook 설정</h3>
+
+<p>각 채널별 웹훅을 담을 환경변수 파일을 먼저 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nano webhook.env
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/11.webp" alt="" /></p>
+
+<p>이후 다음처럼 권한을 설정합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod </span>600 ~/slack-log/webhook.env
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">webhook.env</code>는 <code class="language-plaintext highlighter-rouge">Slack Webhook URL</code> 같은 비밀 값이 들어가므로 <code class="language-plaintext highlighter-rouge">600</code>으로 설정했습니다.</p>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/13.webp" alt="" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">600</code>의 상세 권한은 아래와 같습니다.</p>
+<ul>
+  <li>소유자(owner) : 6 = 읽기(r) + 쓰기(w)</li>
+  <li>그룹(group)   : 0 = 권한 없음</li>
+  <li>기타(others) : 0 = 권한 없음</li>
+</ul>
+
+<blockquote>
+  <p>orbit       → 읽기/수정 가능
+다른 사용자 → 읽기 불가능</p>
+</blockquote>
+
+<h3 id="3-auditd-설치">3) auditd 설치</h3>
+
+<p>다음으로 사용자별 명령 실행 내역을 수집하기 Linux의 감사 패키지인 <code class="language-plaintext highlighter-rouge">auditd</code>를 설치합니다.</p>
+
+<p>먼저 패키지 목록을 갱신한 후 필요한 패키지를 설치합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install</span> <span class="nt">-y</span> auditd audispd-plugins curl
+</code></pre></div></div>
+
+<p>각 패키지의 역할은 다음과 같습니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">auditd</code> : Linux Audit 데몬으로, 명령 실행 등의 시스템 이벤트를 감사 로그로 기록</li>
+  <li><code class="language-plaintext highlighter-rouge">audispd-plugins</code> : Audit 이벤트를 다른 프로그램이나 외부 시스템과 연동하기 위한 플러그인 제공</li>
+  <li><code class="language-plaintext highlighter-rouge">curl</code> : 수집한 로그를 Slack Webhook으로 전송하기 위한 HTTP 요청 도구</li>
+</ul>
+
+<p>설치가 완료되면 <code class="language-plaintext highlighter-rouge">auditd</code>를 활성화하고 바로 실행합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> auditd
+</code></pre></div></div>
+
+<p>여기서 <code class="language-plaintext highlighter-rouge">enable</code>은 서버가 재부팅된 이후에도 <code class="language-plaintext highlighter-rouge">auditd</code>가 자동으로 실행되도록 설정하며, <code class="language-plaintext highlighter-rouge">--now</code>는 서비스 활성화와 동시에 현재 세션에서도 바로 실행하도록 합니다.</p>
+
+<p>마지막으로 정상적으로 실행되고 있는지 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl status auditd
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/15.webp" alt="" />
+사진과 같이 <code class="language-plaintext highlighter-rouge">active (running)</code> 로 정상적으로 동작하고 있는 것을 확인할 수 있습니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Active: active (running)
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Shell History 대신 auditd를 사용하는 이유</strong></p>
+
+  <p><code class="language-plaintext highlighter-rouge">history</code>는 각 사용자의 Shell 환경에 종속되며 사용자가 직접 기록을 수정하거나 삭제할 수 있습니다. 반면 <code class="language-plaintext highlighter-rouge">auditd</code>는 Linux Audit 시스템을 통해 시스템 이벤트를 수집하므로, 여러 사용자가 함께 사용하는 서버에서 명령 실행 내역을 감사하기 위한 용도로 더 적합하다고 판단했습니다.</p>
+</blockquote>
+
+<h2 id="5-sudo-명령-audit-규칙-설정">5. sudo 명령 Audit 규칙 설정</h2>
+
+<p><code class="language-plaintext highlighter-rouge">auditd</code> 설치가 완료되었으므로 이제 <code class="language-plaintext highlighter-rouge">sudo</code> 명령 실행을 감지할 수 있도록 Audit 규칙을 설정합니다.</p>
+
+<h3 id="1-audit-규칙-파일-생성"><strong>1) Audit 규칙 파일 생성</strong></h3>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/audit/rules.d/</code> 디렉토리에 사용자 명령 실행을 감시하기 위한 Audit 규칙 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/audit/rules.d/command-monitor.rules
+</code></pre></div></div>
+
+<p>파일에 다음 내용을 추가합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">-a</span> always,exit <span class="nt">-F</span> <span class="nb">arch</span><span class="o">=</span>b64 <span class="nt">-S</span> execve <span class="nt">-F</span> auid&gt;<span class="o">=</span>1000 <span class="nt">-F</span> auid!<span class="o">=</span><span class="nb">unset</span> <span class="nt">-k</span> user_command
+<span class="nt">-a</span> always,exit <span class="nt">-F</span> <span class="nb">arch</span><span class="o">=</span>b32 <span class="nt">-S</span> execve <span class="nt">-F</span> auid&gt;<span class="o">=</span>1000 <span class="nt">-F</span> auid!<span class="o">=</span><span class="nb">unset</span> <span class="nt">-k</span> user_command
+</code></pre></div></div>
+
+<p>각 옵션의 의미는 다음과 같습니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">-a always,exit</code> : 시스템 콜이 종료될 때 항상 Audit 이벤트를 기록</li>
+  <li><code class="language-plaintext highlighter-rouge">-F arch=b64</code>, <code class="language-plaintext highlighter-rouge">-F arch=b32</code> : 각각 64비트와 32비트 시스템 콜을 감시</li>
+  <li><code class="language-plaintext highlighter-rouge">-S execve</code> : 프로그램 실행에 사용되는 <code class="language-plaintext highlighter-rouge">execve</code> 시스템 콜을 감시</li>
+  <li><code class="language-plaintext highlighter-rouge">-F auid&gt;=1000</code> : 일반 사용자 계정에서 발생한 이벤트만 대상으로 지정</li>
+  <li><code class="language-plaintext highlighter-rouge">-F auid!=unset</code> : 로그인 사용자를 식별할 수 없는 이벤트를 제외</li>
+  <li><code class="language-plaintext highlighter-rouge">-k user_command</code> : 기록된 이벤트에 <code class="language-plaintext highlighter-rouge">user_command</code>라는 검색용 키를 부여</li>
+</ul>
+
+<p>즉, 일반 사용자가 실행한 프로그램의 <code class="language-plaintext highlighter-rouge">execve</code> 이벤트를 Audit 로그에 기록하고, 이후 <code class="language-plaintext highlighter-rouge">user_command</code> 키를 이용해 해당 로그를 조회할 수 있도록 설정합니다.
+<img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/31.webp" alt="" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/audit/rules.d/</code>는 <code class="language-plaintext highlighter-rouge">auditd</code>의 영구 Audit 규칙을 관리하는 디렉토리입니다. 이곳에 규칙 파일을 작성하면 재부팅 이후에도 규칙을 다시 적용할 수 있습니다.</p>
+
+<h3 id="2-audit-규칙-적용"><strong>2) Audit 규칙 적용</strong></h3>
+
+<p>작성한 규칙을 현재 시스템에 적용합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>augenrules <span class="nt">--load</span>
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/19.webp" alt="" />
+<code class="language-plaintext highlighter-rouge">augenrules</code>는 <code class="language-plaintext highlighter-rouge">/etc/audit/rules.d/</code>에 작성된 규칙들을 읽어 Audit 시스템에 적용합니다.</p>
+
+<p>적용된 규칙은 다음 명령으로 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>auditctl <span class="nt">-l</span> | <span class="nb">grep </span>user_command
+</code></pre></div></div>
+
+<p>앞에서 작성한 <code class="language-plaintext highlighter-rouge">user_command</code> 규칙이 출력된다면 정상적으로 적용된 것입니다.</p>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/33.webp" alt="" /></p>
+
+<h3 id="3-sudo-실행-및-audit-로그-확인"><strong>3) sudo 실행 및 Audit 로그 확인</strong></h3>
+
+<p>실제로 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 실행하여 Audit 이벤트가 기록되는지 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo whoami</span>
+</code></pre></div></div>
+
+<p>정상적으로 실행되면 다음과 같이 출력됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>root
+</code></pre></div></div>
+
+<p>이후 <code class="language-plaintext highlighter-rouge">sudo_command</code> 키를 기준으로 최근 Audit 로그를 조회합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>ausearch <span class="nt">-k</span> user_command <span class="nt">-i</span> <span class="nt">--start</span> recent
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/23.webp" alt="" /></p>
+
+<p>여기서 <code class="language-plaintext highlighter-rouge">-k user_command</code>는 앞에서 설정한 키를 가진 이벤트만 조회하고, <code class="language-plaintext highlighter-rouge">-i</code>는 UID 등의 값을 사람이 읽기 쉬운 형태로 변환하여 출력합니다.</p>
+
+<p>현재 단계에서는 Audit 로그가 정상적으로 수집되는지 확인하는 것이 목적입니다. 이후 수집된 원본 로그에서 필요한 정보를 추출하여 Slack으로 전송하도록 구성합니다.</p>
+
+<p>최종적으로 Slack에 전달할 정보는 다음 5개로 정했습니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User    : 명령을 실행한 사용자
+Time    : 명령 실행 시간
+Command : 실행한 명령
+PWD     : 명령을 실행한 디렉토리
+Run as  : sudo를 통해 명령을 실행한 대상 사용자
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">TTY</code>, PID, UID/GID 등의 정보도 Audit 로그에 포함될 수 있지만, Slack에서는 명령 실행 내역과 트러블 슈팅에 필요한 정보만 추출하여 전달하도록 구성합니다.</p>
+
+<h2 id="6-사용자별-명령-slack-전송-스크립트-작성">6. 사용자별 명령 Slack 전송 스크립트 작성</h2>
+
+<p>앞에서 설정한 <code class="language-plaintext highlighter-rouge">user_command</code> Audit 로그를 실시간으로 감시하고, 실행한 사용자에 따라 각 Slack 채널로 로그를 전송하도록 스크립트를 작성합니다.</p>
+
+<p>로그는 다음과 같이 분기하도록 구성했습니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>일반 명령
+└─ 해당 사용자 채널
+
+sudo 명령
+├─ 해당 사용자 채널
+└─ sudo 전용 채널
+</code></pre></div></div>
+
+<p>또한 Slack에서 로그를 쉽게 구분할 수 있도록 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령의 Attachment 색상을 다르게 설정하고, 주요 항목은 굵게 표시하도록 구성했습니다.</p>
+
+<p>스크립트 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>nano ~/slack-log/scripts/command-monitor.sh
+</code></pre></div></div>
+
+<p>다음 내용을 작성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nb">set</span> <span class="nt">-u</span>
+
+<span class="nb">source</span> /home/orbit/slack-log/webhook.env
+
+<span class="nv">AUDIT_LOG</span><span class="o">=</span><span class="s2">"/var/log/audit/audit.log"</span>
+
+send_slack<span class="o">()</span> <span class="o">{</span>
+    <span class="nb">local </span><span class="nv">webhook</span><span class="o">=</span><span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span>
+    <span class="nb">local type</span><span class="o">=</span><span class="s2">"</span><span class="nv">$2</span><span class="s2">"</span>
+    <span class="nb">local </span><span class="nv">user</span><span class="o">=</span><span class="s2">"</span><span class="nv">$3</span><span class="s2">"</span>
+    <span class="nb">local time</span><span class="o">=</span><span class="s2">"</span><span class="nv">$4</span><span class="s2">"</span>
+    <span class="nb">local command</span><span class="o">=</span><span class="s2">"</span><span class="nv">$5</span><span class="s2">"</span>
+    <span class="nb">local </span><span class="nv">pwd_value</span><span class="o">=</span><span class="s2">"</span><span class="nv">$6</span><span class="s2">"</span>
+    <span class="nb">local </span><span class="nv">run_as</span><span class="o">=</span><span class="s2">"</span><span class="nv">$7</span><span class="s2">"</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$webhook</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">return
+
+    </span><span class="nb">local </span>payload
+
+    <span class="nv">payload</span><span class="o">=</span><span class="si">$(</span>python3 - <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$type</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$user</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$time</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$command</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$pwd_value</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$run_as</span><span class="s2">"</span> <span class="o">&lt;&lt;</span><span class="sh">'</span><span class="no">PY</span><span class="sh">'
+import json
+import sys
+
+type_, user, time, command, pwd, run_as = sys.argv[1:]
+
+if type_ == "SUDO":
+    color = "#E01E5A"
+    title = "SUDO Command"
+else:
+    color = "#2EB67D"
+    title = "Command"
+
+payload = {
+    "attachments": [
+        {
+            "color": color,
+            "mrkdwn_in": ["text"],
+            "text": (
+                f"*{title}*</span><span class="se">\n\n</span><span class="sh">"
+                f"*User*</span><span class="se">\n</span><span class="sh">`{user}`</span><span class="se">\n\n</span><span class="sh">"
+                f"*Run as*</span><span class="se">\n</span><span class="sh">`{run_as}`</span><span class="se">\n\n</span><span class="sh">"
+                f"*Time*</span><span class="se">\n</span><span class="sh">{time}</span><span class="se">\n\n</span><span class="sh">"
+                f"*PWD*</span><span class="se">\n</span><span class="sh">`{pwd}`</span><span class="se">\n\n</span><span class="sh">"
+                f"*Command*</span><span class="se">\n</span><span class="sh">```{command}```"
+            )
+        }
+    ]
+}
+
+print(json.dumps(payload))
+</span><span class="no">PY
+</span><span class="si">)</span>
+
+    curl <span class="nt">-fsS</span> <span class="se">\</span>
+        <span class="nt">-H</span> <span class="s1">'Content-Type: application/json'</span> <span class="se">\</span>
+        <span class="nt">--data</span> <span class="s2">"</span><span class="nv">$payload</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="s2">"</span><span class="nv">$webhook</span><span class="s2">"</span> <span class="se">\</span>
+        <span class="o">&gt;</span>/dev/null 2&gt;&amp;1
+<span class="o">}</span>
+
+get_user_webhook<span class="o">()</span> <span class="o">{</span>
+    <span class="k">case</span> <span class="s2">"</span><span class="nv">$1</span><span class="s2">"</span> <span class="k">in
+        </span>orbit<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_ORBIT_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        hyn128<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_HYN128_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        jyvnee<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_JYVNEE_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        sungahbak<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_SUNGAHBAK_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        xoruddl<span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">"</span><span class="nv">$DEV_XORUDDL_WEBHOOK</span><span class="s2">"</span>
+            <span class="p">;;</span>
+        <span class="k">*</span><span class="p">)</span>
+            <span class="nb">echo</span> <span class="s2">""</span>
+            <span class="p">;;</span>
+    <span class="k">esac</span>
+<span class="o">}</span>
+
+<span class="nb">tail</span> <span class="nt">-Fn0</span> <span class="s2">"</span><span class="nv">$AUDIT_LOG</span><span class="s2">"</span> | <span class="k">while </span><span class="nv">IFS</span><span class="o">=</span> <span class="nb">read</span> <span class="nt">-r</span> line<span class="p">;</span> <span class="k">do</span>
+
+    <span class="c"># user_command SYSCALL 이벤트만 처리</span>
+    <span class="o">[[</span> <span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span> <span class="o">!=</span> <span class="nb">type</span><span class="o">=</span>SYSCALL<span class="k">*</span> <span class="o">]]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+    <span class="o">[[</span> <span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span> <span class="o">!=</span> <span class="k">*</span><span class="s1">'key="user_command"'</span><span class="k">*</span> <span class="o">]]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># Audit Event ID 추출</span>
+    <span class="nv">EVENT_ID</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*msg=audit([^:]*:\([0-9]\+\)).*/\1/p'</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$EVENT_ID</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># 현재 읽은 SYSCALL 로그 사용</span>
+    <span class="nv">SYSCALL_LINE</span><span class="o">=</span><span class="s2">"</span><span class="nv">$line</span><span class="s2">"</span>
+
+    <span class="c"># 실제 로그인 사용자</span>
+    <span class="nv">USER_NAME</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SYSCALL_LINE</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*AUID="\([^"]*\)".*/\1/p'</span><span class="si">)</span>
+
+    <span class="c"># 실행 파일</span>
+    <span class="nv">EXE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SYSCALL_LINE</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*exe="\([^"]*\)".*/\1/p'</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># 사용자별 Webhook 선택</span>
+    <span class="nv">USER_WEBHOOK</span><span class="o">=</span><span class="si">$(</span>get_user_webhook <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$USER_WEBHOOK</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue</span>
+
+    <span class="c"># EXECVE와 CWD 이벤트가 기록될 시간 확보</span>
+    <span class="nb">sleep </span>0.2
+
+    <span class="nv">EVENT</span><span class="o">=</span><span class="si">$(</span>ausearch <span class="nt">-a</span> <span class="s2">"</span><span class="nv">$EVENT_ID</span><span class="s2">"</span> <span class="nt">-i</span> <span class="nt">--just-one</span> 2&gt;/dev/null<span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$EVENT</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue
+
+    </span><span class="nv">EXECVE_LINE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$EVENT</span><span class="s2">"</span> |
+        <span class="nb">grep</span> <span class="s1">'^type=EXECVE'</span> |
+        <span class="nb">head</span> <span class="nt">-1</span><span class="si">)</span>
+
+    <span class="nv">CWD_LINE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$EVENT</span><span class="s2">"</span> |
+        <span class="nb">grep</span> <span class="s1">'^type=CWD'</span> |
+        <span class="nb">head</span> <span class="nt">-1</span><span class="si">)</span>
+
+    <span class="c"># 명령 실행 위치</span>
+    <span class="nv">PWD_VALUE</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$CWD_LINE</span><span class="s2">"</span> |
+        <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*cwd=\([^ ]*\).*/\1/p'</span><span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="nv">PWD_VALUE</span><span class="o">=</span><span class="s2">"unknown"</span>
+
+    <span class="c"># EXECVE 인자를 하나의 명령으로 조합</span>
+    <span class="nv">COMMAND</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$EXECVE_LINE</span><span class="s2">"</span> |
+        <span class="nb">grep</span> <span class="nt">-oE</span> <span class="s1">'a[0-9]+=[^ ]+'</span> |
+        <span class="nb">sed</span> <span class="nt">-E</span> <span class="s1">'s/^a[0-9]+=//'</span> |
+        <span class="nb">paste</span> <span class="nt">-sd</span> <span class="s1">' '</span> -<span class="si">)</span>
+
+    <span class="o">[</span> <span class="nt">-z</span> <span class="s2">"</span><span class="nv">$COMMAND</span><span class="s2">"</span> <span class="o">]</span> <span class="o">&amp;&amp;</span> <span class="k">continue
+
+    </span><span class="nv">TIME</span><span class="o">=</span><span class="si">$(</span><span class="nb">date</span> <span class="s1">'+%Y-%m-%d %H:%M:%S'</span><span class="si">)</span>
+
+    <span class="c"># sudo 명령 처리</span>
+    <span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$EXE</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"/usr/bin/sudo"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+
+        </span><span class="nv">SUDO_COMMAND</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">COMMAND</span><span class="p">#sudo</span><span class="k">}</span><span class="s2">"</span>
+        <span class="nv">SUDO_COMMAND</span><span class="o">=</span><span class="s2">"</span><span class="k">${</span><span class="nv">SUDO_COMMAND</span><span class="p"># </span><span class="k">}</span><span class="s2">"</span>
+
+        <span class="nv">RUN_AS</span><span class="o">=</span><span class="s2">"root"</span>
+
+        <span class="c"># sudo -u user command 처리</span>
+        <span class="k">if</span> <span class="o">[[</span> <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> <span class="o">==</span> <span class="s2">"-u "</span><span class="k">*</span> <span class="o">]]</span><span class="p">;</span> <span class="k">then
+
+            </span><span class="nv">RUN_AS</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> |
+                <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="si">)</span>
+
+            <span class="nv">SUDO_COMMAND</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> |
+                <span class="nb">cut</span> <span class="nt">-d</span><span class="s1">' '</span> <span class="nt">-f3-</span><span class="si">)</span>
+        <span class="k">fi</span>
+
+        <span class="c"># 사용자 개인 채널</span>
+        send_slack <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_WEBHOOK</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"SUDO"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$TIME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$RUN_AS</span><span class="s2">"</span>
+
+        <span class="c"># sudo 공통 채널</span>
+        send_slack <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$DEV_ALL_SUDO_WEBHOOK</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"SUDO"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$TIME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$SUDO_COMMAND</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$RUN_AS</span><span class="s2">"</span>
+
+    <span class="k">else</span>
+
+        <span class="c"># sudo 내부에서 실행된 root 명령의 중복 전송 방지</span>
+        <span class="nv">EUID_NAME</span><span class="o">=</span><span class="si">$(</span><span class="nb">printf</span> <span class="s1">'%s\n'</span> <span class="s2">"</span><span class="nv">$SYSCALL_LINE</span><span class="s2">"</span> |
+            <span class="nb">sed</span> <span class="nt">-n</span> <span class="s1">'s/.*EUID="\([^"]*\)".*/\1/p'</span><span class="si">)</span>
+
+        <span class="k">if</span> <span class="o">[</span> <span class="s2">"</span><span class="nv">$EUID_NAME</span><span class="s2">"</span> <span class="o">=</span> <span class="s2">"root"</span> <span class="o">]</span><span class="p">;</span> <span class="k">then
+            continue
+        fi
+
+        </span>send_slack <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_WEBHOOK</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"COMMAND"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$TIME</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$COMMAND</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$PWD_VALUE</span><span class="s2">"</span> <span class="se">\</span>
+            <span class="s2">"</span><span class="nv">$USER_NAME</span><span class="s2">"</span>
+
+    <span class="k">fi
+
+done</span>
+</code></pre></div></div>
+
+<p>스크립트에서는 Audit 로그의 <code class="language-plaintext highlighter-rouge">SYSCALL</code>, <code class="language-plaintext highlighter-rouge">EXECVE</code>, <code class="language-plaintext highlighter-rouge">CWD</code> 이벤트를 이용해 다음 정보를 추출합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>User    : 명령을 실행한 로그인 사용자
+Run as  : 실제 명령을 실행하는 사용자
+Time    : 명령 실행 시간
+PWD     : 명령을 실행한 디렉토리
+Command : 실행한 명령과 인자
+</code></pre></div></div>
+
+<p>Slack 메시지는 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 쉽게 구분할 수 있도록 다음과 같이 표시합니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>일반 명령 → 초록색 Attachment
+sudo 명령 → 빨간색 Attachment
+</code></pre></div></div>
+
+<p>일반 명령은 해당 사용자의 개인 채널에만 전송됩니다.</p>
+
+<p>예를 들어 <code class="language-plaintext highlighter-rouge">hyn128</code> 사용자가 다음 명령을 실행하면,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> <span class="nt">-al</span>
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">#dev-hyn128</code> 채널에 다음 정보가 표시됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Command
+
+User
+hyn128
+
+Run as
+hyn128
+
+Time
+2026-09-24 22:10:00
+
+PWD
+/home/hyn128
+
+Command
+ls --color=auto -al
+</code></pre></div></div>
+
+<p>반면 다음과 같이 <code class="language-plaintext highlighter-rouge">sudo</code>를 사용하면,</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo whoami</span>
+</code></pre></div></div>
+
+<p>동일한 로그가 <code class="language-plaintext highlighter-rouge">#dev-hyn128</code>과 <code class="language-plaintext highlighter-rouge">#dev-all-sudo</code>에 전송됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>SUDO Command
+
+User
+hyn128
+
+Run as
+root
+
+Time
+2026-09-24 22:11:00
+
+PWD
+/home/hyn128
+
+Command
+whoami
+</code></pre></div></div>
+
+<h3 id="1-실행-권한-설정"><strong>1) 실행 권한 설정</strong></h3>
+
+<p>작성한 스크립트에 실행 권한을 추가합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">chmod</span> +x ~/slack-log/scripts/command-monitor.sh
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/35.webp" alt="" /></p>
+
+<h2 id="7-모니터링-스크립트-systemd-서비스-등록">7. 모니터링 스크립트 systemd 서비스 등록</h2>
+
+<p><code class="language-plaintext highlighter-rouge">command-monitor.sh</code>를 터미널에서 직접 실행하면 해당 터미널을 계속 점유하며, SSH 연결이 종료되거나 서버가 재부팅되었을 때 모니터링도 중단됩니다.</p>
+
+<p>따라서 스크립트를 <code class="language-plaintext highlighter-rouge">systemd</code> 서비스로 등록하여 백그라운드에서 계속 실행되도록 구성합니다.</p>
+
+<p>서비스 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/systemd/system/command-monitor.service
+</code></pre></div></div>
+
+<p>다음 내용을 작성합니다.</p>
+
+<div class="language-ini highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nn">[Unit]</span>
+<span class="py">Description</span><span class="p">=</span><span class="s">Orbit Slack Command Monitor</span>
+<span class="py">After</span><span class="p">=</span><span class="s">auditd.service network-online.target</span>
+
+<span class="nn">[Service]</span>
+<span class="py">Type</span><span class="p">=</span><span class="s">simple</span>
+<span class="py">User</span><span class="p">=</span><span class="s">root</span>
+<span class="py">ExecStart</span><span class="p">=</span><span class="s">/home/orbit/slack-log/scripts/command-monitor.sh</span>
+<span class="py">Restart</span><span class="p">=</span><span class="s">always</span>
+<span class="py">RestartSec</span><span class="p">=</span><span class="s">3</span>
+
+<span class="nn">[Install]</span>
+<span class="py">WantedBy</span><span class="p">=</span><span class="s">multi-user.target</span>
+</code></pre></div></div>
+
+<p>서비스 설정을 적용합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl daemon-reload
+<span class="nb">sudo </span>systemctl <span class="nb">enable</span> <span class="nt">--now</span> command-monitor.service
+</code></pre></div></div>
+
+<p>서비스 상태를 확인합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl status command-monitor.service
+</code></pre></div></div>
+
+<p>정상적으로 실행되고 있다면 다음과 같이 표시됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Active: active (running)
+</code></pre></div></div>
+
+<p>스크립트를 수정한 이후에는 서비스를 다시 시작하여 변경 사항을 적용합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl restart command-monitor.service
+</code></pre></div></div>
+
+<h2 id="8-동작-테스트">8. 동작 테스트</h2>
+
+<p>다른 사용자 계정으로 접속하여 일반 명령을 실행합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">ls</span> <span class="nt">-al</span>
+</code></pre></div></div>
+
+<p>해당 사용자의 개인 Slack 채널에 일반 명령 로그가 전송되는지 확인합니다.</p>
+
+<p>이후 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 실행합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo whoami</span>
+</code></pre></div></div>
+
+<p>정상적으로 동작한다면 다음과 같이 분기됩니다.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ls -al
+└─ #dev-hyn128
+
+sudo whoami
+├─ #dev-hyn128
+└─ #dev-all-sudo
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/37.webp" alt="" /></p>
+
+<p>이를 통해 사용자별 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 Slack에서 실시간으로 확인할 수 있으며, 서버 재부팅 이후에도 <code class="language-plaintext highlighter-rouge">command-monitor.service</code>가 자동으로 실행되어 모니터링을 계속 수행합니다.</p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/cloud-native-61-ansible-roles-collections-docker/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Ansible Role·Collection과 Docker 자동화</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1790258773"></script>
+    <script src="/assets/js/code-enhancements.js?v=1790258773"></script>
+  </body>
+</html>
