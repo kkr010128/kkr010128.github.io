@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ko-KR">
+  <head>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffffff" data-theme-color>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" data-apple-status-bar>
+<title>systemctl을 이용한 virtual machine 자동 부팅 | renamed.log</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta name="description" content="호스트 서버가 부팅될 때 VM 노드를 시스템 데몬으로 자동 실행하는 방법">
+<link rel="canonical" href="https://hyn128.site/project-2-orbit-systemctl-vagrant/">
+<meta property="og:title" content="systemctl을 이용한 virtual machine 자동 부팅 | renamed.log">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:description" content="호스트 서버가 부팅될 때 VM 노드를 시스템 데몬으로 자동 실행하는 방법">
+<meta property="og:url" content="https://hyn128.site/project-2-orbit-systemctl-vagrant/">
+<meta property="og:site_name" content="renamed.log">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="systemctl을 이용한 virtual machine 자동 부팅 | renamed.log">
+<meta name="twitter:description" content="호스트 서버가 부팅될 때 VM 노드를 시스템 데몬으로 자동 실행하는 방법">
+
+  <meta property="article:published_time" content="2026-09-24T00:00:00+09:00">
+
+
+<link rel="icon" href="/assets/images/favicon.svg?v=1790350206" type="image/png" sizes="256x256">
+<link rel="shortcut icon" href="/assets/images/favicon.svg?v=1790350206" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.svg?v=1790350206">
+<link rel="mask-icon" href="/assets/images/profile.svg?v=1790350206" color="#495057">
+<link rel="alternate" type="application/atom+xml" href="/feed.xml" title="renamed.log">
+
+<link rel="stylesheet" href="/assets/css/main.css?v=1790350206">
+<script>
+  (function () {
+    function applyTheme(theme) {
+      var safeTheme = theme === "dark" ? "dark" : "light";
+      var color = safeTheme === "dark" ? "#121212" : "#ffffff";
+      var themeColorMeta = document.querySelector("[data-theme-color]");
+      var appleStatusMeta = document.querySelector("[data-apple-status-bar]");
+
+      document.documentElement.setAttribute("data-theme", safeTheme);
+
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute("content", color);
+      }
+
+      if (appleStatusMeta) {
+        appleStatusMeta.setAttribute("content", safeTheme === "dark" ? "black" : "default");
+      }
+    }
+
+    try {
+      var storedTheme = localStorage.getItem("velog-theme");
+      var hasStoredTheme = storedTheme === "light" || storedTheme === "dark";
+      var theme = hasStoredTheme
+        ? storedTheme
+        : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+
+      applyTheme(theme);
+    } catch (error) {
+      applyTheme(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+  })();
+</script>
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZPEH9XZP5P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag("js", new Date());
+    gtag("config", "G-ZPEH9XZP5P");
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "name": "renamed.log",
+    "headline": "systemctl을 이용한 virtual machine 자동 부팅 | renamed.log",
+    "description": "호스트 서버가 부팅될 때 VM 노드를 시스템 데몬으로 자동 실행하는 방법",
+    "url": "https://hyn128.site/project-2-orbit-systemctl-vagrant/",
+    "datePublished": "2026-09-24T00:00:00+09:00"
+  }
+</script>
+
+  </head>
+  <body>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <header class="site-header">
+  <div class="site-header__inner">
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    <a class="header-logo" href="/" aria-label="renamed.log">
+      
+        <img
+          class="header-logo__mark header-logo__mark--avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt=""
+          width="36"
+          height="36"
+        >
+      
+      <span class="header-logo__text">renamed.log</span>
+    </a>
+
+    
+    
+    
+    
+      <nav class="header-actions" aria-label="바로가기">
+        
+          <a
+            class="icon-button"
+            href="https://github.com/kkr010128"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            title="GitHub"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.71.08-.71 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.18-3.09-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.14 1.18a10.9 10.9 0 0 1 5.72 0c2.18-1.49 3.14-1.18 3.14-1.18.62 1.58.23 2.75.12 3.04.73.8 1.17 1.83 1.17 3.09 0 4.42-2.69 5.39-5.25 5.67.41.36.78 1.08.78 2.18 0 1.57-.01 2.84-.01 3.23 0 .31.2.67.8.56A11.52 11.52 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <a class="icon-button" href="/feed.xml" aria-label="RSS" title="RSS">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M5 3.5a1.5 1.5 0 0 0 0 3c6.9 0 12.5 5.6 12.5 12.5a1.5 1.5 0 0 0 3 0C20.5 10.44 13.56 3.5 5 3.5Zm0 6a1.5 1.5 0 0 0 0 3c3.58 0 6.5 2.92 6.5 6.5a1.5 1.5 0 0 0 3 0c0-5.24-4.26-9.5-9.5-9.5Zm.5 7.75A2.25 2.25 0 1 0 5.5 21.5a2.25 2.25 0 0 0 0-4.25Z"
+              ></path>
+            </svg>
+          </a>
+        
+        
+          <button class="icon-button theme-toggle" type="button" data-theme-toggle aria-label="테마 전환" title="테마 전환">
+            <span class="theme-toggle__sun" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M12 17.5A5.5 5.5 0 1 0 12 6.5a5.5 5.5 0 0 0 0 11Zm0-15a1 1 0 0 1 1 1v1.5a1 1 0 1 1-2 0V3.5a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1V21a1 1 0 1 1-2 0v-1.5a1 1 0 0 1 1-1Zm8.5-7.5a1 1 0 1 1 0 2H19a1 1 0 1 1 0-2h1.5ZM5 12a1 1 0 0 1-1 1H2.5a1 1 0 1 1 0-2H4a1 1 0 0 1 1 1Zm11.36 5.95a1 1 0 0 1 1.42 0l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06a1 1 0 0 1 0-1.42ZM6.58 7.64a1 1 0 0 1 0-1.42L7.64 5.16a1 1 0 1 1 1.42 1.42L8 7.64a1 1 0 0 1-1.42 0Zm10.2-1.42a1 1 0 1 1 1.42-1.42l1.06 1.06a1 1 0 0 1-1.42 1.42l-1.06-1.06Zm-10.2 10.2a1 1 0 0 1 1.42 0L9.06 17.5a1 1 0 0 1-1.42 1.42L6.58 17.86a1 1 0 0 1 0-1.42Z"
+                ></path>
+              </svg>
+            </span>
+            <span class="theme-toggle__moon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path
+                  d="M14.55 2.2a1 1 0 0 1 1.11 1.3 8.5 8.5 0 1 0 10.84 10.84 1 1 0 0 1 1.3 1.11A10.5 10.5 0 1 1 14.55 2.2Z"
+                  transform="translate(-3 -3)"
+                ></path>
+              </svg>
+            </span>
+          </button>
+        
+      </nav>
+    
+  </div>
+</header>
+
+    <main>
+      
+
+
+
+
+
+
+
+
+<article class="post-view">
+  <a class="post-view__back" href="/">글 목록으로 돌아가기</a>
+
+  <header class="post-head">
+    
+    <h1 class="post-head__title">systemctl을 이용한 virtual machine 자동 부팅</h1>
+    
+      <p class="post-head__description">호스트 서버가 부팅될 때 VM 노드를 시스템 데몬으로 자동 실행하는 방법</p>
+    
+
+    <div class="post-head__author">
+      
+        <img
+          class="post-head__avatar"
+          src="https://avatars.githubusercontent.com/u/74182629?v=4"
+          alt="Dohyeon Kim"
+          width="48"
+          height="48"
+        >
+      
+      <div class="post-head__meta-block">
+        <strong>Dohyeon Kim</strong>
+        <span>
+          2026년 9월 24일 · 2분 읽기
+        </span>
+      </div>
+    </div>
+
+    
+      <div class="post-head__tags">
+        
+          <a class="tag-chip" href="/?tag=Project">Project</a>
+        
+          <a class="tag-chip" href="/?tag=Orbit">Orbit</a>
+        
+          <a class="tag-chip" href="/?tag=Systemd">Systemd</a>
+        
+          <a class="tag-chip" href="/?tag=Systemctl">Systemctl</a>
+        
+      </div>
+    
+
+    
+  </header>
+
+  <section class="prose">
+    <h2 id="1-아이디어">1. 아이디어</h2>
+
+<blockquote>
+  <p>현재 홈서버를 WOL로 원격 부팅 후, SSH에 접속하여 Dev 서버의 Virtual Machine을 Host 서버에서 띄워주는 방식을 사용중이었습니다. 따라서 매번 Dev 서버를 띄우기 위해 반복 되는 수작업이 많아 Systemctl을 이용해 호스트 부팅 시 백그라운드 서비스를 실행할 필요를 느꼈습니다.</p>
+</blockquote>
+
+<h3 id="dev-server-vm-구동-과정">Dev Server VM 구동 과정</h3>
+
+<h4 id="변경-전">변경 전</h4>
+
+<ol>
+  <li>홈 네트워크 VPN 접속</li>
+  <li>호스트 서버로 WOL 매직 패킷 전송</li>
+  <li>부팅 대기 및 호스트 서버 SSH 접속</li>
+  <li>Dev VM의 <code class="language-plaintext highlighter-rouge">Vagrantfile</code> 이 위치한 디렉토리로 이동</li>
+  <li><code class="language-plaintext highlighter-rouge">vagrant up</code> 명령 수행</li>
+  <li>ping 또는 ssh로 실행 확인</li>
+</ol>
+
+<h4 id="변경-후">변경 후</h4>
+
+<ol>
+  <li>홈 네트워크 VPN 접속</li>
+  <li>호스트 서버로 WOL 매직 패킷 전송</li>
+  <li>부팅 후 자동 <code class="language-plaintext highlighter-rouge">vagrant up</code> 수행</li>
+  <li><del>Slack으로의 서버 부팅 알림 전송(Prometheus/Grafana 구축 후 예정)</del></li>
+</ol>
+
+<h2 id="2-서비스-파일-작성-및-등록">2. 서비스 파일 작성 및 등록</h2>
+
+<h3 id="1-서비스-파일-생성">1) 서비스 파일 생성</h3>
+
+<p>우분투에서 사용자 지정 프로그램을 백그라운드 서비스(데몬)로 등록하고, <code class="language-plaintext highlighter-rouge">systemctl</code> 로 관리하려면</p>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/systemd/system/</code> 경로에 <code class="language-plaintext highlighter-rouge">.service</code> 파일을 작성해야 합니다.</p>
+
+<p>먼저 데몬을 실행할 호스트 서버에 접속해 새 서비스 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/systemd/system/orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/02.webp" alt="" /></p>
+
+<h3 id="2-서비스-파일-작성">2) 서비스 파일 작성</h3>
+
+<p>파일 안에 아래와 같이 systemd 데몬 내용을 작성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>Unit]
+<span class="nv">Description</span><span class="o">=</span>Orbit Lab Launch Service
+<span class="nv">After</span><span class="o">=</span>network-online.target libvirtd.service
+<span class="nv">Wants</span><span class="o">=</span>network-online.target
+<span class="nv">Requires</span><span class="o">=</span>libvirtd.service
+
+<span class="o">[</span>Service]
+<span class="nv">Type</span><span class="o">=</span>oneshot
+<span class="nv">User</span><span class="o">=</span>hyn
+<span class="nv">WorkingDirectory</span><span class="o">=</span>/home/hyn/orbit-dev
+<span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/vagrant up
+<span class="nv">ExecStop</span><span class="o">=</span>/usr/bin/vagrant halt
+<span class="nv">RemainAfterExit</span><span class="o">=</span><span class="nb">yes</span>
+
+<span class="o">[</span>Install]
+<span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/08.webp" alt="" /></p>
+
+<p>아래는 작성한 파일의 세부 내용입니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>항목</strong></th>
+      <th><strong>설정값</strong></th>
+      <th><strong>설명</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[Unit]</code></td>
+      <td>-</td>
+      <td>서비스의 기본 정보 및 다른 Unit과의 관계를 정의하는 영역</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Description</code></td>
+      <td><code class="language-plaintext highlighter-rouge">Orbit Lab Launch Service</code></td>
+      <td>서비스의 설명을 지정. <code class="language-plaintext highlighter-rouge">systemctl status</code> 등에서 표시됨</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[Service]</code></td>
+      <td>-</td>
+      <td>서비스가 어떤 방식으로 실행되고 종료되는지 정의하는 영역</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Type</code></td>
+      <td><code class="language-plaintext highlighter-rouge">oneshot</code></td>
+      <td>명령을 한 번 실행하고 완료될 때까지 기다리는 방식. <code class="language-plaintext highlighter-rouge">vagrant up</code>처럼 실행 후 명령 자체는 종료되는 작업에 적합</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">User</code></td>
+      <td><code class="language-plaintext highlighter-rouge">hyn</code></td>
+      <td>서비스를 <code class="language-plaintext highlighter-rouge">hyn</code> 사용자 권한으로 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">WorkingDirectory</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/home/hyn/orbit-dev</code></td>
+      <td>명령을 실행할 작업 디렉터리. 해당 디렉터리의 <code class="language-plaintext highlighter-rouge">Vagrantfile</code>을 기준으로 Vagrant가 동작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ExecStart</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/usr/bin/vagrant up</code></td>
+      <td>서비스 시작 시 실행할 명령. Vagrant VM을 시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ExecStop</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/usr/bin/vagrant halt</code></td>
+      <td>서비스 중지 시 실행할 명령. Vagrant VM을 정상 종료</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">RemainAfterExit</code></td>
+      <td><code class="language-plaintext highlighter-rouge">yes</code></td>
+      <td><code class="language-plaintext highlighter-rouge">vagrant up</code> 명령이 종료된 이후에도 systemd에서 서비스를 <code class="language-plaintext highlighter-rouge">active (exited)</code> 상태로 유지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[Install]</code></td>
+      <td>-</td>
+      <td><code class="language-plaintext highlighter-rouge">systemctl enable</code> 실행 시 서비스를 어떤 target에 등록할지 정의하는 영역</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">WantedBy</code></td>
+      <td><code class="language-plaintext highlighter-rouge">multi-user.target</code></td>
+      <td>일반적인 다중 사용자 부팅 단계에서 서비스를 자동으로 시작하도록 등록. <code class="language-plaintext highlighter-rouge">systemctl enable</code>을 가능하게 함</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="3-서비스-시작">3. 서비스 시작</h2>
+
+<p>먼저 생성된 파일(데몬)을 아래 명렁을 통해 불러옵니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl daemon-reload
+</code></pre></div></div>
+
+<p>작성된 서비스를 부팅 시 자동 시작하도록 등롱합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl <span class="nb">enable </span>orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/10.webp" alt="" /></p>
+
+<p>등록된 서비스를 즉시 재시작합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl start orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/12.webp" alt="" /></p>
+
+<p>이 외의 주요 systemctl 명령은 다음과 같습니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 상태 확인</span>
+<span class="nb">sudo </span>systemctl status orbit-lab-vagrant.service
+
+<span class="c"># 중지</span>
+<span class="nb">sudo </span>systemctl stop orbit-lab-vagrant.service
+
+<span class="c"># 재시작</span>
+suto systemctl restart orbit-lab-vagrant.service
+
+<span class="c"># 자동 시작 해제</span>
+<span class="nb">sudo </span>systemctl disable orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<h2 id="4-재부팅-후-vm-접속-확인">4. 재부팅 후 VM 접속 확인</h2>
+
+<p>작성된 서비스가 부팅 후 systemctl로 정상실행이 되었고 그 과정에서 문제가 없었다면, VM에 접속이 가능해야 합니다.</p>
+
+<p>따라서 <code class="language-plaintext highlighter-rouge">sudo reboot</code> 으로 호스트를 재시작, VM으로 접속을 시도해 아래와 같은 부팅이 정상적으로 완료된 화면을 확인할 수 있었습니다.</p>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/14.webp" alt="" /></p>
+
+  </section>
+
+  
+    <nav class="post-navigation" aria-label="이전 다음 글">
+      
+        <a class="post-navigation__item" href="/project-1-orbit-command-logging/">
+          <span class="post-navigation__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 11H7.83l5.58-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z" fill="currentColor"></path>
+            </svg>
+          </span>
+          <span class="post-navigation__content">
+            <span class="post-navigation__label">이전 포스트</span>
+            <strong class="post-navigation__title">Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기</strong>
+          </span>
+        </a>
+      
+      
+    </nav>
+  
+
+  
+
+  
+    
+
+
+
+
+
+
+
+
+
+
+
+
+  <section
+    class="comments-section"
+    aria-label="댓글"
+    data-comments-provider="giscus"
+    data-giscus-theme-light="https://hyn128.site/assets/css/giscus-velog-light.css"
+    data-giscus-theme-dark="https://hyn128.site/assets/css/giscus-velog-dark.css"
+  >
+    <h2 class="comments-section__title">댓글</h2>
+    <div class="giscus"></div>
+    <script>
+      (function () {
+        var container = document.currentScript.parentElement;
+        var currentTheme = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+        var resolvedTheme = container.getAttribute(currentTheme === "dark" ? "data-giscus-theme-dark" : "data-giscus-theme-light")
+          || "preferred_color_scheme";
+        var script = document.createElement("script");
+
+        script.src = "https://giscus.app/client.js";
+        script.setAttribute("data-repo", "kkr010128/kkr010128.github.io");
+        script.setAttribute("data-repo-id", "R_kgDOToIqkw");
+        script.setAttribute("data-category", "Announcements");
+        script.setAttribute("data-category-id", "DIC_kwDOToIqk84DCiaL");
+        script.setAttribute("data-mapping", "pathname");
+        script.setAttribute("data-strict", "1");
+        script.setAttribute("data-reactions-enabled", "1");
+        script.setAttribute("data-emit-metadata", "0");
+        script.setAttribute("data-input-position", "top");
+        script.setAttribute("data-theme", resolvedTheme);
+        script.setAttribute("data-lang", "ko");
+        script.setAttribute("data-loading", "lazy");
+        script.setAttribute("crossorigin", "anonymous");
+        script.async = true;
+
+        container.appendChild(script);
+      })();
+    </script>
+    <noscript>JavaScript를 활성화해야 댓글을 볼 수 있습니다.</noscript>
+  </section>
+
+
+  
+
+
+</article>
+
+    </main>
+    <footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Copyright &copy; 2026 renamed.log</p>
+    <p>Notes on Software Engineering, Backend and Cloud</p>
+  </div>
+</footer>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script src="/assets/js/site.js?v=1790350206"></script>
+    <script src="/assets/js/code-enhancements.js?v=1790350206"></script>
+  </body>
+</html>

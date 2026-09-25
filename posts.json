@@ -4,6 +4,21 @@
       
       
       {
+        "title": "systemctl을 이용한 virtual machine 자동 부팅",
+        "url": "/project-2-orbit-systemctl-vagrant/",
+        "description": "호스트 서버가 부팅될 때 VM 노드를 시스템 데몬으로 자동 실행하는 방법",
+        "thumbnail": null,
+        "tags": ["Project","Orbit","Systemd","Systemctl"],
+        "series_key": "project",
+        "series_title": null,
+        "date_label": "2026년 9월 24일",
+        "reading_time_label": "2분 읽기",
+        "search": "systemctl을 이용한 virtual machine 자동 부팅 호스트 서버가 부팅될 때 vm 노드를 시스템 데몬으로 자동 실행하는 방법 project orbit systemd systemctl"
+      },
+    
+      
+      
+      {
         "title": "Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기",
         "url": "/project-1-orbit-command-logging/",
         "description": "Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법",

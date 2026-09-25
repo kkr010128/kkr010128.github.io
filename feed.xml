@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-25T17:51:23+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기</title><link href="https://hyn128.site/project-1-orbit-command-logging/" rel="alternate" type="text/html" title="Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기" /><published>2026-09-24T00:00:00+09:00</published><updated>2026-09-24T00:00:00+09:00</updated><id>https://hyn128.site/project-1-orbit-command-logging</id><content type="html" xml:base="https://hyn128.site/project-1-orbit-command-logging/"><![CDATA[<h2 id="요약">요약</h2>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko-KR"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://hyn128.site/feed.xml" rel="self" type="application/atom+xml" /><link href="https://hyn128.site/" rel="alternate" type="text/html" hreflang="ko-KR" /><updated>2026-09-26T00:30:06+09:00</updated><id>https://hyn128.site/feed.xml</id><title type="html">renamed.log</title><subtitle>키보드가 망가지도록 공부하기</subtitle><entry><title type="html">Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기</title><link href="https://hyn128.site/project-1-orbit-command-logging/" rel="alternate" type="text/html" title="Ubuntu에서 계정별 명령 로그를 Slack WebHook으로 기록하기" /><published>2026-09-24T00:00:00+09:00</published><updated>2026-09-24T00:00:00+09:00</updated><id>https://hyn128.site/project-1-orbit-command-logging</id><content type="html" xml:base="https://hyn128.site/project-1-orbit-command-logging/"><![CDATA[<h2 id="요약">요약</h2>
 <blockquote>
   <p>여러 사용자가 함께 사용하는 Production·Development Ubuntu 서버의 작업 이력을 추적하기 위해 <code class="language-plaintext highlighter-rouge">auditd</code>와 Slack Webhook을 연동한 명령 로깅 시스템을 구축했습니다. 일반 사용자의 프로그램 실행과 <code class="language-plaintext highlighter-rouge">sudo</code> 사용 내역을 수집해 서버별, 사용자와 권한별 Slack 채널로 전송하고, Webhook 보호와 <code class="language-plaintext highlighter-rouge">systemd</code>를 이용한 상시 실행 과정까지 정리합니다.</p>
 </blockquote>
@@ -662,7 +662,185 @@ sudo whoami
 
 <p><img src="../../assets/post/2026-09-24-project-1-orbit-command-logging/37.webp" alt="" /></p>
 
-<p>이를 통해 사용자별 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 Slack에서 실시간으로 확인할 수 있으며, 서버 재부팅 이후에도 <code class="language-plaintext highlighter-rouge">command-monitor.service</code>가 자동으로 실행되어 모니터링을 계속 수행합니다.</p>]]></content><author><name></name></author><category term="Project" /><category term="Orbit" /><category term="Auditd" /><category term="Webhook" /><summary type="html"><![CDATA[Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법]]></summary></entry><entry><title type="html">Client Isolation으로 인한 단말 간 통신 실패</title><link href="https://hyn128.site/notes-11-troubleshooting-client-isolation/" rel="alternate" type="text/html" title="Client Isolation으로 인한 단말 간 통신 실패" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/notes-11-troubleshooting-client-isolation</id><content type="html" xml:base="https://hyn128.site/notes-11-troubleshooting-client-isolation/"><![CDATA[<hr />
+<p>이를 통해 사용자별 일반 명령과 <code class="language-plaintext highlighter-rouge">sudo</code> 명령을 Slack에서 실시간으로 확인할 수 있으며, 서버 재부팅 이후에도 <code class="language-plaintext highlighter-rouge">command-monitor.service</code>가 자동으로 실행되어 모니터링을 계속 수행합니다.</p>]]></content><author><name></name></author><category term="Project" /><category term="Orbit" /><category term="Auditd" /><category term="Webhook" /><summary type="html"><![CDATA[Develop 서버와 Production서버에서 sudo와 사용자별 로그를 Slack으로 기록하고 열람 가능하도록 하도록 구축하는 방법]]></summary></entry><entry><title type="html">systemctl을 이용한 virtual machine 자동 부팅</title><link href="https://hyn128.site/project-2-orbit-systemctl-vagrant/" rel="alternate" type="text/html" title="systemctl을 이용한 virtual machine 자동 부팅" /><published>2026-09-24T00:00:00+09:00</published><updated>2026-09-24T00:00:00+09:00</updated><id>https://hyn128.site/project-2-orbit-systemctl-vagrant</id><content type="html" xml:base="https://hyn128.site/project-2-orbit-systemctl-vagrant/"><![CDATA[<h2 id="1-아이디어">1. 아이디어</h2>
+
+<blockquote>
+  <p>현재 홈서버를 WOL로 원격 부팅 후, SSH에 접속하여 Dev 서버의 Virtual Machine을 Host 서버에서 띄워주는 방식을 사용중이었습니다. 따라서 매번 Dev 서버를 띄우기 위해 반복 되는 수작업이 많아 Systemctl을 이용해 호스트 부팅 시 백그라운드 서비스를 실행할 필요를 느꼈습니다.</p>
+</blockquote>
+
+<h3 id="dev-server-vm-구동-과정">Dev Server VM 구동 과정</h3>
+
+<h4 id="변경-전">변경 전</h4>
+
+<ol>
+  <li>홈 네트워크 VPN 접속</li>
+  <li>호스트 서버로 WOL 매직 패킷 전송</li>
+  <li>부팅 대기 및 호스트 서버 SSH 접속</li>
+  <li>Dev VM의 <code class="language-plaintext highlighter-rouge">Vagrantfile</code> 이 위치한 디렉토리로 이동</li>
+  <li><code class="language-plaintext highlighter-rouge">vagrant up</code> 명령 수행</li>
+  <li>ping 또는 ssh로 실행 확인</li>
+</ol>
+
+<h4 id="변경-후">변경 후</h4>
+
+<ol>
+  <li>홈 네트워크 VPN 접속</li>
+  <li>호스트 서버로 WOL 매직 패킷 전송</li>
+  <li>부팅 후 자동 <code class="language-plaintext highlighter-rouge">vagrant up</code> 수행</li>
+  <li><del>Slack으로의 서버 부팅 알림 전송(Prometheus/Grafana 구축 후 예정)</del></li>
+</ol>
+
+<h2 id="2-서비스-파일-작성-및-등록">2. 서비스 파일 작성 및 등록</h2>
+
+<h3 id="1-서비스-파일-생성">1) 서비스 파일 생성</h3>
+
+<p>우분투에서 사용자 지정 프로그램을 백그라운드 서비스(데몬)로 등록하고, <code class="language-plaintext highlighter-rouge">systemctl</code> 로 관리하려면</p>
+
+<p><code class="language-plaintext highlighter-rouge">/etc/systemd/system/</code> 경로에 <code class="language-plaintext highlighter-rouge">.service</code> 파일을 작성해야 합니다.</p>
+
+<p>먼저 데몬을 실행할 호스트 서버에 접속해 새 서비스 파일을 생성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nano /etc/systemd/system/orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/02.webp" alt="" /></p>
+
+<h3 id="2-서비스-파일-작성">2) 서비스 파일 작성</h3>
+
+<p>파일 안에 아래와 같이 systemd 데몬 내용을 작성합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>Unit]
+<span class="nv">Description</span><span class="o">=</span>Orbit Lab Launch Service
+<span class="nv">After</span><span class="o">=</span>network-online.target libvirtd.service
+<span class="nv">Wants</span><span class="o">=</span>network-online.target
+<span class="nv">Requires</span><span class="o">=</span>libvirtd.service
+
+<span class="o">[</span>Service]
+<span class="nv">Type</span><span class="o">=</span>oneshot
+<span class="nv">User</span><span class="o">=</span>hyn
+<span class="nv">WorkingDirectory</span><span class="o">=</span>/home/hyn/orbit-dev
+<span class="nv">ExecStart</span><span class="o">=</span>/usr/bin/vagrant up
+<span class="nv">ExecStop</span><span class="o">=</span>/usr/bin/vagrant halt
+<span class="nv">RemainAfterExit</span><span class="o">=</span><span class="nb">yes</span>
+
+<span class="o">[</span>Install]
+<span class="nv">WantedBy</span><span class="o">=</span>multi-user.target
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/08.webp" alt="" /></p>
+
+<p>아래는 작성한 파일의 세부 내용입니다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th><strong>항목</strong></th>
+      <th><strong>설정값</strong></th>
+      <th><strong>설명</strong></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[Unit]</code></td>
+      <td>-</td>
+      <td>서비스의 기본 정보 및 다른 Unit과의 관계를 정의하는 영역</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Description</code></td>
+      <td><code class="language-plaintext highlighter-rouge">Orbit Lab Launch Service</code></td>
+      <td>서비스의 설명을 지정. <code class="language-plaintext highlighter-rouge">systemctl status</code> 등에서 표시됨</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[Service]</code></td>
+      <td>-</td>
+      <td>서비스가 어떤 방식으로 실행되고 종료되는지 정의하는 영역</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">Type</code></td>
+      <td><code class="language-plaintext highlighter-rouge">oneshot</code></td>
+      <td>명령을 한 번 실행하고 완료될 때까지 기다리는 방식. <code class="language-plaintext highlighter-rouge">vagrant up</code>처럼 실행 후 명령 자체는 종료되는 작업에 적합</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">User</code></td>
+      <td><code class="language-plaintext highlighter-rouge">hyn</code></td>
+      <td>서비스를 <code class="language-plaintext highlighter-rouge">hyn</code> 사용자 권한으로 실행</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">WorkingDirectory</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/home/hyn/orbit-dev</code></td>
+      <td>명령을 실행할 작업 디렉터리. 해당 디렉터리의 <code class="language-plaintext highlighter-rouge">Vagrantfile</code>을 기준으로 Vagrant가 동작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ExecStart</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/usr/bin/vagrant up</code></td>
+      <td>서비스 시작 시 실행할 명령. Vagrant VM을 시작</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">ExecStop</code></td>
+      <td><code class="language-plaintext highlighter-rouge">/usr/bin/vagrant halt</code></td>
+      <td>서비스 중지 시 실행할 명령. Vagrant VM을 정상 종료</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">RemainAfterExit</code></td>
+      <td><code class="language-plaintext highlighter-rouge">yes</code></td>
+      <td><code class="language-plaintext highlighter-rouge">vagrant up</code> 명령이 종료된 이후에도 systemd에서 서비스를 <code class="language-plaintext highlighter-rouge">active (exited)</code> 상태로 유지</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">[Install]</code></td>
+      <td>-</td>
+      <td><code class="language-plaintext highlighter-rouge">systemctl enable</code> 실행 시 서비스를 어떤 target에 등록할지 정의하는 영역</td>
+    </tr>
+    <tr>
+      <td><code class="language-plaintext highlighter-rouge">WantedBy</code></td>
+      <td><code class="language-plaintext highlighter-rouge">multi-user.target</code></td>
+      <td>일반적인 다중 사용자 부팅 단계에서 서비스를 자동으로 시작하도록 등록. <code class="language-plaintext highlighter-rouge">systemctl enable</code>을 가능하게 함</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="3-서비스-시작">3. 서비스 시작</h2>
+
+<p>먼저 생성된 파일(데몬)을 아래 명렁을 통해 불러옵니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl daemon-reload
+</code></pre></div></div>
+
+<p>작성된 서비스를 부팅 시 자동 시작하도록 등롱합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl <span class="nb">enable </span>orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/10.webp" alt="" /></p>
+
+<p>등록된 서비스를 즉시 재시작합니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl start orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/12.webp" alt="" /></p>
+
+<p>이 외의 주요 systemctl 명령은 다음과 같습니다.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># 상태 확인</span>
+<span class="nb">sudo </span>systemctl status orbit-lab-vagrant.service
+
+<span class="c"># 중지</span>
+<span class="nb">sudo </span>systemctl stop orbit-lab-vagrant.service
+
+<span class="c"># 재시작</span>
+suto systemctl restart orbit-lab-vagrant.service
+
+<span class="c"># 자동 시작 해제</span>
+<span class="nb">sudo </span>systemctl disable orbit-lab-vagrant.service
+</code></pre></div></div>
+
+<h2 id="4-재부팅-후-vm-접속-확인">4. 재부팅 후 VM 접속 확인</h2>
+
+<p>작성된 서비스가 부팅 후 systemctl로 정상실행이 되었고 그 과정에서 문제가 없었다면, VM에 접속이 가능해야 합니다.</p>
+
+<p>따라서 <code class="language-plaintext highlighter-rouge">sudo reboot</code> 으로 호스트를 재시작, VM으로 접속을 시도해 아래와 같은 부팅이 정상적으로 완료된 화면을 확인할 수 있었습니다.</p>
+
+<p><img src="../../assets/post/2026-09-25-project-2-orbit-systemctl-vagrant/14.webp" alt="" /></p>]]></content><author><name></name></author><category term="Project" /><category term="Orbit" /><category term="Systemd" /><category term="Systemctl" /><summary type="html"><![CDATA[호스트 서버가 부팅될 때 VM 노드를 시스템 데몬으로 자동 실행하는 방법]]></summary></entry><entry><title type="html">Client Isolation으로 인한 단말 간 통신 실패</title><link href="https://hyn128.site/notes-11-troubleshooting-client-isolation/" rel="alternate" type="text/html" title="Client Isolation으로 인한 단말 간 통신 실패" /><published>2026-09-23T00:00:00+09:00</published><updated>2026-09-23T00:00:00+09:00</updated><id>https://hyn128.site/notes-11-troubleshooting-client-isolation</id><content type="html" xml:base="https://hyn128.site/notes-11-troubleshooting-client-isolation/"><![CDATA[<hr />
 
 <h2 id="요약">요약</h2>
 <blockquote>
@@ -4566,460 +4744,4 @@ swapon <span class="nt">--show</span>
   </ul>
 </blockquote>
 
-<p>다음 글인 <a href="/cloud-native-55-gitops-argocd-architecture-installation/">GitOps와 Argo CD Architecture·설치</a>에서는 Git Repository의 Desired State와 Kubernetes Cluster의 Live State를 지속적으로 일치시키는 구조를 정리한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="GitLab" /><summary type="html"><![CDATA[GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다]]></summary></entry><entry><title type="html">GitOps와 Argo CD Architecture·설치</title><link href="https://hyn128.site/cloud-native-55-gitops-argocd-architecture-installation/" rel="alternate" type="text/html" title="GitOps와 Argo CD Architecture·설치" /><published>2026-09-17T00:00:00+09:00</published><updated>2026-09-17T00:00:00+09:00</updated><id>https://hyn128.site/cloud-native-55-gitops-argocd-architecture-installation</id><content type="html" xml:base="https://hyn128.site/cloud-native-55-gitops-argocd-architecture-installation/"><![CDATA[<p><a href="/cloud-native-54-gitlab-docker-installation/">Docker로 GitLab CE 설치와 운영 준비</a>에서는 Source Repository를 직접 운영하기 위한 Git Server를 구성했다. GitOps는 Git Repository에 선언한 Desired State를 기준으로 Kubernetes Cluster를 지속적으로 조정한다. 이 글에서는 일반적인 CI와 GitOps CD의 경계를 구분하고, Argo CD의 구성 요소와 설치 흐름을 Control Plane과 Worker 관점에서 연결한다.</p>
-
-<h2 id="1--gitops">1 ) GitOps</h2>
-
-<hr />
-
-<blockquote>
-  <p><strong>GitOps</strong>는 Application과 Infrastructure의 원하는 상태를 선언적 File로 작성해 Git에서 Version 관리하고, 자동화된 Agent가 실제 환경을 그 상태에 맞추는 운영 방식이다.</p>
-</blockquote>
-
-<p>Git을 단순한 Manifest 보관 장소로 사용하는 것만으로는 GitOps가 되지 않는다. 변경 Review, Version 이력, 자동 반영과 실제 상태의 지속적인 비교가 함께 동작해야 한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>원칙</th>
-      <th>의미</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>선언적 구성</td>
-      <td>현재 실행 절차가 아니라 최종적으로 원하는 상태를 작성</td>
-    </tr>
-    <tr>
-      <td>Version 관리와 불변 이력</td>
-      <td>변경 내용을 Git Commit으로 추적하고 이전 상태를 확인</td>
-    </tr>
-    <tr>
-      <td>자동 반영</td>
-      <td>승인된 Git 변경을 Agent가 대상 환경에 적용</td>
-    </tr>
-    <tr>
-      <td>지속적 조정</td>
-      <td>Git의 Desired State와 Cluster의 Live State 차이를 반복 확인</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>예를 들어 “Pod를 세 개 생성하라”는 일회성 명령보다 <code class="language-plaintext highlighter-rouge">replicas: 3</code>이라는 상태를 선언한다. Pod 하나가 사라지면 Kubernetes Controller가 세 개라는 상태를 다시 맞추고, Manifest가 바뀌면 GitOps Controller가 변경된 선언을 Cluster에 반영한다.</p>
-
-<h2 id="2--gitops를-사용하는-이유">2 ) GitOps를 사용하는 이유</h2>
-
-<hr />
-
-<ul>
-  <li>
-    <p><strong>표준 Workflow</strong>: Branch, Pull Request, Review와 Merge라는 Git Workflow로 운영 변경을 처리한다.</p>
-  </li>
-  <li>
-    <p><strong>감사 가능성</strong>: 누가 어떤 값을 언제 변경했는지 Commit 이력으로 확인한다.</p>
-  </li>
-  <li>
-    <p><strong>Rollback 기준</strong>: 이전 Commit이나 Release의 Manifest로 돌아갈 근거가 남는다.</p>
-  </li>
-  <li>
-    <p><strong>구성 Drift 탐지</strong>: 사람이 Cluster를 직접 변경해 Git과 달라진 상태를 찾을 수 있다.</p>
-  </li>
-  <li>
-    <p><strong>다중 환경 일관성</strong>: 개발, 검증과 운영 환경의 공통 Base와 차이를 Version 관리한다.</p>
-  </li>
-</ul>
-
-<p>GitOps가 모든 수동 작업을 없애는 것은 아니다. 긴급 변경, Secret 관리, Cluster Bootstrap과 Controller 장애 시 복구 절차는 별도로 설계해야 한다.</p>
-
-<h2 id="3--kubernetes-ci와-gitops-cd">3 ) Kubernetes CI와 GitOps CD</h2>
-
-<hr />
-
-<p>CI는 Application Source를 Test하고 Container Image를 만든다. GitOps CD는 배포 Repository의 Manifest 변경을 감시하고 Cluster에 반영한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>단계</th>
-      <th>기준 Repository</th>
-      <th>주요 결과</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Source 변경</td>
-      <td>Application Source Repository</td>
-      <td>Build와 Test 대상 Code</td>
-    </tr>
-    <tr>
-      <td>CI</td>
-      <td>Application Source Repository</td>
-      <td>Commit을 식별할 수 있는 Image Tag</td>
-    </tr>
-    <tr>
-      <td>Image 저장</td>
-      <td>Container Registry</td>
-      <td>배포 가능한 Immutable Artifact</td>
-    </tr>
-    <tr>
-      <td>배포 변경</td>
-      <td>Deployment Repository</td>
-      <td>새 Image Tag가 기록된 Manifest</td>
-    </tr>
-    <tr>
-      <td>CD 조정</td>
-      <td>Deployment Repository</td>
-      <td>Cluster의 Live State 변경</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Application Source와 Deployment Manifest를 두 Repository로 분리하면 Image 생성 권한과 운영 배포 승인 권한을 구분할 수 있다. CI가 Registry에 Image를 Push한 뒤 Deployment Repository의 Image Tag를 Pull Request로 변경하고, Argo CD가 Merge된 Manifest를 Cluster에 반영한다.</p>
-
-<figure class="post-visual gitops-flow" aria-labelledby="argocd-gitops-flow-caption">
-  <figcaption id="argocd-gitops-flow-caption" class="post-visual__caption">
-    Application Source 변경이 Image와 Deployment Manifest로 분리되고, Argo CD와 Kubernetes의 두 조정 계층을 거쳐 Worker에서 실행되는 흐름
-  </figcaption>
-
-  <div class="post-visual__frame gitops-flow__frame">
-    <ol class="gitops-flow__layers">
-      <li class="gitops-flow__layer gitops-flow__layer--source" data-edge="Push Event">
-        <span class="gitops-flow__role">SOURCE</span>
-        <strong>Application Source Repository</strong>
-        <p>Application Code, Test와 Image Build 정의를 Version 관리한다.</p>
-      </li>
-
-      <li class="gitops-flow__layer gitops-flow__layer--ci" data-edge="두 결과를 각각 저장">
-        <span class="gitops-flow__role">CONTINUOUS INTEGRATION</span>
-        <strong>CI Pipeline</strong>
-        <p>Test를 통과한 Commit으로 Image를 Build하고 Commit SHA Tag를 부여한다.</p>
-        <div class="gitops-flow__actions" aria-label="CI가 생성하는 두 결과">
-          <span><b>Image 결과</b> Registry에 Immutable Tag를 Push</span>
-          <span><b>배포 변경</b> Deployment Repository의 Image Tag를 수정</span>
-        </div>
-      </li>
-
-      <li class="gitops-flow__layer gitops-flow__layer--handoff" data-edge="Git 변경 감지·Rendering">
-        <span class="gitops-flow__role">VERSIONED HANDOFF</span>
-        <strong>Artifact와 Desired State 분리</strong>
-        <div class="gitops-flow__stores">
-          <div>
-            <b>Container Registry</b>
-            <span>Worker가 실행할 Image를 보관한다.</span>
-          </div>
-          <div>
-            <b>Deployment Repository</b>
-            <span>배포할 Image Tag와 Kubernetes Manifest를 보관한다.</span>
-          </div>
-        </div>
-      </li>
-
-      <li class="gitops-flow__layer gitops-flow__layer--repository" data-edge="Desired Manifest 전달">
-        <span class="gitops-flow__role">ARGO CD</span>
-        <strong>Repository Server</strong>
-        <p>Git의 Manifest를 가져와 Helm이나 Kustomize를 Kubernetes Manifest로 Rendering한다.</p>
-      </li>
-
-      <li class="gitops-flow__layer gitops-flow__layer--controller" data-edge="Resource 변경 요청">
-        <span class="gitops-flow__role">ARGO CD</span>
-        <strong>Application Controller</strong>
-        <p>Git의 Desired State와 Cluster의 Live State를 비교하고 차이를 Kubernetes API에 반영한다.</p>
-      </li>
-
-      <li class="gitops-flow__layer gitops-flow__layer--control" data-edge="Pod를 Node에 배치">
-        <span class="gitops-flow__role">KUBERNETES CONTROL PLANE</span>
-        <strong>API Server · Controller · Scheduler</strong>
-        <p>요청을 저장하고 Resource 상태를 조정한 뒤 새 Pod가 실행될 Worker Node를 선택한다.</p>
-      </li>
-
-      <li class="gitops-flow__layer gitops-flow__layer--worker">
-        <span class="gitops-flow__role">KUBERNETES WORKER</span>
-        <strong>kubelet · Container Runtime · Pod</strong>
-        <p>kubelet이 Manifest에 기록된 Tag로 Registry에서 Image를 Pull하고 Container를 실행한다.</p>
-      </li>
-    </ol>
-
-    <div class="gitops-flow__feedback">
-      <strong>상태 Feedback</strong>
-      <span>Worker와 Resource 상태는 Kubernetes API를 통해 Application Controller로 돌아가 Sync와 Health 판단에 사용된다.</span>
-    </div>
-  </div>
-</figure>
-
-<h2 id="4--argo-project의-도구">4 ) Argo Project의 도구</h2>
-
-<hr />
-
-<p>Argo 생태계에는 서로 다른 역할의 Kubernetes Native 도구가 있다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>도구</th>
-      <th>역할</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Argo CD</td>
-      <td>Git Repository와 Kubernetes 상태를 조정하는 GitOps CD</td>
-    </tr>
-    <tr>
-      <td>Argo Rollouts</td>
-      <td>Blue-Green, Canary 같은 점진적 배포 Controller</td>
-    </tr>
-    <tr>
-      <td>Argo Workflows</td>
-      <td>DAG와 Step 기반 Kubernetes Workflow Engine</td>
-    </tr>
-    <tr>
-      <td>Argo Events</td>
-      <td>Event Source와 Sensor를 이용한 Event 기반 자동화</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Argo CD는 CI Build Tool이 아니다. Source Compile과 Image Build는 GitHub Actions나 Jenkins 같은 CI가 담당하고, Argo CD는 배포 가능한 Manifest와 Cluster 상태를 다룬다.</p>
-
-<h2 id="5--argo-cd의-상태-모델">5 ) Argo CD의 상태 모델</h2>
-
-<hr />
-
-<p>Argo CD는 Git Repository에서 Rendering한 Manifest와 Kubernetes API에서 읽은 Live Resource를 비교한다.</p>
-
-<table>
-  <thead>
-    <tr>
-      <th>상태</th>
-      <th>확인 내용</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Synced</code></td>
-      <td>Desired State와 Live State가 일치</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">OutOfSync</code></td>
-      <td>Git과 Cluster Resource에 차이가 있음</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Healthy</code></td>
-      <td>Application Resource가 정상 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Progressing</code></td>
-      <td>배포나 상태 전환이 진행 중</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Degraded</code></td>
-      <td>일부 Resource가 실패하거나 비정상 상태</td>
-    </tr>
-    <tr>
-      <td><code class="language-plaintext highlighter-rouge">Missing</code></td>
-      <td>Git에는 있지만 Cluster에 Resource가 없음</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>Sync Status와 Health Status는 다른 질문에 답한다. Git과 값이 같아도 Application이 Crash하면 <code class="language-plaintext highlighter-rouge">Synced</code>이면서 <code class="language-plaintext highlighter-rouge">Degraded</code>일 수 있다. 반대로 정상 실행 중인 Resource를 Git에서 변경하면 <code class="language-plaintext highlighter-rouge">Healthy</code>이면서 <code class="language-plaintext highlighter-rouge">OutOfSync</code>가 될 수 있다.</p>
-
-<h2 id="6--argo-cd-핵심-구성-요소">6 ) Argo CD 핵심 구성 요소</h2>
-
-<hr />
-
-<h3 id="api-server">API Server</h3>
-
-<p>Web UI, CLI와 외부 System이 Argo CD를 조작하는 진입점이다.</p>
-
-<ul>
-  <li>
-    <p>Application 생성과 상태 조회</p>
-  </li>
-  <li>
-    <p>Repository와 Cluster Credential 관리</p>
-  </li>
-  <li>
-    <p>Login, SSO와 RBAC</p>
-  </li>
-  <li>
-    <p>Sync와 Rollback 요청 처리</p>
-  </li>
-</ul>
-
-<h3 id="repository-server">Repository Server</h3>
-
-<p>Git Repository를 Local Cache로 유지하고 배포할 Manifest를 생성한다. Plain YAML뿐 아니라 Kustomize와 Helm을 Rendering한다. Argo CD에서 Helm은 Chart를 Manifest로 변환하는 역할이며 Release Lifecycle은 Argo CD가 관리한다.</p>
-
-<h3 id="application-controller">Application Controller</h3>
-
-<p>Application의 Desired State와 Live State를 지속적으로 비교한다. 차이가 있고 Sync가 요청되면 Kubernetes API를 통해 Resource를 생성·수정·삭제하고 Health를 관찰한다.</p>
-
-<p>Controller가 매번 <code class="language-plaintext highlighter-rouge">kubectl</code> Process를 실행한다고 이해하면 안 된다. Argo CD가 Kubernetes API와 통신해 같은 목적의 Resource 변경을 수행한다.</p>
-
-<h2 id="7--control-plane과-worker에서-보는-조정-과정">7 ) Control Plane과 Worker에서 보는 조정 과정</h2>
-
-<hr />
-
-<p>Argo CD Component도 Kubernetes Pod로 실행되지만, 배포 대상 Workload를 직접 실행하지는 않는다.</p>
-
-<ol>
-  <li>
-    <p>Repository Server가 Git 또는 Helm Repository에서 Manifest를 Rendering한다.</p>
-  </li>
-  <li>
-    <p>Application Controller가 Rendering 결과와 API Server에서 읽은 Live State를 비교한다.</p>
-  </li>
-  <li>
-    <p>차이가 있으면 Application Controller가 Kubernetes API Server에 Resource 변경을 요청한다.</p>
-  </li>
-  <li>
-    <p>Control Plane의 Controller가 Deployment와 ReplicaSet 상태를 맞춘다.</p>
-  </li>
-  <li>
-    <p>Scheduler가 새 Pod를 실행할 Worker Node를 선택한다.</p>
-  </li>
-  <li>
-    <p>Worker의 kubelet이 Container Runtime에 Image Pull과 Container 생성을 요청한다.</p>
-  </li>
-  <li>
-    <p>Application Controller가 API Server를 통해 Resource 상태를 다시 읽고 Sync와 Health를 갱신한다.</p>
-  </li>
-</ol>
-
-<p>Argo CD의 조정과 Kubernetes Controller의 조정은 계층이 다르다. Argo CD는 Git과 Kubernetes Resource를 맞추고, Kubernetes Controller는 Resource Spec과 실제 Pod·Node 상태를 맞춘다.</p>
-
-<h2 id="8--설치-전-확인">8 ) 설치 전 확인</h2>
-
-<hr />
-
-<p>Argo CD를 설치할 Cluster와 현재 Context를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl config current-context
-kubectl get nodes <span class="nt">-o</span> wide
-helm version
-</code></pre></div></div>
-
-<p>실습 환경은 단일 Argo CD Instance가 같은 Cluster를 관리하는 구성을 사용한다. 운영 환경에서는 Kubernetes와 Argo CD Version 호환성, RBAC 범위, HA 여부와 관리 대상 Cluster를 먼저 결정한다. 공식 설치 유형은 <a href="https://argo-cd.readthedocs.io/en/stable/operator-manual/installation/">Argo CD Installation</a>에서 확인할 수 있다.</p>
-
-<h2 id="9--helm으로-argo-cd-설치">9 ) Helm으로 Argo CD 설치</h2>
-
-<hr />
-
-<p>Community에서 관리하는 Argo Helm Repository를 추가하고 Index를 갱신한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>helm repo add argo https://argoproj.github.io/argo-helm
-helm repo update
-helm search repo argo/argo-cd <span class="nt">--versions</span> | <span class="nb">head</span>
-</code></pre></div></div>
-
-<p>Namespace를 만들고 사용할 Chart Version을 명시해 설치한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl create namespace argocd
-
-helm <span class="nb">install </span>argocd argo/argo-cd <span class="se">\</span>
-  <span class="nt">--namespace</span> argocd <span class="se">\</span>
-  <span class="nt">--version</span> &lt;verified-chart-version&gt;
-</code></pre></div></div>
-
-<p><code class="language-plaintext highlighter-rouge">&lt;verified-chart-version&gt;</code>에는 <code class="language-plaintext highlighter-rouge">helm search</code>로 확인하고 Kubernetes Version과 검증한 값을 사용한다. Version을 생략하면 실행 시점의 최신 Chart가 선택되어 같은 명령의 결과가 달라질 수 있다.</p>
-
-<p>Manifest 방식이 필요한 경우 공식 Stable Manifest를 적용할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl apply <span class="se">\</span>
-  <span class="nt">--namespace</span> argocd <span class="se">\</span>
-  <span class="nt">--filename</span> https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-</code></pre></div></div>
-
-<p>평가용 Non-HA Manifest와 운영용 HA 구성은 목적이 다르다. 설치 방식을 혼합하기보다 Helm 또는 Manifest 중 하나를 선택해 Release와 Upgrade 경로를 일관되게 관리한다.</p>
-
-<h2 id="10--설치-상태-확인">10 ) 설치 상태 확인</h2>
-
-<hr />
-
-<p>Argo CD Pod와 Service를 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get pods <span class="nt">-n</span> argocd <span class="nt">-o</span> wide
-kubectl get services <span class="nt">-n</span> argocd
-kubectl get deployments,statefulsets <span class="nt">-n</span> argocd
-</code></pre></div></div>
-
-<p>Pod가 준비될 때까지 기다린다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl <span class="nb">wait</span> <span class="se">\</span>
-  <span class="nt">--for</span><span class="o">=</span><span class="nv">condition</span><span class="o">=</span>Available <span class="se">\</span>
-  deployment/argocd-server <span class="se">\</span>
-  <span class="nt">--namespace</span> argocd <span class="se">\</span>
-  <span class="nt">--timeout</span><span class="o">=</span>300s
-</code></pre></div></div>
-
-<p>문제가 있으면 상태와 Event를 함께 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl describe pod <span class="nt">-n</span> argocd &lt;pod-name&gt;
-kubectl logs <span class="nt">-n</span> argocd &lt;pod-name&gt; <span class="nt">--all-containers</span>
-kubectl get events <span class="nt">-n</span> argocd <span class="nt">--sort-by</span><span class="o">=</span>.lastTimestamp
-</code></pre></div></div>
-
-<h2 id="11--web-ui-접근-방식">11 ) Web UI 접근 방식</h2>
-
-<hr />
-
-<p><code class="language-plaintext highlighter-rouge">argocd-server</code> Service는 기본적으로 Cluster 외부에 공개되지 않는다. 학습 환경에서는 Port Forward로 Local Computer에서만 연결한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl port-forward <span class="se">\</span>
-  service/argocd-server <span class="se">\</span>
-  <span class="nt">--namespace</span> argocd <span class="se">\</span>
-  8080:443
-</code></pre></div></div>
-
-<p>다른 Terminal에서 <code class="language-plaintext highlighter-rouge">https://localhost:8080</code>에 접속한다. 기본 인증서는 자체 서명 인증서이므로 운영 환경에서는 신뢰할 수 있는 인증서를 적용한 Ingress나 LoadBalancer를 구성한다.</p>
-
-<p>NodePort로 바꾸면 모든 Node IP와 할당된 Port를 통해 접근할 수 있다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl patch service argocd-server <span class="se">\</span>
-  <span class="nt">--namespace</span> argocd <span class="se">\</span>
-  <span class="nt">--type</span> merge <span class="se">\</span>
-  <span class="nt">--patch</span> <span class="s1">'{"spec":{"type":"NodePort"}}'</span>
-
-kubectl get service argocd-server <span class="nt">-n</span> argocd
-</code></pre></div></div>
-
-<p>NodePort 번호는 Cluster가 할당하므로 예제의 고정 번호를 가정하지 않고 조회 결과를 사용한다. 방화벽과 접근 가능한 Source 대역도 함께 제한한다.</p>
-
-<h2 id="12--초기-admin-password">12 ) 초기 Admin Password</h2>
-
-<hr />
-
-<p>초기 계정 이름은 <code class="language-plaintext highlighter-rouge">admin</code>이다. Password는 Secret에서 확인한다.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>kubectl get secret argocd-initial-admin-secret <span class="se">\</span>
-  <span class="nt">--namespace</span> argocd <span class="se">\</span>
-  <span class="nt">--output</span> <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.data.password}'</span> <span class="se">\</span>
-  | <span class="nb">base64</span> <span class="nt">--decode</span>
-<span class="nb">echo</span>
-</code></pre></div></div>
-
-<p>Password 값을 Blog, Screenshot이나 Shell Script에 저장하지 않는다. 첫 Login 직후 Password를 변경하고 초기 Secret의 보관 필요성을 검토한다.</p>
-
-<blockquote>
-  <p><strong>최종 정리</strong></p>
-  <ul>
-    <li>
-      <p>GitOps는 Git의 선언과 실제 환경을 자동으로 지속해서 비교·조정한다.</p>
-    </li>
-    <li>
-      <p>CI는 Test와 Image 생성을, Argo CD는 Manifest 기반 CD를 담당한다.</p>
-    </li>
-    <li>
-      <p>Repository Server가 Manifest를 만들고 Application Controller가 Kubernetes API를 통해 상태를 맞춘다.</p>
-    </li>
-    <li>
-      <p>Argo CD 조정 뒤에는 Control Plane의 Controller·Scheduler와 Worker의 kubelet·Runtime 동작이 이어진다.</p>
-    </li>
-    <li>
-      <p>학습 환경에서는 Port Forward, 운영 환경에서는 TLS와 접근 제어를 갖춘 Ingress나 LoadBalancer를 사용한다.</p>
-    </li>
-  </ul>
-</blockquote>
-
-<p>다음 글인 <a href="/cloud-native-56-argocd-application-cli-autopilot/">Argo CD Application 배포와 CLI·Autopilot</a>에서는 실제 <code class="language-plaintext highlighter-rouge">Application</code> Resource를 생성하고 Sync 결과를 확인한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="ArgoCD" /><summary type="html"><![CDATA[GitOps의 선언적 Desired State와 지속적 조정을 이해하고 Argo CD 구성 요소를 Kubernetes에 Helm으로 설치한다]]></summary></entry></feed>
+<p>다음 글인 <a href="/cloud-native-55-gitops-argocd-architecture-installation/">GitOps와 Argo CD Architecture·설치</a>에서는 Git Repository의 Desired State와 Kubernetes Cluster의 Live State를 지속적으로 일치시키는 구조를 정리한다.</p>]]></content><author><name></name></author><category term="CloudNative" /><category term="AutoEverSW" /><category term="GitLab" /><summary type="html"><![CDATA[GitLab CE를 Docker Container로 설치하고 Memory·Swap, Port, Volume, 초기 Password와 운영 점검 항목을 정리한다]]></summary></entry></feed>
